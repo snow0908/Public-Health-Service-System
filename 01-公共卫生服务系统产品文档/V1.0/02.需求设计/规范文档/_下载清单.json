@@ -1,0 +1,25 @@
+{
+  "name": "公共卫生服务系统 · 规范依据文档库",
+  "version": "1.0",
+  "created": "2026-09-11",
+  "description": "业务流程闭环蓝图中19个业务域规范依据的官方原文，下载自官方网站/权威镜像，供需求设计引用。配套蓝图：《业务流程闭环蓝图.html》第06章规范文档索引。",
+  "documents": [
+    { "file": "国家基本公共卫生服务规范（第三版）·国卫基层发2017-13号.pdf", "docNo": "国卫基层发〔2017〕13号", "source": "国家卫生健康委官网", "online": "https://www.nhc.gov.cn/jws/s3578/201703/d20c37e23e1f4c7db7b8e25f34473e1b.shtml", "pdf": "https://www.nhc.gov.cn/ewebeditor/uploadfile/2017/04/20170417104506514.pdf", "applies": "BZ-01/03/04/05/06/07/08/09/10/12/15/16/17/18/19（12项基本公卫服务规范）" },
+    { "file": "关于规范家庭医生签约服务管理的指导意见·国卫基层发2018-35号.pdf", "docNo": "国卫基层发〔2018〕35号", "source": "中国政府网（上海市卫健委PDF镜像）", "online": "https://www.gov.cn/zhengce/zhengceku/2018-12/31/content_5435461.htm", "pdf": "https://wsjkw.sh.gov.cn/cmsres/0c/0c228623aa77492fac8a8e3395bcf42a/7d528a310b8a8cac5ae58ab065c5c593.pdf", "applies": "BZ-02 家庭健康档案管理" },
+    { "file": "中华人民共和国传染病防治法（2025修订全文）·中国人大网.html", "docNo": "2025年4月30日修订（2025-09-01施行）", "source": "中国人大网", "online": "http://www.npc.gov.cn/npc/c2/c30834/202504/t20250430_445085.html", "applies": "BZ-13 传染病及突发公卫事件报告" },
+    { "file": "中华人民共和国传染病防治法（2025修订）·人民日报刊发版.pdf", "docNo": "2025年修订刊发版", "source": "人民日报", "online": "http://www.npc.gov.cn/npc/c2/c30834/202504/t20250430_445085.html", "pdf": "http://paper.people.com.cn/rmrb/pc/attachement/202508/19/44951fd0-7bf9-4476-bb9b-3d9ecf62ce3e.pdf", "applies": "BZ-13（PDF排版版，与人大网HTML全文同存）" },
+    { "file": "突发公共卫生事件与传染病疫情监测信息报告管理办法·卫生部令第37号.pdf", "docNo": "卫生部令第37号（2006年发布，2013年修订）", "source": "国家卫生健康委官网", "online": "http://www.nhc.gov.cn/bgt/pw10305/200710/c9c2e54129c847c88b0136479fe72279.shtml", "applies": "BZ-13 传染病及突发公卫事件报告" },
+    { "file": "全国妇幼卫生调查制度（妇幼三网监测）.pdf", "docNo": "卫统42-44表系列", "source": "全国妇幼卫生监测办公室（mchscn.cn）", "online": "http://www.nhc.gov.cn/wjw/gfxwj/201002/a67ab3c712e1486f8314eb1e566f7867.shtml", "applies": "BZ-14 三网监测（孕产妇死亡/围产儿死亡/出生缺陷/儿童死亡）" },
+    { "file": "宫颈癌筛查工作方案·国卫办妇幼函2021-635号.pdf", "docNo": "国卫办妇幼函〔2021〕635号附件1", "source": "国家卫生健康委官网（妇幼健康司）", "online": "https://www.nhc.gov.cn/fys/c100078/202201/e4209b0a6e604f6aba3e793d8eddebf3.shtml", "pdf": "https://www.nhc.gov.cn/fys/c100078/202201/e4209b0a6e604f6aba3e793d8eddebf3/files/1733998298755_31891.pdf", "applies": "BZ-11 妇女保健与两癌筛查" },
+    { "file": "乳腺癌筛查工作方案·国卫办妇幼函2021-635号.pdf", "docNo": "国卫办妇幼函〔2021〕635号附件2", "source": "国家卫生健康委官网（妇幼健康司）", "online": "https://www.nhc.gov.cn/fys/c100078/202201/e4209b0a6e604f6aba3e793d8eddebf3.shtml", "pdf": "https://www.nhc.gov.cn/fys/c100078/202201/e4209b0a6e604f6aba3e793d8eddebf3/files/1733998298635_97783.pdf", "applies": "BZ-11 妇女保健与两癌筛查" },
+    { "file": "宫颈癌筛查工作方案和乳腺癌筛查工作方案·印发通知.html", "docNo": "国卫办妇幼函〔2021〕635号", "source": "国家卫生健康委官网（妇幼健康司）", "online": "https://www.nhc.gov.cn/fys/c100078/202201/e4209b0a6e604f6aba3e793d8eddebf3.shtml", "applies": "BZ-11（印发通知全文+方案要点摘要）" },
+    { "file": "消除艾滋病梅毒和乙肝母婴传播行动计划2022-2025·国卫妇幼发2022-32号.html", "docNo": "国卫妇幼发〔2022〕32号", "source": "中国政府网·国务院公报2023年第4号", "online": "https://www.gov.cn/gongbao/content/2023/content_5741260.htm", "nhcNotice": "https://www.nhc.gov.cn/wjw/c100375/202212/e4ce367265c84265a032c5d1c34c95f0.shtml", "applies": "BZ-11 母婴阻断（乙肝/梅毒/艾滋）" },
+    { "file": "国家基本公共卫生服务项目和家庭医生签约统计调查制度·国家统计局.html", "docNo": "国家统计局部门统计调查项目", "source": "国家统计局官网", "online": "https://www.stats.gov.cn/fw/bmdcxmsp/bmzd/202506/t20250605_1960054.html", "applies": "BZ-19 统计报表与数据上报" },
+    { "file": "关于做好2025年基本公共卫生服务工作的通知·国卫基层发2025-7号.html", "docNo": "国卫基层发〔2025〕7号", "source": "国家卫生健康委官网（基层卫生健康司）", "online": "https://www.nhc.gov.cn/jws/c100073/202506/14a23782324542f59137bbf24a1c988f.shtml", "applies": "BZ-03/04/05/06/18/19（2025年最新服务要求：人均99元经费、老年人DR+糖化血红蛋白、档案开放70%）" }
+  ],
+  "notes": [
+    "卫健委官网HTML页面有WAF防护无法直接下载（HTTP 412），法规全文改由政府网公报/中国人大网/国家统计局获取，或经内容抓取后整理为本地HTML（内容与官方一致，文末注明原文链接）。",
+    "两癌筛查方案PDF为卫健委官网官方附件直链下载。",
+    "传染病防治法为2025年4月30日修订版（十四届全国人大常委会第十五次会议通过），2025年9月1日起施行，共9章115条。"
+  ]
+}

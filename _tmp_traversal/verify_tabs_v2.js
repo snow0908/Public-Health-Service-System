@@ -1,0 +1,17 @@
+const fs = require('fs');
+const h = fs.readFileSync('d:/AI_Project/Public-Health-Service-System/01-公共卫生服务系统产品文档/V1.0/02.需求设计/功能需求清单.html', 'utf8');
+const c = (re) => (h.match(re) || []).length;
+console.log('tab-block blocks:', c(/class="op-block tab-block"/g));
+console.log('mode-tab chips:', c(/mode-tab/g));
+console.log('op-item total:', c(/class="op-item"/g));
+console.log('field tables:', c(/class="field-table"/g));
+console.log('family supplement block:', h.includes('家庭档案 · 家庭成员页签 · 添加家庭成员弹窗'));
+console.log('member business rule:', h.includes('请先添加家庭基本信息'));
+console.log('relation options:', h.includes('本人或户主'));
+console.log('blood relation options:', h.includes('直系血缘关系'));
+console.log('uniqueness rule:', h.includes('verification_family_uniqueness'));
+console.log('poverty tab 44 fields:', h.includes('44 项字段'));
+console.log('tab detail title:', h.includes('页签级明细（逐页签实测采集）'));
+console.log('metric tab panel stat:', c(/个页签<\/em>/g));
+console.log('undefined leak:', h.includes('undefined'), '| null leak:', h.includes('null,'));
+console.log('size KB:', (h.length / 1024).toFixed(1));

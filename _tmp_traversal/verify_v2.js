@@ -1,0 +1,17 @@
+const fs = require('fs');
+const h = fs.readFileSync('d:/AI_Project/Public-Health-Service-System/01-公共卫生服务系统产品文档/V1.0/02.需求设计/功能需求清单.html', 'utf8');
+const c = (re) => (h.match(re) || []).length;
+console.log('op-block blocks:', c(/class="op-block"/g));
+console.log('field tables:', c(/class="field-table"/g));
+console.log('op-items:', c(/class="op-item"/g));
+console.log('kf-items:', c(/class="kf-item"/g));
+console.log('p360 cards:', c(/class="p360-card"/g));
+console.log('steps:', c(/class="step /g));
+console.log('has 33q:', h.includes('（33）您舌下静脉瘀紫或增粗吗'));
+console.log('has tcm guide:', h.includes('情致调摄'));
+console.log('has assess:', h.includes('进餐'));
+console.log('mode-dialog:', c(/mode-dialog/g), 'mode-page:', c(/mode-page/g));
+console.log('destructive note:', c(/破坏性操作/g));
+console.log('details count:', c(/<details/g));
+console.log('undefined leak:', h.includes('undefined'), '| null leak:', h.includes('null,'));
+console.log('size KB:', (h.length / 1024).toFixed(1));

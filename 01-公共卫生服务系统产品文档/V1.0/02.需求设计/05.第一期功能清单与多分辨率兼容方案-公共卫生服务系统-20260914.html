@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>05.第一期功能清单与多分辨率兼容方案-公共卫生服务系统-20260914</title>
+<style>
+:root{
+  --primary:#0B69C7; --primary-dark:#084F94; --primary-light:#E8F1FB;
+  --teal:#0E9494; --teal-light:#E6F5F5;
+  --orange:#D97706; --orange-light:#FEF3E2;
+  --red:#C62828; --red-light:#FDECEA;
+  --gray-900:#1F2937; --gray-700:#4B5563; --gray-500:#6B7280; --gray-300:#D1D5DB; --gray-200:#E5E7EB; --gray-100:#F3F4F6; --gray-50:#F9FAFB;
+  --border:#E2E8F0; --bg:#F5F7FA;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"PingFang SC","Microsoft YaHei","Segoe UI",system-ui,sans-serif;color:var(--gray-900);background:var(--bg);line-height:1.7;font-size:15px;}
+.wrap{max-width:1200px;margin:0 auto;padding:24px 20px 60px;}
+/* ===== 文档头 ===== */
+.doc-hero{background:linear-gradient(135deg,#084F94 0%,#0B69C7 55%,#0E9494 100%);color:#fff;border-radius:14px;padding:36px 40px 30px;margin-bottom:22px;}
+.doc-hero .kicker{font-size:13px;letter-spacing:3px;opacity:.85;margin-bottom:8px;}
+.doc-hero h1{font-size:27px;font-weight:700;letter-spacing:.5px;margin-bottom:6px;}
+.doc-hero .sub{font-size:14.5px;opacity:.92;}
+.meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0;background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:26px;}
+.meta-item{padding:12px 18px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);}
+.meta-item:nth-child(2n){border-right:none;}
+.meta-item .k{font-size:12px;color:var(--gray-500);margin-bottom:2px;}
+.meta-item .v{font-size:14px;font-weight:600;color:var(--gray-900);}
+/* ===== 目录 ===== */
+.toc{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 24px;margin-bottom:28px;}
+.toc h3{font-size:15px;color:var(--primary-dark);margin-bottom:10px;}
+.toc ol{margin-left:20px;}
+.toc li{margin:4px 0;font-size:14px;}
+.toc a{color:var(--gray-700);text-decoration:none;}
+.toc a:hover{color:var(--primary);}
+/* ===== 章节 ===== */
+section.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:28px 32px;margin-bottom:26px;}
+h2.sec{font-size:21px;color:var(--primary-dark);border-left:5px solid var(--primary);padding-left:12px;margin-bottom:18px;}
+h3.sub{font-size:17px;color:var(--gray-900);margin:26px 0 12px;display:flex;align-items:center;gap:8px;}
+h3.sub .idx{background:var(--primary);color:#fff;font-size:12px;border-radius:6px;padding:2px 8px;font-weight:600;}
+h4{font-size:15px;color:var(--gray-700);margin:16px 0 8px;}
+p{margin:8px 0;}
+p.lead{color:var(--gray-700);}
+ul.plain{margin:6px 0 6px 22px;}
+ul.plain li{margin:4px 0;}
+/* ===== 表格 ===== */
+table{width:100%;border-collapse:collapse;margin:12px 0 18px;font-size:13.5px;}
+th{background:var(--primary-light);color:var(--primary-dark);font-weight:600;text-align:left;padding:9px 12px;border:1px solid var(--border);white-space:nowrap;}
+td{padding:8px 12px;border:1px solid var(--border);vertical-align:top;}
+tbody tr:nth-child(even){background:var(--gray-50);}
+table.small td,table.small th{font-size:12.5px;padding:6px 10px;}
+/* ===== 徽章 ===== */
+.b{display:inline-block;border-radius:20px;padding:1px 10px;font-size:12px;font-weight:600;line-height:1.7;white-space:nowrap;}
+.b-p0{background:var(--red-light);color:var(--red);}
+.b-p1{background:var(--orange-light);color:var(--orange);}
+.b-p2{background:#E8EDF5;color:#52627A;}
+.b-a{background:var(--primary-light);color:var(--primary-dark);}
+.b-b{background:var(--teal-light);color:var(--teal);}
+.b-c{background:var(--orange-light);color:#9A5B04;}
+.b-full{color:var(--primary-dark);font-weight:700;}
+.tag{display:inline-block;background:var(--gray-100);border:1px solid var(--gray-200);border-radius:6px;padding:0 8px;font-size:12px;color:var(--gray-700);margin:1px 2px;white-space:nowrap;}
+/* ===== 提示框 ===== */
+.note{border-radius:10px;padding:14px 18px;margin:14px 0;font-size:13.5px;}
+.note-blue{background:var(--primary-light);border-left:4px solid var(--primary);}
+.note-red{background:var(--red-light);border-left:4px solid var(--red);}
+.note-green{background:var(--teal-light);border-left:4px solid var(--teal);}
+.note-orange{background:var(--orange-light);border-left:4px solid var(--orange);}
+.note b{display:block;margin-bottom:4px;}
+/* ===== 架构图 ===== */
+.fig{background:var(--gray-50);border:1px dashed var(--gray-300);border-radius:12px;padding:20px;margin:16px 0;text-align:center;}
+.fig .cap{font-size:12.5px;color:var(--gray-500);margin-top:12px;text-align:center;}
+.arch{display:flex;flex-direction:column;gap:10px;max-width:960px;margin:0 auto;}
+.arch-box{border-radius:10px;padding:12px 18px;font-size:13.5px;font-weight:600;}
+.arch-core{background:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(11,105,199,.3);}
+.arch-cfg{background:#fff;border:2px solid var(--primary);color:var(--primary-dark);}
+.arch-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+.arch-term{flex:1;min-width:230px;max-width:300px;background:#fff;border:1.5px solid var(--teal);border-radius:10px;padding:11px 14px;font-size:13px;text-align:left;}
+.arch-term b{display:block;color:var(--primary-dark);font-size:13.5px;margin-bottom:3px;}
+.arch-term span{font-weight:400;color:var(--gray-700);font-size:12px;line-height:1.55;display:block;}
+.arrow-down{color:var(--gray-500);font-size:18px;line-height:1;}
+/* ===== 断点条 ===== */
+.bp-bar{display:flex;max-width:1000px;margin:8px auto 4px;border-radius:10px;overflow:hidden;border:1px solid var(--border);}
+.bp-seg{padding:10px 8px;text-align:center;font-size:12px;color:#fff;}
+.bp-seg b{display:block;font-size:13px;}
+.bp-1{background:#0B69C7;} .bp-2{background:#2A85D8;} .bp-3{background:#0E9494;} .bp-4{background:#0A7C7C;} .bp-5{background:#084F94;}
+.bp-legend{display:flex;max-width:1000px;margin:0 auto;font-size:11.5px;color:var(--gray-500);}
+.bp-legend span{flex:1;text-align:center;}
+/* ===== 组件双形态示意 ===== */
+.duo{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;align-items:stretch;}
+.duo-item{flex:1;min-width:300px;max-width:440px;}
+.duo-item .lab{font-size:12.5px;font-weight:700;color:var(--gray-700);margin-bottom:8px;text-align:center;}
+.mock{border:1px solid var(--gray-300);border-radius:10px;background:#fff;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.mrow{display:grid;grid-template-columns:2fr 1.2fr 1fr 1.4fr .8fr;gap:6px;font-size:11px;padding:6px 6px;border-bottom:1px solid var(--gray-200);color:var(--gray-700);}
+.mrow.h{background:var(--primary-light);color:var(--primary-dark);font-weight:600;border-radius:6px;border-bottom:none;}
+.mcard{border:1px solid var(--gray-200);border-radius:10px;padding:10px 12px;margin-bottom:8px;}
+.mcard .r1{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;font-weight:600;}
+.mcard .r2{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
+.chip{background:var(--primary-light);color:var(--primary-dark);border-radius:12px;font-size:10.5px;padding:1px 8px;}
+.chip.warn{background:var(--orange-light);color:var(--orange);}
+/* ===== 矩阵点 ===== */
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:3px;vertical-align:middle;}
+.d-full{background:var(--primary);}
+.d-half{background:var(--teal);}
+.d-none{background:var(--gray-300);}
+footer{color:var(--gray-500);font-size:12.5px;text-align:center;margin-top:10px;line-height:1.8;}
+@media print{
+  body{background:#fff;} .wrap{max-width:none;padding:0;}
+  section.card{border:none;padding:10px 0;page-break-inside:avoid;}
+  .doc-hero{border-radius:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+@media (max-width:760px){
+  .doc-hero{padding:24px 20px;} .doc-hero h1{font-size:20px;}
+  section.card{padding:18px 16px;}
+  table{font-size:12px;} th,td{padding:6px 7px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ================= 文档头 ================= -->
+<div class="doc-hero">
+  <div class="kicker">产品规划输出 · 第一期（1.0）功能清单 · 多分辨率兼容方案</div>
+  <h1>公共卫生服务系统 · 第一期（1.0）功能清单与多端适配方案</h1>
+  <div class="sub">规范补齐与平战结合版（2026-09 ~ 2026-12）｜三档同源一套代码 · 多端多分辨率统一呈现</div>
+</div>
+
+<div class="meta-grid">
+  <div class="meta-item"><div class="k">产品名称</div><div class="v">公共卫生服务系统（FKB-JC-AIAS）</div></div>
+  <div class="meta-item"><div class="k">文档版本</div><div class="v">V1.0（2026-09-14 整理）</div></div>
+  <div class="meta-item"><div class="k">整理依据</div><div class="v">02 产品规划文档 V1.4｜03 产品路线图 V1.5｜04 业务流程说明 V1.2（7 张流程图）</div></div>
+  <div class="meta-item"><div class="k">版本范围</div><div class="v">1.0 规范补齐与平战结合版（第一期）</div></div>
+  <div class="meta-item"><div class="k">时间窗 / 出口</div><div class="v">2026-09-01 ~ 2026-12-01（M5 公司内部发布）</div></div>
+  <div class="meta-item"><div class="k">归档位置（建议）</div><div class="v">产品资产/FKB-JC-AIAS 公共卫生服务系统/00.产品规划输入/</div></div>
+</div>
+
+<div class="toc">
+  <h3>目录</h3>
+  <ol>
+    <li><a href="#s1">第一期（1.0）定位、目标与验收口径</a></li>
+    <li><a href="#s2">第一期功能清单（17 个模块 · 逐项明细）</a></li>
+    <li><a href="#s3">一套系统多分辨率兼容方案（A/B/C 三档 · 六种形态统一呈现）</a></li>
+    <li><a href="#s4">实施节奏、风险与验收</a></li>
+    <li><a href="#s5">参考依据</a></li>
+  </ol>
+</div>
+
+<!-- ================= 第一章 ================= -->
+<section class="card" id="s1">
+  <h2 class="sec">一、第一期（1.0）定位、目标与验收口径</h2>
+
+  <h3 class="sub"><span class="idx">1.1</span>版本定位</h3>
+  <p class="lead">第一期对应路线图 <b>1.0「规范补齐与平战结合版」</b>（原 3.0 平战结合内容整体提前并入）：先把规范项补齐，解决「有没有、全不全」，并同期具备平战结合与领导驾驶舱能力。原因为「平战结合」是《全国公共卫生信息化建设标准与规范（试行）》一级要求（合规项而非增值项），且驾驶舱/一张图是领导可见度最高的能力，直接影响项目验收与复制推广。</p>
+
+  <table>
+    <tr><th style="width:150px">项</th><th>内容</th></tr>
+    <tr><td>版本名</td><td><b>1.0 规范补齐与平战结合版</b>（第一步「医共体平台补齐」+ 第三步「智慧医院县级延伸」提前实现）</td></tr>
+    <tr><td>时间窗</td><td>2026-09 ~ 2026-12；里程碑 M1（09-20 规范基线冻结）→ M2（10-15 原型评审）→ M3（11-15 核心开发完成）→ M4（11-30 内部验证与演练）→ <b>M5（12-01 公司内部发布）</b></td></tr>
+    <tr><td>发布范围</td><td>公司内部发布（内部验证与演示环境部署、内部培训与演示、发布评审与版本归档）；客户现场试点与实施另行排期立项</td></tr>
+    <tr><td>投入估算</td><td>AI 转型后口径 42 人月，峰值并行 10~11 人（后端 14 / 前端 10 / 大屏与可视化 5 / 测试 6 / 产品 3 / 实施 3 / 接口对接 1）</td></tr>
+    <tr><td>节奏原则</td><td><b>先合规、再减负、后融合</b>——1.0 规范项补齐，1.1 解决基层真实使用率，1.2 做医防融合差异化</td></tr>
+  </table>
+
+  <h3 class="sub"><span class="idx">1.2</span>第一期关键验收口径（引用路线图与 02 文档 8.2）</h3>
+  <table class="small">
+    <tr><th style="width:110px">维度</th><th>验收判据</th><th style="width:90px">对应 KPI</th></tr>
+    <tr><td>合规</td><td>12 类 + 新增项 <b>100% 承载</b>（规范条目—功能项映射表 P0 条目全部有对应功能与验收证据）</td><td>规范项承载率 100%</td></tr>
+    <tr><td>法定红线</td><td>传染病 <b>2 小时 / 24 小时</b> 网络直报法定时限校验与超时提醒可用；国家传染病智能监测预警前置软件适配/对接完成；HIS/LIS 诊断与检测数据自动获取通道打通（<b>不可裁剪项</b>）</td><td>—</td></tr>
+    <tr><td>数据</td><td>慢病红黄绿三级管理上线；电子健康档案居民端开放上线；平台侧公卫指标 ≥20 个可出数；<b>家庭建档率 ≥85%、家庭成员关联率 ≥90%、家谱关系图可用</b>；电子预防接种证可出具、接种信息跨地区共享查询可用</td><td>居民档案开放覆盖 ≥80%</td></tr>
+    <tr><td>平战结合</td><td>公卫驾驶舱（人群健康画像一张图、责任清单进度、质量与经费热力图）上线；突发公卫事件动态监测、应急值守、一键上报与平战切换可用，完成 <b>≥1 次内部演练</b></td><td>—</td></tr>
+    <tr><td>效率</td><td>任务自动派发 ≥90%；报表自动生成率 <b>100%</b></td><td>随访任务自动派发率 ≥90%</td></tr>
+    <tr><td>体验与部署</td><td>三档界面符合 UED v1.6；A/B/C 三档规格定义与功能开关落地；内部验证环境按「1 个县 + 3 个乡镇」可完整演示</td><td>—</td></tr>
+  </table>
+
+  <div class="note note-orange"><b>⚠ C 档交付口径（重要）</b>路线图明确：C 档（村卫生室）正式交付需离线作业能力（1.1 才完整），<b>1.0 阶段 C 档以「B 档简化权限」临时承载 + 完成移动端原型验证（M2 含 C 档移动原型）</b>，不得作为正式交付口径。本期功能清单仍按三档差异矩阵标注 C 档功能范围，供架构与原型设计对齐。</div>
+</section>
+
+<!-- ================= 第二章 ================= -->
+<section class="card" id="s2">
+  <h2 class="sec">二、第一期功能清单</h2>
+
+  <h3 class="sub"><span class="idx">2.0</span>清单口径说明</h3>
+  <ul class="plain">
+    <li><b>优先级</b>：<span class="b b-p0">P0</span> 合规红线与验收必备 ｜ <span class="b b-p1">P1</span> 使用率与产品化 ｜ <span class="b b-p2">P2</span> 差异化与样板（风险门不通过时可顺延）。</li>
+    <li><b>档位</b>：<span class="b b-a">A 中心卫生院/县级</span> 完整版 ｜ <span class="b b-b">B 普通乡镇</span> 标准版 ｜ <span class="b b-c">C 村卫生室</span> 移动轻量版。图例沿用 02 文档 4.11：<span class="dot d-full"></span>● 完整承载 ｜ <span class="dot d-half"></span>◐ 简化/辅助承载 ｜ <span class="dot d-none"></span>○ 不承载（由上级机构完成）。</li>
+    <li><b>规范依据缩写</b>：B=基本公卫服务规范（第三版）；N=2019 新划入；S=公卫信息化标准与规范 / WS/T 517—2016；J=江苏省平台分级评价；2026=2026 年四部门通知；防法=《传染病防治法》2025 修订；疾控=疾控「十五五」规划。</li>
+    <li><b>范围口径</b>：以路线图 2.2「1.0 范围表」为主干，02 文档第 4 章功能清单为明细，业务流程（04 文档 7 张图）为闭环校验；1.1/1.2 项已剔除并在 2.19 范围排除清单中列明。</li>
+  </ul>
+
+  <!-- F1 -->
+  <h3 class="sub"><span class="idx">F1</span>健康档案管理（P0 · A/B/C）<span class="tag">对应流程 L3a / L3b</span></h3>
+  <h4>F1.1 居民（个人）健康档案（WS/T 517—2016 6.1）</h4>
+  <table class="small">
+    <tr><th style="width:170px">功能项</th><th>功能说明</th><th style="width:56px">优先级</th><th style="width:120px">档位</th><th style="width:80px">依据</th></tr>
+    <tr><td>建档与更新</td><td>诊间/入户建档、批量导入、变更留痕</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●｜C ◐（单个建档、更新）</td><td>B、S</td></tr>
+    <tr><td>档案迁移与注销</td><td>迁入迁出、死亡注销、重复归并（对接 EMPI）</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●｜C ○（发起申请）</td><td>B、S</td></tr>
+    <tr><td>档案开放与授权</td><td>居民端授权、查询范围控制（范围与时效）、访问全程留痕</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ◐｜C ◐（引导居民自助）</td><td>2026</td></tr>
+    <tr><td>档案质量体检</td><td>完整性 / 逻辑性 / 时效性自动核查，输出整改清单，派发到人限期整改、回填复检</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●｜C ○</td><td>J</td></tr>
+    <tr><td>家庭归属维护</td><td>个人档案与家庭档案的加入/解除（联动 F1.2）；人—户解耦，个人档案可独立存在</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●｜C ◐</td><td>S</td></tr>
+  </table>
+
+  <h4>F1.2 家庭健康档案（WS/T 517—2016 6.3 · 1.0 数据目标：建档率 ≥85% / 关联率 ≥90% / 家谱图可用）</h4>
+  <table class="small">
+    <tr><th style="width:170px">功能项</th><th>功能说明</th><th style="width:56px">优先级</th><th style="width:120px">档位</th><th style="width:80px">依据</th></tr>
+    <tr><td>家庭建档</td><td>采集家庭住址、家庭人数、户主信息、建档医生/护士、建档日期；支持以户为单位批量导入（入户采集·网格导入·诊间补录）</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●｜C ◐</td><td>S</td></tr>
+    <tr><td>家庭成员关系维护</td><td>成员加入/移除、与户主关系（GB/T 4761-2008）、户主标识；含成员的家庭档案不允许删除，须先移除全部成员</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●｜C ◐</td><td>S</td></tr>
+    <tr><td>家庭档案变更与更新</td><td>基本信息变更；响应建档/签约/迁移/死亡注销等模块联动更新</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●</td><td>S</td></tr>
+    <tr><td>家庭档案批量导入</td><td>从其它系统以文本/数据库文件导入存量家庭档案</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●</td><td>S</td></tr>
+    <tr><td>家庭档案删除与归并</td><td>空户删除；重复户归并（按住址 + 户主证件 + 成员重叠度判重）</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●</td><td>S</td></tr>
+    <tr><td>家庭档案清单与详情</td><td>辖区家庭档案清单；家庭详情（成员一览、重点人群标记、签约状态只读）</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●｜C ◐（清单查看）</td><td>S</td></tr>
+    <tr><td><b>家谱关系图</b></td><td>规范明确要求的可视化能力：家庭成员构成与关系展示（矢量图，支持缩放）</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●</td><td>S</td></tr>
+    <tr><td>家庭建档统计</td><td>按社区（村）、时间段、<b>健康特征</b>（户内 ≥2 名高血压 / 有重精患者 / 有 0-6 岁儿童等）统计</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●</td><td>S</td></tr>
+    <tr><td>家庭档案变更统计</td><td>建档、成员变动、注销的变更流水统计</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●</td><td>S</td></tr>
+    <tr><td>家庭档案体检</td><td>重复户、成员缺失、信息过期三类问题自动检出，整改回填后复检（AI 规则引擎，不自动合并删除）</td><td><span class="b b-p1">P1</span></td><td>A ●｜B ●</td><td>S</td></tr>
+  </table>
+  <div class="note note-blue" style="margin-top:-6px">家庭健康画像（风险标签）、家庭批量服务、家庭维度公卫提醒为 <b>1.1</b> 能力（L3b 流程「1.0 建档/家谱、1.1 画像」），本期仅做数据结构预留；家庭签约概览为只读消费家医系统结果（接口 I-10），随接口就绪交付。</div>
+
+  <!-- F2 -->
+  <h3 class="sub"><span class="idx">F2</span>重点人群与慢病分级管理（P0 · A/B/C）<span class="tag">对应流程 L2a（分级随访部分）</span></h3>
+  <table class="small">
+    <tr><th style="width:170px">功能项</th><th>功能说明</th><th style="width:56px">优先级</th><th style="width:120px">档位</th><th style="width:80px">依据</th></tr>
+    <tr><td>0-6 岁儿童健康管理</td><td>新生儿访视、体检、生长发育曲线、心理行为发育评估</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●｜C △（随访协助）</td><td>B、S</td></tr>
+    <tr><td>孕产妇健康管理</td><td>早孕建册、产前随访、产后访视、高危孕产妇专案</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●｜C △（随访协助与通知）</td><td>B</td></tr>
+    <tr><td>老年人健康管理</td><td>健康评估、年度体检、中医药体质辨识</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●｜C ◐（体检登记协助）</td><td>B、S</td></tr>
+    <tr><td>高血压患者管理</td><td>分级随访、控制率统计（与红黄绿三级管理联动）</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●｜C ●（简化表随访采集）</td><td>B、2026</td></tr>
+    <tr><td>2 型糖尿病患者管理</td><td>同上 + 血糖监测数据归集</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●｜C ●</td><td>B、2026</td></tr>
+    <tr><td><b>慢阻肺患者管理</b></td><td>2024 新增，纳入慢病主流程，与高血压/糖尿病同等待遇</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●｜C ●</td><td>2026</td></tr>
+    <tr><td><b>慢病红黄绿三级管理模型</b></td><td>高血压/糖尿病/慢阻肺红黄绿分级与<b>分级随访策略配置</b>；随访名单按分级策略自动生成；分级随体征数据动态调整（医生确认生效）</td><td><span class="b b-p0">P0</span></td><td>A ●（策略配置）｜B ●（分级执行）｜C ●（采集）</td><td>2026</td></tr>
+    <tr><td>严重精神障碍患者管理</td><td>面访、危险性评估、用药、家属护理指导</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●</td><td>B、S</td></tr>
+    <tr><td>肺结核患者管理</td><td>督导服药、随访、结案</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●｜C △</td><td>B</td></tr>
+    <tr><td>中医药健康管理</td><td>体质辨识、健康指导（老年人 + 0-36 月儿童）</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●</td><td>B</td></tr>
+  </table>
+  <div class="note note-blue" style="margin-top:-6px">L2a 中 AI 语音外呼、IoT 自助上报、上转—下转闭环归 <b>1.1 / 1.2</b>；本期实现面访/门诊随访采集 + 分级名单生成 + 控制率/规范管理率出数。</div>
+
+  <!-- F3 -->
+  <h3 class="sub"><span class="idx">F3</span>预防接种管理（P0 · A/B）<span class="tag">对应流程 L2b</span></h3>
+  <table class="small">
+    <tr><th style="width:170px">功能项</th><th>功能说明</th><th style="width:56px">优先级</th><th style="width:120px">档位</th><th style="width:80px">依据</th></tr>
+    <tr><td>接种计划与预约</td><td>按免疫程序自动生成应种名单、分时段预约与提醒</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●｜C ○（通知与催种）</td><td>S</td></tr>
+    <tr><td>接种记录与查漏补种</td><td>接种登记（部位/批号）、逾期提醒、查漏补种名单自动重排</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●</td><td>B、S</td></tr>
+    <tr><td>疫苗核验</td><td>批次·冷链·效期三要素核对（关键控制点）</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●</td><td>S</td></tr>
+    <tr><td>异常反应监测（AEFI）</td><td>留观 30 分钟流程、AEFI 登记、报告与随访</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●</td><td>S</td></tr>
+    <tr><td>疫苗追溯</td><td>冷链、批次、出入库全程追溯</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●</td><td>S</td></tr>
+    <tr><td><b>电子预防接种证</b></td><td>生成与出具电子接种证，居民端可出示；接种信息<b>跨地区共享查询</b></td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●</td><td>疾控</td></tr>
+    <tr><td>接种率统计</td><td>接种率统计与考核出数，异常波动预警（规则引擎）</td><td><span class="b b-p1">P1</span></td><td>A ●｜B ●</td><td>J</td></tr>
+  </table>
+
+  <!-- F4 -->
+  <h3 class="sub"><span class="idx">F4</span>传染病报告与多病原监测（P0 · A/B/C）<span class="tag">对应流程 L2c（报告部分）</span></h3>
+  <table class="small">
+    <tr><th style="width:170px">功能项</th><th>功能说明</th><th style="width:56px">优先级</th><th style="width:120px">档位</th><th style="width:80px">依据</th></tr>
+    <tr><td>传染病报卡</td><td>报卡登记、审核（完整性与时限核查）、患者信息预填</td><td><span class="b b-p0">P0</span></td><td>A ●（触发+审核+直报）｜B ●（审核+直报）｜C ◐（上报线索）</td><td>B、S</td></tr>
+    <tr><td><b>法定时限直报与超时提醒</b></td><td>甲/乙/丙类 <b>2 小时 / 24 小时</b> 网络直报法定时限校验与超时提醒（不可裁剪红线项）</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●｜C ●（一键上报）</td><td>防法</td></tr>
+    <tr><td><b>HIS/LIS 数据自动获取</b></td><td>诊断与检测数据自动获取通道，报卡由诊疗数据自动触发（院端接口开放）</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●</td><td>防法、AI 意见</td></tr>
+    <tr><td><b>国家前置软件对接</b></td><td>国家传染病智能监测预警前置软件适配/对接（G6 风险门：不通过时先以「报卡导出 + 人工导入」过渡，保留标准适配层）</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●｜C ●</td><td>防法、疾控</td></tr>
+    <tr><td>流行病学调查</td><td>个案流调、密接管理、疫点处置记录</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●</td><td>S</td></tr>
+    <tr><td>哨点监测</td><td>监测点数据登记与趋势分析</td><td><span class="b b-p0">P0</span></td><td>A ●</td><td>S</td></tr>
+    <tr><td><b>多病原监测</b></td><td>呼吸道多病原（<b>≥15 种</b>）监测数据项承载与上报</td><td><span class="b b-p1">P1</span></td><td>A ●｜B ●</td><td>疾控</td></tr>
+  </table>
+
+  <!-- F5 -->
+  <h3 class="sub"><span class="idx">F5</span>突发公共卫生事件与平战切换（P1 · A/B，C 接收提醒）<span class="tag">对应流程 L2c（平战切换）</span></h3>
+  <table class="small">
+    <tr><th style="width:170px">功能项</th><th>功能说明</th><th style="width:56px">优先级</th><th style="width:120px">档位</th><th style="width:80px">依据</th></tr>
+    <tr><td>事件动态监测</td><td>突发公卫事件动态监测、事件判定（构成突发公卫事件?分支）</td><td><span class="b b-p1">P1</span></td><td>A ●｜B ●</td><td>S</td></tr>
+    <tr><td>应急值守</td><td>战时应急值守班表与值守响应</td><td><span class="b b-p1">P1</span></td><td>A ●｜B ●</td><td>S</td></tr>
+    <tr><td>一键上报</td><td>事件一键上报与应急报告流转</td><td><span class="b b-p1">P1</span></td><td>A ●｜B ●｜C ◐（接收提醒与一键上报）</td><td>S</td></tr>
+    <tr><td><b>平战切换</b></td><td>平时（慢病/重点人群管理）与战时（应急监测上报）共用同一数据底座的双向切换；完成 ≥1 次内部演练（M4）</td><td><span class="b b-p1">P1</span></td><td>A ●｜B ●</td><td>S</td></tr>
+    <tr><td>资源调度视图</td><td>床位·物资·人员调度看板（应急指挥场景）</td><td><span class="b b-p1">P1</span></td><td>A ●</td><td>S</td></tr>
+  </table>
+
+  <!-- F6 -->
+  <h3 class="sub"><span class="idx">F6</span>公卫驾驶舱（P1 · A 完整 / B 只读）<span class="tag">大屏形态</span></h3>
+  <table class="small">
+    <tr><th style="width:170px">功能项</th><th>功能说明</th><th style="width:56px">优先级</th><th style="width:120px">档位</th><th style="width:80px">依据</th></tr>
+    <tr><td>人群健康画像一张图</td><td>辖区人群健康画像 GIS 一张图（G7 风险门不达标时降级为固定指标看板）</td><td><span class="b b-p1">P1</span></td><td>A ●｜B ◐（只读）</td><td>S、2026</td></tr>
+    <tr><td>责任清单进度</td><td>县—乡—村责任清单落实进度可视</td><td><span class="b b-p1">P1</span></td><td>A ●｜B ◐（只读）</td><td>医共体监测</td></tr>
+    <tr><td>质量与经费热力图</td><td>服务质量与经费执行热力图（只读展示，经费测算在 1.2）</td><td><span class="b b-p1">P1</span></td><td>A ●｜B ◐（只读）</td><td>医共体监测</td></tr>
+    <tr><td>大屏适配与轮播</td><td>1920×1080 基准等比缩放适配（详见第三章），支持值守轮播模式</td><td><span class="b b-p1">P1</span></td><td>A ●</td><td>—</td></tr>
+  </table>
+
+  <!-- F7 -->
+  <h3 class="sub"><span class="idx">F7</span>任务与绩效管理（P0 · A/B/C）<span class="tag">对应流程 L1（任务派发）</span></h3>
+  <table class="small">
+    <tr><th style="width:170px">功能项</th><th>功能说明</th><th style="width:56px">优先级</th><th style="width:120px">档位</th><th style="width:80px">依据</th></tr>
+    <tr><td>公卫责任清单</td><td>县—乡—村三级责任分解与落实追踪</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●</td><td>医共体监测</td></tr>
+    <tr><td><b>任务自动生成与派发</b></td><td>年度服务计划自动拆解为随访/体检任务，派发到人·到村·到户，进度看板实时可视</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●｜C ●（接收与执行）</td><td>B</td></tr>
+    <tr><td>工作量台账</td><td>按人、按机构、按项目统计真实工作量（含服务真实性证据链）</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ◐｜C ◐（本人工作量）</td><td>2026</td></tr>
+    <tr><td>质量核查</td><td>真实性（重复、逻辑、时限）、规范性自动核查</td><td><span class="b b-p1">P1</span></td><td>A ●｜B ●</td><td>J</td></tr>
+    <tr><td>绩效考核数据供给</td><td>按机构/团队/个人三维度输出考核数据，对接绩效系统（I-11）</td><td><span class="b b-p1">P1</span></td><td>A ●｜B ●</td><td>医共体监测</td></tr>
+  </table>
+
+  <!-- F8 -->
+  <h3 class="sub"><span class="idx">F8</span>质控管理（P0 · A/B/C）<span class="tag">对应流程 L1（AI 质控）/ L3a（质量体检）</span></h3>
+  <table class="small">
+    <tr><th style="width:170px">功能项</th><th>功能说明</th><th style="width:56px">优先级</th><th style="width:120px">档位</th><th style="width:80px">依据</th></tr>
+    <tr><td>自动质控核查</td><td>服务记录提交即进入质控：完整性/逻辑性/时效性 + 重复/逻辑矛盾/超期未访自动核查（规则引擎优先，不依赖大模型）</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●｜C ◐（接收整改清单）</td><td>J、2026</td></tr>
+    <tr><td>质控前移拦截</td><td>质控嵌入采集环节：存疑回退整改，合格才沉淀入库，保证「数出有据」</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●</td><td>J</td></tr>
+    <tr><td>整改闭环</td><td>质控问题生成整改单，派发到人限期回改，状态流转可统计（闭环率 KPI ≥95% 在 1.1 验收）</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●｜C ◐</td><td>J</td></tr>
+  </table>
+
+  <!-- F9 -->
+  <h3 class="sub"><span class="idx">F9</span>统计报表与指标供给（P0 · A/B）<span class="tag">对应流程 L1</span></h3>
+  <table class="small">
+    <tr><th style="width:170px">功能项</th><th>功能说明</th><th style="width:56px">优先级</th><th style="width:120px">档位</th><th style="width:80px">依据</th></tr>
+    <tr><td><b>四级固定报表自动生成</b></td><td>国家/省/市/县四级固定报表自动生成与上报（自动生成率 100%）</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●</td><td>J、B</td></tr>
+    <tr><td><b>平台指标供给</b></td><td>平台侧基本公卫指标 ≥20 个一键出数（建档率、接种率、规范管理率、控制率等，江苏省分级评价「好」档）</td><td><span class="b b-p0">P0</span></td><td>A ●｜B ●</td><td>J</td></tr>
+    <tr><td>专项统计</td><td>妇幼年报、死因监测、慢病危险因素等专项统计出数</td><td><span class="b b-p1">P1</span></td><td>A ●｜B ●</td><td>S</td></tr>
+  </table>
+
+  <!-- F10 -->
+  <h3 class="sub"><span class="idx">F10</span>预测预警（P2 · A）<span class="tag">G7 风险门：不达标时优先顺延 1.1</span></h3>
+  <table class="small">
+    <tr><th style="width:170px">功能项</th><th>功能说明</th><th style="width:56px">优先级</th><th style="width:120px">档位</th><th style="width:80px">依据</th></tr>
+    <tr><td>慢病并发症风险预警</td><td>基于规则引擎（AI 辅助）的慢病并发症风险识别与预警提示</td><td><span class="b b-p2">P2</span></td><td>A ●</td><td>2026</td></tr>
+    <tr><td>症候群监测预警</td><td>症候群/多点触发监测预警线索（AI 仅出建议与清单，人工确认）</td><td><span class="b b-p2">P2</span></td><td>A ●</td><td>防法</td></tr>
+  </table>
+
+  <!-- F11 -->
+  <h3 class="sub"><span class="idx">F11</span>满意度调查（P2 · A/B）<span class="tag">G7 风险门：不达标时顺延 1.1</span></h3>
+  <table class="small">
+    <tr><th style="width:170px">功能项</th><th>功能说明</th><th style="width:56px">优先级</th><th style="width:120px">档位</th><th style="width:80px">依据</th></tr>
+    <tr><td>居民满意度 AI 外呼</td><td>AI 外呼回访 + 结构化回收（依赖 AI 中台，I-08）</td><td><span class="b b-p2">P2</span></td><td>A ●｜B ●</td><td>2026</td></tr>
+    <tr><td>满意度统计分析</td><td>满意度统计与考核出数</td><td><span class="b b-p2">P2</span></td><td>A ●｜B ●</td><td>2026</td></tr>
+  </table>
+
+  <!-- F12 -->
+  <h3 class="sub"><span class="idx">F12</span>健康教育与促进（P1 · A/B/C）<span class="tag">12 类服务之一，1.0 全项承载要求</span></h3>
+  <table class="small">
+    <tr><th style="width:170px">功能项</th><th>功能说明</th><th style="width:56px">优先级</th><th style="width:120px">档位</th><th style="width:80px">依据</th></tr>
+    <tr><td>健康知识库</td><td>健康教育计划、资料发放记录、效果评价</td><td><span class="b b-p1">P1</span></td><td>A ●｜B ●｜C ◐（接收与转发）</td><td>S</td></tr>
+    <tr><td>健康素养评估</td><td>健康素养评估问卷与统计</td><td><span class="b b-p1">P1</span></td><td>A ●｜B ●</td><td>S</td></tr>
+    <tr><td>居民触达推送</td><td>提醒·预约·宣教推送（基础版；AI 个性化推送增强在 1.1）</td><td><span class="b b-p1">P1</span></td><td>A ●｜B ●｜C ●</td><td>2026</td></tr>
+  </table>
+
+  <!-- F13 -->
+  <h3 class="sub"><span class="idx">F13</span>卫生监督协管（P1 · A/B，台账级）</h3>
+  <table class="small">
+    <tr><th style="width:170px">功能项</th><th>功能说明</th><th style="width:56px">优先级</th><th style="width:120px">档位</th><th style="width:80px">依据</th></tr>
+    <tr><td>协管巡查与上报</td><td>食源性疾病、饮用水卫生、学校卫生、非法行医巡查登记与上报（台账级）</td><td><span class="b b-p1">P1</span></td><td>A ●｜B ●｜C △（仅上报）</td><td>S</td></tr>
+  </table>
+
+  <!-- F14 -->
+  <h3 class="sub"><span class="idx">F14</span>职业病与地方病台账（P1 · A/B）</h3>
+  <table class="small">
+    <tr><th style="width:170px">功能项</th><th>功能说明</th><th style="width:56px">优先级</th><th style="width:120px">档位</th><th style="width:80px">依据</th></tr>
+    <tr><td>职业病危害台账</td><td>职业病危害因素接触人员台账与诊疗服务记录</td><td><span class="b b-p1">P1</span></td><td>A ●｜B ●</td><td>N</td></tr>
+    <tr><td>地方病监测台账</td><td>碘缺乏、饮水型氟中毒等监测与诊疗记录</td><td><span class="b b-p1">P1</span></td><td>A ●｜B ●</td><td>N</td></tr>
+    <tr><td>寄生虫病/癫痫台账</td><td>台账 + 随访（按需配置，非县域强项）</td><td><span class="b b-p2">P2</span></td><td>A ●</td><td>S</td></tr>
+  </table>
+
+  <!-- F15 -->
+  <h3 class="sub"><span class="idx">F15</span>平台接入与系统集成（P0 · A/B/C）<span class="tag">对应流程 L1（平台泳道）</span></h3>
+  <table class="small">
+    <tr><th style="width:150px">接口</th><th>内容</th><th style="width:56px">优先级</th><th style="width:90px">方向</th><th>依赖</th></tr>
+    <tr><td>I-01 EMPI 主索引</td><td>身份识别、查重归并、主索引绑定（G2 风险门：不就绪先本地临时主索引）</td><td><span class="b b-p0">P0</span></td><td>入</td><td>全民健康信息平台</td></tr>
+    <tr><td>I-02 健康档案读写</td><td>档案建立、更新、调阅、开放授权</td><td><span class="b b-p0">P0</span></td><td>双向</td><td>平台档案库</td></tr>
+    <tr><td>I-03 主数据与字典</td><td>行政区划、机构、科室、疾病编码、药品疫苗目录</td><td><span class="b b-p0">P0</span></td><td>入</td><td>平台主数据</td></tr>
+    <tr><td>I-04 单点登录与组织机构</td><td>用户、角色、机构树统一认证</td><td><span class="b b-p0">P0</span></td><td>入</td><td>平台统一认证</td></tr>
+    <tr><td>I-05 共享交换与数据集上报</td><td>公卫数据集、指标上报（省/市平台）</td><td><span class="b b-p0">P0</span></td><td>出</td><td>省/市平台</td></tr>
+    <tr><td>I-06 基本公卫监管接口</td><td>建档、慢病管理、传染病报告等监管指标（WS/T 517 11.1，验收必查项）</td><td><span class="b b-p0">P0</span></td><td>出</td><td>公卫管理机构</td></tr>
+    <tr><td>I-08 AI 中台服务</td><td>本期仅用于预测预警与满意度外呼，其余场景预留接口（G3 风险门）</td><td><span class="b b-p1">P1</span></td><td>双向</td><td>AI 中台</td></tr>
+    <tr><td>I-10 家医签约结果</td><td>签约关系、服务包、履约状态（只读消费，边界见 1.3 四象限）</td><td><span class="b b-p1">P1</span></td><td>入</td><td>家医签约系统</td></tr>
+    <tr><td>I-12 疾控/妇幼/精防专业系统</td><td>专项数据交换、审核回写</td><td><span class="b b-p1">P1</span></td><td>双向</td><td>外部条线系统</td></tr>
+  </table>
+
+  <!-- F16 -->
+  <h3 class="sub"><span class="idx">F16</span>居民端应用（P0 政策硬任务 · A/B/C 共用）<span class="tag">对应流程 L3a / L2b</span></h3>
+  <table class="small">
+    <tr><th style="width:170px">功能项</th><th>功能说明</th><th style="width:56px">优先级</th><th style="width:100px">档位</th><th style="width:80px">依据</th></tr>
+    <tr><td>实名认证与档案授权开放</td><td>居民端申请开放、实名认证、授权范围与时效控制、访问全程留痕（「以县为单位基本实现全覆盖」政策硬任务）</td><td><span class="b b-p0">P0</span></td><td>A/B/C 共用</td><td>2026</td></tr>
+    <tr><td>档案查询</td><td>本人及授权家属档案查询：随访记录、体检报告</td><td><span class="b b-p0">P0</span></td><td>A/B/C 共用</td><td>2026</td></tr>
+    <tr><td>AI 报告解读</td><td>检验检查指标通俗化解读（标注不构成诊断、不替代医生；模板审核后发布）</td><td><span class="b b-p1">P1</span></td><td>A/B/C 共用</td><td>2026</td></tr>
+    <tr><td>电子接种证出示</td><td>居民端出示电子预防接种证、接种记录跨地区查询</td><td><span class="b b-p0">P0</span></td><td>A/B/C 共用</td><td>疾控</td></tr>
+    <tr><td>提醒与宣教接收</td><td>随访/体检/接种提醒、预约、健康宣教推送</td><td><span class="b b-p1">P1</span></td><td>A/B/C 共用</td><td>2026</td></tr>
+  </table>
+
+  <!-- F17 -->
+  <h3 class="sub"><span class="idx">F17</span>系统管理与基础支撑（P0 · 全档）</h3>
+  <table class="small">
+    <tr><th style="width:170px">功能项</th><th>功能说明</th><th style="width:56px">优先级</th><th style="width:100px">档位</th><th style="width:80px">依据</th></tr>
+    <tr><td>角色与数据权限矩阵</td><td>8 类角色（村医/乡镇管理员/乡镇负责人/县级条线/卫健委/临床医生/居民/系统管理员）功能权限 + 按责任分组的数据权限；跨机构调阅留痕；居民授权有范围与时效</td><td><span class="b b-p0">P0</span></td><td>A/B/C</td><td>等保三级</td></tr>
+    <tr><td><b>功能开关与档位配置</b></td><td>A/B/C 三档通过功能开关与套件配置实现「一套代码多档交付」，严禁按档拉分支（详见第三章）</td><td><span class="b b-p0">P0</span></td><td>A/B/C</td><td>02 文档 6.6</td></tr>
+    <tr><td>规范参数化配置</td><td>服务内容、随访频次、表单模板、考核指标「参数化 + 模板化」，年度规范调整零代码适配</td><td><span class="b b-p0">P0</span></td><td>A/B/C</td><td>02 文档 6.2</td></tr>
+    <tr><td>字典与主数据维护</td><td>本地字典维护、与平台主数据版本对齐</td><td><span class="b b-p0">P0</span></td><td>A/B/C</td><td>S</td></tr>
+    <tr><td>安全与审计</td><td>等保三级；敏感字段加密存储；接口鉴权与限流；全量操作审计日志</td><td><span class="b b-p0">P0</span></td><td>A/B/C</td><td>等保三级</td></tr>
+    <tr><td>信创适配</td><td>国产化数据库与中间件、麒麟/统信操作系统、国产浏览器（按项目要求分阶段）</td><td><span class="b b-p1">P1</span></td><td>A/B/C</td><td>信创要求</td></tr>
+  </table>
+
+  <!-- 2.18 汇总 -->
+  <h3 class="sub"><span class="idx">2.18</span>功能清单汇总视图（模块 × 优先级 × 档位）</h3>
+  <table class="small">
+    <tr><th>模块</th><th style="width:64px">优先级</th><th style="width:150px">档位承载</th><th>对应流程图</th></tr>
+    <tr><td>F1 健康档案（个人 + 家庭）</td><td><span class="b b-p0">P0</span></td><td>A / B / C（C 简化）</td><td>L3a、L3b</td></tr>
+    <tr><td>F2 重点人群与慢病分级</td><td><span class="b b-p0">P0</span></td><td>A / B / C（C 简化采集）</td><td>L2a</td></tr>
+    <tr><td>F3 预防接种</td><td><span class="b b-p0">P0</span></td><td>A / B（C 通知催种）</td><td>L2b</td></tr>
+    <tr><td>F4 传染病报告与多病原监测</td><td><span class="b b-p0">P0</span></td><td>A / B / C（C 线索上报）</td><td>L2c</td></tr>
+    <tr><td>F5 突发公卫事件与平战切换</td><td><span class="b b-p1">P1</span></td><td>A / B（C 接收提醒）</td><td>L2c</td></tr>
+    <tr><td>F6 公卫驾驶舱</td><td><span class="b b-p1">P1</span></td><td>A（B 只读）</td><td>—</td></tr>
+    <tr><td>F7 任务与绩效管理</td><td><span class="b b-p0">P0</span></td><td>A / B / C</td><td>L1</td></tr>
+    <tr><td>F8 质控管理</td><td><span class="b b-p0">P0</span></td><td>A / B / C（C 接收整改）</td><td>L1、L3a</td></tr>
+    <tr><td>F9 统计报表与指标供给</td><td><span class="b b-p0">P0</span></td><td>A / B</td><td>L1</td></tr>
+    <tr><td>F10 预测预警</td><td><span class="b b-p2">P2</span></td><td>A</td><td>—</td></tr>
+    <tr><td>F11 满意度调查</td><td><span class="b b-p2">P2</span></td><td>A / B</td><td>—</td></tr>
+    <tr><td>F12 健康教育与促进</td><td><span class="b b-p1">P1</span></td><td>A / B / C（C 接收转发）</td><td>—</td></tr>
+    <tr><td>F13 卫生监督协管</td><td><span class="b b-p1">P1</span></td><td>A / B（C 仅上报）</td><td>—</td></tr>
+    <tr><td>F14 职业病与地方病台账</td><td><span class="b b-p1">P1</span></td><td>A / B</td><td>—</td></tr>
+    <tr><td>F15 平台接入与系统集成</td><td><span class="b b-p0">P0</span></td><td>A / B / C</td><td>L1</td></tr>
+    <tr><td>F16 居民端应用</td><td><span class="b b-p0">P0</span></td><td>A/B/C 共用（小程序/公众号）</td><td>L3a、L2b</td></tr>
+    <tr><td>F17 系统管理与基础支撑</td><td><span class="b b-p0">P0</span></td><td>A / B / C</td><td>—</td></tr>
+  </table>
+
+  <!-- 2.19 排除 -->
+  <h3 class="sub"><span class="idx">2.19</span>范围排除清单（明确不在第一期，防范围蔓延）</h3>
+  <table class="small">
+    <tr><th style="width:220px">排除项</th><th style="width:90px">归属版本</th><th>说明</th></tr>
+    <tr><td>AI 语音外呼随访 / AI 随访记录生成 / AI 健康画像 / AI 体质辨识 / AI 教育推送增强</td><td>1.1</td><td>依赖 AI 中台（G3）；1.0 仅预测预警与满意度外呼使用 AI 中台，其余预留接口</td></tr>
+    <tr><td>居民全生命周期健康档案视图（跨域全息浏览 + 画像）</td><td>1.1</td><td>对标头部厂商「健康档案浏览器」，消除档案深度代差的差异化能力</td></tr>
+    <tr><td>移动村医端离线作业（正式 C 档交付）</td><td>1.1</td><td>离线 SQLite + 增量同步 + 冲突检测；1.0 阶段 C 档以 B 档简化权限临时承载 + 移动原型</td></tr>
+    <tr><td>IoT 设备数据归集（血压计/血糖仪自动入库）</td><td>1.1</td><td>依赖厂商协议适配（I-07）；数据自动归集率 ≥70% 目标在 1.2</td></tr>
+    <tr><td>家庭健康画像（风险标签）/ 家庭批量服务 / 家庭维度提醒</td><td>1.1</td><td>1.0 交付家庭建档/成员关系/家谱图/统计，画像与批量服务 1.1</td></tr>
+    <tr><td>诊间医防融合 HIS 插件 / 县域统管（责任清单三级分解 + 经费测算）/ 疫苗处方 / 系统收敛（≤6 个）</td><td>1.2</td><td>依赖医星科技 HIS/EMR 版本统一与接口开放（G4）；工作量归属开单医生机制</td></tr>
+    <tr><td>家医签约主流程 / 专病深度干预 / 绩效核算与财务拨付 / 疾控专业系统内部流程（LIMS 等） / 自建 AI 模型 / 自建 IoT 硬件</td><td>非目标</td><td>02 文档 2.7 非目标清单：作业与台账归公卫，签约履约归家医，专病深耕归三高，考核结算归绩效</td></tr>
+  </table>
+</section>
+
+<!-- ================= 第三章 ================= -->
+<section class="card" id="s3">
+  <h2 class="sec">三、一套系统多分辨率兼容方案</h2>
+
+  <h3 class="sub"><span class="idx">3.1</span>适配挑战：三档 × 六形态 × 多分辨率</h3>
+  <p class="lead">02 文档 1.4「A/B/C 三档规格定义（强制推行）」决定了系统必须同时覆盖 PC 与移动：A 档为 PC 管理端 + HIS 内嵌插件 + 驾驶舱大屏；B 档为 PC Web；C 档为<b>移动端 App / 小程序（离线可用）+ 简易 Web</b>，且明确「坚持基层不等于低端——C 档移动端的体验要求高于 A 档 PC 端」。叠加产品形态表，同一套系统需在六种载体上呈现：</p>
+  <table class="small">
+    <tr><th>产品形态</th><th>载体</th><th>主要用户</th><th>档位</th><th>典型分辨率 / 屏幕</th></tr>
+    <tr><td>PC 管理端（主）</td><td>Web（BS）</td><td>县级、乡镇公卫科</td><td>A/B</td><td>1366×768 ~ 2560×1440（含老旧 720p 办公机）</td></tr>
+    <tr><td>PC 作业端</td><td>Web + HIS 内嵌插件（1.2，预留）</td><td>乡镇医生、临床医生</td><td>A（B 仅 Web）</td><td>1280×800 ~ 1920×1080</td></tr>
+    <tr><td>移动端（村医端）</td><td>App / 小程序（离线可用）</td><td>村医、社区站医生</td><td>C 为主，B 辅助</td><td>360×640 ~ 430×932（主流安卓/iPhone，含低端机）</td></tr>
+    <tr><td>居民端</td><td>微信公众号 / 小程序</td><td>居民</td><td>A/B/C 共用</td><td>手机全分辨率 + 平板</td></tr>
+    <tr><td>管理驾驶舱</td><td>大屏 / 看板</td><td>卫健委、医共体牵头医院</td><td>A（B 只读）</td><td>1920×1080、2560×1080（21:9）、3840×2160、拼接屏</td></tr>
+    <tr><td>数据服务</td><td>标准接口</td><td>平台、上级系统</td><td>A/B/C</td><td>无 UI</td></tr>
+  </table>
+  <p>四条硬约束决定方案形态：</p>
+  <ul class="plain">
+    <li><b>一套代码多档交付，严禁按档拉分支</b>（02 文档 6.6、路线图交付原则）——档位差异只能靠「功能开关 + 套件配置」；</li>
+    <li><b>UED v1.6 组件库复用</b>是 AI 提效 40% 的边界条件之一（路线图 7.1），前端不重复造轮子；</li>
+    <li><b>验收判据</b>：三档界面符合 UED v1.6、C 档离线作业连续 72 小时可用、移动端首屏 ≤2 秒（02 文档 6.7 / 8.2）；</li>
+    <li><b>C 档设计原则</b>：「打开就能录、录完就能传、无网也能用」，操作步数最少——移动端不是 PC 端的缩小版。</li>
+  </ul>
+
+  <h3 class="sub"><span class="idx">3.2</span>总体策略：三层解耦——一套能力 · 配置裁剪 · 多端呈现</h3>
+  <div class="fig">
+    <div class="arch">
+      <div class="arch-box arch-core">统一后端 · 一套业务能力（同一数据模型「人—家庭双中心五层」· 同一业务库 · 同一 API）</div>
+      <div class="arrow-down">▼</div>
+      <div class="arch-box arch-cfg">档位配置中心：机构类型 → 档位模板（A/B/C）→ 功能开关集 + 套件配置（运行时下发，严禁代码分支）</div>
+      <div class="arrow-down">▼</div>
+      <div class="arch-row">
+        <div class="arch-term"><b>① PC 响应式 Web（管理端/作业端/简易 Web）</b><span>断点自适应布局 · 组件双形态 · Chromium ≥87 兼容国产浏览器｜A 档 / B 档</span></div>
+        <div class="arch-term"><b>② 跨端移动应用（App / 小程序）</b><span>Mobile First 单列布局 · 离线 SQLite · 增量同步｜C 档村医端 + 居民端</span></div>
+        <div class="arch-term"><b>③ 驾驶舱大屏（独立轻应用）</b><span>1920×1080 基准等比缩放 · 轮播值守模式｜A 档完整（B 档只读开关）</span></div>
+      </div>
+    </div>
+    <div class="cap">图 3-1　一套代码 · 三层解耦 · 多端呈现架构</div>
+  </div>
+  <p>三个终端工程共享同一 <b>Design Token（色彩/字号/间距/圆角/阴影）</b>、同一 <b>API Client</b> 与同一 <b>业务组件逻辑</b>（建议 monorepo 管理：ui 包 / api 包 / web 应用 / mobile 应用 / dashboard 应用），差异只发生在「呈现层」与「档位配置」，从工程结构上保证三档三端不产生代码分支。</p>
+
+  <h3 class="sub"><span class="idx">3.3</span>布局层：断点体系与栅格策略</h3>
+  <div class="fig">
+    <div class="bp-bar">
+      <div class="bp-seg bp-1" style="flex:768"><b>手机</b>＜768px<br>C 档 / 居民端</div>
+      <div class="bp-seg bp-2" style="flex:256"><b>平板</b>768~1024<br>竖屏 / 横屏</div>
+      <div class="bp-seg bp-3" style="flex:416"><b>笔记本</b>1024~1440<br>B 档常见</div>
+      <div class="bp-seg bp-4" style="flex:480"><b>桌面</b>1440~1920<br>A 档管理端</div>
+      <div class="bp-seg bp-5" style="flex:384"><b>大屏</b>≥1920<br>驾驶舱 / 4K</div>
+    </div>
+    <div class="bp-legend"><span>单列 · 底部 Tab</span><span>双列 · 可折叠侧栏</span><span>侧栏自动收起</span><span>完整侧栏 + 多栏</span><span>等比缩放 / 多栏宽幅</span></div>
+    <div class="cap">图 3-2　响应式断点体系（Mobile First，向上增强）</div>
+  </div>
+  <table class="small">
+    <tr><th style="width:130px">断点</th><th style="width:110px">典型设备</th><th>布局规则</th></tr>
+    <tr><td>&lt;768px（xs/sm）</td><td>手机 App/小程序</td><td>单列流式布局；底部 Tab 导航；操作按钮固定于底部安全区；表单分步呈现</td></tr>
+    <tr><td>768~1024px（md）</td><td>平板 / C 档简易 Web</td><td>双列栅格；侧边导航折叠为图标栏；表格降级为卡片列表</td></tr>
+    <tr><td>1024~1440px（lg）</td><td>笔记本 / B 档</td><td>完整侧栏 + 内容区 2~3 栏；表格完整呈现；工具栏收纳至「更多」</td></tr>
+    <tr><td>1440~1920px（xl）</td><td>桌面 / A 档管理端</td><td>侧栏 + 内容 + 详情三栏联动；表格多列平铺 + 批量操作条</td></tr>
+    <tr><td>≥1920px（xxl）</td><td>大屏 / 4K</td><td>管理端内容区最大宽度锁定（约 1600px）保证可读性；驾驶舱走独立等比缩放方案（见 3.7）</td></tr>
+  </table>
+  <ul class="plain">
+    <li><b>Mobile First</b>：先按 C 档最小屏幕设计信息结构，再向 PC 增强（与「C 档体验要求高于 A 档」的定位一致，避免移动端沦为 PC 缩小版）；</li>
+    <li><b>栅格系统</b>：PC 端 24 栅格、移动端 8 点阵，间距按 4px 基数缩放（Design Token 统一定义）；</li>
+    <li><b>容器查询（Container Query）优先</b>：组件级自适应（如表格→卡片切换）用容器宽度而非视口宽度触发，保证同一组件在「三栏中的窄列」与「平板全宽」下都正确降级；</li>
+    <li><b>横竖屏</b>：平板横竖屏切换、手机横屏（随访录入大表单场景）均纳入断点用例。</li>
+  </ul>
+
+  <h3 class="sub"><span class="idx">3.4</span>组件层：一组件双形态（同一数据源 · 两种呈现）</h3>
+  <p class="lead">核心思路：业务组件只写一次逻辑与数据结构，视图层在断点/容器宽度下切换「桌面形态」与「移动形态」。以高频组件「居民档案列表」为例：</p>
+  <div class="fig">
+    <div class="duo">
+      <div class="duo-item">
+        <div class="lab">桌面形态（≥1024px：表格 + 批量操作）</div>
+        <div class="mock">
+          <div class="mrow h"><span>姓名 / 档案号</span><span>重点人群标记</span><span>管理级别</span><span>下次随访</span><span>操作</span></div>
+          <div class="mrow"><span>王建国 · A1024…</span><span class="chip">高血压</span><span>红</span><span>2026-09-20</span><span>随访 / 详情</span></div>
+          <div class="mrow"><span>李秀兰 · A1035…</span><span class="chip">糖尿病</span><span>黄</span><span>2026-10-02</span><span>随访 / 详情</span></div>
+          <div class="mrow"><span>张小满 · A1041…</span><span class="chip">老年人</span><span>绿</span><span>2026-11-15</span><span>随访 / 详情</span></div>
+        </div>
+      </div>
+      <div class="duo-item">
+        <div class="lab">移动形态（&lt;768px：卡片 + 快捷动作，C 档「打开就能录」）</div>
+        <div class="mock">
+          <div class="mcard"><div class="r1"><span>王建国</span><span class="chip warn">红 · 高血压</span></div><div class="r2"><span class="chip">下次随访 09-20</span><span class="chip">一键随访</span><span class="chip">查看档案</span></div></div>
+          <div class="mcard"><div class="r1"><span>李秀兰</span><span class="chip">黄 · 糖尿病</span></div><div class="r2"><span class="chip">下次随访 10-02</span><span class="chip">一键随访</span><span class="chip">查看档案</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="cap">图 3-3　同一数据源的组件双形态示意（居民档案列表）</div>
+  </div>
+  <table class="small">
+    <tr><th style="width:130px">组件</th><th>桌面形态（PC）</th><th>移动形态（C 档 / 居民端）</th></tr>
+    <tr><td>数据列表</td><td>多列表格 + 列自定义 + 批量操作条 + 导出</td><td>卡片列表（姓名/关键标签/快捷动作）+ 下拉刷新 + 触底加载</td></tr>
+    <tr><td>录入表单</td><td>分组单页、多列排布、键盘可达</td><td><b>分步表单</b>（步骤条 ≤3 步）+ 底部固定提交 + 必填前置（支撑随访录入 ≤4 分钟目标）</td></tr>
+    <tr><td>筛选器</td><td>多条件平铺 / 高级筛选面板</td><td>底部抽屉式筛选 + 常用筛选胶囊（chips）</td></tr>
+    <tr><td>导航</td><td>左侧多级菜单树（≥1440 展开，&lt;1280 收起为图标）</td><td>底部 Tab（≤5 个）+ 顶部返回 + 任务直达角标</td></tr>
+    <tr><td>家谱关系图</td><td>SVG viewBox 自适应 + 滚轮缩放</td><td>双指缩放 / 拖拽 + 节点点击进入成员详情</td></tr>
+    <tr><td>统计图表</td><td>ECharts 完整交互（图例/工具栏/导出）</td><td>简化图表（去 3D/动效）+ 数字摘要卡优先</td></tr>
+    <tr><td>报卡/上报</td><td>表单 + 审核流</td><td><b>一键上报</b>（信息预填 + 大按钮 + 提交确认）</td></tr>
+  </table>
+
+  <h3 class="sub"><span class="idx">3.5</span>交互层：输入方式与触控规范</h3>
+  <table class="small">
+    <tr><th style="width:160px">维度</th><th>PC（A/B 档）</th><th>移动（C 档 / 居民端）</th></tr>
+    <tr><td>指针</td><td>鼠标 hover 提示、右键菜单、键盘 Tab 导航</td><td>hover 全部转为「点击展开 / 长按操作」；禁用 hover 依赖</td></tr>
+    <tr><td>触控目标</td><td>≥24×24px（鼠标）</td><td><b>≥44×44px</b>（含间距），符合触控可达性；戴手套/户外强光场景按钮反差加大</td></tr>
+    <tr><td>字号基准</td><td>12~14px 正文</td><td>≥14px 正文（村医群体含中老年用户，可提供「大字模式」开关）</td></tr>
+    <tr><td>操作步数</td><td>不限（管理场景）</td><td><b>核心动作 ≤3 步</b>：随访录入、报卡上报、任务签收均一步直达</td></tr>
+    <tr><td>输入辅助</td><td>键盘/扫描枪</td><td>身份证扫码、拍照签名、语音输入预留（1.1 AI）、字典点选优先于手输</td></tr>
+  </table>
+
+  <h3 class="sub"><span class="idx">3.6</span>数据层：同源 API + BFF 裁剪 + 离线同步</h3>
+  <ul class="plain">
+    <li><b>同一后端、同一 API 契约</b>：三档三端调用同一套接口（I-01~I-12 对接能力在服务端实现），杜绝「移动端另起一套接口」导致的口径漂移；</li>
+    <li><b>BFF 按端裁剪</b>：PC 返回全字段 + 聚合视图，移动端仅返回卡片所需精简字段（首屏 ≤2 秒的抓手之一），字段裁剪在 BFF 层配置而非业务层复制；</li>
+    <li><b>离线能力（C 档硬要求，1.0 原型验证、1.1 正式交付）</b>：本地 SQLite（App）/ IndexedDB（简易 Web）+ 增量同步 + 冲突检测（服务端优先 + 人工裁决）；离线记录带本地时间戳与终端标识，联网后按人、按记录粒度同步；断网可持续作业 ≥72 小时、本地缓存 ≥2000 条；</li>
+    <li><b>弱网策略</b>：请求合并、分页拉取、缓存优先（stale-while-revalidate）、失败重试队列；应急一键上报走最高优先级通道。</li>
+  </ul>
+
+  <h3 class="sub"><span class="idx">3.7</span>可视化层：驾驶舱大屏适配</h3>
+  <ul class="plain">
+    <li><b>设计基准</b>：以 1920×1080 为唯一设计基准稿，全部页面套用 <b>transform: scale 等比缩放</b>（scale = 目标宽/1920，目标高/1080 取小值），适配 2K/4K/21:9 带鱼屏与拼接屏，等比保证构图不破；</li>
+    <li><b>超宽屏补充策略</b>：21:9 及以上在等比缩放基础上启用「模块弹性延展」（地图、热力图容器优先拉伸，文字模块锁定宽度），避免两侧大面积留白；</li>
+    <li><b>图表自适应</b>：ECharts 统一监听容器 resize；文字最小可读字号 ≥12px（物理像素），4K 屏下不出现「缩得过小」；</li>
+    <li><b>值守模式</b>：大屏轮播（一张图 → 责任清单 → 热力图 → 应急态势），轮播间隔与页面序列可配置，服务应急值守场景；</li>
+    <li><b>B 档只读</b>：同一驾驶舱应用挂载只读开关（隐藏钻取/导出/交互入口），复用全部渲染代码。</li>
+  </ul>
+
+  <h3 class="sub"><span class="idx">3.8</span>性能与兼容层</h3>
+  <table class="small">
+    <tr><th style="width:190px">指标（02 文档 6.7）</th><th>适配手段</th></tr>
+    <tr><td>移动端首屏 ≤2 秒</td><td>路由级代码分割 + 按档位 tree-shaking（C 档包体仅含轻量组件集）+ 骨架屏 + 图片懒加载 + 静态资源 CDN</td></tr>
+    <tr><td>随访列表 ≤1.5 秒 / 报表 ≤3 秒</td><td>BFF 精简字段 + 分页虚拟滚动（长列表）+ 报表预计算与缓存</td></tr>
+    <tr><td>单县 500 并发 / 移动 1000 终端</td><td>接口限流与降级、缓存优先、移动端请求合并；季度末报表高峰不降级</td></tr>
+    <tr><td>低端安卓机 / 老旧 PC</td><td>低端机自动降级（关闭动效、静态图表）；PC 兼容 Chromium 内核 ≥87（覆盖奇安信、360 等国产浏览器；村卫生室存量 720p 屏最小支持 1280×720）</td></tr>
+    <tr><td>信创环境</td><td>麒麟/统信 + 国产浏览器 + 国产数据库中间件分阶段适配，前端不依赖非信创私有 API</td></tr>
+  </table>
+
+  <h3 class="sub"><span class="idx">3.9</span>设计系统层：Design Token 三端共享</h3>
+  <ul class="plain">
+    <li><b>一套 Token 源</b>：色彩语义（主色/成功/警示/危险/信息）、字号阶梯、间距（4px 基数）、圆角、阴影、动效时长统一定义，导出为 Web CSS Variables 与移动端主题变量，三端视觉同源；</li>
+    <li><b>UED v1.6 为 PC 基线</b>：组件库在 v1.6 基础上补齐「双形态」能力（每个业务组件提供 desktop / mobile 两个视图实现、共享 props 与逻辑），而非另建移动组件库；</li>
+    <li><b>一致性红线</b>：同一业务动作（如「随访」「报卡」「建档」）在三端的命名、图标、色彩语义完全一致——村医在手机上看到的「红黄绿」与公卫科在 PC 上看到的分级颜色语义一致；</li>
+    <li><b>档位不改变设计语言</b>：A/B/C 三档视觉规范相同，差异仅在功能可见性与交互密度（验收判据「三档界面符合 UED v1.6」）。</li>
+  </ul>
+
+  <h3 class="sub"><span class="idx">3.10</span>工程与测试层：多分辨率质量门</h3>
+  <ul class="plain">
+    <li><b>视口快照回归</b>：Playwright/Puppeteer 按「断点 × 档位 × 关键页面」矩阵自动截图比对，纳入 CI，防响应式回归；</li>
+    <li><b>分辨率测试矩阵（示例）</b>：6 个视口（375 / 768 / 1280 / 1440 / 1920 / 3840）× 3 档功能开关 × 10 个关键页面（档案列表、随访录入、家谱图、报卡、驾驶舱、任务看板、报表、质控整改、居民端档案、授权页）≈ 180 组快照用例；</li>
+    <li><b>真机测试</b>：C 档覆盖低端安卓（≤2GB RAM）、iPhone、国产定制系统各 ≥1 台；驾驶舱在 1080p/4K 实屏验证；</li>
+    <li><b>离线演练</b>：断网 72 小时连续作业 + 冲突裁决用例（并入 M4 内部验证）；</li>
+    <li><b>验收对照</b>：三档界面符合 UED v1.6、C 档离线 72h、移动首屏 ≤2s 直接引用 02 文档 8.2 验收判据。</li>
+  </ul>
+</section>
+
+<!-- ================= 第四章 ================= -->
+<section class="card" id="s4">
+  <h2 class="sec">四、实施节奏、风险与验收</h2>
+
+  <h3 class="sub"><span class="idx">4.1</span>与 1.0 里程碑对齐</h3>
+  <table class="small">
+    <tr><th style="width:230px">里程碑</th><th>多端适配相关交付</th></tr>
+    <tr><td>M1 需求与规范基线冻结（09-20）</td><td>本功能清单与适配方案随规范条目映射表一并评审冻结；断点体系与 Design Token 规范定稿</td></tr>
+    <tr><td>M2 原型评审（10-15）</td><td>四类高保真原型：PC 管理端 + 作业端 + <b>C 档移动原型</b> + <b>驾驶舱大屏原型</b>（含驾驶舱指标口径确认）；组件双形态规范在 UED v1.6 上扩充完成</td></tr>
+    <tr><td>M3 核心功能开发完成（11-15）</td><td>高频组件（表格/表单/筛选/图表）双形态改造完成；档位配置中心（功能开关）上线；直报时限校验用例通过</td></tr>
+    <tr><td>M4 内部验证与演练（11-30）</td><td>按「1 个县 + 3 个乡镇」配置 A/B/C 三档内部环境完整演示；<b>平战切换演练（内部）</b>记录归档；多分辨率测试矩阵全量执行</td></tr>
+    <tr><td>M5 1.0 公司内部发布（12-01）</td><td>正式版 + 部署包 + 交付文档 + 内部验证与演练报告（客户现场试点另行排期）</td></tr>
+  </table>
+
+  <h3 class="sub"><span class="idx">4.2</span>关键风险与对策</h3>
+  <table class="small">
+    <tr><th style="width:250px">风险</th><th style="width:70px">等级</th><th>对策</th></tr>
+    <tr><td>G7 AI 研发底座不可用 / 提效 &lt;30%</td><td>高</td><td>优先裁剪预测预警、满意度调查顺延 1.1；驾驶舱降级为固定指标看板；仍不可行按传统口径回补并上报决策，不得默认赶工</td></tr>
+    <tr><td>G6 前置软件接口未开放</td><td>高</td><td>先「报卡导出 + 人工导入」过渡，保留标准适配层；<b>法定时限校验必须自研落地</b>（不依赖前置软件）</td></tr>
+    <tr><td>组件双形态改造工作量超预期</td><td>中</td><td>按「高频组件优先」排期（列表/表单/筛选三个组件覆盖 80% 页面）；复用 UED v1.6，不另起移动组件库</td></tr>
+    <tr><td>大屏等比缩放在异形屏失真</td><td>中</td><td>锁定 1920×1080 唯一基准 + 超宽屏模块弹性延展策略；4K 实屏纳入 M4 验证</td></tr>
+    <tr><td>低端安卓机 / 村卫生室老旧 PC 卡顿</td><td>中</td><td>低端机自动降级（关动效/静态图表）；PC 最小支持 1280×720；性能基线纳入 CI</td></tr>
+    <tr><td>三档规格导致版本分支（红线）</td><td>中</td><td>一套代码 + 功能开关，CI 增加「分支守护」检查，任何按档分支合入即阻断</td></tr>
+  </table>
+
+  <div class="note note-red"><b>不可裁剪红线</b>传染病 2 小时 / 24 小时法定时限校验与超时提醒（《传染病防治法》2025 修订第 41/44/45 条，法定责任）任何情况下不得从 1.0 裁剪；版本裁剪时优先保合规项（P0）与 A 档交付。</div>
+</section>
+
+<!-- ================= 第五章 ================= -->
+<section class="card" id="s5">
+  <h2 class="sec">五、参考依据</h2>
+  <ul class="plain" style="font-size:13px;color:var(--gray-700)">
+    <li>《02.产品规划文档-V1.4-20260908》（功能清单 4.x、三档规格 1.4 / 4.11、接口 5.2、技术要点 6.x、验收 8.2）</li>
+    <li>《03.产品路线图-20260910 V1.5》（1.0 范围与里程碑、A/B/C 交付节奏、G1~G7 风险门、投入估算）</li>
+    <li>《04.业务流程说明-公共卫生服务系统-20260908.html》V1.2（L1 / L2a / L2b / L2c / L2d / L3a / L3b 七张流程图）</li>
+    <li>《国家基本公共卫生服务规范（第三版）》｜新划入基本公共卫生服务（2019）｜2026 年四部门通知</li>
+    <li>《全国公共卫生信息化建设标准与规范（试行）》（2020-12）｜《江苏省全民健康信息平台功能应用分级评价标准（2021）》2.2.5.3</li>
+    <li>WS/T 517—2016《基层医疗卫生信息系统基本功能规范》第 6 章（6.1 / 6.3）、第 7 章、11.1</li>
+    <li>《中华人民共和国传染病防治法》（2025 年第二次修订）第 41/44/45 条｜《疾病预防控制「十五五」规划》（国疾控规财发〔2026〕17 号）</li>
+    <li>《关于促进和规范「人工智能＋医疗卫生」应用发展的实施意见》（国卫办规划发〔2025〕30 号）第 13 条｜紧密型县域医共体建设监测指标</li>
+    <li>《PC 端 UED 交互与视觉设计规范 v1.6》｜医星科技产品研发规划 Base（FKB-JC-AIAS）</li>
+  </ul>
+</section>
+
+<footer>
+  公共卫生服务系统（FKB-JC-AIAS）· 第一期（1.0）功能清单与多端适配方案 · V1.0（2026-09-14）<br>
+  本文档由 02/03/04 三份产品资产整理生成，供 M1 规范基线冻结评审使用；与三份源文档冲突时以源文档最新版本为准。
+</footer>
+
+</div>
+</body>
+</html>

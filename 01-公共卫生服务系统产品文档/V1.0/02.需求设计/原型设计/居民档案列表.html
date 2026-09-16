@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>居民档案 - 档案管理</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  /* ===== 居民档案列表页面特有样式（设计变量与公共样式见 框架.css） ===== */
+
+  /* ===== 嵌入模式（被 index.html 壳子以 iframe 内嵌时，框架.js 自动加 html.embed-mode） ===== */
+  html.embed-mode .main-area{height:100%}      /* 壳子内自适应：无顶部导航栏包裹 */
+  html.embed-mode .tabbar{display:none}        /* 标签栏由壳子统一管理，本页隐藏 */
+  html.embed-mode .toast{top:24px}             /* 壳内提示位置上移 */
+
+  /* ===== 布局：content 改为 flex，content-card 撑满并让表格区内部滚动 ===== */
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0}
+
+  /* ===== 页头按钮 ===== */
+  .page-head .right .btn{height:28px;padding:0 14px;font-size:13px}
+
+  /* ===== 筛选区 ===== */
+  .filter-panel{padding:14px 12px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:14px;align-items:center}
+  .filter-row.extra{display:none}
+  .filter-row.extra.show{display:flex}
+  .filter-item{display:flex;align-items:center;gap:8px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:140px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .btn-plain{height:28px;padding:0 8px;font-size:13px;color:var(--primary);border-radius:var(--r-sm)}
+  .btn-plain:hover{background:var(--primary-bg)}
+
+  /* ===== 数据表格 ===== */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+  .list-tbl{width:100%;min-width:1386px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:36px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .list-tbl th.center,.list-tbl td.center{text-align:center}
+  .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* 重点人群徽标（绿色） */
+  .crowd-badge{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;margin-right:4px;border-radius:4px;background:var(--success);color:#fff;font-size:12px;line-height:1;vertical-align:middle}
+  .crowd-none{color:var(--text-tertiary)}
+
+  /* 是否合格 */
+  .qual-badge{display:inline-flex;align-items:center;justify-content:center;height:20px;padding:0 8px;border-radius:4px;font-size:12px;line-height:1}
+  .qual-badge.ok{background:var(--success-bg);color:var(--success);border:1px solid rgba(82,195,27,0.35)}
+  .qual-badge.bad{background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger-border)}
+
+  /* 操作列 */
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px}
+  .op-link:hover{text-decoration:underline}
+  .op-gap{display:inline-block;width:8px}
+  .op-more{position:relative;display:inline-flex;align-items:center}
+  .op-more .more-btn{display:inline-flex;align-items:center;gap:2px;color:var(--primary);cursor:pointer;font-size:13px}
+  .op-more .more-btn:hover{text-decoration:underline}
+  .op-more .more-btn svg{transition:transform var(--transition-fast)}
+  .op-more.open .more-btn svg{transform:rotate(180deg)}
+  .op-menu{position:absolute;top:calc(100% + 6px);right:-8px;min-width:96px;background:var(--bg-white);border:1px solid var(--color-neutral-200);border-radius:var(--r-sm);box-shadow:var(--shadow-md);padding:4px 0;display:none;z-index:30}
+  .op-more.open .op-menu{display:block}
+  .op-menu .mi{display:block;width:100%;text-align:left;padding:7px 14px;font-size:13px;color:var(--text-secondary);line-height:1.4}
+  .op-menu .mi:hover{background:var(--primary-bg);color:var(--primary)}
+
+  /* ===== 分页 ===== */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:52px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 22px 0 8px;font-size:13px;color:var(--text-secondary);background:#fff;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-jump input{width:40px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 6px;font-size:13px;text-align:center;color:var(--text-primary);outline:none}
+  .pg-jump input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+
+  /* ===== 新建个人档案弹框 ===== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .modal-overlay.show{opacity:1;pointer-events:auto}
+  .modal{width:920px;max-width:92vw;background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 8px 32px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden;transform:translateY(10px);transition:transform var(--transition-normal)}
+  .modal-overlay.show .modal{transform:translateY(0)}
+  .modal-head{height:48px;display:flex;align-items:center;padding:0 16px;flex-shrink:0}
+  .modal-head h3{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+  .modal-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:16px}
+  .modal-close:hover{background:var(--primary-bg);color:var(--primary)}
+  .modal-body{display:flex;gap:14px;padding:16px 16px 4px;align-items:flex-start}
+  .modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:18px 20px 20px}
+
+  /* 左侧表单 */
+  .fm-form{width:570px;flex-shrink:0}
+  .fm-row{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+  .fm-row label{width:88px;text-align:right;font-size:14px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
+  .fm-row label.lb-auto{width:auto;margin-left:8px}
+  .fm-row label i{color:var(--danger);font-style:normal;margin-right:2px}
+  .fm-ctl-wrap{position:relative}
+  .fm-ctl{width:220px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fm-ctl.has-cnt{padding-right:40px}
+  .fm-select{width:220px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fm-ctl:focus,.fm-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fm-ctl::placeholder{color:var(--text-placeholder)}
+  .cnt{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text-placeholder);pointer-events:none}
+  .fm-readcard{height:32px;padding:0 10px;border:1px solid var(--primary);color:var(--primary);background:var(--bg-white);border-radius:var(--r-sm);font-size:13px;white-space:nowrap;flex-shrink:0;transition:all var(--transition-fast)}
+  .fm-readcard:hover{background:var(--primary-bg)}
+
+  /* 右侧信息回显卡 */
+  .pv-card{flex:1;min-width:0;background:var(--primary-bg);border:1px dashed #9EC3F5;border-radius:var(--r-md);padding:22px 18px;display:grid;grid-template-columns:1fr 1fr;row-gap:26px;column-gap:12px;font-size:13px;min-height:236px;align-content:start}
+  .pv-row{display:flex;min-width:0}
+  .pv-row.wide{grid-column:1 / -1}
+  .pv-label{color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
+  .pv-val{color:var(--primary);word-break:break-all}
+
+</style>
+</head>
+<body>
+
+<!-- ===== 主内容区（顶部导航栏与左侧菜单栏由 框架.js 注入） ===== -->
+<div class="main-area">
+
+  <!-- 页面标签条（嵌入模式下隐藏，由壳子统一管理） -->
+  <div class="tabbar">
+    <div class="tab-item dashboard active" onclick="toast('当前已在「居民档案」页','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      居民档案
+    </div>
+    <div class="tab-item" onclick="toast('「报告查询」功能建设中','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      报告查询
+      <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+    </div>
+    <div class="tab-item" onclick="toast('「迁入审核」功能建设中','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      迁入审核
+      <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+    </div>
+    <div class="tab-item" onclick="toast('「迁出审核」功能建设中','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      迁出审核
+      <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+    </div>
+    <div class="tab-item" onclick="toast('「档案恢复」功能建设中','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+      档案恢复
+      <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+    </div>
+    <div class="tab-item" onclick="toast('「档案查询记录」功能建设中','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      档案查询记录
+      <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <!-- 页头 -->
+      <div class="page-head">
+        <h1>居民档案</h1>
+        <div class="right">
+          <button class="btn btn-default" onclick="toast('导出功能建设中','info')">导出</button>
+          <button class="btn btn-default" onclick="toast('明细导出功能建设中','info')">明细导出</button>
+          <button class="btn btn-default" onclick="toast('请连接身份证读卡器','info')">身份证读卡</button>
+          <button class="btn btn-primary" onclick="openCreateModal()">新建</button>
+        </div>
+      </div>
+
+      <!-- 筛选区 -->
+      <div class="filter-panel">
+        <div class="filter-row">
+          <div class="filter-item"><label>管理机构</label><input id="fOrg1" class="fi-ctl" placeholder="请输入管理机构"></div>
+          <div class="filter-item"><label>姓名</label><input id="fName" class="fi-ctl" placeholder="请输入姓名"></div>
+          <div class="filter-item"><label>证件号</label><input id="fIdcard" class="fi-ctl" placeholder="请输入证件号"></div>
+          <div class="filter-item"><label>管理行政区</label><input id="fRegion" class="fi-ctl" placeholder="请输入管理行政区"></div>
+          <div class="filter-item"><label>居民状态</label>
+            <select id="fStatus" class="fi-select">
+              <option value="正常" selected>正常</option>
+              <option value="">全部</option>
+              <option value="死亡">死亡</option>
+              <option value="迁出">迁出</option>
+              <option value="注销">注销</option>
+            </select>
+          </div>
+        </div>
+        <div class="filter-row">
+          <div class="filter-item"><label>管理机构</label><input id="fOrg2" class="fi-ctl" placeholder="请输入管理机构"></div>
+          <div class="filter-item"><label>重点人群类型</label>
+            <select id="fCrowd" class="fi-select">
+              <option value="" selected>全部</option>
+              <option value="老">老年人</option>
+              <option value="高">高血压</option>
+              <option value="糖">糖尿病</option>
+              <option value="儿">0-6岁儿童</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>对接内容</label>
+            <select id="fDock" class="fi-select">
+              <option value="" selected>全部</option>
+              <option value="高血压随访">高血压随访</option>
+              <option value="糖尿病随访">糖尿病随访</option>
+              <option value="健康体检">健康体检</option>
+              <option value="儿童健康管理">儿童健康管理</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>个人内容</label><input id="fPersonal" class="fi-ctl" placeholder="请输入个人内容"></div>
+          <div class="filter-item"><label>性别</label>
+            <select id="fGender" class="fi-select">
+              <option value="" selected>全部</option>
+              <option value="男">男</option>
+              <option value="女">女</option>
+            </select>
+          </div>
+          <div class="filter-btns">
+            <button class="btn btn-default" onclick="resetFilter()">重置</button>
+            <button class="btn btn-primary" onclick="applyFilter()">查看</button>
+            <button class="btn-plain" id="btnExpand" onclick="toggleExtra()">展开 +</button>
+          </div>
+        </div>
+        <div class="filter-row extra" id="extraRow">
+          <div class="filter-item"><label>联系电话</label><input id="fPhone" class="fi-ctl" placeholder="请输入联系电话"></div>
+          <div class="filter-item"><label>出生日期</label><input id="fBirth" class="fi-ctl" placeholder="如：1954 或 1954-03"></div>
+          <div class="filter-item"><label>建档日期</label><input id="fCreate" class="fi-ctl" placeholder="如：2024 或 2024-06"></div>
+          <div class="filter-item"><label>档案编号</label><input id="fArchNo" class="fi-ctl" placeholder="请输入档案编号"></div>
+        </div>
+      </div>
+
+      <!-- 数据表格 -->
+      <div class="table-wrap">
+        <table class="list-tbl">
+          <colgroup>
+            <col style="width:44px"><col style="width:150px"><col style="width:76px"><col style="width:148px"><col style="width:82px"><col style="width:44px"><col style="width:44px"><col style="width:104px"><col style="width:84px"><col style="width:88px"><col style="width:68px"><col style="width:110px"><col style="width:132px"><col style="width:92px"><col style="width:120px">
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="center">序号</th>
+              <th>管理机构</th>
+              <th>姓名</th>
+              <th>证件号</th>
+              <th>证件类型</th>
+              <th class="center">性别</th>
+              <th class="center">年龄</th>
+              <th>电话号码</th>
+              <th>出生日期</th>
+              <th class="center">重点人群类型</th>
+              <th class="center">是否合格</th>
+              <th>现居住址</th>
+              <th>档案编号</th>
+              <th>管理行政区</th>
+              <th class="center">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tbBody"></tbody>
+        </table>
+      </div>
+
+      <!-- 分页 -->
+      <div class="page-foot">
+        <span class="pg-total">共 <b id="pgTotal">20</b> 条</span>
+        <span class="pg-size">
+          <select onchange="toast('原型演示：每页条数固定 20 条','info')">
+            <option selected>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+        </span>
+        <span class="pg-pager">
+          <button class="pg-btn" onclick="toast('已是第一页','info')">‹</button>
+          <button class="pg-btn active">1</button>
+          <button class="pg-btn" onclick="toast('仅 1 页','info')">›</button>
+        </span>
+        <span class="pg-jump">前往 <input id="pgJump" value="1" onkeydown="if(event.key==='Enter'){toast('仅 1 页','info')}"> 页</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== 新建个人档案弹框 ===== -->
+<div class="modal-overlay" id="createModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>新建个人档案</h3>
+      <span class="modal-close" onclick="closeCreateModal()">×</span>
+    </div>
+    <div class="modal-body">
+      <!-- 左侧表单 -->
+      <div class="fm-form">
+        <div class="fm-row">
+          <label><i>*</i>证件类型：</label>
+          <select id="cmIdType" class="fm-select" style="width:104px">
+            <option value="居民身份证" selected>居民身份证</option>
+            <option value="居民户口簿">居民户口簿</option>
+            <option value="护照">护照</option>
+            <option value="港澳居民来往内地通行证">港澳居民来往内地通行证</option>
+            <option value="台湾居民来往大陆通行证">台湾居民来往大陆通行证</option>
+          </select>
+          <label class="lb-auto"><i>*</i>证件号：</label>
+          <div class="fm-ctl-wrap">
+            <input id="cmIdcard" class="fm-ctl has-cnt" style="width:190px" maxlength="18" placeholder="请输入证件号">
+            <span class="cnt" id="cntIdcard">0/18</span>
+          </div>
+          <button class="fm-readcard" onclick="toast('请连接身份证读卡器','info')">身份证读卡</button>
+        </div>
+        <div class="fm-row">
+          <label><i>*</i>姓名：</label>
+          <div class="fm-ctl-wrap">
+            <input id="cmName" class="fm-ctl has-cnt" maxlength="8" placeholder="请输入">
+            <span class="cnt" id="cntName">0/8</span>
+          </div>
+        </div>
+        <div class="fm-row">
+          <label><i>*</i>性别：</label>
+          <select id="cmGender" class="fm-select">
+            <option value="" selected>请选择</option>
+            <option value="男性">男性</option>
+            <option value="女性">女性</option>
+          </select>
+        </div>
+        <div class="fm-row">
+          <label><i>*</i>民族：</label>
+          <select id="cmNation" class="fm-select">
+            <option value="汉族" selected>汉族</option>
+            <option value="蒙古族">蒙古族</option>
+            <option value="回族">回族</option>
+            <option value="藏族">藏族</option>
+            <option value="维吾尔族">维吾尔族</option>
+            <option value="苗族">苗族</option>
+            <option value="彝族">彝族</option>
+            <option value="壮族">壮族</option>
+            <option value="满族">满族</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
+        <div class="fm-row">
+          <label><i>*</i>联系电话：</label>
+          <input id="cmPhone" class="fm-ctl" maxlength="11" placeholder="请输入联系电话">
+        </div>
+        <div class="fm-row">
+          <label><i>*</i>出生日期：</label>
+          <input id="cmBirth" class="fm-ctl" type="text" placeholder="请选择日期"
+                 onfocus="this.type='date';try{this.showPicker()}catch(e){}"
+                 onblur="if(!this.value){this.type='text'}">
+        </div>
+        <div class="fm-row">
+          <label><i>*</i>联系地址：</label>
+          <select id="cmRegion" class="fm-select" style="width:186px">
+            <option value="" selected>请选择现住址</option>
+            <option value="江苏省扬州市江都区">江苏省 / 扬州市 / 江都区</option>
+            <option value="江苏省扬州市邗江区">江苏省 / 扬州市 / 邗江区</option>
+            <option value="江苏省南京市玄武区">江苏省 / 南京市 / 玄武区</option>
+            <option value="江苏省苏州市姑苏区">江苏省 / 苏州市 / 姑苏区</option>
+            <option value="山东省济南市历下区">山东省 / 济南市 / 历下区</option>
+            <option value="山东省济南市市中区">山东省 / 济南市 / 市中区</option>
+          </select>
+          <div class="fm-ctl-wrap">
+            <input id="cmAddr" class="fm-ctl has-cnt" style="width:154px" maxlength="50" placeholder="请输入详细地址">
+            <span class="cnt" id="cntAddr">0/50</span>
+          </div>
+        </div>
+      </div>
+      <!-- 右侧信息回显卡 -->
+      <div class="pv-card" id="pvCard"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" onclick="submitCreate()">下一步</button>
+      <button class="btn btn-default" onclick="closeCreateModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 统一框架：顶部导航栏 + 左侧菜单栏（菜单配置见 框架.js） =====
+     data-page    = 左侧菜单高亮项（独立打开时生效）
+     data-embed   = "auto" 被壳子 iframe 内嵌时自动进入嵌入模式 -->
+<script src="框架.js" data-page="resident-archives" data-embed="auto"></script>
+
+<script>
+  /* ================= 模拟数据（姓名/证件号/出生日期/年龄相互对应） ================= */
+  var residentData = [
+    { org:'山东大学齐鲁医院',                    name:'王秀英', idcard:'370102195403152847', idType:'居民身份证', gender:'女', age:72, phone:'13905312361', birth:'1954-03-15', crowd:['老','高'],  qualified:true,  address:'济南市历下区解放路105号',     archNo:'370102JM26001', region:'济南市历下区', status:'正常', dock:['高血压随访','健康体检'],      created:'2024-03-11' },
+    { org:'山东大学齐鲁医院',                    name:'李建国', idcard:'370102195807224612', idType:'居民身份证', gender:'男', age:68, phone:'13853118274', birth:'1958-07-22', crowd:['老','糖'],  qualified:true,  address:'济南市历下区文化东路44号',   archNo:'370102JM26002', region:'济南市历下区', status:'正常', dock:['糖尿病随访','健康体检'],      created:'2024-03-18' },
+    { org:'济南市市中区舜玉路社区卫生服务中心',  name:'张桂兰', idcard:'370103196005103226', idType:'居民身份证', gender:'女', age:66, phone:'13793126485', birth:'1960-05-10', crowd:['老'],     qualified:true,  address:'济南市市中区舜玉路56号',     archNo:'370103JM26003', region:'济南市市中区', status:'正常', dock:['健康体检'],                  created:'2024-04-02' },
+    { org:'山东大学齐鲁医院',                    name:'刘德海', idcard:'37010219551130863X', idType:'居民身份证', gender:'男', age:71, phone:'13605401937', birth:'1955-11-30', crowd:['老','高','糖'], qualified:false, address:'济南市历下区和平路36号',     archNo:'370102JM26004', region:'济南市历下区', status:'正常', dock:['高血压随访','糖尿病随访'],  created:'2024-04-15' },
+    { org:'济南市历下区甸柳新村社区卫生服务中心',name:'陈淑珍', idcard:'370102195702164426', idType:'居民身份证', gender:'女', age:69, phone:'15866632071', birth:'1957-02-16', crowd:['老'],     qualified:true,  address:'济南市历下区甸柳新村五区9号楼', archNo:'370102JM26005', region:'济南市历下区', status:'正常', dock:['健康体检'],                  created:'2024-04-27' },
+    { org:'山东大学齐鲁医院',                    name:'杨春梅', idcard:'370102198109082543', idType:'居民身份证', gender:'女', age:45, phone:'18764165283', birth:'1981-09-08', crowd:['高'],     qualified:true,  address:'济南市历下区山大南路27号',   archNo:'370102JM26006', region:'济南市历下区', status:'正常', dock:['高血压随访'],                created:'2024-05-09' },
+    { org:'济南市历下区千佛山社区卫生服务中心',  name:'赵永强', idcard:'370103197403261530', idType:'居民身份证', gender:'男', age:52, phone:'13969074822', birth:'1974-03-26', crowd:['糖'],     qualified:true,  address:'济南市市中区纬五路143号',   archNo:'370103JM26007', region:'济南市市中区', status:'正常', dock:['糖尿病随访'],                created:'2024-05-21' },
+    { org:'山东大学齐鲁医院',                    name:'孙丽娟', idcard:'370102198807152248', idType:'居民身份证', gender:'女', age:38, phone:'15106963417', birth:'1988-07-15', crowd:[],        qualified:true,  address:'济南市历下区窑头路2号',      archNo:'370102JM26008', region:'济南市历下区', status:'正常', dock:['健康体检'],                  created:'2024-06-03' },
+    { org:'山东大学齐鲁医院',                    name:'周振华', idcard:'370102194910056317', idType:'居民身份证', gender:'男', age:77, phone:'13583176094', birth:'1949-10-05', crowd:['老','高'], qualified:true,  address:'济南市历下区燕山小区东路18号', archNo:'370102JM26009', region:'济南市历下区', status:'正常', dock:['高血压随访','健康体检'],   created:'2024-06-16' },
+    { org:'济南市天桥区工人新村社区卫生服务中心',name:'吴玉兰', idcard:'37010319520628324X', idType:'居民身份证', gender:'女', age:74, phone:'15965310248', birth:'1952-06-28', crowd:['老'],     qualified:true,  address:'济南市天桥区工人新村中街25号', archNo:'370105JM26010', region:'济南市天桥区', status:'正常', dock:['健康体检'],                  created:'2024-06-30' },
+    { org:'济南市历下区千佛山社区卫生服务中心',  name:'郑国栋', idcard:'370102196308174411', idType:'居民身份证', gender:'男', age:63, phone:'13869152760', birth:'1963-08-17', crowd:[],        qualified:true,  address:'济南市历下区山师北街12号',   archNo:'370102JM26011', region:'济南市历下区', status:'正常', dock:['健康体检'],                  created:'2024-07-11' },
+    { org:'山东大学齐鲁医院',                    name:'王芳',   idcard:'370102199102205946', idType:'居民身份证', gender:'女', age:35, phone:'18660789135', birth:'1991-02-20', crowd:[],        qualified:true,  address:'济南市历城区花园路101号',    archNo:'370112JM26012', region:'济南市历城区', status:'正常', dock:['健康体检'],                  created:'2024-07-25' },
+    { org:'济南市历下区文化东路社区卫生服务中心',name:'马晓东', idcard:'370102199804113378', idType:'居民身份证', gender:'男', age:28, phone:'13026594718', birth:'1998-04-11', crowd:[],        qualified:true,  address:'济南市历下区文化东路36号',   archNo:'370102JM26013', region:'济南市历下区', status:'正常', dock:[],                           created:'2024-08-06' },
+    { org:'山东大学齐鲁医院',                    name:'宋雨桐', idcard:'370102202109157740', idType:'居民身份证', gender:'女', age:5,  phone:'13905318906', birth:'2021-09-15', crowd:['儿'],     qualified:true,  address:'济南市历下区解放路105号',    archNo:'370102JM26014', region:'济南市历下区', status:'正常', dock:['儿童健康管理'],              created:'2024-08-19' },
+    { org:'济南市历下区文化东路社区卫生服务中心',name:'唐诗涵', idcard:'370102202303226625', idType:'居民身份证', gender:'女', age:3,  phone:'13853167420', birth:'2023-03-22', crowd:['儿'],     qualified:true,  address:'济南市历下区文化东路44号',  archNo:'370102JM26015', region:'济南市历下区', status:'正常', dock:['儿童健康管理'],              created:'2024-08-28' },
+    { org:'山东大学齐鲁医院',                    name:'冯立军', idcard:'370102197706285516', idType:'居民身份证', gender:'男', age:49, phone:'13791046538', birth:'1977-06-28', crowd:['高'],     qualified:false, address:'济南市历城区华信路3号',      archNo:'370112JM26016', region:'济南市历城区', status:'正常', dock:['高血压随访'],                created:'2024-09-10' },
+    { org:'济南市市中区舜玉路社区卫生服务中心',  name:'高凤仙', idcard:'370102194503124826', idType:'居民身份证', gender:'女', age:81, phone:'13626415789', birth:'1945-03-12', crowd:['老','高','糖'], qualified:true, address:'济南市市中区二环南路2766号', archNo:'370103JM26017', region:'济南市市中区', status:'正常', dock:['高血压随访','糖尿病随访','健康体检'], created:'2024-09-24' },
+    { org:'济南市历下区甸柳新村社区卫生服务中心',name:'曹志明', idcard:'370102196801093337', idType:'居民身份证', gender:'男', age:58, phone:'15905317826', birth:'1968-01-09', crowd:[],        qualified:true,  address:'济南市历下区甸柳新村一区6号楼', archNo:'370102JM26018', region:'济南市历下区', status:'正常', dock:['健康体检'],               created:'2024-10-08' },
+    { org:'山东大学齐鲁医院',                    name:'谢婉婷', idcard:'370102199907264485', idType:'居民身份证', gender:'女', age:27, phone:'15589960372', birth:'1999-07-26', crowd:[],        qualified:true,  address:'济南市历下区和平路47号',     archNo:'370102JM26019', region:'济南市历下区', status:'正常', dock:[],                           created:'2024-10-21' },
+    { org:'山东大学齐鲁医院',                    name:'石景山', idcard:'370102196104162619', idType:'居民身份证', gender:'男', age:65, phone:'13176659204', birth:'1961-04-16', crowd:['老'],     qualified:true,  address:'济南市历下区窑头路15号',     archNo:'370102JM26020', region:'济南市历下区', status:'正常', dock:['健康体检'],                  created:'2024-11-02' }
+  ];
+
+  /* ================= 工具函数 ================= */
+  function esc(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function $(id) { return document.getElementById(id); }
+
+  /* ================= 表格渲染（按筛选条件实时过滤） ================= */
+  function renderTable() {
+    var org1 = $('fOrg1').value.trim(), org2 = $('fOrg2').value.trim();
+    var name = $('fName').value.trim(), idcard = $('fIdcard').value.trim();
+    var region = $('fRegion').value.trim(), status = $('fStatus').value;
+    var crowd = $('fCrowd').value, dock = $('fDock').value;
+    var personal = $('fPersonal').value.trim(), gender = $('fGender').value;
+    var phone = $('fPhone').value.trim(), birth = $('fBirth').value.trim();
+    var create = $('fCreate').value.trim(), archNo = $('fArchNo').value.trim();
+
+    var list = residentData.filter(function (r) {
+      if (org1 && r.org.indexOf(org1) === -1) return false;
+      if (org2 && r.org.indexOf(org2) === -1) return false;
+      if (name && r.name.indexOf(name) === -1) return false;
+      if (idcard && r.idcard.indexOf(idcard) === -1) return false;
+      if (region && r.region.indexOf(region) === -1) return false;
+      if (status && r.status !== status) return false;
+      if (crowd && r.crowd.indexOf(crowd) === -1) return false;
+      if (dock && r.dock.indexOf(dock) === -1) return false;
+      if (personal && r.name.indexOf(personal) === -1 && r.address.indexOf(personal) === -1) return false;
+      if (gender && r.gender !== gender) return false;
+      if (phone && r.phone.indexOf(phone) === -1) return false;
+      if (birth && r.birth.indexOf(birth) === -1) return false;
+      if (create && r.created.indexOf(create) === -1) return false;
+      if (archNo && r.archNo.indexOf(archNo) === -1) return false;
+      return true;
+    });
+
+    var html = '';
+    if (list.length === 0) {
+      html = '<tr class="empty-row"><td colspan="15"><div class="ico">📭</div>暂无符合条件的居民档案</td></tr>';
+    } else {
+      list.forEach(function (r, i) {
+        var crowdHtml = r.crowd.length
+          ? r.crowd.map(function (c) { return '<span class="crowd-badge">' + esc(c) + '</span>'; }).join('')
+          : '<span class="crowd-none">-</span>';
+        var qualHtml = r.qualified
+          ? '<span class="qual-badge ok">合格</span>'
+          : '<span class="qual-badge bad">不合格</span>';
+        html += '<tr>'
+          + '<td class="center">' + (i + 1) + '</td>'
+          + '<td title="' + esc(r.org) + '"><span class="cell">' + esc(r.org) + '</span></td>'
+          + '<td><a class="op-link" onclick="toast(\'查看居民档案：' + esc(r.name) + '\',\'info\')">' + esc(r.name) + '</a></td>'
+          + '<td title="' + esc(r.idcard) + '"><span class="cell">' + esc(r.idcard) + '</span></td>'
+          + '<td>' + esc(r.idType) + '</td>'
+          + '<td class="center">' + esc(r.gender) + '</td>'
+          + '<td class="center">' + r.age + '</td>'
+          + '<td title="' + esc(r.phone) + '"><span class="cell">' + esc(r.phone) + '</span></td>'
+          + '<td>' + esc(r.birth) + '</td>'
+          + '<td class="center">' + crowdHtml + '</td>'
+          + '<td class="center">' + qualHtml + '</td>'
+          + '<td title="' + esc(r.address) + '"><span class="cell">' + esc(r.address) + '</span></td>'
+          + '<td title="' + esc(r.archNo) + '"><span class="cell">' + esc(r.archNo) + '</span></td>'
+          + '<td>' + esc(r.region) + '</td>'
+          + '<td class="center">'
+          +   '<a class="op-link" onclick="toast(\'查看居民档案：' + esc(r.name) + '\',\'info\')">查看</a>'
+          +   '<span class="op-gap"></span>'
+          +   '<a class="op-link" onclick="toast(\'编辑居民档案：' + esc(r.name) + '\',\'info\')">编辑</a>'
+          +   '<span class="op-gap"></span>'
+          +   '<span class="op-more">'
+          +     '<a class="more-btn" onclick="toggleOpMenu(this,event)">更多<svg viewBox="0 0 24 24" style="width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="6 9 12 15 18 9"/></svg></a>'
+          +     '<span class="op-menu">'
+          +       '<button class="mi" onclick="opAction(\'档案迁入\',\'' + esc(r.name) + '\')">档案迁入</button>'
+          +       '<button class="mi" onclick="opAction(\'档案迁出\',\'' + esc(r.name) + '\')">档案迁出</button>'
+          +       '<button class="mi" onclick="opAction(\'打印档案\',\'' + esc(r.name) + '\')">打印档案</button>'
+          +     '</span>'
+          +   '</span>'
+          + '</td>'
+          + '</tr>';
+      });
+    }
+    $('tbBody').innerHTML = html;
+    $('pgTotal').textContent = list.length;
+  }
+
+  /* ================= 交互 ================= */
+  function resetFilter() {
+    ['fOrg1','fName','fIdcard','fRegion','fOrg2','fPersonal','fPhone','fBirth','fCreate','fArchNo'].forEach(function (id) { $(id).value = ''; });
+    $('fStatus').value = '正常';
+    $('fCrowd').value = ''; $('fDock').value = ''; $('fGender').value = '';
+    renderTable();
+    toast('筛选条件已重置', 'success');
+  }
+
+  function applyFilter() {
+    renderTable();
+    toast('查询完成，共 ' + $('pgTotal').textContent + ' 条记录', 'success');
+  }
+
+  function toggleExtra() {
+    var row = $('extraRow'), btn = $('btnExpand');
+    var show = row.classList.toggle('show');
+    btn.textContent = show ? '收起 −' : '展开 +';
+  }
+
+  function toggleOpMenu(el, ev) {
+    if (ev) ev.stopPropagation();
+    var wrap = el.closest('.op-more');
+    var wasOpen = wrap.classList.contains('open');
+    closeAllOpMenus();
+    if (!wasOpen) wrap.classList.add('open');
+  }
+
+  function closeAllOpMenus() {
+    document.querySelectorAll('.op-more.open').forEach(function (m) { m.classList.remove('open'); });
+  }
+
+  function opAction(action, name) {
+    closeAllOpMenus();
+    toast(action + '：' + name + '（功能建设中）', 'info');
+  }
+
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.op-more')) closeAllOpMenus();
+  });
+
+  /* 筛选控件输入即实时过滤 */
+  ['fOrg1','fName','fIdcard','fRegion','fOrg2','fPersonal','fPhone','fBirth','fCreate','fArchNo'].forEach(function (id) {
+    $(id).addEventListener('input', renderTable);
+  });
+  ['fStatus','fCrowd','fDock','fGender'].forEach(function (id) {
+    $(id).addEventListener('change', renderTable);
+  });
+
+  /* ================= 新建个人档案弹框 ================= */
+  function pvRow(label, val, wide) {
+    return '<div class="pv-row' + (wide ? ' wide' : '') + '"><span class="pv-label">' + label + '</span><span class="pv-val">' + esc(val || '') + '</span></div>';
+  }
+
+  /* 回显卡渲染：左侧表单实时联动 */
+  function renderPreview() {
+    var region = $('cmRegion').value, detail = $('cmAddr').value.trim();
+    var addr = region ? region + detail : detail;
+    $('pvCard').innerHTML =
+      pvRow('姓名：', $('cmName').value.trim()) +
+      pvRow('民族：', $('cmNation').value) +
+      pvRow('出生年月：', $('cmBirth').value, true) +
+      pvRow('证件类型：', $('cmIdType').value) +
+      pvRow('证件号：', $('cmIdcard').value.trim()) +
+      pvRow('联系地址：', addr, true);
+  }
+
+  /* 弹框刚打开时回显卡为空（贴合原型：仅展示标签） */
+  function renderPreviewEmpty() {
+    $('pvCard').innerHTML =
+      pvRow('姓名：', '') + pvRow('民族：', '') +
+      pvRow('出生年月：', '', true) + pvRow('证件类型：', '') +
+      pvRow('证件号：', '') + pvRow('联系地址：', '', true);
+  }
+
+  function openCreateModal() {
+    $('cmIdType').value = '居民身份证';
+    $('cmIdcard').value = ''; $('cntIdcard').textContent = '0/18';
+    $('cmName').value = '';   $('cntName').textContent = '0/8';
+    $('cmGender').value = '';
+    $('cmNation').value = '汉族';
+    $('cmPhone').value = '';
+    var birth = $('cmBirth'); birth.type = 'text'; birth.value = '';
+    $('cmRegion').value = '';
+    $('cmAddr').value = ''; $('cntAddr').textContent = '0/50';
+    renderPreviewEmpty();
+    $('createModal').classList.add('show');
+  }
+
+  function closeCreateModal() {
+    $('createModal').classList.remove('show');
+  }
+
+  /* 证件号满 18 位：自动解析出生日期与性别（身份证第 7-14 位出生段、第 17 位奇偶判性别） */
+  function parseIdcard() {
+    var v = $('cmIdcard').value.trim();
+    if (!/^\d{17}[\dXx]$/.test(v)) return;
+    $('cmBirth').value = v.slice(6, 10) + '-' + v.slice(10, 12) + '-' + v.slice(12, 14);
+    $('cmGender').value = (parseInt(v[16], 10) % 2 === 1) ? '男性' : '女性';
+    toast('已根据证件号自动填充出生日期与性别', 'success');
+  }
+
+  function submitCreate() {
+    var missing = [];
+    if (!$('cmIdType').value) missing.push('证件类型');
+    var idcard = $('cmIdcard').value.trim();
+    if (!idcard) missing.push('证件号');
+    else if (!/^\d{17}[\dXx]$/.test(idcard)) { toast('证件号格式不正确，需为 18 位', 'warning'); return; }
+    if (!$('cmName').value.trim()) missing.push('姓名');
+    if (!$('cmGender').value) missing.push('性别');
+    if (!$('cmNation').value) missing.push('民族');
+    if (!$('cmPhone').value.trim()) missing.push('联系电话');
+    if (!$('cmBirth').value) missing.push('出生日期');
+    if (!$('cmRegion').value || !$('cmAddr').value.trim()) missing.push('联系地址');
+    if (missing.length) { toast('请完善必填项：' + missing.join('、'), 'warning'); return; }
+    closeCreateModal();
+    toast('档案信息校验通过，下一步功能建设中', 'success');
+  }
+
+  /* 弹框联动事件 */
+  $('cmIdType').addEventListener('change', renderPreview);
+  $('cmGender').addEventListener('change', renderPreview);
+  $('cmNation').addEventListener('change', renderPreview);
+  $('cmBirth').addEventListener('change', renderPreview);
+  $('cmRegion').addEventListener('change', renderPreview);
+  $('cmIdcard').addEventListener('input', function () {
+    $('cntIdcard').textContent = this.value.length + '/18';
+    if (this.value.length === 18) parseIdcard();
+    renderPreview();
+  });
+  $('cmName').addEventListener('input', function () {
+    $('cntName').textContent = this.value.length + '/8';
+    renderPreview();
+  });
+  $('cmAddr').addEventListener('input', function () {
+    $('cntAddr').textContent = this.value.length + '/50';
+    renderPreview();
+  });
+
+  /* 初始渲染 */
+  renderTable();
+</script>
+
+</body>
+</html>

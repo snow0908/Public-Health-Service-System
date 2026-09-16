@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>系统设置 · 公共卫生服务系统原型</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;font-size:14px;color:#333;background:#f0f2f5}
+a{text-decoration:none;color:inherit}
+.layout{display:flex;min-height:100vh}
+aside{width:210px;background:#263238;color:#cfd8dc;flex-shrink:0;display:flex;flex-direction:column}
+.logo{height:56px;background:#1b6bb0;color:#fff;display:flex;align-items:center;padding:0 14px;font-size:15px;font-weight:600;letter-spacing:1px}
+.logo .cross{width:22px;height:22px;border:2px solid #fff;border-radius:4px;position:relative;margin-right:8px;flex-shrink:0}
+.logo .cross:after{content:"+";position:absolute;left:50%;top:50%;transform:translate(-50%,-52%);font-size:20px;font-weight:700}
+.userbar{padding:10px 14px;border-bottom:1px solid #37474f;font-size:12px;line-height:1.9}
+.userbar b{color:#80deea}
+.nav{flex:1;overflow-y:auto;padding:6px 0 30px}
+.nav .grp{padding:12px 14px 4px;font-size:11px;color:#78909c;letter-spacing:1px}
+.nav a{display:block;padding:8px 14px 8px 22px;color:#cfd8dc;font-size:13px;border-left:3px solid transparent}
+.nav a:hover{background:#37474f;color:#fff}
+.nav a.cur{background:#1b6bb0;color:#fff;border-left-color:#4fc3f7}
+main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{height:56px;background:#fff;box-shadow:0 1px 4px rgba(0,21,41,.08);display:flex;align-items:center;padding:0 20px;gap:12px}
+.crumb{font-size:13px;color:#909399}
+.crumb b{color:#303133;font-weight:600}
+.orgsel{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:13px}
+.orgsel .org{border:1px solid #dcdfe6;border-radius:4px;padding:5px 10px;color:#1b6bb0;background:#ecf5ff;cursor:pointer}
+.orgsel .org:before{content:"🏥 "}
+.avatar{width:30px;height:30px;border-radius:50%;background:#1b6bb0;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px}
+.mainwrap{flex:1;padding:14px;overflow-y:auto}
+.modhead{background:#fff;border-radius:4px;padding:14px 18px;margin-bottom:12px;border-left:4px solid #1b6bb0}
+.modhead h1{font-size:17px;color:#303133}
+.modhead p{margin-top:6px;font-size:12px;color:#909399;line-height:1.7}
+.tabs{background:#fff;border-bottom:1px solid #e4e7ed;padding:0 10px;display:flex;flex-wrap:wrap}
+.tabs .tab{padding:11px 18px;font-size:14px;color:#606266;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs .tab:hover{color:#1b6bb0}
+.tabs .tab.cur{color:#1b6bb0;border-bottom-color:#1b6bb0;font-weight:600}
+.page{display:none;padding-top:12px}
+.page.cur{display:block}
+.card{background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:16px 18px;margin-bottom:12px}
+.card .ttl{font-size:14px;font-weight:600;color:#303133;margin-bottom:12px;padding-left:8px;border-left:3px solid #1b6bb0}
+.qgrid{display:flex;flex-wrap:wrap;gap:10px 16px}
+.fitem{display:flex;align-items:center;font-size:13px}
+.fitem label{color:#606266;white-space:nowrap;margin-right:8px}
+.ipt{border:1px solid #dcdfe6;border-radius:4px;height:30px;line-height:28px;padding:0 10px;min-width:150px;color:#606266;background:#fff}
+.ipt.sel{min-width:130px;appearance:auto}
+.fitem textarea.ipt{height:52px;padding:6px 10px;line-height:1.5;font-family:inherit;min-width:340px}
+.qbtns{width:100%;display:flex;gap:8px;padding-top:4px}
+.more{font-size:12px;color:#1b6bb0;cursor:pointer;align-self:flex-end;margin:6px 0 0 4px}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;border-radius:4px;border:1px solid #dcdfe6;background:#fff;color:#606266;font-size:13px;cursor:pointer;gap:4px}
+.btn.pri{background:#1b6bb0;border-color:#1b6bb0;color:#fff}
+.btn.warn{background:#e6a23c;border-color:#e6a23c;color:#fff}
+.btn.txt{border:none;color:#1b6bb0;padding:0 6px;height:auto;font-size:13px}
+.btn.txt.red{color:#f56c6c}
+.toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.toolbar .right{margin-left:auto;display:flex;gap:8px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f5f7fa;color:#606266;font-weight:600;text-align:left;padding:10px 8px;border-bottom:1px solid #ebeef5;white-space:nowrap}
+td{padding:9px 8px;border-bottom:1px solid #ebeef5;color:#606266;white-space:nowrap}
+tr:hover td{background:#f5f7fa}
+.tag{display:inline-block;padding:1px 8px;border-radius:3px;font-size:12px;line-height:18px}
+.tag.blue{background:#ecf5ff;color:#1b6bb0;border:1px solid #b3d8ff}
+.tag.green{background:#f0f9eb;color:#67c23a;border:1px solid #c2e7b0}
+.tag.red{background:#fef0f0;color:#f56c6c;border:1px solid #fbc4c4}
+.tag.orange{background:#fdf6ec;color:#e6a23c;border:1px solid #f5dab1}
+.tag.gray{background:#f4f4f5;color:#909399;border:1px solid #d3d4d6}
+.tag.purple{background:#f4ecfb;color:#8e44ad;border:1px solid #d7bde2}
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:6px;padding-top:12px;font-size:13px;color:#606266}
+.pager .pno{border:1px solid #dcdfe6;border-radius:3px;min-width:28px;height:26px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0 5px}
+.pager .pno.cur{background:#1b6bb0;color:#fff;border-color:#1b6bb0}
+.pagenote{padding:16px 18px;background:#fff;border-radius:4px;font-size:12px;color:#909399;line-height:1.9;margin-top:12px}
+.pagenote b{color:#606266}
+.mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 16px}
+.mask.show{display:flex}
+.modal{background:#fff;border-radius:6px;width:760px;max-width:96vw;box-shadow:0 4px 24px rgba(0,0,0,.2)}
+.modal.wide{width:960px}
+.modal .mh{padding:14px 20px;border-bottom:1px solid #ebeef5;font-size:15px;font-weight:600;display:flex;align-items:center}
+.modal .mh .x{margin-left:auto;cursor:pointer;color:#909399;font-weight:400;font-size:18px}
+.modal .mb{padding:18px 20px;max-height:64vh;overflow-y:auto}
+.modal .mf{padding:12px 20px;border-top:1px solid #ebeef5;display:flex;justify-content:flex-end;gap:8px}
+.formgrid{display:flex;flex-wrap:wrap;gap:14px 24px}
+.formgrid .fi{display:flex;align-items:center;font-size:13px;width:calc(50% - 12px)}
+.formgrid .fi.wide{width:100%}
+.formgrid .fi label{color:#606266;min-width:110px;text-align:right;margin-right:10px;flex-shrink:0}
+.formgrid .fi label.req:before{content:"*";color:#f56c6c;margin-right:2px}
+.formgrid .fi .ipt{flex:1;min-width:0}
+.formgrid .fi textarea.ipt{min-width:0}
+fieldset{border:1px solid #ebeef5;border-radius:4px;padding:12px 16px 16px;margin-bottom:14px;width:100%}
+legend{padding:0 8px;font-size:13px;color:#1b6bb0;font-weight:600}
+.stat4{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.st{flex:1;min-width:150px;background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:16px}
+.st .k{font-size:12px;color:#909399}
+.st .v{font-size:26px;font-weight:700;color:#303133;margin-top:6px}
+.st .v small{font-size:12px;color:#c0c4cc;font-weight:400}
+.st.b .v{color:#1b6bb0}.st.g .v{color:#67c23a}.st.o .v{color:#e6a23c}.st.r .v{color:#f56c6c}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.tl{background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:16px 18px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chart{height:200px;border-radius:4px;background:linear-gradient(180deg,#f5f9ff,#fff);border:1px solid #e4ecf5;display:flex;align-items:flex-end;gap:8px;padding:16px 20px}
+.chart .bar{flex:1;background:linear-gradient(180deg,#5cadff,#1b6bb0);border-radius:3px 3px 0 0;position:relative}
+.chart .bar i{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-style:normal;font-size:11px;color:#606266}
+.chart .bar.g{background:linear-gradient(180deg,#95d475,#67c23a)}
+.chart .bar.o{background:linear-gradient(180deg,#f3d19e,#e6a23c)}
+.chart .bar.r{background:linear-gradient(180deg,#fab6b6,#f56c6c)}
+.chartx{display:flex;justify-content:space-between;font-size:11px;color:#909399;padding:6px 20px 0}
+.note{background:#ecf5ff;border:1px solid #d9ecff;border-radius:4px;padding:10px 14px;font-size:12px;color:#4b6f92;line-height:1.8;margin-bottom:12px}
+.note b{color:#1b6bb0}
+.dl{display:flex;flex-wrap:wrap;border:1px solid #ebeef5;border-radius:4px}
+.dl .row{display:flex;width:100%;border-bottom:1px solid #ebeef5}
+.dl .row:last-child{border-bottom:none}
+.dl .k{width:150px;background:#f5f7fa;color:#909399;padding:9px 12px;font-size:13px;flex-shrink:0}
+.dl .v{flex:1;padding:9px 12px;color:#303133;font-size:13px}
+.dl .v .tag{margin-right:4px}
+</style></head>
+<body><div class="layout">
+<aside><div class="logo"><div class="cross"></div>公共卫生服务系统</div>
+<div class="userbar">机构：<b>山东大学齐鲁医院</b><br>用户：<b>lvxue</b>（公卫科管理员）<br>角色：乡镇公卫科管理员</div>
+<nav class="nav"><div class="grp">工作入口</div><a href="02-工作台.html">工作台</a><a href="01-消息中心.html">消息中心</a><a href="03-计划提醒.html">计划提醒</a><div class="grp">档案与查询</div><a href="04-档案管理.html">档案管理</a><a href="08-业务查询.html">业务查询</a><div class="grp">重点人群管理</div><a href="13-慢病管理.html">慢病管理</a><a href="16-老年人管理.html">老年人管理</a><a href="17-妇幼管理.html">妇幼管理</a><a href="06-中医管理.html">中医管理</a><a href="14-重精管理.html">重精管理</a><a href="15-结核管理.html">结核管理</a><div class="grp">疾病防控</div><a href="10-疾病报卡.html">疾病报卡</a><a href="11-突发公卫事件.html">突发公卫事件</a><a href="12-三网监测.html">三网监测</a><a href="07-健教管理.html">健教管理</a><a href="09-卫生监督.html">卫生监督</a><div class="grp">统计与报表</div><a href="18-辖区统计.html">辖区统计</a><a href="19-业务报表.html">业务报表</a><div class="grp">系统管理</div><a href="05-系统设置.html" class="cur">系统设置</a></nav></aside>
+<main><div class="topbar"><span class="crumb"><b>系统设置</b> / 系统设置</span>
+<div class="orgsel"><span class="org" title="点击切换机构">山东大学齐鲁医院 ▾</span><div class="avatar">雪</div></div></div>
+<div class="mainwrap">
+<div class="modhead"><h1>系统设置</h1><p>系统级配置中心：辖区与字典维护、各类指导模板、随访与指标参数、补助与诊疗设置、传输记录与操作日志审计。</p></div>
+<div class="tabs"><div class="tab cur" onclick="showTab(0)">辖区管理</div><div class="tab" onclick="showTab(1)">健康指导模板</div><div class="tab" onclick="showTab(2)">老年人中医指导模板</div><div class="tab" onclick="showTab(3)">儿童中医指导模板</div><div class="tab" onclick="showTab(4)">中医保健模板</div><div class="tab" onclick="showTab(5)">随访参数维护</div><div class="tab" onclick="showTab(6)">指标参数维护</div><div class="tab" onclick="showTab(7)">辖区统计维护</div><div class="tab" onclick="showTab(8)">补助管理</div><div class="tab" onclick="showTab(9)">疾病诊疗设置</div><div class="tab" onclick="showTab(10)">基本参数维护</div><div class="tab" onclick="showTab(11)">档案传输记录</div><div class="tab" onclick="showTab(12)">操作日志</div></div>
+<div class="page cur" id="pg0"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>辖区名称</label><input class="ipt" placeholder="请输入辖区名称"></div>
+<div class="fitem"><label>辖区编码</label><input class="ipt" placeholder="请输入辖区编码"></div>
+<div class="fitem"><label>辖区类型</label><select class="ipt sel"><option>全部</option><option>省</option><option>市</option><option>县区</option><option>乡镇/街道</option><option>村/居委会</option></select></div>
+<div class="fitem"><label>状态</label><select class="ipt sel"><option>全部</option><option>启用</option><option>停用</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="openModal('m-5-0-0')">新建辖区</button><button class="btn" onclick="">导出</button><div class="right"><button class="btn">刷新</button></div></div>
+<div class="card"><table><thead><tr><th>辖区编码</th><th>辖区名称</th><th>上级辖区</th><th>辖区类型</th><th>辖区负责人</th><th>联系电话</th><th>下辖机构数</th><th>状态</th><th>操作</th></tr></thead><tbody><tr><td>370102</td><td>济南市历城区</td><td>山东省</td><td><span class="tag blue">县区</span></td><td>—</td><td>—</td><td>6</td><td><span class="tag green">启用</span></td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>370102001</td><td>山东大学齐鲁医院辖区</td><td>济南市历城区</td><td><span class="tag gray">乡镇/街道</span></td><td>王建国</td><td>0531-88****12</td><td>9</td><td><span class="tag green">启用</span></td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">村居管理</span></td></tr>
+<tr><td>37010200101</td><td>东关社区</td><td>山东大学齐鲁医院辖区</td><td><span class="tag gray">村/居委会</span></td><td>李卫芳</td><td>137****2216</td><td>—</td><td><span class="tag green">启用</span></td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>37010200102</td><td>西河村</td><td>山东大学齐鲁医院辖区</td><td><span class="tag gray">村/居委会</span></td><td>赵敏</td><td>158****3527</td><td>—</td><td><span class="tag green">启用</span></td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>37010200103</td><td>殷巷村</td><td>山东大学齐鲁医院辖区</td><td><span class="tag gray">村/居委会</span></td><td>刘志强</td><td>135****9164</td><td>—</td><td><span class="tag green">启用</span></td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="mask" id="m-5-0-0"><div class="modal">
+<div class="mh">新建辖区<span class="x" onclick="closeModal('m-5-0-0')">×</span></div>
+<div class="mb"><fieldset><legend>辖区信息</legend><div class="formgrid"><div class="fi"><label class=" req">辖区名称</label><input class="ipt" placeholder="请输入辖区名称"></div>
+<div class="fi"><label class=" req">辖区编码</label><input class="ipt" placeholder="请输入辖区编码"></div>
+<div class="fi"><label class=" req">上级辖区</label><select class="ipt sel"><option>山东省</option><option>济南市</option><option>济南市历城区</option><option>山东大学齐鲁医院辖区</option></select></div>
+<div class="fi"><label class=" req">辖区类型</label><select class="ipt sel"><option>县区</option><option>乡镇/街道</option><option>村/居委会</option></select></div>
+<div class="fi"><label class=" req">辖区负责人</label><input class="ipt" placeholder="请输入辖区负责人"></div>
+<div class="fi"><label class="">联系电话</label><input class="ipt" placeholder="请输入联系电话"></div>
+<div class="fi"><label class="">状态</label><select class="ipt sel"><option>请选择</option><option>是</option><option>否</option></select></div>
+<div class="fi wide"><label class="">备注</label><textarea class="ipt" placeholder="请输入备注"></textarea></div>
+</div></fieldset></div><div class="mf"><button class="btn pri" onclick="alert('原型演示：保存成功');closeModal('m-5-0-0')">保 存</button><button class="btn" onclick="closeModal('m-5-0-0')">取 消</button></div></div></div>
+
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>行政区划/管辖村居维护：辖区树、辖区负责人与编码。<br><b>交互能力：</b>列表导出、新建登记、条件重置、组合条件查询<br><b>待确认项：</b>辖区编码对接国家标准行政区划库<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg1"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>模板名称</label><input class="ipt" placeholder="请输入模板名称"></div>
+<div class="fitem"><label>适用人群</label><select class="ipt sel"><option>全部</option><option>通用</option><option>高血压</option><option>糖尿病</option><option>老年人</option><option>孕产妇</option><option>儿童</option></select></div>
+<div class="fitem"><label>模板状态</label><select class="ipt sel"><option>全部</option><option>启用</option><option>停用</option></select></div>
+<div class="fitem"><label>更新日期</label><input class="ipt" type="date"> ~ <input class="ipt" type="date"></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="openModal('m-5-1-0')">新建模板</button><button class="btn" onclick="">导出</button><div class="right"><button class="btn">刷新</button></div></div>
+<div class="card"><table><thead><tr><th>模板编号</th><th>模板名称</th><th>适用人群</th><th>模板内容摘要</th><th>引用次数</th><th>创建人</th><th>更新日期</th><th>状态</th><th>操作</th></tr></thead><tbody><tr><td>MB-HX01</td><td>高血压患者生活方式指导</td><td>高血压</td><td>限盐<5g/日、戒烟限酒、每周5次30分钟中等强度运动…</td><td>1,824</td><td>王建国</td><td>2026-08-20</td><td><span class="tag green">启用</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">停用</span></td></tr>
+<tr><td>MB-HX02</td><td>糖尿病饮食运动指导</td><td>糖尿病</td><td>主食定量、粗细搭配、餐后散步、足部护理…</td><td>1,102</td><td>李卫芳</td><td>2026-08-18</td><td><span class="tag green">启用</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">停用</span></td></tr>
+<tr><td>MB-HX03</td><td>老年人防跌倒指导</td><td>老年人</td><td>居家环境改造、平衡训练、维生素D补充建议…</td><td>684</td><td>赵敏</td><td>2026-07-30</td><td><span class="tag green">启用</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">停用</span></td></tr>
+<tr><td>MB-HX04</td><td>孕产妇膳食指导</td><td>孕产妇</td><td>孕中晚期每日增加奶、蛋、鱼摄入，铁与叶酸补充…</td><td>296</td><td>李卫芳</td><td>2026-07-12</td><td><span class="tag green">启用</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">停用</span></td></tr>
+<tr><td>MB-HX05</td><td>通用健康素养66条</td><td>通用</td><td>国家卫健委健康素养促进条目全集…</td><td>3,210</td><td>公卫科</td><td>2026-01-15</td><td><span class="tag gray">停用</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">启用</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="mask" id="m-5-1-0"><div class="modal">
+<div class="mh">新建健康指导模板<span class="x" onclick="closeModal('m-5-1-0')">×</span></div>
+<div class="mb"><fieldset><legend>模板信息</legend><div class="formgrid"><div class="fi wide"><label class=" req">模板名称</label><input class="ipt" placeholder="请输入模板名称"></div>
+<div class="fi"><label class=" req">适用人群</label><select class="ipt sel"><option>通用</option><option>高血压</option><option>糖尿病</option><option>老年人</option><option>孕产妇</option><option>儿童</option></select></div>
+<div class="fi"><label class="">模板分类</label><select class="ipt sel"><option>生活方式</option><option>用药指导</option><option>复诊提醒</option><option>心理指导</option></select></div>
+<div class="fi"><label class="">状态</label><select class="ipt sel"><option>请选择</option><option>是</option><option>否</option></select></div>
+<div class="fi wide"><label class=" req">模板内容</label><textarea class="ipt" placeholder="请输入模板内容"></textarea></div>
+</div></fieldset></div><div class="mf"><button class="btn pri" onclick="alert('原型演示：保存成功');closeModal('m-5-1-0')">保 存</button><button class="btn" onclick="closeModal('m-5-1-0')">取 消</button></div></div></div>
+
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>通用健康指导模板维护：供随访/体检/健教引用的标准话术与指导条目。<br><b>交互能力：</b>列表导出、新建登记、条件重置、组合条件查询、编辑修改、详情查看<br><b>待确认项：</b>模板版本管理与引用统计待确认<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg2"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>模板名称</label><input class="ipt" placeholder="请输入模板名称"></div>
+<div class="fitem"><label>中医体质</label><select class="ipt sel"><option>全部</option><option>平和质</option><option>气虚质</option><option>阳虚质</option><option>阴虚质</option><option>痰湿质</option><option>湿热质</option><option>血瘀质</option><option>气郁质</option><option>特禀质</option></select></div>
+<div class="fitem"><label>模板状态</label><select class="ipt sel"><option>全部</option><option>启用</option><option>停用</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="openModal('m-5-2-0')">新建模板</button><div class="right"><button class="btn">刷新</button></div></div>
+<div class="card"><table><thead><tr><th>模板编号</th><th>模板名称</th><th>中医体质</th><th>指导要点（食养/起居/运动/穴位）</th><th>引用次数</th><th>更新日期</th><th>状态</th><th>操作</th></tr></thead><tbody><tr><td>MB-ZY01</td><td>平和质调养指导</td><td>平和质</td><td>饮食有节、起居有常、适度运动即可</td><td>523</td><td>2026-06-10</td><td><span class="tag green">启用</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>MB-ZY02</td><td>气虚质补气指导</td><td>气虚质</td><td>山药大枣粥、避免过劳、八段锦、足三里按摩</td><td>412</td><td>2026-06-10</td><td><span class="tag green">启用</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>MB-ZY03</td><td>阳虚质温阳指导</td><td>阳虚质</td><td>当归生姜羊肉汤、避寒保暖、督脉灸</td><td>356</td><td>2026-06-11</td><td><span class="tag green">启用</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>MB-ZY04</td><td>痰湿质化痰祛湿指导</td><td>痰湿质</td><td>薏米赤小豆汤、少食肥甘、快走微汗</td><td>289</td><td>2026-06-11</td><td><span class="tag green">启用</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>MB-ZY05</td><td>血瘀质活血指导</td><td>血瘀质</td><td>山楂玫瑰茶、适度拉伸、注意情绪疏导</td><td>174</td><td>2026-06-12</td><td><span class="tag green">启用</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="mask" id="m-5-2-0"><div class="modal">
+<div class="mh">新建老年人中医指导模板<span class="x" onclick="closeModal('m-5-2-0')">×</span></div>
+<div class="mb"><fieldset><legend>模板信息</legend><div class="formgrid"><div class="fi wide"><label class=" req">模板名称</label><input class="ipt" placeholder="请输入模板名称"></div>
+<div class="fi"><label class=" req">中医体质</label><select class="ipt sel"><option>平和质</option><option>气虚质</option><option>阳虚质</option><option>阴虚质</option><option>痰湿质</option><option>湿热质</option><option>血瘀质</option><option>气郁质</option><option>特禀质</option></select></div>
+<div class="fi wide"><label class="">食养建议</label><textarea class="ipt" placeholder="请输入食养建议"></textarea></div>
+<div class="fi wide"><label class="">起居调摄</label><textarea class="ipt" placeholder="请输入起居调摄"></textarea></div>
+<div class="fi wide"><label class="">运动指导</label><textarea class="ipt" placeholder="请输入运动指导"></textarea></div>
+<div class="fi wide"><label class="">穴位保健</label><textarea class="ipt" placeholder="请输入穴位保健"></textarea></div>
+<div class="fi"><label class="">状态</label><select class="ipt sel"><option>请选择</option><option>是</option><option>否</option></select></div>
+</div></fieldset></div><div class="mf"><button class="btn pri" onclick="alert('原型演示：保存成功');closeModal('m-5-2-0')">保 存</button><button class="btn" onclick="closeModal('m-5-2-0')">取 消</button></div></div></div>
+
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>老年人中医药健康管理指导模板：按体质辨识结果引用的指导内容。<br><b>交互能力：</b>列表导出、新建登记、条件重置、组合条件查询、编辑修改、详情查看<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg3"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>模板名称</label><input class="ipt" placeholder="请输入模板名称"></div>
+<div class="fitem"><label>月龄段</label><select class="ipt sel"><option>全部</option><option>6月龄</option><option>12月龄</option><option>18月龄</option><option>24月龄</option><option>30月龄</option><option>36月龄</option></select></div>
+<div class="fitem"><label>模板状态</label><select class="ipt sel"><option>全部</option><option>启用</option><option>停用</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="openModal('m-5-3-0')">新建模板</button><div class="right"><button class="btn">刷新</button></div></div>
+<div class="card"><table><thead><tr><th>模板编号</th><th>模板名称</th><th>月龄段</th><th>指导要点（喂养/摩腹/捏积/穴位）</th><th>引用次数</th><th>更新日期</th><th>状态</th><th>操作</th></tr></thead><tbody><tr><td>MB-ET01</td><td>6月龄调养指导</td><td>6月龄</td><td>补充辅食引入、按揉迎香穴</td><td>268</td><td>2026-05-08</td><td><span class="tag green">启用</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>MB-ET02</td><td>12月龄调养指导</td><td>12月龄</td><td>辅食多样化、摩腹每日1次</td><td>241</td><td>2026-05-08</td><td><span class="tag green">启用</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>MB-ET03</td><td>18月龄调养指导</td><td>18月龄</td><td>捏积每周2-3次、足三里按揉</td><td>198</td><td>2026-05-09</td><td><span class="tag green">启用</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>MB-ET04</td><td>24月龄调养指导</td><td>24月龄</td><td>培养进食习惯、捏积与摩腹交替</td><td>186</td><td>2026-05-09</td><td><span class="tag green">启用</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>MB-ET05</td><td>36月龄调养指导</td><td>36月龄</td><td>规律作息、目力保护指导</td><td>154</td><td>2026-05-10</td><td><span class="tag green">启用</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="mask" id="m-5-3-0"><div class="modal">
+<div class="mh">新建儿童中医指导模板<span class="x" onclick="closeModal('m-5-3-0')">×</span></div>
+<div class="mb"><fieldset><legend>模板信息</legend><div class="formgrid"><div class="fi wide"><label class=" req">模板名称</label><input class="ipt" placeholder="请输入模板名称"></div>
+<div class="fi"><label class=" req">月龄段</label><select class="ipt sel"><option>6月龄</option><option>12月龄</option><option>18月龄</option><option>24月龄</option><option>30月龄</option><option>36月龄</option></select></div>
+<div class="fi wide"><label class="">喂养指导</label><textarea class="ipt" placeholder="请输入喂养指导"></textarea></div>
+<div class="fi wide"><label class="">推拿指导（摩腹/捏积）</label><textarea class="ipt" placeholder="请输入推拿指导（摩腹/捏积）"></textarea></div>
+<div class="fi wide"><label class="">穴位保健</label><textarea class="ipt" placeholder="请输入穴位保健"></textarea></div>
+<div class="fi"><label class="">状态</label><select class="ipt sel"><option>请选择</option><option>是</option><option>否</option></select></div>
+</div></fieldset></div><div class="mf"><button class="btn pri" onclick="alert('原型演示：保存成功');closeModal('m-5-3-0')">保 存</button><button class="btn" onclick="closeModal('m-5-3-0')">取 消</button></div></div></div>
+
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>0-36月龄儿童中医药健康管理指导模板：按月龄段（6/12/18/24/30/36月）的调养指导。<br><b>交互能力：</b>列表导出、新建登记、条件重置、组合条件查询、编辑修改、详情查看<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg4"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>模板名称</label><input class="ipt" placeholder="请输入模板名称"></div>
+<div class="fitem"><label>模板类型</label><select class="ipt sel"><option>全部</option><option>体质辨识问卷</option><option>辨识计分规则</option><option>判定标准</option></select></div>
+<div class="fitem"><label>模板状态</label><select class="ipt sel"><option>全部</option><option>启用</option><option>停用</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="openModal('m-5-4-0')">新建模板</button><div class="right"><button class="btn">刷新</button></div></div>
+<div class="card"><table><thead><tr><th>模板编号</th><th>模板名称</th><th>模板类型</th><th>题目数/规则数</th><th>适用对象</th><th>更新日期</th><th>状态</th><th>操作</th></tr></thead><tbody><tr><td>MB-BJ01</td><td>中医体质辨识标准问卷（33题）</td><td><span class="tag blue">体质辨识问卷</span></td><td>33</td><td>老年人</td><td>2026-04-20</td><td><span class="tag green">启用</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>MB-BJ02</td><td>儿童中医药健康管理问卷</td><td><span class="tag blue">体质辨识问卷</span></td><td>12</td><td>0-36月儿童</td><td>2026-04-22</td><td><span class="tag green">启用</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>MB-BJ03</td><td>体质辨识计分与转化规则</td><td><span class="tag purple">辨识计分规则</span></td><td>9</td><td>通用</td><td>2026-04-20</td><td><span class="tag green">启用</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>MB-BJ04</td><td>偏颇体质判定标准</td><td><span class="tag gray">判定标准</span></td><td>8</td><td>通用</td><td>2026-04-21</td><td><span class="tag green">启用</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="mask" id="m-5-4-0"><div class="modal">
+<div class="mh">新建中医保健模板<span class="x" onclick="closeModal('m-5-4-0')">×</span></div>
+<div class="mb"><fieldset><legend>模板信息</legend><div class="formgrid"><div class="fi wide"><label class=" req">模板名称</label><input class="ipt" placeholder="请输入模板名称"></div>
+<div class="fi"><label class=" req">模板类型</label><select class="ipt sel"><option>体质辨识问卷</option><option>辨识计分规则</option><option>判定标准</option></select></div>
+<div class="fi"><label class="">适用对象</label><select class="ipt sel"><option>老年人</option><option>0-36月儿童</option><option>通用</option></select></div>
+<div class="fi"><label class="">状态</label><select class="ipt sel"><option>请选择</option><option>是</option><option>否</option></select></div>
+<div class="fi wide"><label class=" req">模板内容</label><textarea class="ipt" placeholder="请输入模板内容"></textarea></div>
+</div></fieldset></div><div class="mf"><button class="btn pri" onclick="alert('原型演示：保存成功');closeModal('m-5-4-0')">保 存</button><button class="btn" onclick="closeModal('m-5-4-0')">取 消</button></div></div></div>
+
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>中医药保健服务模板：体质辨识问卷题目、辨识计分规则与判定标准维护。<br><b>交互能力：</b>列表导出、新建登记、条件重置、组合条件查询、编辑修改、详情查看<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg5"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>参数项名称</label><input class="ipt" placeholder="请输入参数项名称"></div>
+<div class="fitem"><label>病种</label><select class="ipt sel"><option>全部</option><option>高血压</option><option>糖尿病</option><option>孕产妇</option><option>儿童</option><option>重精</option><option>肺结核</option><option>老年人</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="openModal('m-5-5-0')">添加配置项</button><div class="right"><button class="btn">保存配置</button><button class="btn">恢复默认</button></div></div>
+<div class="card"><table><thead><tr><th>参数项</th><th>所属病种</th><th>参数值</th><th>参数说明</th><th>更新人</th><th>更新时间</th><th>操作</th></tr></thead><tbody><tr><td>高血压·随访频次（常规）</td><td>高血压</td><td>每季度 1 次</td><td>血压控制达标者按常规频次随访</td><td>公卫科</td><td>2026-01-10</td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">删除</span></td></tr>
+<tr><td>高血压·随访频次（强化）</td><td>高血压</td><td>每 2 周 1 次</td><td>红色管理组患者强化随访</td><td>公卫科</td><td>2026-01-10</td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">删除</span></td></tr>
+<tr><td>糖尿病·随访频次</td><td>糖尿病</td><td>每季度 1 次</td><td>血糖控制不满意者每 2 月随访</td><td>公卫科</td><td>2026-01-10</td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">删除</span></td></tr>
+<tr><td>孕产妇·产后访视时限</td><td>孕产妇</td><td>出院后 7 天内</td><td>国家规范产后访视时限</td><td>公卫科</td><td>2026-01-10</td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">删除</span></td></tr>
+<tr><td>重精·随访频次（不稳定）</td><td>重精</td><td>每 2 周 1 次</td><td>危险性评估≥3级者按不稳定患者管理</td><td>公卫科</td><td>2026-01-11</td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">删除</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="mask" id="m-5-5-0"><div class="modal">
+<div class="mh">添加配置项<span class="x" onclick="closeModal('m-5-5-0')">×</span></div>
+<div class="mb"><fieldset><legend>参数配置</legend><div class="formgrid"><div class="fi wide"><label class=" req">参数项名称</label><input class="ipt" placeholder="请输入参数项名称"></div>
+<div class="fi"><label class=" req">所属病种</label><select class="ipt sel"><option>高血压</option><option>糖尿病</option><option>孕产妇</option><option>儿童</option><option>重精</option><option>肺结核</option><option>老年人</option><option>通用</option></select></div>
+<div class="fi"><label class=" req">参数值</label><input class="ipt" placeholder="请输入参数值"></div>
+<div class="fi wide"><label class="">参数说明</label><textarea class="ipt" placeholder="请输入参数说明"></textarea></div>
+</div></fieldset></div><div class="mf"><button class="btn pri" onclick="alert('原型演示：保存成功');closeModal('m-5-5-0')">保 存</button><button class="btn" onclick="closeModal('m-5-5-0')">取 消</button></div></div></div>
+
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>随访规则参数配置：各病种随访频次、随访项目、超期判定等参数项。<br><b>交互能力：</b>删除、添加配置项、配置保存<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg6"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>指标名称</label><input class="ipt" placeholder="请输入指标名称"></div>
+<div class="fitem"><label>指标分类</label><select class="ipt sel"><option>全部</option><option>建档率</option><option>管理率</option><option>规范管理率</option><option>控制率</option><option>访视率</option><option>体检率</option></select></div>
+<div class="fitem"><label>年度</label><select class="ipt sel"><option>2026</option><option>2025</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="openModal('m-5-6-0')">新增指标</button><button class="btn" onclick="">导出</button><div class="right"><button class="btn">刷新</button></div></div>
+<div class="card"><table><thead><tr><th>排序</th><th>指标编码</th><th>指标名称</th><th>指标分类</th><th>计算口径</th><th>目标值</th><th>当前值</th><th>年度</th><th>操作</th></tr></thead><tbody><tr><td>1</td><td>ZB-JD-01</td><td>居民电子健康档案建档率</td><td>建档率</td><td>建档人数/辖区常住人数</td><td>≥90%</td><td><span class="tag red">92.3%</span></td><td>2026</td><td><span style="color:#1b6bb0;cursor:pointer">上移</span> <span style="color:#1b6bb0;cursor:pointer">下移</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">删除</span></td></tr>
+<tr><td>2</td><td>ZB-GY-02</td><td>高血压患者规范管理率</td><td>规范管理率</td><td>规范管理人数/在管高血压人数</td><td>≥60%</td><td><span class="tag green">76.4%</span></td><td>2026</td><td><span style="color:#1b6bb0;cursor:pointer">上移</span> <span style="color:#1b6bb0;cursor:pointer">下移</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">删除</span></td></tr>
+<tr><td>3</td><td>ZB-GY-03</td><td>2型糖尿病患者规范管理率</td><td>规范管理率</td><td>规范管理人数/在管糖尿病人数</td><td>≥60%</td><td><span class="tag green">74.1%</span></td><td>2026</td><td><span style="color:#1b6bb0;cursor:pointer">上移</span> <span style="color:#1b6bb0;cursor:pointer">下移</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">删除</span></td></tr>
+<tr><td>4</td><td>ZB-LN-04</td><td>65岁以上老年人健康管理率</td><td>管理率</td><td>接受健康管理人数/辖区65岁以上常住人数</td><td>≥70%</td><td><span class="tag orange">68.9%</span></td><td>2026</td><td><span style="color:#1b6bb0;cursor:pointer">上移</span> <span style="color:#1b6bb0;cursor:pointer">下移</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">删除</span></td></tr>
+<tr><td>5</td><td>ZB-CR-05</td><td>0-6岁儿童健康管理率</td><td>管理率</td><td>接受健康管理人数/辖区0-6岁儿童数</td><td>≥85%</td><td><span class="tag green">82.6%</span></td><td>2026</td><td><span style="color:#1b6bb0;cursor:pointer">上移</span> <span style="color:#1b6bb0;cursor:pointer">下移</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">删除</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="mask" id="m-5-6-0"><div class="modal">
+<div class="mh">新增指标参数<span class="x" onclick="closeModal('m-5-6-0')">×</span></div>
+<div class="mb"><fieldset><legend>指标信息</legend><div class="formgrid"><div class="fi"><label class=" req">指标编码</label><input class="ipt" placeholder="请输入指标编码"></div>
+<div class="fi"><label class=" req">指标名称</label><input class="ipt" placeholder="请输入指标名称"></div>
+<div class="fi"><label class=" req">指标分类</label><select class="ipt sel"><option>建档率</option><option>管理率</option><option>规范管理率</option><option>控制率</option><option>访视率</option><option>体检率</option></select></div>
+<div class="fi"><label class=" req">年度</label><select class="ipt sel"><option>2026</option><option>2025</option></select></div>
+<div class="fi wide"><label class=" req">计算口径</label><input class="ipt" placeholder="请输入计算口径"></div>
+<div class="fi"><label class=" req">目标值</label><input class="ipt" placeholder="请输入目标值"></div>
+</div></fieldset></div><div class="mf"><button class="btn pri" onclick="alert('原型演示：保存成功');closeModal('m-5-6-0')">保 存</button><button class="btn" onclick="closeModal('m-5-6-0')">取 消</button></div></div></div>
+
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>公卫考核指标参数：规范管理率、管理率等指标的计算口径与目标值维护，影响辖区统计与报表。<br><b>交互能力：</b>列表导出、新增、条件重置、组合条件查询、排序上移、排序下移、编辑修改、删除 等7项<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg7"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>配置项</label><input class="ipt" placeholder="请输入配置项"></div>
+<div class="fitem"><label>配置分类</label><select class="ipt sel"><option>全部</option><option>统计口径</option><option>人群定义</option><option>报表维度</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button></div></div></div>
+<div class="toolbar"><div class="right"><button class="btn">保存配置</button><button class="btn">恢复默认</button></div></div>
+<div class="card"><table><thead><tr><th>配置项</th><th>配置分类</th><th>当前配置值</th><th>影响范围</th><th>更新人</th><th>更新时间</th></tr></thead><tbody><tr><td>辖区常住人口基数</td><td>统计口径</td><td>45,912（2025年公安年报）</td><td>辖区统计/业务报表</td><td>公卫科</td><td>2026-01-05</td></tr>
+<tr><td>65岁以上人口</td><td>人群定义</td><td>3,986 人</td><td>老年人体检率相关统计</td><td>公卫科</td><td>2026-01-05</td></tr>
+<tr><td>报表统计维度</td><td>报表维度</td><td>村居 × 年度 × 服务项目</td><td>辖区统计、业务报表</td><td>公卫科</td><td>2026-01-05</td></tr>
+<tr><td>重点人群口径</td><td>人群定义</td><td>慢病+老年+孕产妇+儿童+重精+结核</td><td>首页看板/驾驶舱</td><td>公卫科</td><td>2026-01-06</td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>辖区统计的口径与维度配置：统计范围、人群口径、报表维度。<br><b>交互能力：</b>条件重置、配置保存<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg8"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>补助项目</label><input class="ipt" placeholder="请输入补助项目"></div>
+<div class="fitem"><label>年度</label><select class="ipt sel"><option>2026</option><option>2025</option></select></div>
+<div class="fitem"><label>结算状态</label><select class="ipt sel"><option>全部</option><option>未结算</option><option>结算中</option><option>已结算</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="openModal('m-5-8-0')">新增补助标准</button><button class="btn" onclick="">导出</button><div class="right"><button class="btn">刷新</button></div></div>
+<div class="card"><table><thead><tr><th>补助编号</th><th>补助项目</th><th>补助标准（元/人次）</th><th>结算周期</th><th>本年度服务量</th><th>本年度补助额（元）</th><th>结算状态</th><th>操作</th></tr></thead><tbody><tr><td>BZ-01</td><td>居民健康档案建档</td><td>6.5</td><td>年度</td><td>312 人次</td><td>2,028.00</td><td><span class="tag green">已结算</span></td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">删除</span></td></tr>
+<tr><td>BZ-02</td><td>高血压患者随访</td><td>12.0</td><td>季度</td><td>8,246 人次</td><td>98,952.00</td><td><span class="tag blue">结算中</span></td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">删除</span></td></tr>
+<tr><td>BZ-03</td><td>糖尿病随访</td><td>12.0</td><td>季度</td><td>3,764 人次</td><td>45,168.00</td><td><span class="tag blue">结算中</span></td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">删除</span></td></tr>
+<tr><td>BZ-04</td><td>老年人健康管理（体检+指导）</td><td>28.0</td><td>年度</td><td>2,478 人次</td><td>69,384.00</td><td><span class="tag orange">未结算</span></td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">删除</span></td></tr>
+<tr><td>BZ-05</td><td>儿童中医药调养指导</td><td>8.0</td><td>年度</td><td>1,102 人次</td><td>8,816.00</td><td><span class="tag orange">未结算</span></td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">删除</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="mask" id="m-5-8-0"><div class="modal">
+<div class="mh">新增补助标准<span class="x" onclick="closeModal('m-5-8-0')">×</span></div>
+<div class="mb"><fieldset><legend>补助信息</legend><div class="formgrid"><div class="fi wide"><label class=" req">补助项目</label><input class="ipt" placeholder="请输入补助项目"></div>
+<div class="fi"><label class=" req">补助标准（元/人次）</label><input class="ipt" type="number" placeholder="请输入补助标准（元/人次）"></div>
+<div class="fi"><label class=" req">结算周期</label><select class="ipt sel"><option>年度</option><option>季度</option><option>月度</option></select></div>
+<div class="fi"><label class="">适用机构</label><select class="ipt sel"><option>全院</option><option>村级卫生室</option></select></div>
+<div class="fi wide"><label class="">备注</label><textarea class="ipt" placeholder="请输入备注"></textarea></div>
+</div></fieldset></div><div class="mf"><button class="btn pri" onclick="alert('原型演示：保存成功');closeModal('m-5-8-0')">保 存</button><button class="btn" onclick="closeModal('m-5-8-0')">取 消</button></div></div></div>
+
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>基本公卫服务经费补助标准与结算记录管理：按服务项目与工作量测算补助。<br><b>交互能力：</b>列表导出、新增、条件重置、组合条件查询、删除<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg9"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>疾病名称</label><input class="ipt" placeholder="请输入疾病名称"></div>
+<div class="fitem"><label>疾病分类</label><select class="ipt sel"><option>全部</option><option>甲类</option><option>乙类</option><option>丙类</option><option>非传染病</option></select></div>
+<div class="fitem"><label>ICD编码</label><input class="ipt" placeholder="请输入ICD编码"></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button></div></div></div>
+<div class="toolbar"><div class="right"><button class="btn">保存配置</button></div></div>
+<div class="card"><table><thead><tr><th>ICD-10编码</th><th>疾病名称</th><th>疾病分类</th><th>是否报卡病种</th><th>是否慢病报卡</th><th>监测状态</th><th>操作</th></tr></thead><tbody><tr><td>A00.0</td><td>霍乱</td><td><span class="tag red">甲类</span></td><td><span class="tag red">是</span></td><td>—</td><td><span class="tag green">监测中</span></td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>B15.9</td><td>病毒性肝炎（乙型）</td><td><span class="tag orange">乙类</span></td><td><span class="tag red">是</span></td><td>—</td><td><span class="tag green">监测中</span></td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>A90</td><td>登革热</td><td><span class="tag orange">乙类</span></td><td><span class="tag red">是</span></td><td>—</td><td><span class="tag green">监测中</span></td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>I10</td><td>原发性高血压</td><td><span class="tag gray">非传染病</span></td><td><span class="tag orange">慢病报卡</span></td><td><span class="tag red">是</span></td><td><span class="tag green">监测中</span></td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>E11</td><td>2型糖尿病</td><td><span class="tag gray">非传染病</span></td><td><span class="tag orange">慢病报卡</span></td><td><span class="tag red">是</span></td><td><span class="tag green">监测中</span></td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>J44.9</td><td>慢性阻塞性肺疾病</td><td><span class="tag gray">非传染病</span></td><td><span class="tag gray">否</span></td><td><span class="tag red">是</span></td><td><span class="tag green">监测中</span></td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>疾病诊疗目录配置：与 ICD-10 对接的疾病字典、报卡病种目录（甲/乙/丙类）维护。<br><b>交互能力：</b>配置保存<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg10"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>参数名称</label><input class="ipt" placeholder="请输入参数名称"></div>
+<div class="fitem"><label>参数分类</label><select class="ipt sel"><option>全部</option><option>安全策略</option><option>数据留存</option><option>业务默认值</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button></div></div></div>
+<div class="toolbar"><div class="right"><button class="btn">保存配置</button></div></div>
+<div class="card"><table><thead><tr><th>参数编码</th><th>参数名称</th><th>参数值</th><th>参数分类</th><th>说明</th><th>更新时间</th><th>操作</th></tr></thead><tbody><tr><td>SYS-SEC-01</td><td>会话超时时长</td><td>30 分钟</td><td>安全策略</td><td>无操作自动登出</td><td>2026-01-02</td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>SYS-SEC-02</td><td>密码有效期</td><td>90 天</td><td>安全策略</td><td>到期强制修改</td><td>2026-01-02</td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>SYS-DAT-01</td><td>档案查阅留痕保留期</td><td>5 年</td><td>数据留存</td><td>审计合规要求</td><td>2026-01-02</td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>SYS-BIZ-01</td><td>默认随访提前提醒天数</td><td>7 天</td><td>业务默认值</td><td>可按病种覆盖</td><td>2026-01-03</td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>SYS-BIZ-02</td><td>报卡提交时限</td><td>2 小时</td><td>业务默认值</td><td>传染病诊断后限时上报</td><td>2026-01-03</td><td><span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>系统级基本参数：登录策略、数据留存、默认值等全局配置。<br><b>交互能力：</b>配置保存<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg11"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>批次号</label><input class="ipt" placeholder="请输入批次号"></div>
+<div class="fitem"><label>传输方向</label><select class="ipt sel"><option>全部</option><option>上传</option><option>接收</option></select></div>
+<div class="fitem"><label>传输状态</label><select class="ipt sel"><option>全部</option><option>成功</option><option>失败</option><option>重试中</option></select></div>
+<div class="fitem"><label>传输日期</label><input class="ipt" type="date"> ~ <input class="ipt" type="date"></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button></div></div></div>
+<div class="toolbar"><div class="right"><button class="btn">立即重传失败项</button><button class="btn">刷新</button></div></div>
+<div class="card"><table><thead><tr><th>批次号</th><th>传输方向</th><th>目标平台</th><th>数据类型</th><th>记录数</th><th>传输时间</th><th>耗时</th><th>传输状态</th><th>操作</th></tr></thead><tbody><tr><td>CS20260916001</td><td><span class="tag blue">上传</span></td><td>市级公卫平台</td><td>随访记录</td><td>486</td><td>2026-09-16 06:00</td><td>42s</td><td><span class="tag green">成功</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>CS20260916002</td><td><span class="tag blue">上传</span></td><td>市级公卫平台</td><td>档案变更</td><td>312</td><td>2026-09-16 06:01</td><td>35s</td><td><span class="tag green">成功</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>CS20260915003</td><td><span class="tag blue">上传</span></td><td>省级传染病直报</td><td>传染病报卡</td><td>2</td><td>2026-09-15 12:10</td><td>8s</td><td><span class="tag red">失败</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">重传</span></td></tr>
+<tr><td>CS20260914004</td><td><span class="tag purple">接收</span></td><td>区域全民健康平台</td><td>居民主索引</td><td>128</td><td>2026-09-14 22:00</td><td>1m12s</td><td><span class="tag green">成功</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>CS20260913005</td><td><span class="tag blue">上传</span></td><td>市级公卫平台</td><td>体检记录</td><td>1,024</td><td>2026-09-13 23:00</td><td>2m03s</td><td><span class="tag orange">重试中</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>档案数据向上级平台/区域平台传输的记录与状态跟踪。<br><b>交互能力：</b>条件重置、组合条件查询、传输详情查看<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg12"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>操作人</label><input class="ipt" placeholder="请输入操作人"></div>
+<div class="fitem"><label>操作类型</label><select class="ipt sel"><option>全部</option><option>登录</option><option>查询</option><option>新增</option><option>修改</option><option>删除</option><option>导出</option><option>审核</option><option>授权</option></select></div>
+<div class="fitem"><label>操作对象</label><input class="ipt" placeholder="请输入操作对象"></div>
+<div class="fitem"><label>操作时间</label><input class="ipt" type="date"> ~ <input class="ipt" type="date"></div>
+<div class="fitem"><label>结果</label><select class="ipt sel"><option>全部</option><option>成功</option><option>失败</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button></div></div></div>
+<div class="toolbar"><div class="right"><button class="btn">刷新</button><button class="btn">导出审计报告</button></div></div>
+<div class="card"><table><thead><tr><th>日志编号</th><th>操作人</th><th>角色</th><th>操作类型</th><th>操作对象</th><th>IP地址</th><th>操作时间</th><th>结果</th><th>操作</th></tr></thead><tbody><tr><td>LOG2026091600012</td><td>王建国</td><td>责任医生</td><td><span class="tag orange">修改</span></td><td>档案 DA3701020001 · 随访记录 FQ00923</td><td>192.168.23.45</td><td>2026-09-16 09:12</td><td><span class="tag green">成功</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>LOG2026091600011</td><td>李卫芳</td><td>责任医生</td><td><span class="tag blue">新增</span></td><td>家庭档案 JT000431 · 成员关系</td><td>192.168.23.51</td><td>2026-09-16 08:55</td><td><span class="tag green">成功</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>LOG2026091500010</td><td>lvxue</td><td>公卫科管理员</td><td><span class="tag purple">授权</span></td><td>档案 DA3701020001 · 居民端开放授权</td><td>192.168.23.100</td><td>2026-09-15 17:30</td><td><span class="tag green">成功</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>LOG2026091500009</td><td>赵敏</td><td>责任医生</td><td><span class="tag gray">导出</span></td><td>高血压随访名单（4,126条）</td><td>192.168.23.62</td><td>2026-09-15 14:20</td><td><span class="tag green">成功</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>LOG2026091500008</td><td>system</td><td>系统</td><td><span class="tag blue">新增</span></td><td>档案迁移 YD2026091402 · 自动归档</td><td>—</td><td>2026-09-15 04:00</td><td><span class="tag green">成功</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>用户操作全程审计：档案的变更记录（谁、何时、改了什么、改前改后值）。<br><b>交互能力：</b>条件重置、组合条件查询、详情查看；详情内容：记录档案的变更记录<br><b>待确认项：</b>日志留存期限与敏感字段加密展示待合规评审<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+</div></main></div>
+<script>
+function showTab(n){
+  document.querySelectorAll('.tabs .tab').forEach((t,i)=>t.classList.toggle('cur',i===n));
+  document.querySelectorAll('.page').forEach((p,i)=>p.classList.toggle('cur',i===n));
+  window.scrollTo(0,0);
+}
+function openModal(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+function toggleMore(btn){
+  var box=btn.closest('.qgrid');var h=box.querySelector('.hid');
+  if(h.style.display==='none'){h.style.display='flex';btn.textContent='收起 ▲'}else{h.style.display='none';btn.textContent='展开更多查询 ▼'}
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.mask.show').forEach(m=>m.classList.remove('show'))});
+</script></body></html>

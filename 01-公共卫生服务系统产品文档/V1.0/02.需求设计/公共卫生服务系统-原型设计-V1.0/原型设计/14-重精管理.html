@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>严重精神障碍管理 · 公共卫生服务系统原型</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;font-size:14px;color:#333;background:#f0f2f5}
+a{text-decoration:none;color:inherit}
+.layout{display:flex;min-height:100vh}
+aside{width:210px;background:#263238;color:#cfd8dc;flex-shrink:0;display:flex;flex-direction:column}
+.logo{height:56px;background:#1b6bb0;color:#fff;display:flex;align-items:center;padding:0 14px;font-size:15px;font-weight:600;letter-spacing:1px}
+.logo .cross{width:22px;height:22px;border:2px solid #fff;border-radius:4px;position:relative;margin-right:8px;flex-shrink:0}
+.logo .cross:after{content:"+";position:absolute;left:50%;top:50%;transform:translate(-50%,-52%);font-size:20px;font-weight:700}
+.userbar{padding:10px 14px;border-bottom:1px solid #37474f;font-size:12px;line-height:1.9}
+.userbar b{color:#80deea}
+.nav{flex:1;overflow-y:auto;padding:6px 0 30px}
+.nav .grp{padding:12px 14px 4px;font-size:11px;color:#78909c;letter-spacing:1px}
+.nav a{display:block;padding:8px 14px 8px 22px;color:#cfd8dc;font-size:13px;border-left:3px solid transparent}
+.nav a:hover{background:#37474f;color:#fff}
+.nav a.cur{background:#1b6bb0;color:#fff;border-left-color:#4fc3f7}
+main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{height:56px;background:#fff;box-shadow:0 1px 4px rgba(0,21,41,.08);display:flex;align-items:center;padding:0 20px;gap:12px}
+.crumb{font-size:13px;color:#909399}
+.crumb b{color:#303133;font-weight:600}
+.orgsel{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:13px}
+.orgsel .org{border:1px solid #dcdfe6;border-radius:4px;padding:5px 10px;color:#1b6bb0;background:#ecf5ff;cursor:pointer}
+.orgsel .org:before{content:"🏥 "}
+.avatar{width:30px;height:30px;border-radius:50%;background:#1b6bb0;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px}
+.mainwrap{flex:1;padding:14px;overflow-y:auto}
+.modhead{background:#fff;border-radius:4px;padding:14px 18px;margin-bottom:12px;border-left:4px solid #1b6bb0}
+.modhead h1{font-size:17px;color:#303133}
+.modhead p{margin-top:6px;font-size:12px;color:#909399;line-height:1.7}
+.tabs{background:#fff;border-bottom:1px solid #e4e7ed;padding:0 10px;display:flex;flex-wrap:wrap}
+.tabs .tab{padding:11px 18px;font-size:14px;color:#606266;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs .tab:hover{color:#1b6bb0}
+.tabs .tab.cur{color:#1b6bb0;border-bottom-color:#1b6bb0;font-weight:600}
+.page{display:none;padding-top:12px}
+.page.cur{display:block}
+.card{background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:16px 18px;margin-bottom:12px}
+.card .ttl{font-size:14px;font-weight:600;color:#303133;margin-bottom:12px;padding-left:8px;border-left:3px solid #1b6bb0}
+.qgrid{display:flex;flex-wrap:wrap;gap:10px 16px}
+.fitem{display:flex;align-items:center;font-size:13px}
+.fitem label{color:#606266;white-space:nowrap;margin-right:8px}
+.ipt{border:1px solid #dcdfe6;border-radius:4px;height:30px;line-height:28px;padding:0 10px;min-width:150px;color:#606266;background:#fff}
+.ipt.sel{min-width:130px;appearance:auto}
+.fitem textarea.ipt{height:52px;padding:6px 10px;line-height:1.5;font-family:inherit;min-width:340px}
+.qbtns{width:100%;display:flex;gap:8px;padding-top:4px}
+.more{font-size:12px;color:#1b6bb0;cursor:pointer;align-self:flex-end;margin:6px 0 0 4px}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;border-radius:4px;border:1px solid #dcdfe6;background:#fff;color:#606266;font-size:13px;cursor:pointer;gap:4px}
+.btn.pri{background:#1b6bb0;border-color:#1b6bb0;color:#fff}
+.btn.warn{background:#e6a23c;border-color:#e6a23c;color:#fff}
+.btn.txt{border:none;color:#1b6bb0;padding:0 6px;height:auto;font-size:13px}
+.btn.txt.red{color:#f56c6c}
+.toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.toolbar .right{margin-left:auto;display:flex;gap:8px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f5f7fa;color:#606266;font-weight:600;text-align:left;padding:10px 8px;border-bottom:1px solid #ebeef5;white-space:nowrap}
+td{padding:9px 8px;border-bottom:1px solid #ebeef5;color:#606266;white-space:nowrap}
+tr:hover td{background:#f5f7fa}
+.tag{display:inline-block;padding:1px 8px;border-radius:3px;font-size:12px;line-height:18px}
+.tag.blue{background:#ecf5ff;color:#1b6bb0;border:1px solid #b3d8ff}
+.tag.green{background:#f0f9eb;color:#67c23a;border:1px solid #c2e7b0}
+.tag.red{background:#fef0f0;color:#f56c6c;border:1px solid #fbc4c4}
+.tag.orange{background:#fdf6ec;color:#e6a23c;border:1px solid #f5dab1}
+.tag.gray{background:#f4f4f5;color:#909399;border:1px solid #d3d4d6}
+.tag.purple{background:#f4ecfb;color:#8e44ad;border:1px solid #d7bde2}
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:6px;padding-top:12px;font-size:13px;color:#606266}
+.pager .pno{border:1px solid #dcdfe6;border-radius:3px;min-width:28px;height:26px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0 5px}
+.pager .pno.cur{background:#1b6bb0;color:#fff;border-color:#1b6bb0}
+.pagenote{padding:16px 18px;background:#fff;border-radius:4px;font-size:12px;color:#909399;line-height:1.9;margin-top:12px}
+.pagenote b{color:#606266}
+.mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 16px}
+.mask.show{display:flex}
+.modal{background:#fff;border-radius:6px;width:760px;max-width:96vw;box-shadow:0 4px 24px rgba(0,0,0,.2)}
+.modal.wide{width:960px}
+.modal .mh{padding:14px 20px;border-bottom:1px solid #ebeef5;font-size:15px;font-weight:600;display:flex;align-items:center}
+.modal .mh .x{margin-left:auto;cursor:pointer;color:#909399;font-weight:400;font-size:18px}
+.modal .mb{padding:18px 20px;max-height:64vh;overflow-y:auto}
+.modal .mf{padding:12px 20px;border-top:1px solid #ebeef5;display:flex;justify-content:flex-end;gap:8px}
+.formgrid{display:flex;flex-wrap:wrap;gap:14px 24px}
+.formgrid .fi{display:flex;align-items:center;font-size:13px;width:calc(50% - 12px)}
+.formgrid .fi.wide{width:100%}
+.formgrid .fi label{color:#606266;min-width:110px;text-align:right;margin-right:10px;flex-shrink:0}
+.formgrid .fi label.req:before{content:"*";color:#f56c6c;margin-right:2px}
+.formgrid .fi .ipt{flex:1;min-width:0}
+.formgrid .fi textarea.ipt{min-width:0}
+fieldset{border:1px solid #ebeef5;border-radius:4px;padding:12px 16px 16px;margin-bottom:14px;width:100%}
+legend{padding:0 8px;font-size:13px;color:#1b6bb0;font-weight:600}
+.stat4{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.st{flex:1;min-width:150px;background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:16px}
+.st .k{font-size:12px;color:#909399}
+.st .v{font-size:26px;font-weight:700;color:#303133;margin-top:6px}
+.st .v small{font-size:12px;color:#c0c4cc;font-weight:400}
+.st.b .v{color:#1b6bb0}.st.g .v{color:#67c23a}.st.o .v{color:#e6a23c}.st.r .v{color:#f56c6c}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.tl{background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:16px 18px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chart{height:200px;border-radius:4px;background:linear-gradient(180deg,#f5f9ff,#fff);border:1px solid #e4ecf5;display:flex;align-items:flex-end;gap:8px;padding:16px 20px}
+.chart .bar{flex:1;background:linear-gradient(180deg,#5cadff,#1b6bb0);border-radius:3px 3px 0 0;position:relative}
+.chart .bar i{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-style:normal;font-size:11px;color:#606266}
+.chart .bar.g{background:linear-gradient(180deg,#95d475,#67c23a)}
+.chart .bar.o{background:linear-gradient(180deg,#f3d19e,#e6a23c)}
+.chart .bar.r{background:linear-gradient(180deg,#fab6b6,#f56c6c)}
+.chartx{display:flex;justify-content:space-between;font-size:11px;color:#909399;padding:6px 20px 0}
+.note{background:#ecf5ff;border:1px solid #d9ecff;border-radius:4px;padding:10px 14px;font-size:12px;color:#4b6f92;line-height:1.8;margin-bottom:12px}
+.note b{color:#1b6bb0}
+.dl{display:flex;flex-wrap:wrap;border:1px solid #ebeef5;border-radius:4px}
+.dl .row{display:flex;width:100%;border-bottom:1px solid #ebeef5}
+.dl .row:last-child{border-bottom:none}
+.dl .k{width:150px;background:#f5f7fa;color:#909399;padding:9px 12px;font-size:13px;flex-shrink:0}
+.dl .v{flex:1;padding:9px 12px;color:#303133;font-size:13px}
+.dl .v .tag{margin-right:4px}
+</style></head>
+<body><div class="layout">
+<aside><div class="logo"><div class="cross"></div>公共卫生服务系统</div>
+<div class="userbar">机构：<b>山东大学齐鲁医院</b><br>用户：<b>lvxue</b>（公卫科管理员）<br>角色：乡镇公卫科管理员</div>
+<nav class="nav"><div class="grp">工作入口</div><a href="02-工作台.html">工作台</a><a href="01-消息中心.html">消息中心</a><a href="03-计划提醒.html">计划提醒</a><div class="grp">档案与查询</div><a href="04-档案管理.html">档案管理</a><a href="08-业务查询.html">业务查询</a><div class="grp">重点人群管理</div><a href="13-慢病管理.html">慢病管理</a><a href="16-老年人管理.html">老年人管理</a><a href="17-妇幼管理.html">妇幼管理</a><a href="06-中医管理.html">中医管理</a><a href="14-重精管理.html" class="cur">重精管理</a><a href="15-结核管理.html">结核管理</a><div class="grp">疾病防控</div><a href="10-疾病报卡.html">疾病报卡</a><a href="11-突发公卫事件.html">突发公卫事件</a><a href="12-三网监测.html">三网监测</a><a href="07-健教管理.html">健教管理</a><a href="09-卫生监督.html">卫生监督</a><div class="grp">统计与报表</div><a href="18-辖区统计.html">辖区统计</a><a href="19-业务报表.html">业务报表</a><div class="grp">系统管理</div><a href="05-系统设置.html">系统设置</a></nav></aside>
+<main><div class="topbar"><span class="crumb"><b>重精管理</b> / 严重精神障碍管理</span>
+<div class="orgsel"><span class="org" title="点击切换机构">山东大学齐鲁医院 ▾</span><div class="avatar">雪</div></div></div>
+<div class="mainwrap">
+<div class="modhead"><h1>严重精神障碍管理</h1><p>严重精神障碍患者管理：在管患者的随访、危险性评估、服药管理与服务指标（依据国家基本公共卫生服务规范第三版）。</p></div>
+<div class="tabs"><div class="tab cur" onclick="showTab(0)">重精管理</div></div>
+<div class="page cur" id="pg0"><div class="stat4"><div class="st 人"><div class="k">在管患者</div><div class="v">286</div></div><div class="st 目标≥80%"><div class="k">规范管理率</div><div class="v">87.4%</div></div><div class="st 目标≥70%"><div class="k">规律服药率</div><div class="v">72.6%</div></div><div class="st —"><div class="k">面访率</div><div class="v">81.3%</div></div></div>
+<div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fitem"><label>身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fitem"><label>村/居委会</label><select class="ipt sel"><option>全部</option><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fitem"><label>监护人姓名</label><input class="ipt" placeholder="请输入监护人姓名"></div>
+<div class="fitem"><label>责任医生</label><select class="ipt sel"><option>全部</option><option>王建国</option><option>李卫芳</option><option>赵敏</option><option>刘志强</option></select></div>
+<div class="fitem"><label>危险性评级</label><select class="ipt sel"><option>全部</option><option>0级</option><option>1级</option><option>2级</option><option>3级及以上</option></select></div>
+<div class="fitem"><label>病情稳定</label><select class="ipt sel"><option>全部</option><option>稳定</option><option>基本稳定</option><option>不稳定</option></select></div>
+<div class="fitem"><label>随访状态</label><select class="ipt sel"><option>全部</option><option>随访中</option><option>逾期未随访</option><option>失访</option><option>已结案</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button><button class="btn">🪪 读卡建档</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="openModal('m-14-0-0')">新建专项档案</button><button class="btn" onclick="">导出</button><div class="right"><button class="btn">刷新</button></div></div>
+<div class="card"><table><thead><tr><th>档案编号</th><th>姓名</th><th>性别</th><th>年龄</th><th>村/居委会</th><th>诊断</th><th>危险性评级</th><th>病情稳定</th><th>服药情况</th><th>随访进度</th><th>下次随访</th><th>责任医生</th><th>操作</th></tr></thead><tbody><tr><td>DA-2026-008864</td><td>马建国</td><td>男</td><td>52</td><td>中心村</td><td>精神分裂症</td><td><span class="tag green">0级</span></td><td><span class="tag green">稳定</span></td><td><span class="tag green">规律服药</span></td><td>4/4</td><td>2026-12-10</td><td>刘志强</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">随访</span> <span style="color:#1b6bb0;cursor:pointer">应急处置</span></td></tr>
+<tr><td>DA-2026-007340</td><td>邵国强</td><td>男</td><td>45</td><td>南刘村</td><td>双相情感障碍</td><td><span class="tag orange">1级</span></td><td><span class="tag orange">基本稳定</span></td><td><span class="tag orange">间断服药</span></td><td>3/4</td><td><span class="tag red">已逾期 8 天</span></td><td>王建国</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">随访</span> <span style="color:#1b6bb0;cursor:pointer">应急处置</span></td></tr>
+<tr><td>DA-2026-009210</td><td>余秀芹</td><td>女</td><td>60</td><td>北辛村</td><td>精神分裂症</td><td><span class="tag green">0级</span></td><td><span class="tag green">稳定</span></td><td><span class="tag green">规律服药</span></td><td>4/4</td><td>2026-12-22</td><td>李卫芳</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">随访</span></td></tr>
+<tr><td>DA-2026-009455</td><td>潘长贵</td><td>男</td><td>38</td><td>解放路社区</td><td>偏执性精神病</td><td><span class="tag red">3级及以上</span></td><td><span class="tag red">不稳定</span></td><td><span class="tag red">未服药</span></td><td>2/4</td><td>2026-09-28</td><td>赵敏</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">随访</span> <span style="color:#1b6bb0;cursor:pointer">应急处置</span></td></tr>
+<tr><td>DA-2026-009702</td><td>袁丽华</td><td>女</td><td>47</td><td>中心村</td><td>分裂情感障碍</td><td><span class="tag orange">2级</span></td><td><span class="tag orange">基本稳定</span></td><td><span class="tag orange">间断服药</span></td><td>3/4</td><td>2026-10-05</td><td>刘志强</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">随访</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="mask" id="m-14-0-0"><div class="modal">
+<div class="mh">新建严重精神障碍专项档案<span class="x" onclick="closeModal('m-14-0-0')">×</span></div>
+<div class="mb"><fieldset><legend>基本信息</legend><div class="formgrid"><div class="fi"><label class=" req">姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fi"><label class=" req">性别</label><select class="ipt sel"><option>请选择</option><option>男</option><option>女</option></select></div>
+<div class="fi"><label class=" req">出生日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">民族</label><select class="ipt sel"><option>汉族</option><option>回族</option><option>满族</option><option>其他</option></select></div>
+<div class="fi"><label class=" req">身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fi"><label class="">联系电话</label><input class="ipt" placeholder="请输入联系电话"></div>
+<div class="fi"><label class="">婚姻状况</label><select class="ipt sel"><option>未婚</option><option>已婚</option><option>丧偶</option><option>离婚</option><option>不详</option></select></div>
+<div class="fi"><label class="">文化程度</label><select class="ipt sel"><option>研究生</option><option>大学本科</option><option>大专</option><option>中专/高中</option><option>初中</option><option>小学</option><option>不识字或识字很少</option></select></div>
+<div class="fi"><label class="">职业</label><select class="ipt sel"><option>工人</option><option>农民</option><option>商人</option><option>职员</option><option>教师</option><option>医务人员</option><option>家务</option><option>离退休</option><option>其他</option></select></div>
+<div class="fi wide"><label class="">户籍地址</label><input class="ipt" placeholder="请输入户籍地址"></div>
+<div class="fi wide"><label class="">现住址</label><input class="ipt" placeholder="请输入现住址"></div>
+<div class="fi"><label class=" req">村/居委会</label><select class="ipt sel"><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fi"><label class="">家庭档案编号</label><input class="ipt" placeholder="请输入家庭档案编号"></div>
+<div class="fi"><label class="">是否户籍常住</label><select class="ipt sel"><option>请选择</option><option>是</option><option>否</option></select></div>
+<div class="fi"><label class="">迁入日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">责任医生</label><select class="ipt sel"><option>王建国</option><option>李卫芳</option><option>赵敏</option><option>刘志强</option></select></div>
+<div class="fi"><label class=" req">建档医生</label><input class="ipt" placeholder="请输入建档医生"></div>
+<div class="fi"><label class=" req">建档日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">建档机构</label><select class="ipt sel"><option>山东大学齐鲁医院</option><option>东关社区卫生服务站</option><option>西河村卫生室</option><option>殷巷村卫生室</option></select></div>
+</div></fieldset><fieldset><legend>监护人信息</legend><div class="formgrid"><div class="fi"><label class=" req">监护人姓名</label><input class="ipt" placeholder="请输入监护人姓名"></div>
+<div class="fi"><label class=" req">与患者关系</label><input class="ipt" placeholder="请输入与患者关系"></div>
+<div class="fi"><label class=" req">监护人电话</label><input class="ipt" placeholder="请输入监护人电话"></div>
+<div class="fi wide"><label class="">监护人住址</label><input class="ipt" placeholder="请输入监护人住址"></div>
+</div></fieldset><fieldset><legend>疾病与治疗</legend><div class="formgrid"><div class="fi"><label class=" req">诊断</label><select class="ipt sel"><option>精神分裂症</option><option>分裂情感障碍</option><option>偏执性精神病</option><option>双相情感障碍</option><option>癫痫所致精神障碍</option><option>精神发育迟滞伴发精神障碍</option></select></div>
+<div class="fi"><label class=" req">确诊日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class=" req">确诊机构</label><input class="ipt" placeholder="请输入确诊机构"></div>
+<div class="fi"><label class=" req">危险性评级</label><select class="ipt sel"><option>0级</option><option>1级</option><option>2级</option><option>3级及以上</option></select></div>
+<div class="fi"><label class=" req">病情稳定</label><select class="ipt sel"><option>稳定</option><option>基本稳定</option><option>不稳定</option></select></div>
+<div class="fi"><label class=" req">服药情况</label><select class="ipt sel"><option>规律服药</option><option>间断服药</option><option>未服药</option></select></div>
+<div class="fi wide"><label class="">既往危险行为</label><textarea class="ipt" placeholder="请输入既往危险行为"></textarea></div>
+</div></fieldset></div><div class="mf"><button class="btn pri" onclick="alert('原型演示：保存成功');closeModal('m-14-0-0')">保 存</button><button class="btn" onclick="closeModal('m-14-0-0')">取 消</button></div></div></div>
+
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>严重精神障碍患者健康管理：专项档案 + 分层随访（病情稳定每3个月、基本稳定2周内复诊随访）+ 危险性评估与应急医疗处置记录。<br><b>交互能力：</b>列表导出、身份证读卡器建档、新建专项档案、条件重置、组合条件查询、查询条件展开收起、编辑修改、随访登记、应急处置登记、年度评估、批量导入 等11项<br><b>待确认项：</b>与上级精神卫生中心的信息交换周期、应急处置联动流程待确认<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+</div></main></div>
+<script>
+function showTab(n){
+  document.querySelectorAll('.tabs .tab').forEach((t,i)=>t.classList.toggle('cur',i===n));
+  document.querySelectorAll('.page').forEach((p,i)=>p.classList.toggle('cur',i===n));
+  window.scrollTo(0,0);
+}
+function openModal(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+function toggleMore(btn){
+  var box=btn.closest('.qgrid');var h=box.querySelector('.hid');
+  if(h.style.display==='none'){h.style.display='flex';btn.textContent='收起 ▲'}else{h.style.display='none';btn.textContent='展开更多查询 ▼'}
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.mask.show').forEach(m=>m.classList.remove('show'))});
+</script></body></html>

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>业务查询 · 公共卫生服务系统原型</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;font-size:14px;color:#333;background:#f0f2f5}
+a{text-decoration:none;color:inherit}
+.layout{display:flex;min-height:100vh}
+aside{width:210px;background:#263238;color:#cfd8dc;flex-shrink:0;display:flex;flex-direction:column}
+.logo{height:56px;background:#1b6bb0;color:#fff;display:flex;align-items:center;padding:0 14px;font-size:15px;font-weight:600;letter-spacing:1px}
+.logo .cross{width:22px;height:22px;border:2px solid #fff;border-radius:4px;position:relative;margin-right:8px;flex-shrink:0}
+.logo .cross:after{content:"+";position:absolute;left:50%;top:50%;transform:translate(-50%,-52%);font-size:20px;font-weight:700}
+.userbar{padding:10px 14px;border-bottom:1px solid #37474f;font-size:12px;line-height:1.9}
+.userbar b{color:#80deea}
+.nav{flex:1;overflow-y:auto;padding:6px 0 30px}
+.nav .grp{padding:12px 14px 4px;font-size:11px;color:#78909c;letter-spacing:1px}
+.nav a{display:block;padding:8px 14px 8px 22px;color:#cfd8dc;font-size:13px;border-left:3px solid transparent}
+.nav a:hover{background:#37474f;color:#fff}
+.nav a.cur{background:#1b6bb0;color:#fff;border-left-color:#4fc3f7}
+main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{height:56px;background:#fff;box-shadow:0 1px 4px rgba(0,21,41,.08);display:flex;align-items:center;padding:0 20px;gap:12px}
+.crumb{font-size:13px;color:#909399}
+.crumb b{color:#303133;font-weight:600}
+.orgsel{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:13px}
+.orgsel .org{border:1px solid #dcdfe6;border-radius:4px;padding:5px 10px;color:#1b6bb0;background:#ecf5ff;cursor:pointer}
+.orgsel .org:before{content:"🏥 "}
+.avatar{width:30px;height:30px;border-radius:50%;background:#1b6bb0;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px}
+.mainwrap{flex:1;padding:14px;overflow-y:auto}
+.modhead{background:#fff;border-radius:4px;padding:14px 18px;margin-bottom:12px;border-left:4px solid #1b6bb0}
+.modhead h1{font-size:17px;color:#303133}
+.modhead p{margin-top:6px;font-size:12px;color:#909399;line-height:1.7}
+.tabs{background:#fff;border-bottom:1px solid #e4e7ed;padding:0 10px;display:flex;flex-wrap:wrap}
+.tabs .tab{padding:11px 18px;font-size:14px;color:#606266;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs .tab:hover{color:#1b6bb0}
+.tabs .tab.cur{color:#1b6bb0;border-bottom-color:#1b6bb0;font-weight:600}
+.page{display:none;padding-top:12px}
+.page.cur{display:block}
+.card{background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:16px 18px;margin-bottom:12px}
+.card .ttl{font-size:14px;font-weight:600;color:#303133;margin-bottom:12px;padding-left:8px;border-left:3px solid #1b6bb0}
+.qgrid{display:flex;flex-wrap:wrap;gap:10px 16px}
+.fitem{display:flex;align-items:center;font-size:13px}
+.fitem label{color:#606266;white-space:nowrap;margin-right:8px}
+.ipt{border:1px solid #dcdfe6;border-radius:4px;height:30px;line-height:28px;padding:0 10px;min-width:150px;color:#606266;background:#fff}
+.ipt.sel{min-width:130px;appearance:auto}
+.fitem textarea.ipt{height:52px;padding:6px 10px;line-height:1.5;font-family:inherit;min-width:340px}
+.qbtns{width:100%;display:flex;gap:8px;padding-top:4px}
+.more{font-size:12px;color:#1b6bb0;cursor:pointer;align-self:flex-end;margin:6px 0 0 4px}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;border-radius:4px;border:1px solid #dcdfe6;background:#fff;color:#606266;font-size:13px;cursor:pointer;gap:4px}
+.btn.pri{background:#1b6bb0;border-color:#1b6bb0;color:#fff}
+.btn.warn{background:#e6a23c;border-color:#e6a23c;color:#fff}
+.btn.txt{border:none;color:#1b6bb0;padding:0 6px;height:auto;font-size:13px}
+.btn.txt.red{color:#f56c6c}
+.toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.toolbar .right{margin-left:auto;display:flex;gap:8px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f5f7fa;color:#606266;font-weight:600;text-align:left;padding:10px 8px;border-bottom:1px solid #ebeef5;white-space:nowrap}
+td{padding:9px 8px;border-bottom:1px solid #ebeef5;color:#606266;white-space:nowrap}
+tr:hover td{background:#f5f7fa}
+.tag{display:inline-block;padding:1px 8px;border-radius:3px;font-size:12px;line-height:18px}
+.tag.blue{background:#ecf5ff;color:#1b6bb0;border:1px solid #b3d8ff}
+.tag.green{background:#f0f9eb;color:#67c23a;border:1px solid #c2e7b0}
+.tag.red{background:#fef0f0;color:#f56c6c;border:1px solid #fbc4c4}
+.tag.orange{background:#fdf6ec;color:#e6a23c;border:1px solid #f5dab1}
+.tag.gray{background:#f4f4f5;color:#909399;border:1px solid #d3d4d6}
+.tag.purple{background:#f4ecfb;color:#8e44ad;border:1px solid #d7bde2}
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:6px;padding-top:12px;font-size:13px;color:#606266}
+.pager .pno{border:1px solid #dcdfe6;border-radius:3px;min-width:28px;height:26px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0 5px}
+.pager .pno.cur{background:#1b6bb0;color:#fff;border-color:#1b6bb0}
+.pagenote{padding:16px 18px;background:#fff;border-radius:4px;font-size:12px;color:#909399;line-height:1.9;margin-top:12px}
+.pagenote b{color:#606266}
+.mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 16px}
+.mask.show{display:flex}
+.modal{background:#fff;border-radius:6px;width:760px;max-width:96vw;box-shadow:0 4px 24px rgba(0,0,0,.2)}
+.modal.wide{width:960px}
+.modal .mh{padding:14px 20px;border-bottom:1px solid #ebeef5;font-size:15px;font-weight:600;display:flex;align-items:center}
+.modal .mh .x{margin-left:auto;cursor:pointer;color:#909399;font-weight:400;font-size:18px}
+.modal .mb{padding:18px 20px;max-height:64vh;overflow-y:auto}
+.modal .mf{padding:12px 20px;border-top:1px solid #ebeef5;display:flex;justify-content:flex-end;gap:8px}
+.formgrid{display:flex;flex-wrap:wrap;gap:14px 24px}
+.formgrid .fi{display:flex;align-items:center;font-size:13px;width:calc(50% - 12px)}
+.formgrid .fi.wide{width:100%}
+.formgrid .fi label{color:#606266;min-width:110px;text-align:right;margin-right:10px;flex-shrink:0}
+.formgrid .fi label.req:before{content:"*";color:#f56c6c;margin-right:2px}
+.formgrid .fi .ipt{flex:1;min-width:0}
+.formgrid .fi textarea.ipt{min-width:0}
+fieldset{border:1px solid #ebeef5;border-radius:4px;padding:12px 16px 16px;margin-bottom:14px;width:100%}
+legend{padding:0 8px;font-size:13px;color:#1b6bb0;font-weight:600}
+.stat4{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.st{flex:1;min-width:150px;background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:16px}
+.st .k{font-size:12px;color:#909399}
+.st .v{font-size:26px;font-weight:700;color:#303133;margin-top:6px}
+.st .v small{font-size:12px;color:#c0c4cc;font-weight:400}
+.st.b .v{color:#1b6bb0}.st.g .v{color:#67c23a}.st.o .v{color:#e6a23c}.st.r .v{color:#f56c6c}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.tl{background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:16px 18px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chart{height:200px;border-radius:4px;background:linear-gradient(180deg,#f5f9ff,#fff);border:1px solid #e4ecf5;display:flex;align-items:flex-end;gap:8px;padding:16px 20px}
+.chart .bar{flex:1;background:linear-gradient(180deg,#5cadff,#1b6bb0);border-radius:3px 3px 0 0;position:relative}
+.chart .bar i{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-style:normal;font-size:11px;color:#606266}
+.chart .bar.g{background:linear-gradient(180deg,#95d475,#67c23a)}
+.chart .bar.o{background:linear-gradient(180deg,#f3d19e,#e6a23c)}
+.chart .bar.r{background:linear-gradient(180deg,#fab6b6,#f56c6c)}
+.chartx{display:flex;justify-content:space-between;font-size:11px;color:#909399;padding:6px 20px 0}
+.note{background:#ecf5ff;border:1px solid #d9ecff;border-radius:4px;padding:10px 14px;font-size:12px;color:#4b6f92;line-height:1.8;margin-bottom:12px}
+.note b{color:#1b6bb0}
+.dl{display:flex;flex-wrap:wrap;border:1px solid #ebeef5;border-radius:4px}
+.dl .row{display:flex;width:100%;border-bottom:1px solid #ebeef5}
+.dl .row:last-child{border-bottom:none}
+.dl .k{width:150px;background:#f5f7fa;color:#909399;padding:9px 12px;font-size:13px;flex-shrink:0}
+.dl .v{flex:1;padding:9px 12px;color:#303133;font-size:13px}
+.dl .v .tag{margin-right:4px}
+</style></head>
+<body><div class="layout">
+<aside><div class="logo"><div class="cross"></div>公共卫生服务系统</div>
+<div class="userbar">机构：<b>山东大学齐鲁医院</b><br>用户：<b>lvxue</b>（公卫科管理员）<br>角色：乡镇公卫科管理员</div>
+<nav class="nav"><div class="grp">工作入口</div><a href="02-工作台.html">工作台</a><a href="01-消息中心.html">消息中心</a><a href="03-计划提醒.html">计划提醒</a><div class="grp">档案与查询</div><a href="04-档案管理.html">档案管理</a><a href="08-业务查询.html" class="cur">业务查询</a><div class="grp">重点人群管理</div><a href="13-慢病管理.html">慢病管理</a><a href="16-老年人管理.html">老年人管理</a><a href="17-妇幼管理.html">妇幼管理</a><a href="06-中医管理.html">中医管理</a><a href="14-重精管理.html">重精管理</a><a href="15-结核管理.html">结核管理</a><div class="grp">疾病防控</div><a href="10-疾病报卡.html">疾病报卡</a><a href="11-突发公卫事件.html">突发公卫事件</a><a href="12-三网监测.html">三网监测</a><a href="07-健教管理.html">健教管理</a><a href="09-卫生监督.html">卫生监督</a><div class="grp">统计与报表</div><a href="18-辖区统计.html">辖区统计</a><a href="19-业务报表.html">业务报表</a><div class="grp">系统管理</div><a href="05-系统设置.html">系统设置</a></nav></aside>
+<main><div class="topbar"><span class="crumb"><b>业务查询</b> / 业务查询</span>
+<div class="orgsel"><span class="org" title="点击切换机构">山东大学齐鲁医院 ▾</span><div class="avatar">雪</div></div></div>
+<div class="mainwrap">
+<div class="modhead"><h1>业务查询</h1><p>面向业务科室的自助查询：按人群/病种/服务状态组合条件，跨模块取数并导出结果。</p></div>
+<div class="tabs"><div class="tab cur" onclick="showTab(0)">孕产妇查询</div><div class="tab" onclick="showTab(1)">个人档案查询</div><div class="tab" onclick="showTab(2)">高血压患者查询</div><div class="tab" onclick="showTab(3)">糖尿病患者查询</div><div class="tab" onclick="showTab(4)">严重精神障碍患者查询</div><div class="tab" onclick="showTab(5)">肺结核患者查询</div><div class="tab" onclick="showTab(6)">老年人查询</div><div class="tab" onclick="showTab(7)">高危档案查询</div><div class="tab" onclick="showTab(8)">老年人中医药管理查询</div></div>
+<div class="page cur" id="pg0"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fitem"><label>身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fitem"><label>村/居委会</label><select class="ipt sel"><option>全部</option><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fitem"><label>查询日期</label><input class="ipt" type="date"> ~ <input class="ipt" type="date"></div>
+<div class="fitem"><label>孕周</label><select class="ipt sel"><option>全部</option><option>孕早期(≤12周)</option><option>孕中期(13-27周)</option><option>孕晚期(≥28周)</option></select></div>
+<div class="fitem"><label>高危评级</label><select class="ipt sel"><option>全部</option><option>一般</option><option>橙色</option><option>红色</option><option>紫色</option></select></div>
+<div class="fitem"><label>建档状态</label><select class="ipt sel"><option>全部</option><option>已建档</option><option>未建档</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button><button class="btn">🪪 读卡建档</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="">执行查询</button><button class="btn" onclick="">导出结果</button><div class="right"><button class="btn">重置</button><button class="btn">保存查询方案</button></div></div>
+<div class="card"><table><thead><tr><th>档案编号</th><th>姓名</th><th>年龄</th><th>村/居委会</th><th>孕周</th><th>预产期</th><th>产检次数</th><th>高危评级</th><th>建档机构</th><th>操作</th></tr></thead><tbody><tr><td>DA-2026-020115</td><td>陈晓丽</td><td>28</td><td>东关社区</td><td>孕中期(13-27周)</td><td>2026-12-08</td><td>3</td><td><span class="tag orange">橙色</span></td><td>山东大学齐鲁医院</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-020116</td><td>杨春花</td><td>31</td><td>西河村</td><td>孕晚期(≥28周)</td><td>2026-10-25</td><td>5</td><td><span class="tag red">红色</span></td><td>山东大学齐鲁医院</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-020117</td><td>周美琳</td><td>25</td><td>殷巷村</td><td>孕早期(≤12周)</td><td>2027-02-14</td><td>1</td><td><span class="tag green">一般</span></td><td>东关社区卫生服务站</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-020118</td><td>吴丽娟</td><td>34</td><td>龙山村</td><td>孕中期(13-27周)</td><td>2026-11-30</td><td>4</td><td><span class="tag orange">橙色</span></td><td>山东大学齐鲁医院</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-020119</td><td>郑海燕</td><td>29</td><td>张庄社区</td><td>孕晚期(≥28周)</td><td>2026-10-18</td><td>6</td><td><span class="tag green">一般</span></td><td>山东大学齐鲁医院</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>孕产妇专项查询：孕周、产检、高危评级等维度组合查询。<br><b>交互能力：</b>自助查询配置、查询执行、结果导出<br><b>待确认项：</b>查询结果字段范围与跨模块取数口径待确认<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg1"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fitem"><label>身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fitem"><label>村/居委会</label><select class="ipt sel"><option>全部</option><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fitem"><label>查询日期</label><input class="ipt" type="date"> ~ <input class="ipt" type="date"></div>
+<div class="fitem"><label>档案状态</label><select class="ipt sel"><option>全部</option><option>正常</option><option>迁出</option><option>死亡注销</option><option>封存</option></select></div>
+<div class="fitem"><label>人群分类</label><select class="ipt sel"><option>全部</option><option>高血压</option><option>糖尿病</option><option>老年人</option><option>孕产妇</option><option>0-6岁儿童</option><option>重精</option><option>肺结核</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button><button class="btn">🪪 读卡建档</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="">执行查询</button><button class="btn" onclick="">导出结果</button><div class="right"><button class="btn">重置</button><button class="btn">保存查询方案</button></div></div>
+<div class="card"><table><thead><tr><th>档案编号</th><th>姓名</th><th>性别</th><th>年龄</th><th>村/居委会</th><th>人群标签</th><th>责任医生</th><th>建档日期</th><th>档案状态</th><th>操作</th></tr></thead><tbody><tr><td>DA-2026-003521</td><td>张桂英</td><td>女</td><td>71</td><td>东关社区</td><td>老年人/高血压</td><td>王建国</td><td>2025-03-12</td><td><span class="tag green">正常</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-004102</td><td>王振山</td><td>男</td><td>78</td><td>西河村</td><td>老年人/糖尿病</td><td>李卫芳</td><td>2024-11-08</td><td><span class="tag green">正常</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-010201</td><td>刘一诺</td><td>男</td><td>0</td><td>东关社区</td><td>0-6岁儿童</td><td>刘志强</td><td>2026-01-19</td><td><span class="tag green">正常</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2025-001987</td><td>李秀兰</td><td>女</td><td>66</td><td>殷巷村</td><td>高血压</td><td>赵敏</td><td>2023-06-25</td><td><span class="tag gray">迁出</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-008864</td><td>马建国</td><td>男</td><td>52</td><td>中心村</td><td>重精</td><td>刘志强</td><td>2025-09-14</td><td><span class="tag green">正常</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>居民个人健康档案自助查询：档案核心信息与人群标签组合查询。<br><b>交互能力：</b>自助查询配置、查询执行、结果导出<br><b>待确认项：</b>查询结果字段范围与跨模块取数口径待确认<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg2"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fitem"><label>身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fitem"><label>村/居委会</label><select class="ipt sel"><option>全部</option><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fitem"><label>查询日期</label><input class="ipt" type="date"> ~ <input class="ipt" type="date"></div>
+<div class="fitem"><label>危险分层</label><select class="ipt sel"><option>全部</option><option>低危</option><option>中危</option><option>高危</option><option>很高危</option></select></div>
+<div class="fitem"><label>控制情况</label><select class="ipt sel"><option>全部</option><option>控制达标</option><option>控制不佳</option></select></div>
+<div class="fitem"><label>随访状态</label><select class="ipt sel"><option>全部</option><option>随访中</option><option>逾期未随访</option><option>已结案</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button><button class="btn">🪪 读卡建档</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="">执行查询</button><button class="btn" onclick="">导出结果</button><div class="right"><button class="btn">重置</button><button class="btn">保存查询方案</button></div></div>
+<div class="card"><table><thead><tr><th>档案编号</th><th>姓名</th><th>性别</th><th>年龄</th><th>村/居委会</th><th>血压(mmHg)</th><th>危险分层</th><th>控制情况</th><th>随访状态</th><th>操作</th></tr></thead><tbody><tr><td>DA-2026-003521</td><td>张桂英</td><td>女</td><td>71</td><td>东关社区</td><td>132/78</td><td><span class="tag orange">中危</span></td><td><span class="tag green">控制达标</span></td><td><span class="tag green">随访中</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-005213</td><td>郭德海</td><td>男</td><td>64</td><td>南刘村</td><td>158/96</td><td><span class="tag red">很高危</span></td><td><span class="tag red">控制不佳</span></td><td><span class="tag red">逾期未随访</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-006048</td><td>何秀珍</td><td>女</td><td>58</td><td>北辛村</td><td>126/76</td><td><span class="tag green">低危</span></td><td><span class="tag green">控制达标</span></td><td><span class="tag green">随访中</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-006722</td><td>高振国</td><td>男</td><td>69</td><td>中心村</td><td>142/88</td><td><span class="tag orange">中危</span></td><td><span class="tag green">控制达标</span></td><td><span class="tag green">随访中</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-007155</td><td>冯玉花</td><td>女</td><td>76</td><td>解放路社区</td><td>166/102</td><td><span class="tag red">高危</span></td><td><span class="tag red">控制不佳</span></td><td><span class="tag green">随访中</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>高血压患者专项查询：分级、控制情况、随访进度维度组合。<br><b>交互能力：</b>自助查询配置、查询执行、结果导出<br><b>待确认项：</b>查询结果字段范围与跨模块取数口径待确认<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg3"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fitem"><label>身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fitem"><label>村/居委会</label><select class="ipt sel"><option>全部</option><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fitem"><label>查询日期</label><input class="ipt" type="date"> ~ <input class="ipt" type="date"></div>
+<div class="fitem"><label>糖尿病类型</label><select class="ipt sel"><option>全部</option><option>2型</option><option>1型</option><option>妊娠糖尿病</option><option>其他特殊类型</option></select></div>
+<div class="fitem"><label>糖化血红蛋白</label><select class="ipt sel"><option>全部</option><option>&lt;7% 达标</option><option>≥7% 不达标</option><option>未测</option></select></div>
+<div class="fitem"><label>随访状态</label><select class="ipt sel"><option>全部</option><option>随访中</option><option>逾期未随访</option><option>已结案</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button><button class="btn">🪪 读卡建档</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="">执行查询</button><button class="btn" onclick="">导出结果</button><div class="right"><button class="btn">重置</button><button class="btn">保存查询方案</button></div></div>
+<div class="card"><table><thead><tr><th>档案编号</th><th>姓名</th><th>性别</th><th>年龄</th><th>村/居委会</th><th>空腹血糖</th><th>HbA1c</th><th>随访状态</th><th>并发症</th><th>操作</th></tr></thead><tbody><tr><td>DA-2026-004102</td><td>王振山</td><td>男</td><td>78</td><td>西河村</td><td>6.8</td><td>6.6%</td><td><span class="tag green">随访中</span></td><td><span class="tag gray">无</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-008201</td><td>杜淑华</td><td>女</td><td>62</td><td>东关社区</td><td>8.4</td><td>8.1%</td><td><span class="tag red">逾期未随访</span></td><td><span class="tag orange">周围神经病变</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-009012</td><td>任长海</td><td>男</td><td>57</td><td>西河村</td><td>7.2</td><td>7.4%</td><td><span class="tag green">随访中</span></td><td><span class="tag gray">无</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-009335</td><td>石文英</td><td>女</td><td>71</td><td>殷巷村</td><td>5.9</td><td>6.1%</td><td><span class="tag green">随访中</span></td><td><span class="tag gray">无</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-009681</td><td>唐广顺</td><td>男</td><td>66</td><td>龙山村</td><td>9.6</td><td>9.2%</td><td><span class="tag green">随访中</span></td><td><span class="tag red">糖尿病肾病</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>糖尿病患者专项查询：分型、血糖控制、随访进度维度组合。<br><b>交互能力：</b>自助查询配置、查询执行、结果导出<br><b>待确认项：</b>查询结果字段范围与跨模块取数口径待确认<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg4"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fitem"><label>身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fitem"><label>村/居委会</label><select class="ipt sel"><option>全部</option><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fitem"><label>查询日期</label><input class="ipt" type="date"> ~ <input class="ipt" type="date"></div>
+<div class="fitem"><label>危险性评级</label><select class="ipt sel"><option>全部</option><option>0级</option><option>1级</option><option>2级</option><option>3级及以上</option></select></div>
+<div class="fitem"><label>服药情况</label><select class="ipt sel"><option>全部</option><option>规律服药</option><option>间断服药</option><option>未服药</option></select></div>
+<div class="fitem"><label>病情稳定</label><select class="ipt sel"><option>全部</option><option>稳定</option><option>基本稳定</option><option>不稳定</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button><button class="btn">🪪 读卡建档</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="">执行查询</button><button class="btn" onclick="">导出结果</button><div class="right"><button class="btn">重置</button><button class="btn">保存查询方案</button></div></div>
+<div class="card"><table><thead><tr><th>档案编号</th><th>姓名</th><th>性别</th><th>年龄</th><th>村/居委会</th><th>诊断</th><th>危险性评级</th><th>服药情况</th><th>稳定性</th><th>操作</th></tr></thead><tbody><tr><td>DA-2026-008864</td><td>马建国</td><td>男</td><td>52</td><td>中心村</td><td>精神分裂症</td><td><span class="tag green">0级</span></td><td><span class="tag green">规律服药</span></td><td><span class="tag green">稳定</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-007340</td><td>邵国强</td><td>男</td><td>45</td><td>南刘村</td><td>双相情感障碍</td><td><span class="tag orange">1级</span></td><td><span class="tag orange">间断服药</span></td><td><span class="tag orange">基本稳定</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-009210</td><td>余秀芹</td><td>女</td><td>60</td><td>北辛村</td><td>精神分裂症</td><td><span class="tag green">0级</span></td><td><span class="tag green">规律服药</span></td><td><span class="tag green">稳定</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-009455</td><td>潘长贵</td><td>男</td><td>38</td><td>解放路社区</td><td>偏执性精神病</td><td><span class="tag red">3级及以上</span></td><td><span class="tag red">未服药</span></td><td><span class="tag red">不稳定</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-009702</td><td>袁丽华</td><td>女</td><td>47</td><td>中心村</td><td>分裂情感障碍</td><td><span class="tag orange">2级</span></td><td><span class="tag orange">间断服药</span></td><td><span class="tag orange">基本稳定</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>严重精神障碍患者专项查询：危险性评级、服药与稳定情况维度组合。<br><b>交互能力：</b>自助查询配置、查询执行、结果导出<br><b>待确认项：</b>查询结果字段范围与跨模块取数口径待确认<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg5"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fitem"><label>身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fitem"><label>村/居委会</label><select class="ipt sel"><option>全部</option><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fitem"><label>查询日期</label><input class="ipt" type="date"> ~ <input class="ipt" type="date"></div>
+<div class="fitem"><label>治疗阶段</label><select class="ipt sel"><option>全部</option><option>强化期</option><option>巩固期</option><option>已结束治疗</option></select></div>
+<div class="fitem"><label>管理方式</label><select class="ipt sel"><option>全部</option><option>医务人员督导</option><option>家庭成员督导</option><option>自服药</option></select></div>
+<div class="fitem"><label>痰检结果</label><select class="ipt sel"><option>全部</option><option>阴性</option><option>阳性</option><option>未查</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button><button class="btn">🪪 读卡建档</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="">执行查询</button><button class="btn" onclick="">导出结果</button><div class="right"><button class="btn">重置</button><button class="btn">保存查询方案</button></div></div>
+<div class="card"><table><thead><tr><th>档案编号</th><th>姓名</th><th>性别</th><th>年龄</th><th>村/居委会</th><th>治疗阶段</th><th>管理方式</th><th>督导员</th><th>痰检结果</th><th>操作</th></tr></thead><tbody><tr><td>DA-2026-011002</td><td>曹德旺</td><td>男</td><td>49</td><td>东关社区</td><td><span class="tag blue">强化期</span></td><td><span class="tag green">医务人员督导</span></td><td>王建国</td><td><span class="tag gray">未查</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-011038</td><td>白素芹</td><td>女</td><td>36</td><td>西河村</td><td><span class="tag blue">巩固期</span></td><td><span class="tag green">家庭成员督导</span></td><td>白家人</td><td><span class="tag green">阴性</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-011067</td><td>雷长顺</td><td>男</td><td>61</td><td>殷巷村</td><td><span class="tag blue">巩固期</span></td><td><span class="tag green">医务人员督导</span></td><td>李卫芳</td><td><span class="tag green">阴性</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-011089</td><td>许桂英</td><td>女</td><td>72</td><td>龙山村</td><td><span class="tag gray">已结束治疗</span></td><td><span class="tag gray">自服药</span></td><td>—</td><td><span class="tag green">阴性</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-011103</td><td>韩志远</td><td>男</td><td>28</td><td>张庄社区</td><td><span class="tag blue">强化期</span></td><td><span class="tag green">医务人员督导</span></td><td>赵敏</td><td><span class="tag red">阳性</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>肺结核患者专项查询：治疗阶段、服药管理、督导员维度组合。<br><b>交互能力：</b>自助查询配置、查询执行、结果导出<br><b>待确认项：</b>查询结果字段范围与跨模块取数口径待确认<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg6"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fitem"><label>身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fitem"><label>村/居委会</label><select class="ipt sel"><option>全部</option><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fitem"><label>查询日期</label><input class="ipt" type="date"> ~ <input class="ipt" type="date"></div>
+<div class="fitem"><label>体检状态</label><select class="ipt sel"><option>全部</option><option>已体检</option><option>未体检</option></select></div>
+<div class="fitem"><label>自理能力</label><select class="ipt sel"><option>全部</option><option>可自理</option><option>轻度依赖</option><option>中度依赖</option><option>不能自理</option></select></div>
+<div class="fitem"><label>人群细分</label><select class="ipt sel"><option>全部</option><option>独居</option><option>空巢</option><option>失能</option><option>高龄(80+)</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button><button class="btn">🪪 读卡建档</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="">执行查询</button><button class="btn" onclick="">导出结果</button><div class="right"><button class="btn">重置</button><button class="btn">保存查询方案</button></div></div>
+<div class="card"><table><thead><tr><th>档案编号</th><th>姓名</th><th>性别</th><th>年龄</th><th>村/居委会</th><th>体检状态</th><th>自理能力</th><th>人群细分</th><th>责任医生</th><th>操作</th></tr></thead><tbody><tr><td>DA-2026-003521</td><td>张桂英</td><td>女</td><td>71</td><td>东关社区</td><td><span class="tag green">已体检</span></td><td><span class="tag green">可自理</span></td><td><span class="tag orange">空巢</span></td><td>王建国</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-004102</td><td>王振山</td><td>男</td><td>78</td><td>西河村</td><td><span class="tag green">已体检</span></td><td><span class="tag green">可自理</span></td><td>—</td><td>李卫芳</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2025-000873</td><td>赵德顺</td><td>男</td><td>83</td><td>龙山村</td><td><span class="tag red">未体检</span></td><td><span class="tag orange">轻度依赖</span></td><td><span class="tag red">高龄(80+)</span></td><td>刘志强</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-012489</td><td>田秀荣</td><td>女</td><td>86</td><td>北辛村</td><td><span class="tag green">已体检</span></td><td><span class="tag red">不能自理</span></td><td><span class="tag red">失能</span></td><td>赵敏</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-012775</td><td>尹福贵</td><td>男</td><td>81</td><td>解放路社区</td><td><span class="tag green">已体检</span></td><td><span class="tag orange">中度依赖</span></td><td><span class="tag orange">独居</span></td><td>王建国</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>65岁及以上老年人专项查询：健康体检、生活自理能力维度组合。<br><b>交互能力：</b>自助查询配置、查询执行、结果导出<br><b>待确认项：</b>查询结果字段范围与跨模块取数口径待确认<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg7"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fitem"><label>身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fitem"><label>村/居委会</label><select class="ipt sel"><option>全部</option><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fitem"><label>查询日期</label><input class="ipt" type="date"> ~ <input class="ipt" type="date"></div>
+<div class="fitem"><label>高危类别</label><select class="ipt sel"><option>全部</option><option>高血压高危</option><option>糖尿病高危</option><option>慢阻肺高危</option><option>肿瘤高危</option><option>高危孕产妇</option></select></div>
+<div class="fitem"><label>干预状态</label><select class="ipt sel"><option>全部</option><option>干预中</option><option>未干预</option><option>已转归</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button><button class="btn">🪪 读卡建档</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="">执行查询</button><button class="btn" onclick="">导出结果</button><div class="right"><button class="btn">重置</button><button class="btn">保存查询方案</button></div></div>
+<div class="card"><table><thead><tr><th>档案编号</th><th>姓名</th><th>性别</th><th>年龄</th><th>村/居委会</th><th>高危类别</th><th>风险因素</th><th>干预状态</th><th>责任医生</th><th>操作</th></tr></thead><tbody><tr><td>DA-2026-013021</td><td>华建军</td><td>男</td><td>45</td><td>东关社区</td><td>高血压高危</td><td>吸烟+肥胖+家族史</td><td><span class="tag green">干预中</span></td><td>王建国</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-013055</td><td>邓文静</td><td>女</td><td>39</td><td>西河村</td><td>糖尿病高危</td><td>空腹血糖受损+久坐</td><td><span class="tag orange">未干预</span></td><td>李卫芳</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-013098</td><td>江志明</td><td>男</td><td>51</td><td>殷巷村</td><td>慢阻肺高危</td><td>吸烟30年+粉尘接触</td><td><span class="tag green">干预中</span></td><td>赵敏</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-013133</td><td>段秀云</td><td>女</td><td>48</td><td>龙山村</td><td>肿瘤高危</td><td>乳腺癌家族史</td><td><span class="tag gray">已转归</span></td><td>刘志强</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-013167</td><td>毛爱华</td><td>女</td><td>33</td><td>张庄社区</td><td>高危孕产妇</td><td>高龄初产+瘢痕子宫</td><td><span class="tag green">干预中</span></td><td>王建国</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>高危人群档案查询：慢病高危、高危孕产妇等风险档案维度组合。<br><b>交互能力：</b>自助查询配置、查询执行、结果导出<br><b>待确认项：</b>查询结果字段范围与跨模块取数口径待确认<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg8"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fitem"><label>身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fitem"><label>村/居委会</label><select class="ipt sel"><option>全部</option><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fitem"><label>查询日期</label><input class="ipt" type="date"> ~ <input class="ipt" type="date"></div>
+<div class="fitem"><label>辨识年度</label><select class="ipt sel"><option>全部</option><option>2026</option><option>2025</option></select></div>
+<div class="fitem"><label>体质类型</label><select class="ipt sel"><option>全部</option><option>平和质</option><option>气虚质</option><option>阳虚质</option><option>阴虚质</option><option>痰湿质</option><option>湿热质</option><option>血瘀质</option><option>气郁质</option><option>特禀质</option><option>未辨识</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button><button class="btn">🪪 读卡建档</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="">执行查询</button><button class="btn" onclick="">导出结果</button><div class="right"><button class="btn">重置</button><button class="btn">保存查询方案</button></div></div>
+<div class="card"><table><thead><tr><th>档案编号</th><th>姓名</th><th>性别</th><th>年龄</th><th>村/居委会</th><th>辨识年度</th><th>体质类型</th><th>服务状态</th><th>指导医生</th><th>操作</th></tr></thead><tbody><tr><td>DA-2026-003521</td><td>张桂英</td><td>女</td><td>71</td><td>东关社区</td><td>2026</td><td><span class="tag green">平和质</span></td><td><span class="tag green">已服务</span></td><td>王建国</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-004102</td><td>王振山</td><td>男</td><td>78</td><td>西河村</td><td>2026</td><td><span class="tag orange">气虚质</span></td><td><span class="tag green">已服务</span></td><td>李卫芳</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2025-001987</td><td>李秀兰</td><td>女</td><td>66</td><td>殷巷村</td><td>2026</td><td><span class="tag orange">阳虚质</span></td><td><span class="tag blue">待服务</span></td><td>赵敏</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2025-000873</td><td>赵德顺</td><td>男</td><td>83</td><td>龙山村</td><td>2026</td><td><span class="tag red">痰湿质</span></td><td><span class="tag red">逾期未服务</span></td><td>刘志强</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>DA-2026-002456</td><td>孙玉梅</td><td>女</td><td>69</td><td>张庄社区</td><td>2026</td><td><span class="tag gray">未辨识</span></td><td><span class="tag blue">待服务</span></td><td>王建国</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>老年人中医药健康管理服务情况查询：辨识率、体质分布维度组合。<br><b>交互能力：</b>自助查询配置、查询执行、结果导出<br><b>待确认项：</b>查询结果字段范围与跨模块取数口径待确认<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+</div></main></div>
+<script>
+function showTab(n){
+  document.querySelectorAll('.tabs .tab').forEach((t,i)=>t.classList.toggle('cur',i===n));
+  document.querySelectorAll('.page').forEach((p,i)=>p.classList.toggle('cur',i===n));
+  window.scrollTo(0,0);
+}
+function openModal(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+function toggleMore(btn){
+  var box=btn.closest('.qgrid');var h=box.querySelector('.hid');
+  if(h.style.display==='none'){h.style.display='flex';btn.textContent='收起 ▲'}else{h.style.display='none';btn.textContent='展开更多查询 ▼'}
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.mask.show').forEach(m=>m.classList.remove('show'))});
+</script></body></html>

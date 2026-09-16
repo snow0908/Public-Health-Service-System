@@ -1,0 +1,3188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>脱敏设置 - 系统管理</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  /* ===== 脱敏规则页面特有样式（设计变量与公共样式见 框架.css） ===== */
+
+  /* 按钮 */
+  .btn-outline{background:var(--bg-white);color:var(--primary);border-color:var(--primary)}
+  .btn-outline:hover{background:var(--primary);color:#fff}
+  .btn-outline:active{background:var(--primary-active);color:#fff}
+
+  /* 布局与左侧菜单栏样式已提取至 框架.css */
+
+  /* 主内容区 / 标签栏 / 页面标题 / 搜索框 / 表格 / 空状态 / Toast 等公共样式已提取至 框架.css
+     底部状态栏已按需求移除 */
+
+  /* 本页覆盖：框架中 content-card 默认 overflow:hidden，本页内容需要溢出显示 */
+  .content-card{overflow:visible}
+
+  /* ===== 嵌入模式（被 index.html 壳子以 iframe 内嵌时，框架.js 自动加 html.embed-mode） ===== */
+  html.embed-mode .main-area{height:100%}      /* 壳子内自适应：无顶部导航栏包裹 */
+  html.embed-mode .tabbar{display:none}        /* 标签栏由壳子统一管理，本页隐藏 */
+  html.embed-mode .toast{top:24px}             /* 壳内提示位置上移 */
+
+  /* ===== 脱敏规则特有样式 ===== */
+
+  /* 页面主体：左侧角色 + 右侧规则 */
+  .rule-wrapper{display:flex;flex-direction:column;flex:1;min-height:0}
+  .rule-body{display:flex;flex:1;min-height:0;background:var(--bg-page)}
+
+  /* 左侧面板 */
+  .rule-role-panel{width:260px;border-right:1px solid var(--primary-border);display:flex;flex-direction:column;background:var(--bg-white);flex-shrink:0}
+
+  /* ===== 规则组选择器（左侧面板顶部） ===== */
+  .group-selector-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;flex-shrink:0;border-bottom:1px solid #E8E8E8}
+  .group-selector-bar .gs-name{font-size:16px;font-weight:500;color:var(--text-primary);white-space:nowrap}
+  .group-selector-bar .gs-switch{font-size:14px;color:var(--primary);cursor:pointer;background:none;border:none;padding:0;transition:all var(--transition-fast);white-space:nowrap}
+  .group-selector-bar .gs-switch:hover{opacity:.8}
+
+  /* ===== 适用范围左侧面板 ===== */
+  .coverage-add-bar{padding:8px 12px;flex-shrink:0;position:relative}
+  .coverage-add-bar .add-bar-row{display:flex;gap:6px;align-items:center}
+  .coverage-add-bar .add-bar-row .search-input{flex:1;min-width:0}
+  .coverage-add-bar .search-input input{height:30px;font-size:13px;padding-right:30px}
+  .coverage-add-btn{height:30px;padding:0 12px;font-size:13px;flex-shrink:0;white-space:nowrap}
+
+  /* 适用范围区域 */
+  .coverage-section{flex:1;display:flex;flex-direction:column;min-height:0;overflow:visible}
+  .coverage-list{flex:1;overflow-y:auto;padding:0 8px 4px}
+
+  /* 右侧规则区 */
+  .rule-config-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:12px;padding-bottom:0;background:var(--bg-white);position:relative}
+
+  /* 工具栏 */
+  .rule-toolbar{display:flex;align-items:center;justify-content:space-between;height:44px;flex-shrink:0;margin-bottom:8px;gap:12px}
+  .rule-toolbar .left{display:flex;align-items:center;gap:8px}
+  .rule-toolbar .right{width:220px;flex-shrink:0}
+
+  /* 表格容器 */
+  .rule-table-wrap{flex:1;overflow:auto;border:1px solid var(--primary-border);border-radius:var(--r-sm)}
+  .rule-config-panel .tbl{border-radius:var(--r-sm);overflow:hidden}
+  .rule-config-panel .tbl th{background:#F0F7FF;border-bottom:1px solid var(--primary-border);color:var(--text-primary);font-weight:var(--font-weight-medium)}
+  .rule-config-panel .tbl td{border-bottom:1px solid var(--primary-border);color:var(--text-secondary)}
+  .rule-config-panel .tbl tbody tr:last-child td{border-bottom:none}
+  .rule-config-panel .tbl tbody tr:hover td{background:#F5F5F5}
+  .rule-config-panel .tbl th:first-child,.rule-config-panel .tbl td:first-child{text-align:center;width:40px}
+  .rule-config-panel .tbl th:last-child,.rule-config-panel .tbl td:last-child{text-align:center;width:80px}
+  .rule-config-panel .tbl th:nth-child(2),.rule-config-panel .tbl td:nth-child(2){width:60px;text-align:center}
+  .rule-config-panel .tbl th:nth-child(4),.rule-config-panel .tbl td:nth-child(4){width:120px}
+  .rule-config-panel .tbl th:nth-child(5),.rule-config-panel .tbl td:nth-child(5){width:200px}
+  .rule-config-panel .tbl th:nth-child(6),.rule-config-panel .tbl td:nth-child(6){width:220px}
+
+  /* 操作链接 */
+  .rule-action{color:var(--text-error);cursor:pointer;font-size:14px}
+  .rule-action:hover{text-decoration:underline}
+
+  /* 复选框 */
+  .rule-cb{width:14px;height:14px;accent-color:var(--primary);cursor:pointer}
+
+  /* ===== 规则配置弹框 ===== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .modal-overlay.show{opacity:1;pointer-events:auto}
+  .modal{min-width:600px;width:fit-content;max-width:92vw;height:560px;max-height:86vh;background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 8px 32px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden}
+  .modal-head{height:44px;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid var(--primary-border);flex-shrink:0}
+  .modal-head h3{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--text-primary)}
+  .modal-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm)}
+  .modal-close:hover{background:var(--primary-bg);color:var(--primary)}
+  .modal-body{flex:1;display:flex;min-height:0;padding:12px;gap:12px}
+  .modal-search{padding:10px 12px;flex-shrink:0}
+  .modal-search .search-input::before{content:"🔍";position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;opacity:.5;pointer-events:none}
+  .modal-search input{width:100%;height:30px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px 0 32px;font-size:var(--font-size-body);color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .modal-search input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .modal-search input::placeholder{color:var(--text-placeholder)}
+  .modal-table-wrap{flex:1;overflow:auto}
+  .modal-foot{height:52px;display:flex;align-items:center;justify-content:flex-end;padding:0 16px;border-top:1px solid var(--primary-border);gap:8px;flex-shrink:0}
+  /* 绑定实体按钮 */
+  #btnBindEntity{display:none;}
+  /* 绑定实体浮层 — 限定在右侧规则区域内 */
+  #entityPanel{display:none;position:absolute;bottom:0;left:12px;right:12px;background:#fff;border:none;border-radius:8px 8px 0 0;box-shadow:0 -4px 20px rgba(0,0,0,.15),0 -2px 8px rgba(0,0,0,.08);z-index:10}
+  #entityPanel .pp-header{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid #E8E8E8;cursor:pointer;user-select:none}
+  #entityPanel .pp-header .pp-title{font-size:14px;font-weight:500;color:#333}
+  #entityPanel .pp-header .pp-toggle{font-size:12px;color:var(--primary);cursor:pointer}
+  #entityPanel .pp-body{overflow:auto;max-height:240px}
+  #entityPanel .pp-body.collapsed{display:none}
+  #entityPanel .pp-body table{width:100%;table-layout:fixed}
+  #entityPanel .pp-body th:nth-child(1),
+  #entityPanel .pp-body td:nth-child(1){width:25%}
+  #entityPanel .pp-body th:nth-child(2),
+  #entityPanel .pp-body td:nth-child(2){width:25%}
+  #entityPanel .pp-body th:nth-child(3),
+  #entityPanel .pp-body td:nth-child(3){width:25%}
+  #entityPanel .pp-body th:nth-child(4),
+  #entityPanel .pp-body td:nth-child(4){width:25%}
+
+  /* ===== 切换方案弹框 ===== */
+  .switch-modal{width:680px;max-width:92vw}
+  .switch-modal .modal-body{flex-direction:column}
+
+  /* ===== 自定义规则编辑弹框 ===== */
+  .form-modal{width:520px;max-width:92vw}
+  .form-modal .modal-body{padding:20px 24px;flex-direction:column;overflow-y:auto;gap:0}
+  .form-row{display:flex;align-items:flex-start;margin-bottom:16px;gap:12px}
+  .form-row .form-label{width:80px;text-align:right;font-size:14px;color:var(--text-primary);line-height:32px;flex-shrink:0}
+  .form-row .form-ctrl{flex:1}
+  .form-row input,.form-row select,.form-row textarea{width:100%;height:32px;padding:0 10px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:border-color var(--transition-fast);font-family:var(--font-ui)}
+  .form-row textarea{height:64px;padding:8px 10px;resize:vertical}
+  .form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.12)}
+
+  /* ===== 新增规则覆盖方案弹框 ===== */
+  .add-scheme-modal{width:560px;max-width:92vw;height:auto;max-height:80vh}
+  .add-scheme-modal .modal-head{border-bottom:2px solid var(--primary)}
+  .add-scheme-modal .modal-head h3{color:var(--primary)}
+  .add-scheme-modal .modal-body{padding:20px 24px;flex-direction:column;overflow-y:auto;gap:0}
+  .form-radio-group{display:flex;gap:20px;align-items:center;height:32px}
+  .form-radio-group label{display:flex;align-items:center;gap:4px;cursor:pointer;font-size:14px;color:var(--text-primary)}
+  .form-radio-group input[type="radio"]{accent-color:var(--primary);cursor:pointer;width:14px;height:14px}
+  /* 多选下拉（弹框内） */
+  .form-row .multi-select{position:relative;flex:1}
+  .form-row .ms-trigger{height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 12px;background:var(--bg-white);display:flex;align-items:center;gap:8px;cursor:pointer;transition:all var(--transition-fast);user-select:none}
+  .form-row .ms-trigger:hover{border-color:var(--primary)}
+  .form-row .multi-select.open .ms-trigger{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .form-row .ms-text{flex:1;font-size:14px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:32px}
+  .form-row .ms-text.placeholder{color:var(--text-placeholder)}
+  .form-row .ms-badge{font-size:13px;color:var(--primary);background:var(--primary-light);padding:1px 6px;border-radius:2px;display:none;font-weight:var(--font-weight-medium)}
+  .form-row .ms-badge.show{display:inline-block}
+  .form-row .ms-arrow{width:12px;height:12px;stroke:var(--text-tertiary);fill:none;stroke-width:1.5;transition:transform var(--transition-fast);flex-shrink:0}
+  .form-row .multi-select.open .ms-arrow{transform:rotate(180deg)}
+  .form-row .ms-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--bg-white);border:1px solid var(--primary-border);border-radius:var(--r-sm);box-shadow:var(--shadow-md);max-height:220px;overflow-y:auto;z-index:100;display:none;padding:4px 0}
+  /* 新增覆盖方案中选择下拉浮层置顶，避免被弹框内容遮挡 */
+  .add-scheme-modal .modal-body{overflow:visible}
+  .add-scheme-modal .multi-select{z-index:20}
+  .add-scheme-modal .ms-dropdown{z-index:2000;max-height:180px}
+  .add-scheme-modal .ms-dropdown.drop-up{top:auto;bottom:calc(100% + 4px)}
+  .form-row .multi-select.open .ms-dropdown{display:block}
+  .form-row .ms-option{display:flex;align-items:center;gap:8px;padding:6px 12px;cursor:pointer;font-size:14px;color:var(--text-primary);transition:background var(--transition-fast);user-select:none}
+  .form-row .ms-option:hover{background:var(--primary-bg)}
+  .form-row .ms-option input[type="checkbox"]{width:14px;height:14px;accent-color:var(--primary);cursor:pointer;flex-shrink:0}
+  .form-row .ms-option span{flex:1;line-height:1.4}
+  .form-row .ms-toolbar{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;border-bottom:1px solid var(--primary-border);margin-bottom:4px;background:var(--bg-white);position:sticky;top:0;z-index:1}
+  .form-row .ms-toolbar a{font-size:13px;color:var(--primary);cursor:pointer;user-select:none}
+  .form-row .ms-toolbar a:hover{text-decoration:underline}
+  .form-row .ms-toolbar .ms-clear{color:var(--text-tertiary)}
+  .form-row .ms-toolbar .ms-clear:hover{color:var(--danger)}
+
+  /* ===== 规则选择弹框 ===== */
+  .rule-select-modal{width:960px;max-width:95vw;height:580px;max-height:85vh;display:flex;flex-direction:column}
+  .rsm-title-group{display:flex;align-items:center;gap:10px}
+  .rsm-title-group h3{margin:0;font-size:16px;color:var(--text-primary)}
+  .rsm-body{display:flex;gap:0;flex:1;overflow:hidden;padding:16px 20px}
+  .rsm-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--primary-border);border-radius:var(--r-sm)}
+  .rsm-left{border-right:none}
+  .rsm-right{background:#FAFBFC}
+  .rsm-panel-header{padding:8px 14px;font-size:14px;font-weight:var(--font-weight-medium);color:var(--text-primary);border-bottom:1px solid var(--primary-border);display:flex;justify-content:space-between;align-items:center}
+  .rsm-count{font-size:12px;color:var(--text-tertiary);font-weight:400}
+  .rsm-search{padding:8px 12px;border-bottom:1px solid var(--primary-border)}
+  .rsm-search input{width:100%;height:30px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:13px;outline:none;transition:border-color var(--transition-fast);box-sizing:border-box}
+  .rsm-search input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(22,119,255,0.12)}
+  .rsm-table-wrap{flex:1;overflow-y:auto;overflow-x:auto}
+  .rsm-tbl{border-collapse:collapse;width:100%;table-layout:fixed;font-size:13px}
+  .rsm-tbl thead th{position:sticky;top:0;z-index:1;background:#F5F7FA;color:var(--text-secondary);font-weight:var(--font-weight-medium);padding:8px 10px;border-bottom:1px solid var(--primary-border);white-space:nowrap;text-align:left;font-size:12px}
+  .rsm-tbl tbody td{padding:7px 10px;border-bottom:1px solid #F0F0F0;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rsm-tbl tbody tr:hover{background:var(--primary-bg)}
+  .rsm-tbl tbody tr.selected-row{background:#E8F1FF}
+  .rsm-tbl th:first-child,.rsm-tbl td:first-child{text-align:center;overflow:visible;text-overflow:clip}
+  .rsm-tbl th:last-child,.rsm-tbl td:last-child{text-align:center;overflow:visible;text-overflow:clip}
+  .rsm-tbl input[type="checkbox"]{accent-color:var(--primary);cursor:pointer;width:14px;height:14px}
+  .rsm-empty{flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text-tertiary);gap:8px}
+  .rsm-empty-icon{font-size:36px;opacity:0.45}
+  .rsm-empty-text{font-size:13px}
+  .rsm-remove-btn{color:var(--danger);cursor:pointer;font-size:13px;border:none;background:none;padding:2px 8px;border-radius:2px;transition:background var(--transition-fast)}
+  .rsm-remove-btn:hover{background:#FFF1F0}
+
+/* ===== 脱敏规则说明提示 ===== */
+.page-title-tip{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:16px;
+  height:16px;
+  margin-left:8px;
+  border-radius:50%;
+  background:#F0F7FF;
+  color:#007AFF;
+  border:1px solid #BFDEFF;
+  font-size:12px;
+  font-weight:600;
+  cursor:help;
+}
+.page-title-tip:hover{background:#D6E9FF}
+.page-title-tip-popup{position:fixed;max-width:420px;padding:10px 12px;background:#262626;color:#fff;border-radius:6px;font-size:13px;font-weight:400;line-height:1.6;white-space:normal;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,.15);pointer-events:none}
+.page-title-tip-popup::before{content:"";position:absolute;left:-8px;top:50%;transform:translateY(-50%);border-width:5px;border-style:solid;border-color:transparent #262626 transparent transparent}
+
+/* ===== 左侧规则分层：扁平化信息架构 ===== */
+.rule-layer-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:6px;
+  padding:14px 12px 8px;
+  font-size:13px;
+  color:#666;
+  font-weight:600;
+}
+.rule-layer-title .layer-title-main{display:block}
+.rule-layer-title .layer-meta{
+  font-size:12px;
+  color:#999;
+  font-weight:400;
+}
+.rule-layer-title .layer-meta.prio-chain b{color:#262626;font-weight:600}
+.rule-layer-title .layer-meta.prio-chain b:first-child{color:#CF1322}
+.rule-layer-title .layer-meta.prio-chain b:nth-of-type(2){color:#D46B08}
+.rule-layer-title .layer-meta.prio-chain b:nth-of-type(3){color:#8c8c8c}
+.rule-layer-divider{height:1px;background:#f0f0f0;margin:12px 0 8px}
+
+/* 标准规则平铺项 */
+.coverage-flat-item,
+.custom-flat-item,
+.layer-toggle-flat{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-height:46px;
+  padding:6px 12px;
+  margin:0 8px 2px;
+  border-radius:6px;
+  cursor:pointer;
+  transition:background .15s ease;
+}
+.coverage-flat-item:hover,
+.custom-flat-item:hover,
+.layer-toggle-flat:hover{background:#f7f9fc}
+.coverage-flat-item.active,
+.custom-flat-item.active,
+.layer-toggle-flat.active{background:#eaf3ff}
+
+.coverage-flat-item .item-avatar,
+.custom-flat-item .item-avatar,
+.layer-toggle-flat .item-avatar{
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 30px;
+  background:#f0f1f3;
+  color:#666;
+  font-size:13px;
+}
+.coverage-flat-item.active .item-avatar,
+.custom-flat-item.active .item-avatar,
+.layer-toggle-flat.active .item-avatar{
+  background:#d8eaff;
+  color:#1677ff;
+}
+
+.coverage-flat-item .item-content,
+.custom-flat-item .item-content,
+.layer-toggle-flat .item-content{
+  flex:1;
+  min-width:0;
+}
+.coverage-flat-item .item-title,
+.custom-flat-item .item-title,
+.layer-toggle-flat .item-title{
+  font-size:14px;
+  color:#262626;
+  line-height:20px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.coverage-flat-item.active .item-title,
+.custom-flat-item.active .item-title,
+.layer-toggle-flat.active .item-title{color:#1677ff}
+
+.coverage-flat-item .item-subtitle,
+.custom-flat-item .item-subtitle,
+.layer-toggle-flat .item-subtitle{
+  margin-top:1px;
+  font-size:12px;
+  line-height:17px;
+  color:#8c8c8c;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.coverage-flat-item .item-state,
+.custom-flat-item .item-state,
+.layer-toggle-flat .item-state{
+  flex:0 0 auto;
+  min-width:30px;
+  height:24px;
+  padding:0 8px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:11px;
+  color:#999;
+  background:#f5f5f5;
+}
+.coverage-flat-item.active .item-state,
+.custom-flat-item.active .item-state,
+.layer-toggle-flat.active .item-state,
+.layer-toggle-flat.is-on .item-state{
+  color:#1677ff;
+  background:#dcecff;
+}
+
+/* ===== 方案类型彩色标签（精细化规则） ===== */
+.scheme-pill{
+  flex:0 0 auto;
+  min-width:34px;
+  height:22px;
+  padding:0 10px;
+  border-radius:11px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:11px;
+  font-weight:600;
+  line-height:1;
+  white-space:nowrap;
+  letter-spacing:.5px;
+}
+.scheme-pill.scheme-role{color:#1677FF;background:#E8F1FF;border:1px solid #B9D4FF}
+.scheme-pill.scheme-dept{color:#389E0D;background:#ECF8E4;border:1px solid #BCE3A6}
+.scheme-pill.scheme-person{color:#D46B08;background:#FFF2E2;border:1px solid #FBD3A8}
+.scheme-pill.scheme-special{color:#CF1322;background:#FFE9E9;border:1px solid #F7B5B5}
+
+/* 优先级序号徽标（人员 P1 > 科室 P2 > 角色 P3） */
+.prio-rank{
+  flex:0 0 auto;
+  min-width:22px;height:18px;padding:0 6px;
+  border-radius:9px;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;line-height:1;letter-spacing:.5px;
+  color:#fff;background:#bfbfbf;
+}
+.prio-rank.prio-1{background:#CF1322}
+.prio-rank.prio-2{background:#D46B08}
+.prio-rank.prio-3{background:#8c8c8c}
+
+.item-remove{
+  width:18px;
+  height:18px;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  color:#aaa;
+  font-size:12px;
+  border-radius:50%;
+}
+.custom-flat-item:hover .item-remove{display:flex}
+.item-remove:hover{color:#ff4d4f;background:#fff1f0}
+
+.layer-desc-hint{
+  font-size:11px;
+  line-height:16px;
+  color:#999;
+  padding:0 12px 4px 52px;
+}
+
+/* 显名规则的开关与状态保持简洁 */
+.layer-toggle-flat .toggle-switch{margin-left:2px}
+
+/* 右侧规则信息栏 */
+.rule-info-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#F0F7FF;border:1px solid var(--primary-border);border-radius:var(--r-sm);margin-bottom:8px;font-size:12px;color:var(--text-secondary);line-height:1.5}
+.rule-info-bar .info-icon{flex-shrink:0;width:16px;height:16px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+.rule-info-bar .info-text{flex:1}
+.rule-info-bar .info-text strong{color:var(--primary);font-weight:var(--font-weight-medium)}
+.rule-info-bar .info-priority{flex-shrink:0;padding:3px 8px;background:#fff;border:1px solid var(--primary-border);border-radius:2px;font-size:11px;color:var(--primary);white-space:nowrap}
+
+/* 脱敏列标题 */
+.rule-config-panel .tbl th:first-child{width:60px}
+.th-desensitize{display:flex;flex-direction:column;align-items:center;gap:2px}
+
+/* 释放状态行 — 取消勾选的行 */
+.rule-config-panel .tbl tbody tr.released td{opacity:0.45}
+.rule-config-panel .tbl tbody tr.released td:last-child .rule-action{opacity:1}
+
+/* ===== 显名规则卡片式开关面板（点击本科室显名/本医生显名时展示） ===== */
+/* 面板容器：替换原有表格区域 */
+.name-release-panel{display:none;flex-direction:column;flex:1;min-height:0}
+.name-release-panel.show{display:flex}
+
+/* 顶部标题栏 */
+.nr-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg-white);flex-shrink:0}
+.nr-header-left{display:flex;align-items:center;gap:8px}
+.nr-title{font-size:16px;font-weight:600;color:#1a1a1a;margin:0}
+.nr-tags{display:flex;align-items:center;gap:6px;font-size:12px;color:#888}
+.nr-tag{color:#666}
+.nr-tag-dot{color:#ccc}
+
+/* 总开关 */
+.nr-master-toggle{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
+.nr-master-toggle .toggle-switch{transform:scale(1.1)}
+
+/* 提示横幅 */
+.nr-banner{margin:0 12px;padding:10px 14px;background:#FFFBE6;border:1px solid #FFE58F;border-radius:6px;font-size:13px;color:#8C6D28;line-height:1.6;flex-shrink:0}
+
+/* 字段网格区 */
+.nr-fields-wrap{flex:1;overflow-y:auto;padding:12px 16px}
+.nr-fields-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+
+/* 字段卡片 */
+.nr-field-card{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border:1px solid #E8E8E8;border-right:none;border-bottom:none;background:var(--bg-white);transition:all .2s ease;min-height:56px}
+.nr-field-card:nth-child(3n){border-right:1px solid #E8E8E8}
+.nr-field-card:nth-last-child(-n+3){border-bottom:1px solid #E8E8E8}
+.nr-field-card:nth-last-child(-n+3):nth-child(3n){border-bottom:1px solid #E8E8E8}
+/* 少于3个时补齐底边框 */
+.nr-field-card:last-child:nth-child(-n+3){border-right:1px solid #E8E8E8;border-bottom:1px solid #E8E8E8}
+.nr-field-card:nth-child(2):last-child,.nr-field-card:nth-child(1):last-child{border-right:1px solid #E8E8E8;border-bottom:1px solid #E8E8E8}
+.nr-field-card:hover{background:#FAFAFA}
+
+.nr-field-info{display:flex;align-items:center;gap:12px;min-width:0}
+.nr-field-name{font-size:14px;color:#262626;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nr-field-status{font-size:13px;color:#999;white-space:nowrap;flex-shrink:0;min-width:32px;text-align:right}
+.nr-field-card.is-on .nr-field-status{color:#007AFF}
+
+.nr-field-card .toggle-switch{flex-shrink:0}
+
+/* Toggle 开关组件样式（iOS风格） */
+.toggle-switch{position:relative;display:inline-block;width:40px;height:22px;vertical-align:middle}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#ccc;border-radius:22px;transition:.25s all ease}
+.toggle-slider::before{content:"";position:absolute;height:18px;width:18px;left:2px;bottom:2px;background:#fff;border-radius:50%;transition:.25s all ease;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.toggle-switch input:checked + .toggle-slider{background-color:#1677FF}
+.toggle-switch input:checked + .toggle-slider::before{transform:translateX(18px)}
+.toggle-switch input:disabled + .toggle-slider{opacity:.45;cursor:not-allowed}
+
+/* ===== 统一确认弹框（同 概况视图配置 删除确认规范） ===== */
+.confirm-modal{min-width:440px;width:440px;height:auto;max-height:86vh;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,0.08),0 4px 12px rgba(0,0,0,0.04)}
+.confirm-modal .modal-head{height:auto;padding:16px 24px;border-bottom:1px solid var(--color-neutral-300)}
+.confirm-modal .modal-head h3{font-size:16px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+.confirm-modal .modal-close{width:28px;height:28px}
+.confirm-modal .modal-close:hover{background:var(--color-neutral-100);color:var(--text-primary)}
+.confirm-body{display:flex;align-items:flex-start;justify-content:center;gap:8px;padding:24px;flex:1;min-height:0}
+.confirm-body .ico{width:25px;height:24px;flex-shrink:0}
+.confirm-body .ico svg{width:100%;height:100%;stroke:var(--warning);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.confirm-body .msg{font-size:14px;color:var(--text-primary)}
+.confirm-modal .modal-foot{height:auto;padding:12px 24px;border-top:1px solid var(--color-neutral-100)}
+
+/* ===== 关联用户弹框（绑定人员） ===== */
+.bind-user-modal{
+  min-width:860px;
+  width:900px;
+  max-width:96vw;
+  height:560px;
+  max-height:86vh;
+  border-radius:8px;
+  box-shadow:0 8px 32px rgba(0,0,0,.18);
+}
+.bind-user-modal .modal-head h3{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+.bind-user-modal .modal-body{flex-direction:column;padding:14px 18px 8px;gap:0;overflow:hidden}
+/* 头部筛选区：机构 / 科室 / 关键字 单行并排 + 操作按钮 */
+.bu-filter{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:0 0 10px;
+  flex-shrink:0;
+  flex-wrap:nowrap;
+}
+.bu-field{display:flex;align-items:center;gap:8px;min-height:30px;flex:1;min-width:0}
+.bu-field .bu-label{flex-shrink:0}
+.bu-field.bu-field-actions{flex:0 0 auto}
+.bu-label{
+  font-size:13px;
+  color:var(--text-primary);
+  white-space:nowrap;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  gap:2px;
+}
+.bu-label .req{color:var(--danger);line-height:1}
+.bu-control{flex:1;min-width:0;position:relative}
+.bu-input{
+  width:100%;
+  height:30px;
+  padding:0 10px;
+  border:1px solid var(--color-neutral-300);
+  border-radius:var(--r-sm);
+  font-size:13px;
+  color:var(--text-primary);
+  background:var(--bg-white);
+  outline:none;
+  transition:all var(--transition-fast);
+  font-family:var(--font-ui);
+}
+.bu-input::placeholder{color:var(--text-placeholder)}
+.bu-input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,.12)}
+.bu-input.with-counter{padding-right:48px}
+.bu-input-counter{
+  position:absolute;
+  right:10px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:12px;
+  color:var(--text-tertiary);
+  pointer-events:none;
+  user-select:none;
+}
+.bu-select{
+  width:100%;
+  height:30px;
+  padding:0 26px 0 10px;
+  border:1px solid var(--color-neutral-300);
+  border-radius:var(--r-sm);
+  font-size:13px;
+  color:var(--text-primary);
+  background:var(--bg-white)
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>")
+    no-repeat right 8px center / 12px 12px;
+  appearance:none;
+  -webkit-appearance:none;
+  outline:none;
+  transition:all var(--transition-fast);
+  cursor:pointer;
+  font-family:var(--font-ui);
+}
+.bu-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,.12)}
+/* 机构多选下拉 */
+.bu-org-control{position:relative;z-index:10}
+.bu-org-trigger{
+  width:100%;
+  height:30px;
+  padding:0 26px 0 10px;
+  border:1px solid var(--color-neutral-300);
+  border-radius:var(--r-sm);
+  background:var(--bg-white);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  cursor:pointer;
+  transition:all var(--transition-fast);
+  box-sizing:border-box;
+}
+.bu-org-trigger:hover{border-color:var(--primary)}
+.bu-org-trigger.open{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,.12)}
+.bu-org-text{
+  font-size:13px;
+  color:var(--text-primary);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.bu-org-text.placeholder{color:var(--text-placeholder)}
+.bu-org-arrow{
+  position:absolute;
+  right:8px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:12px;
+  color:var(--text-tertiary);
+  transition:transform var(--transition-fast);
+  pointer-events:none;
+}
+.bu-org-trigger.open .bu-org-arrow{transform:translateY(-50%) rotate(180deg)}
+.bu-org-dropdown{
+  position:absolute;
+  left:0;
+  right:0;
+  top:calc(100% + 4px);
+  max-height:260px;
+  overflow:auto;
+  background:var(--bg-white);
+  border:1px solid var(--primary-border);
+  border-radius:var(--r-sm);
+  box-shadow:0 4px 12px rgba(0,0,0,.12);
+  display:none;
+  padding:4px 0;
+}
+.bu-org-dropdown.open{display:block}
+.bu-org-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:0 10px;
+  height:32px;
+  cursor:pointer;
+  font-size:13px;
+  color:var(--text-primary);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  transition:background var(--transition-fast);
+  user-select:none;
+}
+.bu-org-item:hover{background:var(--color-neutral-100)}
+.bu-org-item.selected{background:#E8F1FF;color:var(--primary)}
+.bu-org-item.selected:hover{background:#DCEAFF}
+.bu-org-item input[type="checkbox"]{
+  width:14px;
+  height:14px;
+  margin:0;
+  flex-shrink:0;
+  accent-color:var(--primary);
+  cursor:pointer;
+}
+.bu-org-item span{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.bu-tag-suffix{
+  display:inline-flex;
+  align-items:center;
+  height:18px;
+  padding:0 6px;
+  margin-left:6px;
+  border-radius:9px;
+  background:#F0F7FF;
+  color:var(--primary);
+  font-size:12px;
+  line-height:1;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.bu-actions{display:flex;align-items:center;gap:8px}
+/* 表格容器 */
+.bu-table-wrap{
+  flex:1;
+  min-height:0;
+  margin-top:10px;
+  border:1px solid var(--primary-border);
+  border-radius:var(--r-sm);
+  overflow:auto;
+  background:var(--bg-white);
+}
+.bind-user-modal .tbl th{
+  background:var(--primary-header);
+  font-size:13px;
+  color:var(--text-primary);
+  border-bottom:1px solid var(--primary-border);
+}
+.bind-user-modal .tbl th:first-child,
+.bind-user-modal .tbl td:first-child{
+  text-align:center;
+  width:40px;
+}
+.bind-user-modal .tbl th,
+.bind-user-modal .tbl td{white-space:nowrap}
+.bind-user-modal .tbl td{
+  font-size:13px;
+  color:var(--text-secondary);
+  max-width:180px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.bind-user-modal .tbl tbody tr.selected td{background:#E8F1FF}
+.bind-user-modal .tbl .bu-type{color:#D46B08}
+/* 选中数量行 */
+.bu-selected-count{
+  height:32px;
+  display:flex;
+  align-items:center;
+  padding:0 4px;
+  font-size:13px;
+  color:var(--text-secondary);
+  flex-shrink:0;
+}
+.bu-selected-count b{color:var(--primary);font-weight:var(--font-weight-semibold);margin:0 2px}
+/* 底部 */
+.bind-user-modal .modal-foot{border-top:1px solid var(--color-neutral-100)}
+/* 空状态 */
+.bu-empty{
+  padding:32px 12px;
+  text-align:center;
+  color:var(--text-tertiary);
+  font-size:13px;
+}
+.bu-empty .bu-empty-ico{font-size:28px;opacity:.55;margin-bottom:6px}
+
+</style>
+</head>
+<body>
+
+<!-- ===== 主内容区（顶部导航栏与左侧菜单栏由 框架.js 注入） ===== -->
+  <div class="main-area">
+
+    <!-- 标签栏 -->
+    <div class="tabbar">
+      <div class="tab-item">
+        <svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><polyline points="4 17 10 11 14 15 20 9"/><polyline points="14 9 20 9 20 15"/></svg>
+        临床数据统计
+        <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+      </div>
+      <div class="tab-item">
+        <svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        模块配置
+        <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+      </div>
+      <div class="tab-item active dashboard">
+        <svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M12 2L2 7l10 5 10-5-10-5z"/><polyline points="2 17 12 22 22 17"/></svg>
+        脱敏设置
+        <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+      </div>
+    </div>
+
+    <!-- 内容 -->
+    <div class="content">
+      <div class="content-card">
+        <!-- 页面标题 -->
+        <div class="page-head">
+          <h1>脱敏设置
+  <span class="page-title-tip" data-tip="设计思路：基础全脱敏 + 逐级释放权限<br><br>
+规则优先级（标准规则从高到低）：<br>
+人员规则 ＞ 科室规则 ＞ 默认规则<br>
+自定义规则独立隔离，命中后独占执行<br><br>
+规则层级说明：<br>
+● 默认规则— 全局通用，所有数据默认脱敏，作为基础基线<br>
+● 本科室显名 — 开启后释放本科室患者非敏感信息（独立开关）<br>
+● 本医生显名 — 开启后释放本医生患者非敏感信息（独立开关）<br>
+● 自定义规则 — 所有角色/科室/人员的精细化配置均归入此类<br>
+● 自定义规则 — 独立隔离，优先级最高，支持条件表达式和特殊互斥场景<br><br>
+冲突处理：<br>
+当用户同时命中多个规则时，取各规则允许查看字段的交集<br>
+自定义规则用于解决如「特定科室全员禁看但院长除外」等复杂场景<br><br>
+操作方式：<br>
+默认全选脱敏，取消勾选表示释放该字段（不脱敏）">?</span>
+</h1>
+        </div>
+
+        <!-- 脱敏规则主区域 -->
+        <div class="rule-wrapper">
+
+          <!-- 下方主体：左侧角色 + 右侧表格 -->
+          <div class="rule-body">
+            <!-- 左侧适用范围面板 -->
+            <div class="rule-role-panel">
+              <!-- 规则组选择 -->
+              <div class="group-selector-bar">
+                <span class="gs-name" id="groupNameDisplay">默认方案</span>
+                <button class="gs-switch" onclick="openGroupSwitchModal()">切换方案</button>
+              </div>
+
+              <!-- 搜索 + 新增 -->
+              <div class="coverage-add-bar">
+                <div class="add-bar-row">
+                  <button class="btn btn-primary coverage-add-btn" onclick="openAddPanel()">新增</button>
+                  <div class="search-input">
+                    <input type="text" id="scopeSearch" placeholder="搜索角色、科室或人员" oninput="renderCoverageList()">
+                  </div>
+                </div>
+              </div>
+
+              <!-- 左侧规则列表 -->
+              <div class="coverage-section">
+                <div class="coverage-list" id="coverageList"></div>
+              </div>
+            </div>
+
+            <!-- 右侧规则区 -->
+            <div class="rule-config-panel">
+              <!-- 显名规则卡片式开关面板（本科室显名/本医生显名时展示） -->
+              <div class="name-release-panel" id="nameReleasePanel">
+                <div class="nr-header">
+                  <div class="nr-header-left">
+                    <span class="nr-title" id="nrPanelTitle">本科室显名</span>
+                    <span class="nr-tags">
+                      <span class="nr-tag">独立开关</span>
+                      <span class="nr-tag-dot">·</span>
+                      <span class="nr-tag" id="nrTagScope">本科室查看</span>
+                      <span class="nr-tag-dot">·</span>
+                      <span class="nr-tag">非敏感信息</span>
+                    </span>
+                  </div>
+                  <div class="nr-master-toggle">
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="nrMasterSwitch" onchange="onNrMasterToggle(this.checked)">
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+                </div>
+                <div class="nr-banner">启用后，从默认脱敏字段中取消勾选需要释放的非敏感字段；未取消的字段继续保持脱敏。</div>
+                <div class="nr-fields-wrap">
+                  <div class="nr-fields-grid" id="nrFieldsGrid"></div>
+                </div>
+              </div>
+
+              <!-- 原有工具栏+表格区域（默认规则/自定义规则时展示） -->
+              <div class="rule-toolbar">
+                <div class="left">
+                  <button class="btn btn-primary" id="btnPoolSelect" onclick="openRuleSelectModal()">新增规则</button>
+                  <button class="btn btn-outline" onclick="previewEffect()">脱敏效果</button>
+                  <button class="btn btn-outline" id="btnBindEntity" onclick="bindEntity()" style="display:none">绑定人员</button>
+                  <button class="btn btn-danger-outline" onclick="batchRelease()">删除</button>
+                </div>
+                <div class="right">
+                  <div class="search-input">
+                    <input type="text" id="ruleSearch" placeholder="请输入规则名称/敏感字段" oninput="renderRuleTable()">
+                  </div>
+                </div>
+              </div>
+              <!-- 信息栏：基础全脱敏 + 取消勾选释放 -->
+              <div class="rule-info-bar" id="ruleInfoBar">
+                <span class="info-icon">i</span>
+                <span class="info-text"><strong>默认全脱敏</strong>：未命中显名规则时，所有字段默认执行脱敏；人员 / 科室 / 角色精细化方案用于覆盖默认基线。</span>
+                <span class="info-priority">优先级：人员 ＞ 科室 ＞ 角色 ＞ 默认</span>
+              </div>
+              <div class="rule-table-wrap" id="ruleTableWrap">
+                <table class="tbl">
+                  <thead>
+                    <tr>
+                      <th><div class="th-desensitize"><input type="checkbox" class="rule-cb" id="selectAllCb" onchange="toggleSelectAllRules(this.checked)"></div></th>
+                      <th>序号</th>
+                      <th>规则名称</th>
+                      <th>脱敏算法</th>
+                      <th>算法配置</th>
+                      <th>敏感字段</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ruleTbody"></tbody>
+                </table>
+              </div>
+              <!-- 绑定实体浮层面板 — 限定在右侧规则区域内 -->
+              <div id="entityPanel">
+                <div class="pp-header" onclick="toggleEntityPanel()">
+                  <span class="pp-title" id="epTitle">绑定列表</span>
+                  <span class="pp-toggle" id="epToggleIcon">收起 ▲</span>
+                </div>
+                <div class="pp-body" id="epBody">
+                  <table class="tbl">
+                    <thead id="epHead"></thead>
+                    <tbody id="epTbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- ===== 新增规则组弹框 ===== -->
+<div class="modal-overlay" id="addSchemeModal">
+  <div class="modal form-modal add-scheme-modal">
+    <div class="modal-head">
+      <h3>新增规则组</h3>
+      <div class="modal-close" onclick="closeAddSchemeModal()">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-label"><span style="color:var(--danger)">*</span>规则组编码</div>
+        <div class="form-ctrl">
+          <input type="text" id="schemeCode" placeholder="请输入规则组编码">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-label"><span style="color:var(--danger)">*</span>规则组名称</div>
+        <div class="form-ctrl">
+          <input type="text" id="schemeName" placeholder="请输入规则组名称">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-label"><span style="color:var(--danger)">*</span>规则组类型</div>
+        <div class="form-ctrl">
+          <div class="form-radio-group">
+            <label><input type="radio" name="schemeType" value="role" checked onchange="onSchemeTypeChange()"> 角色</label>
+            <label><input type="radio" name="schemeType" value="dept" onchange="onSchemeTypeChange()"> 科室</label>
+            <label><input type="radio" name="schemeType" value="person" onchange="onSchemeTypeChange()"> 人员</label>
+          </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-label"><span style="color:var(--danger)">*</span>选择对象</div>
+        <div class="form-ctrl">
+          <div class="multi-select" id="schemeSelect">
+            <div class="ms-trigger" onclick="toggleSchemeDropdown(event)">
+              <span class="ms-text placeholder" id="schemePlaceholder">请选择（可多选）</span>
+              <span class="ms-badge" id="schemeBadge">0</span>
+              <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="ms-dropdown" id="schemeDropdown" onclick="event.stopPropagation()">
+              <div class="ms-toolbar">
+                <a onclick="selectAllScheme()">全选</a>
+                <a class="ms-clear" onclick="clearAllScheme()">清空</a>
+              </div>
+              <div id="schemeOptions"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" onclick="confirmAddScheme()">确定</button>
+      <button class="btn btn-default" onclick="closeAddSchemeModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 规则配置弹框 ===== -->
+<!-- ===== 切换方案弹框 ===== -->
+<div class="modal-overlay" id="groupSwitchModal">
+  <div class="modal switch-modal">
+    <div class="modal-head">
+      <h3>切换方案</h3>
+      <div class="modal-close" onclick="closeGroupSwitchModal()">✕</div>
+    </div>
+    <div class="modal-body" style="padding:16px;flex-direction:column;gap:12px">
+      <div class="modal-search" style="padding:0">
+        <div class="search-input" style="position:relative">
+          <input type="text" id="groupSwitchSearch" placeholder="请输入方案名称或编码" oninput="renderGroupSwitchModal()">
+        </div>
+      </div>
+      <div class="group-switch-tip" style="padding:8px 12px;background:#F0F7FF;color:#595959;border-radius:4px;font-size:13px;line-height:20px;">
+        当前方案：<span id="currentGroupTip" style="color:#007AFF;font-weight:500;">默认方案</span>。切换后，将按照所选方案配置执行脱敏策略。
+      </div>
+      <div class="modal-table-wrap" style="border:1px solid var(--primary-border);border-radius:var(--r-sm)">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th style="width:50px;text-align:center">选择</th>
+              <th style="width:60px;text-align:center">序号</th>
+              <th style="width:120px">方案编码</th>
+              <th>方案名称</th>
+              <th style="width:160px">更新时间</th>
+            </tr>
+          </thead>
+          <tbody id="groupSwitchTbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" onclick="confirmGroupSwitch()">确定</button>
+      <button class="btn btn-default" onclick="closeGroupSwitchModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 规则选择弹框（新增规则） ===== -->
+<div class="modal-overlay" id="ruleSelectModal">
+  <div class="modal rule-select-modal">
+    <div class="modal-head">
+      <div class="rsm-title-group">
+        <h3>新增规则</h3>
+      </div>
+      <div class="modal-close" onclick="closeRuleSelectModal()">✕</div>
+    </div>
+    <div class="modal-body rsm-body">
+      <!-- 左侧：全部规则 -->
+      <div class="rsm-panel rsm-left">
+        <div class="rsm-panel-header">全部规则</div>
+        <div class="rsm-search">
+          <input type="text" id="rsmPoolSearch" placeholder="请输入规则名称/敏感字段" oninput="renderRsmPool()">
+        </div>
+        <div class="rsm-table-wrap">
+          <table class="tbl rsm-tbl">
+            <thead><tr>
+              <th width="32"><input type="checkbox" id="rsmPoolSelectAll" onchange="toggleRsmPoolAll(this.checked)"></th>
+              <th width="48">序号</th>
+              <th>规则名称</th>
+              <th>脱敏算法</th>
+              <th>算法配置</th>
+              <th>敏感字段</th>
+            </tr></thead>
+            <tbody id="rsmPoolTbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <!-- 右侧：已选择规则 -->
+      <div class="rsm-panel rsm-right">
+        <div class="rsm-panel-header">
+          <span>已选择规则</span>
+          <span class="rsm-count" id="rsmSelectedCount">已选 0 条</span>
+        </div>
+        <div class="rsm-search">
+          <input type="text" id="rsmSelSearch" placeholder="请输入规则名称/敏感字段" oninput="renderRsmSelected()">
+        </div>
+        <div class="rsm-table-wrap">
+          <table class="tbl rsm-tbl">
+            <thead><tr>
+              <th width="48">序号</th>
+              <th>规则名称</th>
+              <th>脱敏算法</th>
+              <th>算法配置</th>
+              <th width="60">操作</th>
+            </tr></thead>
+            <tbody id="rsmSelTbody"></tbody>
+          </table>
+          <div class="rsm-empty" id="rsmEmptyHint" style="display:flex">
+            <div class="rsm-empty-icon">📋</div>
+            <div class="rsm-empty-text">暂无已选规则</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" onclick="confirmRuleSelect()">确定</button>
+      <button class="btn btn-default" onclick="closeRuleSelectModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 删除确认弹框（统一规范：SVG 警示图标 + 主文案 + 返回/确定） ===== -->
+<div class="modal-overlay" id="confirmModal" onclick="if(event.target===this)closeConfirm()">
+  <div class="modal confirm-modal">
+    <div class="modal-head"><h3 id="confirmTitle">删除</h3><span class="modal-close" onclick="closeConfirm()">✕</span></div>
+    <div class="confirm-body">
+      <div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+      <div class="msg" id="confirmMsg"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeConfirm()">返回</button>
+      <button class="btn btn-primary" onclick="onConfirmOk()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 关联用户弹框（按"绑定人员"按钮唤起） ===== -->
+<div class="modal-overlay" id="bindUserModal" onclick="if(event.target===this)closeBindUserModal()">
+  <div class="modal bind-user-modal">
+    <div class="modal-head">
+      <h3>关联用户</h3>
+      <span class="modal-close" onclick="closeBindUserModal()">✕</span>
+    </div>
+    <div class="modal-body">
+      <!-- 筛选区：机构 / 科室 / 关键字 单行并排 + 操作按钮 -->
+      <div class="bu-filter" id="buFilter">
+        <div class="bu-field">
+          <label class="bu-label"><span class="req">*</span>机构：</label>
+          <div class="bu-control bu-org-control" id="buOrgControl">
+            <div class="bu-org-trigger" id="buOrgTrigger" onclick="toggleBindUserOrgDropdown(event)">
+              <span class="bu-org-text" id="buOrgText">请选择</span>
+              <span class="bu-org-arrow">▾</span>
+            </div>
+            <div class="bu-org-dropdown" id="buOrgDropdown">
+              <div class="bu-org-list" id="buOrgList"></div>
+            </div>
+          </div>
+        </div>
+        <div class="bu-field">
+          <label class="bu-label" for="buDept">科室：</label>
+          <div class="bu-control">
+            <select class="bu-select" id="buDept">
+              <option value="">全部科室</option>
+            </select>
+          </div>
+        </div>
+        <div class="bu-field">
+          <label class="bu-label" for="buKeyword">关键字：</label>
+          <div class="bu-control">
+            <input class="bu-input with-counter" type="text" id="buKeyword" placeholder="用户名/姓名/拼音码" maxlength="10" oninput="onBindUserKeywordInput()">
+            <span class="bu-input-counter" id="buKeywordCounter">0/10</span>
+          </div>
+        </div>
+        <div class="bu-field">
+          <label class="bu-label" for="buCheckStatus">勾选状态：</label>
+          <div class="bu-control">
+            <select class="bu-select" id="buCheckStatus">
+              <option value="all">全部</option>
+              <option value="unchecked">未勾选</option>
+              <option value="checked">已勾选</option>
+            </select>
+          </div>
+        </div>
+        <div class="bu-field bu-field-actions">
+          <div class="bu-actions">
+            <button class="btn btn-default" style="height:30px;padding:0 14px;font-size:13px" onclick="resetBindUserFilter()">重置</button>
+            <button class="btn btn-primary" style="height:30px;padding:0 14px;font-size:13px" onclick="queryBindUserTable()">查询</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 表格 -->
+      <div class="bu-table-wrap" id="buTableWrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="buSelectAll" onchange="toggleBindUserSelectAll(this.checked)"></th>
+              <th>用户名</th>
+              <th>姓名</th>
+              <th style="width:78px">人员性质</th>
+              <th style="width:78px">用户标识</th>
+              <th style="width:66px">用户状态</th>
+              <th>机构</th>
+              <th>科室</th>
+            </tr>
+          </thead>
+          <tbody id="buTbody"></tbody>
+        </table>
+        <div class="bu-empty" id="buEmpty" style="display:none">
+          <div class="bu-empty-ico">🔍</div>
+          <div>暂无匹配用户，请调整筛选条件</div>
+        </div>
+      </div>
+
+      <!-- 选中数量 -->
+      <div class="bu-selected-count">选中数量：<b id="buSelectedNum">0</b></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeBindUserModal()">取消</button>
+      <button class="btn btn-primary" onclick="confirmBindUser()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 关联科室弹框（按"绑定科室"按钮唤起，样式同绑定人员） ===== -->
+<div class="modal-overlay" id="bindDeptModal" onclick="if(event.target===this)closeBindDeptModal()">
+  <div class="modal bind-user-modal">
+    <div class="modal-head">
+      <h3>关联科室</h3>
+      <span class="modal-close" onclick="closeBindDeptModal()">✕</span>
+    </div>
+    <div class="modal-body">
+      <!-- 筛选区：机构（多选）/ 关键字 单行并排 + 操作按钮 -->
+      <div class="bu-filter" id="bdFilter">
+        <div class="bu-field">
+          <label class="bu-label"><span class="req">*</span>机构：</label>
+          <div class="bu-control bu-org-control" id="bdOrgControl">
+            <div class="bu-org-trigger" id="bdOrgTrigger" onclick="toggleBindDeptOrgDropdown(event)">
+              <span class="bu-org-text" id="bdOrgText">请选择</span>
+              <span class="bu-org-arrow">▾</span>
+            </div>
+            <div class="bu-org-dropdown" id="bdOrgDropdown">
+              <div class="bu-org-list" id="bdOrgList"></div>
+            </div>
+          </div>
+        </div>
+        <div class="bu-field">
+          <label class="bu-label" for="bdKeyword">关键字：</label>
+          <div class="bu-control">
+            <input class="bu-input with-counter" type="text" id="bdKeyword" placeholder="科室编码/名称" maxlength="10" oninput="onBindDeptKeywordInput()">
+            <span class="bu-input-counter" id="bdKeywordCounter">0/10</span>
+          </div>
+        </div>
+        <div class="bu-field">
+          <label class="bu-label" for="bdCheckStatus">勾选状态：</label>
+          <div class="bu-control">
+            <select class="bu-select" id="bdCheckStatus">
+              <option value="all">全部</option>
+              <option value="unchecked">未勾选</option>
+              <option value="checked">已勾选</option>
+            </select>
+          </div>
+        </div>
+        <div class="bu-field bu-field-actions">
+          <div class="bu-actions">
+            <button class="btn btn-default" style="height:30px;padding:0 14px;font-size:13px" onclick="resetBindDeptFilter()">重置</button>
+            <button class="btn btn-primary" style="height:30px;padding:0 14px;font-size:13px" onclick="queryBindDeptTable()">查询</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 表格 -->
+      <div class="bu-table-wrap" id="bdTableWrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="bdSelectAll" onchange="toggleBindDeptSelectAll(this.checked)"></th>
+              <th style="width:90px">科室编码</th>
+              <th>科室名称</th>
+              <th>机构名称</th>
+            </tr>
+          </thead>
+          <tbody id="bdTbody"></tbody>
+        </table>
+        <div class="bu-empty" id="bdEmpty" style="display:none">
+          <div class="bu-empty-ico">🔍</div>
+          <div>暂无匹配科室，请调整筛选条件</div>
+        </div>
+      </div>
+
+      <!-- 选中数量 -->
+      <div class="bu-selected-count">选中数量：<b id="bdSelectedNum">0</b></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeBindDeptModal()">取消</button>
+      <button class="btn btn-primary" onclick="confirmBindDept()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 关联角色弹框（按"绑定角色"按钮唤起，样式同绑定人员） ===== -->
+<div class="modal-overlay" id="bindRoleModal" onclick="if(event.target===this)closeBindRoleModal()">
+  <div class="modal bind-user-modal">
+    <div class="modal-head">
+      <h3>关联角色</h3>
+      <span class="modal-close" onclick="closeBindRoleModal()">✕</span>
+    </div>
+    <div class="modal-body">
+      <!-- 筛选区：关键字 单行 + 操作按钮 -->
+      <div class="bu-filter" id="brFilter">
+        <div class="bu-field">
+          <label class="bu-label" for="brKeyword">关键字：</label>
+          <div class="bu-control">
+            <input class="bu-input with-counter" type="text" id="brKeyword" placeholder="角色名称/编码/类型" maxlength="10" oninput="onBindRoleKeywordInput()">
+            <span class="bu-input-counter" id="brKeywordCounter">0/10</span>
+          </div>
+        </div>
+        <div class="bu-field">
+          <label class="bu-label" for="brCheckStatus">勾选状态：</label>
+          <div class="bu-control">
+            <select class="bu-select" id="brCheckStatus">
+              <option value="all">全部</option>
+              <option value="unchecked">未勾选</option>
+              <option value="checked">已勾选</option>
+            </select>
+          </div>
+        </div>
+        <div class="bu-field bu-field-actions">
+          <div class="bu-actions">
+            <button class="btn btn-default" style="height:30px;padding:0 14px;font-size:13px" onclick="resetBindRoleFilter()">重置</button>
+            <button class="btn btn-primary" style="height:30px;padding:0 14px;font-size:13px" onclick="queryBindRoleTable()">查询</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 表格 -->
+      <div class="bu-table-wrap" id="brTableWrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="brSelectAll" onchange="toggleBindRoleSelectAll(this.checked)"></th>
+              <th style="width:90px">角色编码</th>
+              <th>角色名称</th>
+              <th style="width:100px">角色类型</th>
+              <th>角色描述</th>
+            </tr>
+          </thead>
+          <tbody id="brTbody"></tbody>
+        </table>
+        <div class="bu-empty" id="brEmpty" style="display:none">
+          <div class="bu-empty-ico">🔍</div>
+          <div>暂无匹配角色，请调整筛选条件</div>
+        </div>
+      </div>
+
+      <!-- 选中数量 -->
+      <div class="bu-selected-count">选中数量：<b id="brSelectedNum">0</b></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeBindRoleModal()">取消</button>
+      <button class="btn btn-primary" onclick="confirmBindRole()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 统一框架：顶部导航栏 + 左侧菜单栏（菜单配置见 框架.js） =====
+     data-embed="auto"：被 index.html 壳子内嵌（iframe 或 URL 带 ?embed=1）时
+     自动切换为嵌入模式——不注入顶部导航栏 / 左侧菜单栏 / 标签栏，仅提供
+     公共函数（toast / escapeHtml 等）；独立打开时行为与原先完全一致 -->
+<script src="框架.js" data-page="tuomin" data-embed="auto"></script>
+
+<script>
+/* ===== 数据 ===== */
+
+const ruleGroups = [
+  {
+    id: 'rg-default', name: '默认方案', code: 'plan1', type: 'system',
+    rules: [
+      { id: 1, name: '身份证号', algo: '遮盖脱敏', config: '保留前6后1，遮盖字符*', fields: 'csfz|hm,csfzfh,idcard' },
+      { id: 2, name: '年龄', algo: '遮盖脱敏', config: '遮盖自1到20，遮盖字符*', fields: 'INL' },
+      { id: 3, name: '住址', algo: '遮盖脱敏', config: '保留前1后1，遮盖字符*', fields: '' },
+      { id: 4, name: '姓名', algo: '遮盖脱敏', config: '保留前1后1，遮盖字符*', fields: 'name,cbxrm,chzxm,cryxm' },
+      { id: 5, name: '手机号码', algo: '遮盖脱敏', config: '保留前1后1，遮盖字符*', fields: 'telephone,cdhhm,cldxhdhhm' },
+      { id: 6, name: '机构名称', algo: '遮盖脱敏', config: '保留前1后1，遮盖字符*', fields: 'cy|jgmc' }
+    ]
+  },
+  {
+    id: 'rg-high', name: '高敏感规则组', code: 'plan2', type: 'system',
+    rules: [
+      { id: 7, name: '身份证号', algo: '遮盖脱敏', config: '保留前6后1，遮盖字符*', fields: 'csfz|hm,csfzfh,idcard' },
+      { id: 8, name: '姓名', algo: '遮盖脱敏', config: '保留前1后1，遮盖字符*', fields: 'name,cbxrm,chzxm,cryxm' },
+      { id: 9, name: '手机号码', algo: '遮盖脱敏', config: '保留前1后1，遮盖字符*', fields: 'telephone,cdhhm,cldxhdhhm' }
+    ]
+  },
+  {
+    id: 'rg-custom-1', name: '消化内科专用', code: 'plan3', type: 'custom',
+    rules: [
+      { id: 10, name: '身份证号', algo: '遮盖脱敏', config: '保留前6后1，遮盖字符*', fields: 'csfz|hm,csfzfh,idcard' },
+      { id: 11, name: '姓名', algo: '遮盖脱敏', config: '保留前1后1，遮盖字符*', fields: 'name' }
+    ]
+  }
+];
+
+// 实体列表
+const roles = [
+  { id: 'super', name: '超级管理员' },
+  { id: 'cwsj', name: '村医-上级机构' },
+  { id: 'dzbl', name: '电子病历管理员' },
+  { id: 'qygl', name: '区域中心管理员' },
+  { id: 'ysgl', name: '药事管理中心-中心角色' },
+  { id: 'sxgl', name: '输血管理员' },
+  { id: 'zzgl', name: '转院管理员' },
+  { id: 'zxgly', name: '中心管理员(最高级)' },
+  { id: 'ggws', name: '公卫中心管理员' },
+  { id: 'zjzx', name: '医保管理员' }
+];
+
+const departments = [
+  { id: 'dept_xhnk', name: '消化内科', code: 'D001', org: '温江区第一人民医院' },
+  { id: 'dept_xxgnk', name: '心血管内科', code: 'D002', org: '温江区第一人民医院' },
+  { id: 'dept_jzk', name: '急诊科', code: 'D003', org: '温江区第一人民医院' },
+  { id: 'dept_nfmk', name: '内分泌科', code: 'D004', org: '温江区第一人民医院' },
+  { id: 'dept_gk', name: '骨科', code: 'D005', org: '温江区第一人民医院' },
+  { id: 'dept_fck', name: '妇产科', code: 'D006', org: '温江区第一人民医院' },
+  { id: 'dept_ek', name: '儿科', code: 'D007', org: '温江区第一人民医院' },
+  { id: 'dept_sjnk', name: '神经内科', code: 'D008', org: '温江区第一人民医院' }
+];
+
+const personnelTypes = [
+  { id: 'pt_doctor', name: '张三' },
+  { id: 'pt_nurse', name: '王毅' },
+  { id: 'pt_tech', name: '陈优' },
+  { id: 'pt_pharm', name: '刘易斯' },
+  { id: 'pt_admin', name: '陈友谊' }
+];
+
+// 固定人员
+const personnelData = [
+  { username: 'zhangsan', name: '张三'},
+  { username: 'lisi', name: '李四' },
+  { username: 'wangwu', name: '王五'},
+  { username: 'zhaoliu', name: '赵六'}
+];
+
+// 已绑定科室列表（由「关联科室」弹框选择后回填）
+const deptBindData = [];
+
+// 已绑定角色列表
+const roleBindData = [
+  { name: '普通电子病历' },
+  { name: '超级管理员' },
+  { name: '临床路径全菜单' }
+];
+
+/* ===== 关联用户弹框：机构 / 科室 / 人员池 ===== */
+// 模拟机构数据（PC 端真实下拉数据，贴近截图）
+const bindUserOrgs = [
+  { id: 'org-001', name: '江都区广场管理服务中心' },
+  { id: 'org-002', name: '扬州市江都区丁沟镇乔河村友谊卫生室' },
+  { id: 'org-003', name: '仙女镇李坝村卫生室' },
+  { id: 'org-004', name: '扬州市江都区郭村镇郭华村卫生室' },
+  { id: 'org-005', name: '扬州市江都区丁沟镇麻村村董庄卫生室' },
+  { id: 'org-006', name: '扬州市江都区丁沟镇磨中村卫生室' },
+  { id: 'org-007', name: '扬州市江都区仙女镇张纲村卫生室' },
+  { id: 'org-008', name: '扬州市江都区武坚镇卫生院周西分院' }
+];
+// 模拟科室（按机构分组）
+const bindUserDepts = {
+  'org-001': [{ id: 'd-001', name: '全科医疗科' }, { id: 'd-002', name: '信息科' }],
+  'org-002': [{ id: 'd-003', name: '全科' }, { id: 'd-004', name: '护理组' }],
+  'org-003': [{ id: 'd-005', name: '全科医疗' }, { id: 'd-006', name: '公共卫生' }],
+  'org-004': [{ id: 'd-007', name: '全科' }, { id: 'd-008', name: '中医科' }],
+  'org-005': [{ id: 'd-009', name: '全科医疗' }, { id: 'd-010', name: '护理组' }],
+  'org-006': [{ id: 'd-011', name: '全科' }, { id: 'd-012', name: '公共卫生' }],
+  'org-007': [{ id: 'd-013', name: '全科医疗科' }, { id: 'd-014', name: '护理组' }],
+  'org-008': [{ id: 'd-015', name: '内科' }, { id: 'd-016', name: '外科' }, { id: 'd-017', name: '护理组' }]
+};
+// 模拟人员池（带完整字段，供查询 / 选择）
+const bindUserPool = [
+  { username: 'zsf001', name: '张淑芬', type: '医生', mark: '正式人员', status: '启用', orgId: 'org-001', deptId: 'd-001' },
+  { username: 'lgl002', name: '李桂兰', type: '护士', mark: '正式人员', status: '启用', orgId: 'org-001', deptId: 'd-002' },
+  { username: 'wanghy', name: '王华云', type: '医生', mark: '正式人员', status: '启用', orgId: 'org-002', deptId: 'd-003' },
+  { username: 'zhaolf', name: '赵莲芳', type: '护士', mark: '派遣人员', status: '启用', orgId: 'org-002', deptId: 'd-004' },
+  { username: 'sunq01', name: '孙强',   type: '医生', mark: '正式人员', status: '启用', orgId: 'org-003', deptId: 'd-005' },
+  { username: 'zhoum2', name: '周敏',   type: '医生', mark: '正式人员', status: '停用', orgId: 'org-003', deptId: 'd-006' },
+  { username: 'wuyq01', name: '吴永强', type: '医生', mark: '正式人员', status: '启用', orgId: 'org-004', deptId: 'd-007' },
+  { username: 'zhengxr', name: '郑小蓉', type: '护士', mark: '正式人员', status: '启用', orgId: 'org-004', deptId: 'd-008' },
+  { username: 'huangl', name: '黄磊',   type: '医生', mark: '正式人员', status: '启用', orgId: 'org-005', deptId: 'd-009' },
+  { username: 'xujl01', name: '徐金玲', type: '护士', mark: '派遣人员', status: '启用', orgId: 'org-005', deptId: 'd-010' },
+  { username: 'majh01', name: '马建红', type: '医生', mark: '正式人员', status: '启用', orgId: 'org-006', deptId: 'd-011' },
+  { username: 'yangh2', name: '杨慧',   type: '护士', mark: '实习人员', status: '启用', orgId: 'org-006', deptId: 'd-012' },
+  { username: 'gaow01', name: '高伟',   type: '医生', mark: '正式人员', status: '启用', orgId: 'org-007', deptId: 'd-013' },
+  { username: 'linxf',  name: '林晓芳', type: '护士', mark: '正式人员', status: '启用', orgId: 'org-007', deptId: 'd-014' },
+  { username: 'hejq01', name: '何建强', type: '医生', mark: '正式人员', status: '启用', orgId: 'org-008', deptId: 'd-015' },
+  { username: 'luxy01', name: '陆小英', type: '护士', mark: '正式人员', status: '停用', orgId: 'org-008', deptId: 'd-017' },
+  { username: 'panyq',  name: '潘玉琴', type: '医生', mark: '正式人员', status: '启用', orgId: 'org-001', deptId: 'd-001' },
+  { username: 'liweih', name: '李卫红', type: '医生', mark: '正式人员', status: '启用', orgId: 'org-002', deptId: 'd-003' }
+];
+const bindUserPoolMap = Object.fromEntries(bindUserPool.map(u => [u.username, u]));
+
+// 科室绑定池（从机构 + 科室派生，并补充科室编码）
+const bindDeptPool = (() => {
+  const arr = [];
+  let idx = 1;
+  bindUserOrgs.forEach(org => {
+    (bindUserDepts[org.id] || []).forEach(d => {
+      arr.push({
+        id: org.id + '/' + d.id,
+        code: 'D' + String(idx).padStart(3, '0'),
+        name: d.name,
+        orgId: org.id,
+        orgName: org.name
+      });
+      idx++;
+    });
+  });
+  return arr;
+})();
+const bindDeptPoolMap = Object.fromEntries(bindDeptPool.map(d => [d.id, d]));
+
+// 角色绑定池
+const bindRolePool = [
+  { id: 'role-001', name: '普通电子病历',   type: '业务角色', desc: '可查看与编辑本人管辖患者的电子病历' },
+  { id: 'role-002', name: '超级管理员',     type: '系统角色', desc: '拥有系统全部配置与用户管理权限' },
+  { id: 'role-003', name: '临床路径全菜单', type: '业务角色', desc: '可使用临床路径全流程管理功能' },
+  { id: 'role-004', name: '门诊医生',       type: '业务角色', desc: '门诊接诊、开具处方与检查申请' },
+  { id: 'role-005', name: '住院医生',       type: '业务角色', desc: '住院患者诊疗与医嘱管理' },
+  { id: 'role-006', name: '护士长',         type: '管理角色', desc: '护理排班与质控管理' },
+  { id: 'role-007', name: '医技审核',       type: '业务角色', desc: '检查 / 检验报告的审核与发布' },
+  { id: 'role-008', name: '质控管理员',     type: '管理角色', desc: '医疗质量指标监控与考核' }
+];
+const bindRolePoolMap = Object.fromEntries(bindRolePool.map(r => [r.id, r]));
+
+// 绑定关系: bindings[scope][entityId] = groupId
+const bindings = { role: {}, dept: {}, person: {} };
+
+// 适用范围: coverageList = [{ id, name, groupId, scope, layer }]
+const coverageList = [];
+
+// 开关状态：本科室显名 / 本医生显名
+let layerToggleState = { 'toggle-dept': true, 'toggle-doctor': false };
+let layerFieldReleaseState = { 'toggle-dept': {}, 'toggle-doctor': {} };
+
+function initCoverage() {
+  // === 默认规则===
+  coverageList.push({ id: 'default', name: '默认规则', groupId: 'rg-default', scope: 'role', layer: 'default' });
+
+  // === 本科室显名（开关）===
+  coverageList.push({ id: 'toggle-dept', name: '本科室显名', groupId: 'rg-default', scope: 'role', layer: 'toggle-dept' });
+
+  // === 本医生显名（开关）===
+  coverageList.push({ id: 'toggle-doctor', name: '本医生显名', groupId: 'rg-default', scope: 'role', layer: 'toggle-doctor' });
+
+  // === 精细化规则：按方案类型（角色/科室/人员）模拟数据，最高优先级特例独立标记 ===
+  // 角色方案
+  coverageList.push({ id: 'role-mzys', name: '门诊医生组', groupId: 'rg-default', scope: 'role', layer: 'custom', desc: '角色方案 · 常规脱敏基线' });
+  coverageList.push({ id: 'role-hlb', name: '护理部', groupId: 'rg-high', scope: 'role', layer: 'custom', desc: '角色方案 · 高敏感字段加强' });
+  coverageList.push({ id: 'role-ybsh', name: '医保审核员', groupId: 'rg-custom-1', scope: 'role', layer: 'custom', desc: '角色方案 · 专用规则组' });
+  // 科室方案
+  coverageList.push({ id: 'dept_xhnk', name: '消化内科', groupId: 'rg-custom-1', scope: 'dept', layer: 'custom', desc: '科室方案 · 消化内科专用' });
+  coverageList.push({ id: 'dept_xxgnk', name: '心血管内科', groupId: 'rg-default', scope: 'dept', layer: 'custom', desc: '科室方案 · 常规脱敏基线' });
+  coverageList.push({ id: 'dept_jzk', name: '急诊科', groupId: 'rg-high', scope: 'dept', layer: 'custom', desc: '科室方案 · 高敏感字段加强' });
+  // 人员方案
+  coverageList.push({ id: 'person-zhang', name: '张明远（主任医师）', groupId: 'rg-default', scope: 'person', layer: 'custom', desc: '人员方案 · 常规脱敏基线' });
+  coverageList.push({ id: 'person-li', name: '李婷（主管护士）', groupId: 'rg-high', scope: 'person', layer: 'custom', desc: '人员方案 · 高敏感字段加强' });
+}
+initCoverage();
+setTimeout(() => selectCoverageItem('default'), 0);
+
+/* ===== 状态 ===== */
+let currentGroupId = 'rg-default';
+let currentScope = 'role';       // 'role' | 'dept' | 'person'
+let selectedCoverageId = 'default';  // 当前选中的覆盖项 ID
+let selectedRuleIds = new Set();
+
+/* ===== 工具函数 ===== */
+function getCoverageEntries() {
+  return coverageList;
+}
+function findCoverageEntity(id) {
+  return coverageList.find(e => e.id === id);
+}
+function getCurrentGroup() {
+  return ruleGroups.find(g => g.id === currentGroupId);
+}
+function getGroupById(id) {
+  return ruleGroups.find(g => g.id === id);
+}
+
+/* ===== 渲染 ===== */
+
+/* 方案名称显示 */
+function renderGroupNameDisplay() {
+  const g = getCurrentGroup();
+  document.getElementById('groupNameDisplay').textContent = g ? g.name : '未选择';
+  const tip = document.getElementById('currentGroupTip');
+  if (tip) tip.textContent = g ? g.name : '未选择';
+}
+
+/* 新增按钮：打开弹框 */
+let schemeSelectedIds = new Set();
+let schemeCurrentType = 'role';
+
+function openAddPanel() {
+  document.getElementById('schemeCode').value = '';
+  document.getElementById('schemeName').value = '';
+  document.querySelector('input[name="schemeType"][value="role"]').checked = true;
+  schemeCurrentType = 'role';
+  schemeSelectedIds = new Set();
+  renderSchemeOptions();
+  updateSchemeTrigger();
+  document.getElementById('schemeSelect').classList.remove('open');
+  document.getElementById('addSchemeModal').classList.add('show');
+  setTimeout(() => document.getElementById('schemeCode').focus(), 50);
+}
+
+function closeAddSchemeModal() {
+  document.getElementById('addSchemeModal').classList.remove('show');
+  document.getElementById('schemeSelect').classList.remove('open');
+}
+
+function onSchemeTypeChange() {
+  schemeCurrentType = document.querySelector('input[name="schemeType"]:checked').value;
+  schemeSelectedIds = new Set();
+  renderSchemeOptions();
+  updateSchemeTrigger();
+}
+
+function getSchemeList() {
+  if (schemeCurrentType === 'role') return roles;
+  if (schemeCurrentType === 'dept') return departments;
+  return personnelTypes;
+}
+
+function renderSchemeOptions() {
+  const list = getSchemeList();
+  const el = document.getElementById('schemeOptions');
+  el.innerHTML = list.map(x =>
+    `<label class="ms-option">
+      <input type="checkbox" value="${x.id}" ${schemeSelectedIds.has(x.id) ? 'checked' : ''} onchange="onSchemeOptionChange()">
+      <span>${escapeHtml(x.name)}</span>
+    </label>`
+  ).join('');
+}
+
+function onSchemeOptionChange() {
+  schemeSelectedIds = new Set(
+    Array.from(document.querySelectorAll('#schemeOptions input:checked')).map(i => i.value)
+  );
+  updateSchemeTrigger();
+}
+
+function selectAllScheme() {
+  const list = getSchemeList();
+  schemeSelectedIds = new Set(list.map(x => x.id));
+  document.querySelectorAll('#schemeOptions input').forEach(i => i.checked = true);
+  updateSchemeTrigger();
+}
+
+function clearAllScheme() {
+  schemeSelectedIds = new Set();
+  document.querySelectorAll('#schemeOptions input').forEach(i => i.checked = false);
+  updateSchemeTrigger();
+}
+
+function toggleSchemeDropdown(e) {
+  if (e) e.stopPropagation();
+  const select = document.getElementById('schemeSelect');
+  const dropdown = document.getElementById('schemeDropdown');
+  const trigger = select.querySelector('.ms-trigger');
+  const willOpen = !select.classList.contains('open');
+
+  if (willOpen) {
+    const rect = trigger.getBoundingClientRect();
+    const modal = document.querySelector('.add-scheme-modal');
+    const modalRect = modal.getBoundingClientRect();
+    const footer = modal.querySelector('.modal-foot');
+    const footerHeight = footer ? footer.offsetHeight : 52;
+    const availableBottom = modalRect.bottom - footerHeight - rect.bottom;
+    const availableTop = rect.top - modalRect.top;
+
+    dropdown.classList.remove('drop-up');
+    if (availableBottom < 190 && availableTop > availableBottom) {
+      dropdown.classList.add('drop-up');
+    }
+  } else {
+    dropdown.classList.remove('drop-up');
+  }
+
+  select.classList.toggle('open');
+}
+
+function updateSchemeTrigger() {
+  const placeholder = document.getElementById('schemePlaceholder');
+  const badge = document.getElementById('schemeBadge');
+  if (schemeSelectedIds.size === 0) {
+    placeholder.textContent = '请选择（可多选）';
+    placeholder.className = 'ms-text placeholder';
+    badge.classList.remove('show');
+  } else {
+    const list = getSchemeList();
+    const names = list.filter(x => schemeSelectedIds.has(x.id)).map(x => x.name);
+    placeholder.textContent = names.join('、');
+    placeholder.className = 'ms-text';
+    badge.textContent = schemeSelectedIds.size;
+    badge.classList.add('show');
+  }
+}
+
+function confirmAddScheme() {
+  const code = document.getElementById('schemeCode').value.trim();
+  const name = document.getElementById('schemeName').value.trim();
+  if (!code) { toast('请输入规则组编码', 'warning'); document.getElementById('schemeCode').focus(); return; }
+  if (!name) { toast('请输入规则组名称', 'warning'); document.getElementById('schemeName').focus(); return; }
+  if (schemeSelectedIds.size === 0) { toast('请至少选择一个对象', 'warning'); return; }
+
+  const list = getSchemeList();
+  const typeLabel = schemeCurrentType === 'role' ? '角色' : schemeCurrentType === 'dept' ? '科室' : '人员';
+
+  list.filter(x => schemeSelectedIds.has(x.id)).forEach(x => {
+    if (!coverageList.find(e => e.id === x.id && e.scope === schemeCurrentType)) {
+      coverageList.push({ id: x.id, name: x.name, groupId: currentGroupId, scope: schemeCurrentType, layer: 'custom' });
+    }
+  });
+
+  closeAddSchemeModal();
+  renderCoverageList();
+  renderRuleTable();
+  updateToolbarButtons();
+  toast(`已新增规则组「${name}」（${typeLabel}，${schemeSelectedIds.size}项）`, 'success');
+}
+
+/* 方案类型配置：scope → 标签 / 头像 / 优先级（数字越小越高） / 业务说明 */
+const SCHEME_CONFIG = {
+  person: {
+    label: '人员', avatar: '人', priority: 1, rank: 'P1', prioText: 'P1 · 最高优先',
+    biz: '人员级方案优先级最高：对同一敏感字段，只要人员方案已显名 / 脱敏配置，即以本方案为准，覆盖科室、角色方案与默认规则。'
+  },
+  dept: {
+    label: '科室', avatar: '科', priority: 2, rank: 'P2', prioText: 'P2 · 次高优先',
+    biz: '科室级方案次高：本科室配置优先于角色方案与默认规则；若同一字段被人员方案单独配置，则以人员方案为准。'
+  },
+  role: {
+    label: '角色', avatar: '角', priority: 3, rank: 'P3', prioText: 'P3 · 基础优先',
+    biz: '角色级方案为基础优先级：优先于默认规则生效；若同一字段被科室或人员方案覆盖，则以其更高优先级方案为准。'
+  }
+};
+function schemeOf(scope) { return SCHEME_CONFIG[scope] || SCHEME_CONFIG.role; }
+
+/* 左侧规则列表 — 标准规则 / 精细化自定义规则 */
+function renderCoverageList() {
+  const el = document.getElementById('coverageList');
+  const entries = getCoverageEntries();
+  const kw = document.getElementById('scopeSearch').value.trim().toLowerCase();
+
+  const match = e => !kw ||
+    e.name.toLowerCase().includes(kw) ||
+    e.id.toLowerCase().includes(kw);
+
+  const defaultEntry = entries.find(e => e.layer === 'default');
+  const deptEntry = entries.find(e => e.layer === 'toggle-dept');
+  const doctorEntry = entries.find(e => e.layer === 'toggle-doctor');
+  const customEntries = entries.filter(e => e.layer === 'custom' && match(e));
+
+  let html = '';
+
+  // ===== 标准规则 =====
+  html += `
+    <div class="rule-layer-title">
+      <div class="layer-title-main">标准规则</div>
+      <span class="layer-meta">基础 → 释放</span>
+    </div>`;
+
+  if (defaultEntry && match(defaultEntry)) {
+    const activeCls = defaultEntry.id === selectedCoverageId ? ' active' : '';
+    html += `
+      <div class="coverage-flat-item${activeCls}" onclick="selectCoverageItem('${defaultEntry.id}')">
+        <div class="item-avatar">基</div>
+        <div class="item-content">
+          <div class="item-title">默认规则</div>
+          <div class="item-subtitle">全局通用 · 所有数据默认脱敏</div>
+        </div>
+        <div class="item-state">基线</div>
+      </div>`;
+  }
+
+  if (deptEntry && match(deptEntry)) {
+    const activeCls = deptEntry.id === selectedCoverageId ? ' active' : '';
+    const isOn = !!layerToggleState[deptEntry.id];
+    html += `
+      <div class="layer-toggle-flat${activeCls}${isOn ? ' is-on' : ''}" onclick="selectCoverageItem('${deptEntry.id}')">
+        <div class="item-avatar">科</div>
+        <div class="item-content">
+          <div class="item-title">本科室显名</div>
+          <div class="item-subtitle">本科室患者 · 非敏感信息</div>
+        </div>
+        <div class="item-state">${isOn ? '开' : '关'}</div>
+      </div>`;
+  }
+
+  if (doctorEntry && match(doctorEntry)) {
+    const activeCls = doctorEntry.id === selectedCoverageId ? ' active' : '';
+    const isOn = !!layerToggleState[doctorEntry.id];
+    html += `
+      <div class="layer-toggle-flat${activeCls}${isOn ? ' is-on' : ''}" onclick="selectCoverageItem('${doctorEntry.id}')">
+        <div class="item-avatar">医</div>
+        <div class="item-content">
+          <div class="item-title">本医生显名</div>
+          <div class="item-subtitle">本医生患者 · 非敏感信息</div>
+        </div>
+        <div class="item-state">${isOn ? '开' : '关'}</div>
+      </div>`;
+  }
+
+  // ===== 精细化规则（按优先级 人员 > 科室 > 角色 排序）=====
+  html += `
+    <div class="rule-layer-divider"></div>
+    <div class="rule-layer-title">
+      <div class="layer-title-main">精细化规则</div>
+      <span class="layer-meta prio-chain">优先级 <b>人员</b> ＞ <b>科室</b> ＞ <b>角色</b></span>
+    </div>`;
+
+  if (customEntries.length) {
+    customEntries
+      .slice()
+      .sort((a, b) => schemeOf(a.scope).priority - schemeOf(b.scope).priority)
+      .forEach(e => {
+        const activeCls = e.id === selectedCoverageId ? ' active' : '';
+        const isSpecial = !!e.special;
+        const sc = schemeOf(e.scope);
+        const schemeKey = isSpecial ? 'special' : e.scope;
+        const schemeText = isSpecial ? '特例' : sc.label;
+        const avatarChar = isSpecial ? '特' : sc.avatar;
+        const prioRank = isSpecial ? 0 : sc.priority;
+
+        html += `
+          <div class="custom-flat-item${activeCls}" onclick="selectCoverageItem('${e.id}')">
+            <div class="item-avatar">${avatarChar}</div>
+            <div class="item-content">
+              <div class="item-title">${escapeHtml(e.name)}</div>
+              <div class="item-subtitle">${escapeHtml(e.desc || (schemeText + '方案 · 精细控制'))}</div>
+            </div>
+            ${isSpecial ? '' : `<span class="prio-rank prio-${prioRank}" title="优先级 ${sc.prioText}">P${prioRank}</span>`}
+            <span class="scheme-pill scheme-${schemeKey}">${schemeText}</span>
+            ${isSpecial ? '' : `<span class="item-remove" onclick="event.stopPropagation();removeFromCoverage('${e.scope}','${e.id}')" title="移出规则">✕</span>`}
+          </div>`;
+      });
+  } else {
+    html += `<div class="layer-desc-hint">暂无自定义规则，可点击“新增”创建角色 / 科室 / 人员精细化规则</div>`;
+  }
+
+  el.innerHTML = html;
+}
+/* 右侧规则表 — 显示选中覆盖项绑定的规则组中的规则 */
+function renderRuleTable() {
+  const tbody = document.getElementById('ruleTbody');
+  const nrPanel = document.getElementById('nameReleasePanel');
+  const toolbarArea = document.querySelector('.rule-toolbar');
+  const infoBarArea = document.getElementById('ruleInfoBar');
+  const tableWrap = document.getElementById('ruleTableWrap') || document.querySelector('.rule-table-wrap');
+
+  // 未选覆盖项
+  if (!selectedCoverageId) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="7"><div class="ico">👆</div>请在左侧选择一条覆盖项查看规则</td></tr>`;
+    syncRuleCb(0, 0);
+    document.getElementById('btnBindEntity').style.display = 'none';
+    document.getElementById('entityPanel').style.display = 'none';
+    // 隐藏显名面板，显示原有表格区
+    if (nrPanel) nrPanel.classList.remove('show');
+    if (toolbarArea) toolbarArea.style.display = '';
+    if (infoBarArea) infoBarArea.style.display = '';
+    if (tableWrap) tableWrap.style.display = '';
+    return;
+  }
+
+  const entity = findCoverageEntity(selectedCoverageId);
+  if (!entity) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="7"><div class="ico">❓</div>覆盖项不存在</td></tr>`;
+    syncRuleCb(0, 0);
+    if (nrPanel) nrPanel.classList.remove('show');
+    if (toolbarArea) toolbarArea.style.display = '';
+    if (infoBarArea) infoBarArea.style.display = '';
+    if (tableWrap) tableWrap.style.display = '';
+    return;
+  }
+
+  const g = getGroupById(entity.groupId);
+  if (!g) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="7"><div class="ico">⚠️</div>该覆盖项尚未绑定规则组</td></tr>`;
+    syncRuleCb(0, 0);
+    document.getElementById('btnBindEntity').style.display = 'none';
+    document.getElementById('entityPanel').style.display = 'none';
+    if (nrPanel) nrPanel.classList.remove('show');
+    if (toolbarArea) toolbarArea.style.display = '';
+    if (infoBarArea) infoBarArea.style.display = '';
+    if (tableWrap) tableWrap.style.display = '';
+    return;
+  }
+
+  // ===== 显名规则：使用卡片式开关面板 =====
+  const isNameRelease = entity.layer === 'toggle-dept' || entity.layer === 'toggle-doctor';
+  if (isNameRelease) {
+    renderNameReleasePanel(entity, g);
+    // 隐藏原有工具栏+信息栏+表格，显示显名面板
+    if (nrPanel) nrPanel.classList.add('show');
+    if (toolbarArea) toolbarArea.style.display = 'none';
+    if (infoBarArea) infoBarArea.style.display = 'none';
+    if (tableWrap) tableWrap.style.display = 'none';
+    document.getElementById('btnBindEntity').style.display = 'none';
+    document.getElementById('entityPanel').style.display = 'none';
+    return;
+  }
+
+  // ===== 默认/自定义规则：使用原有表格视图 =====
+  if (nrPanel) nrPanel.classList.remove('show');
+  if (toolbarArea) toolbarArea.style.display = '';
+  if (infoBarArea) infoBarArea.style.display = '';
+  if (tableWrap) tableWrap.style.display = '';
+
+  const kw = document.getElementById('ruleSearch').value.trim().toLowerCase();
+  const list = g.rules.filter(r => r.name.toLowerCase().includes(kw));
+
+  if (!list.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="7"><div class="ico">📭</div>规则组「${escapeHtml(g.name)}」暂无规则</td></tr>`;
+    syncRuleCb(0, 0);
+    document.getElementById('btnBindEntity').style.display = 'none';
+    document.getElementById('entityPanel').style.display = 'none';
+    return;
+  }
+
+  const isC = g.type === 'custom';
+
+  // 信息栏
+  const batchBtn = document.getElementById('btnBatchRelease');
+  if (batchBtn) batchBtn.style.display = 'inline-flex';
+  const ruleInfoBarEl = document.getElementById('ruleInfoBar');
+  if (ruleInfoBarEl) ruleInfoBarEl.innerHTML = entity.layer === 'custom'
+    ? (() => { const sc = schemeOf(entity.scope); return `<span class="info-icon">${sc.avatar}</span><span class="info-text"><strong>${sc.label}方案</strong>：「${escapeHtml(entity.name)}」的精细化附加配置（${sc.prioText}）。${sc.biz}</span><span class="info-priority">${sc.rank}</span>`; })()
+    : `<span class="info-icon">基</span><span class="info-text"><strong>默认规则</strong>：全局兜底基线，所有字段默认脱敏。优先级最低，仅当未命中任何人员 / 科室 / 角色精细化方案时生效。</span><span class="info-priority">P0</span>`;
+  tbody.innerHTML = list.map((r, i) => {
+    const checked = selectedRuleIds.has(String(r.id)) ? 'checked' : '';
+    const releasedClass = checked ? '' : ' released';
+    const editAction = isC
+      ? `<span class="rule-action" style="color:var(--primary);margin-right:8px;cursor:pointer" onclick="toast('如需修改规则，请移除后重新从规则池添加','info')">编辑</span>`
+      : '';
+    const firstCell = isNameRelease
+      ? `<label class="toggle-switch" style="margin:auto"><input type="checkbox" ${checked} onchange="toggleLayerField('${entity.id}', ${r.id}, this.checked)"><span class="toggle-slider"></span></label><div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;text-align:center">${checked ? '显名' : '脱敏'}</div>`
+      : `<input type="checkbox" class="rule-cb" ${checked} onchange="toggleRuleSelect('${r.id}', this.checked)">`;
+    return `
+    <tr${isNameRelease ? '' : releasedClass}>
+      <td>${firstCell}</td>
+      <td class="center">${i + 1}</td>
+      <td>${escapeHtml(r.name)}</td>
+      <td>${escapeHtml(r.algo)}</td>
+      <td>${escapeHtml(r.config)}</td>
+      <td>${escapeHtml(r.fields || '全部字段')}</td>
+      <td>${editAction}<span class="rule-action" onclick="deleteRule(${r.id})">删除</span></td>
+    </tr>`;
+  }).join('');
+
+  syncRuleCb(list.length, list.filter(r => selectedRuleIds.has(String(r.id))).length);
+
+  // 根据覆盖项layer判断是否为系统项（默认规则和开关项不显示绑定按钮）
+  const isSystemItem = (entity.layer === 'default' || entity.layer === 'toggle-dept' || entity.layer === 'toggle-doctor');
+  const btnBind = document.getElementById('btnBindEntity');
+  if (isSystemItem) {
+    btnBind.style.display = 'none';
+    document.getElementById('entityPanel').style.display = 'none';
+  } else {
+    const scope = entity.scope;
+    const bindText = scope === 'person' ? '绑定人员' : scope === 'dept' ? '绑定科室' : '绑定角色';
+    btnBind.textContent = bindText;
+    btnBind.style.display = 'inline-flex';
+    renderEntityPanel(entity);
+  }
+
+  // 工具栏说明
+  const infoBar = document.getElementById('ruleTableInfo');
+  if (infoBar) {
+    infoBar.innerHTML = `📋 规则组「${escapeHtml(g.name)}」 — 覆盖项「${escapeHtml(entity.name)}」`;
+  }
+}
+
+/* ===== 显名规则卡片式面板渲染 ===== */
+function renderNameReleasePanel(entity, g) {
+  const layerId = entity.id;
+  const title = entity.layer === 'toggle-dept' ? '本科室显名' : '本医生显名';
+  const tagScope = entity.layer === 'toggle-dept' ? '本科室查看' : '本医生查看';
+
+  // 标题栏
+  document.getElementById('nrPanelTitle').textContent = title;
+  document.getElementById('nrTagScope').textContent = tagScope;
+
+  // 确保状态对象存在
+  if (!window.layerFieldReleaseState) {
+    window.layerFieldReleaseState = { 'toggle-dept': {}, 'toggle-doctor': {} };
+  }
+  if (!window.layerFieldReleaseState[layerId]) window.layerFieldReleaseState[layerId] = {};
+
+  // 初始化字段默认状态（默认全部脱敏=false）
+  g.rules.forEach(r => {
+    if (window.layerFieldReleaseState[layerId][r.id] === undefined) {
+      window.layerFieldReleaseState[layerId][r.id] = false;
+    }
+  });
+
+  // 总开关状态：是否所有字段都开启
+  const fieldStates = window.layerFieldReleaseState[layerId];
+  const allOn = g.rules.every(r => fieldStates[r.id]);
+  const someOn = g.rules.some(r => fieldStates[r.id]);
+  const masterSwitch = document.getElementById('nrMasterSwitch');
+  masterSwitch.checked = allOn;
+  masterSwitch.indeterminate = someOn && !allOn;
+
+  // 渲染字段网格
+  const grid = document.getElementById('nrFieldsGrid');
+  grid.innerHTML = g.rules.map(r => {
+    const isOn = !!fieldStates[r.id];
+    return `
+      <div class="nr-field-card${isOn ? ' is-on' : ''}" data-rule-id="${r.id}">
+        <div class="nr-field-info">
+          <span class="nr-field-name">${escapeHtml(r.name)}</span>
+          <span class="nr-field-status">${isOn ? '显名' : '脱敏'}</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" ${isOn ? 'checked' : ''} onchange="onNrFieldToggle('${layerId}', ${r.id}, this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>`;
+  }).join('');
+}
+
+/* 显名规则 - 单个字段开关切换 */
+function onNrFieldToggle(layerId, ruleId, checked) {
+  if (!window.layerFieldReleaseState) {
+    window.layerFieldReleaseState = { 'toggle-dept': {}, 'toggle-doctor': {} };
+  }
+  if (!window.layerFieldReleaseState[layerId]) window.layerFieldReleaseState[layerId] = {};
+  window.layerFieldReleaseState[layerId][ruleId] = checked;
+
+  // 同步 selectedRuleIds（保持兼容）
+  selectedRuleIds.clear();
+  Object.keys(window.layerFieldReleaseState[layerId]).forEach(id => {
+    if (window.layerFieldReleaseState[layerId][id]) selectedRuleIds.add(String(id));
+  });
+
+  // 更新总开关状态
+  const entity = findCoverageEntity(layerId);
+  if (entity) {
+    const g = getGroupById(entity.groupId);
+    if (g) {
+      const fieldStates = window.layerFieldReleaseState[layerId];
+      const allOn = g.rules.every(r => fieldStates[r.id]);
+      const someOn = g.rules.some(r => fieldStates[r.id]);
+      const masterSwitch = document.getElementById('nrMasterSwitch');
+      masterSwitch.checked = allOn;
+      masterSwitch.indeterminate = someOn && !allOn;
+    }
+  }
+
+  // 局部刷新当前卡片状态（不整页重绘）
+  const card = document.querySelector(`.nr-field-card[data-rule-id="${ruleId}"]`);
+  if (card) {
+    card.classList.toggle('is-on', checked);
+    card.querySelector('.nr-field-status').textContent = checked ? '显名' : '脱敏';
+  }
+
+  renderCoverageList();
+}
+
+/* 显名规则 - 总开关一键开启/关闭 */
+function onNrMasterToggle(checked) {
+  const entity = findCoverageEntity(selectedCoverageId);
+  if (!entity || (entity.layer !== 'toggle-dept' && entity.layer !== 'toggle-doctor')) return;
+
+  const layerId = entity.id;
+  const g = getGroupById(entity.groupId);
+  if (!g) return;
+
+  if (!window.layerFieldReleaseState) {
+    window.layerFieldReleaseState = { 'toggle-dept': {}, 'toggle-doctor': {} };
+  }
+  if (!window.layerFieldReleaseState[layerId]) window.layerFieldReleaseState[layerId] = {};
+
+  // 一键设置所有字段
+  g.rules.forEach(r => {
+    window.layerFieldReleaseState[layerId][r.id] = checked;
+  });
+
+  // 同步 selectedRuleIds
+  selectedRuleIds.clear();
+  if (checked) {
+    g.rules.forEach(r => selectedRuleIds.add(String(r.id)));
+  }
+
+  // 刷新面板
+  renderNameReleasePanel(entity, g);
+  renderCoverageList();
+
+  const name = layerId === 'toggle-dept' ? '本科室显名' : '本医生显名';
+  toast(`${name}已${checked ? '全量开启' : '全量关闭'}`, checked ? 'success' : 'info');
+}
+
+function toggleLayerField(layerId, ruleId, checked) {
+  if (!window.layerFieldReleaseState) {
+    window.layerFieldReleaseState = { 'toggle-dept': {}, 'toggle-doctor': {} };
+  }
+  if (!window.layerFieldReleaseState[layerId]) window.layerFieldReleaseState[layerId] = {};
+  window.layerFieldReleaseState[layerId][ruleId] = checked;
+
+  selectedRuleIds.clear();
+  Object.keys(window.layerFieldReleaseState[layerId]).forEach(id => {
+    if (window.layerFieldReleaseState[layerId][id]) selectedRuleIds.add(String(id));
+  });
+
+  renderCoverageList();
+  renderRuleTable();
+}
+function syncRuleCb(total, selected) {
+  const cb = document.getElementById('selectAllCb');
+  if (total === 0) { cb.checked = false; cb.indeterminate = false; return; }
+  cb.checked = selected === total;
+  cb.indeterminate = selected > 0 && selected < total;
+}
+
+/* ===== 规则组操作 ===== */
+function switchGroup(id) {
+  currentGroupId = id;
+  selectedRuleIds.clear();
+  selectedCoverageId = null;
+  renderGroupNameDisplay();
+  renderCoverageList();
+  renderRuleTable();
+  updateToolbarButtons();
+}
+
+/* ===== 切换方案弹框 ===== */
+let groupSwitchTempId = null;
+
+function openGroupSwitchModal() {
+  groupSwitchTempId = currentGroupId;
+  document.getElementById('groupSwitchSearch').value = '';
+  renderGroupSwitchModal();
+  document.getElementById('groupSwitchModal').classList.add('show');
+}
+
+function closeGroupSwitchModal() {
+  document.getElementById('groupSwitchModal').classList.remove('show');
+  groupSwitchTempId = null;
+}
+
+function renderGroupSwitchModal() {
+  const kw = document.getElementById('groupSwitchSearch').value.trim().toLowerCase();
+  const list = ruleGroups.filter(g =>
+    g.name.toLowerCase().includes(kw) ||
+    (g.code || '').toLowerCase().includes(kw)
+  );
+  const tbody = document.getElementById('groupSwitchTbody');
+
+  if (!list.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="5"><div class="ico">🔍</div>无匹配规则组</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map((g, i) => {
+    const checked = g.id === groupSwitchTempId ? 'checked' : '';
+    return `
+      <tr>
+        <td class="center"><input type="radio" name="groupSwitchRadio" value="${g.id}" ${checked} onchange="selectGroupSwitch('${g.id}')"></td>
+        <td class="center">${i + 1}</td>
+        <td>${escapeHtml(g.code || g.id)}</td>
+        <td>${escapeHtml(g.name)}${g.type === 'custom' ? ' <span style="color:var(--text-tertiary);font-size:12px">[自定义]</span>' : ''}</td>
+        <td>2026-05-18 06:16:48</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function selectGroupSwitch(id) {
+  groupSwitchTempId = id;
+}
+
+function confirmGroupSwitch() {
+  if (!groupSwitchTempId) {
+    toast('请选择一个规则组', 'warning');
+    return;
+  }
+  if (groupSwitchTempId === currentGroupId) {
+    closeGroupSwitchModal();
+    return;
+  }
+  switchGroup(groupSwitchTempId);
+  closeGroupSwitchModal();
+  toast('规则组切换成功', 'success');
+}
+
+function updateToolbarButtons() {
+  // 选择脱敏规则按钮始终显示
+  document.getElementById('btnPoolSelect').style.display = 'inline-flex';
+  const initBtn = document.getElementById('initBtn');
+  if (initBtn) {
+    const entity = selectedCoverageId ? findCoverageEntity(selectedCoverageId) : null;
+    const g = entity ? getGroupById(entity.groupId) : null;
+    const isC = g && g.type === 'custom';
+    initBtn.style.display = isC ? 'none' : 'inline-flex';
+  }
+}
+
+/* ===== 适用范围操作 ===== */
+function removeFromCoverage(scope, entityId) {
+  // 系统项和开关项不可删除
+  const entry = coverageList.find(e => e.id === entityId && e.scope === scope);
+  if (!entry) return;
+  if (entry.layer === 'default' || entry.layer === 'toggle-dept' || entry.layer === 'toggle-doctor') {
+    toast('系统默认项不可移除', 'warning'); return;
+  }
+  showConfirm('移出规则', `确定将「${entry.name}」从适用范围中移除吗？`, function () {
+    const idx = coverageList.findIndex(e => e.id === entityId && e.scope === scope);
+    coverageList.splice(idx, 1);
+    if (selectedCoverageId === entityId) {
+      selectedCoverageId = null;
+      selectedRuleIds.clear();
+    }
+    renderCoverageList();
+    renderRuleTable();
+    updateToolbarButtons();
+    toast(`已移出适用范围`, 'success');
+  });
+}
+
+function selectCoverageItem(id) {
+  const entity = findCoverageEntity(id);
+  if (!entity) return;
+
+  selectedCoverageId = id;
+  selectedRuleIds.clear();
+
+  const g = getGroupById(entity.groupId);
+  if (g) {
+    if (entity.layer === 'toggle-dept' || entity.layer === 'toggle-doctor') {
+      if (!window.layerFieldReleaseState) {
+        window.layerFieldReleaseState = { 'toggle-dept': {}, 'toggle-doctor': {} };
+      }
+      if (!window.layerFieldReleaseState[entity.id]) window.layerFieldReleaseState[entity.id] = {};
+      g.rules.forEach(r => {
+        if (window.layerFieldReleaseState[entity.id][r.id] === undefined) {
+          window.layerFieldReleaseState[entity.id][r.id] = false;
+        }
+        if (window.layerFieldReleaseState[entity.id][r.id]) {
+          selectedRuleIds.add(String(r.id));
+        }
+      });
+    } else {
+      // 默认/自定义：默认全部脱敏，取消勾选释放字段
+      g.rules.forEach(r => selectedRuleIds.add(String(r.id)));
+    }
+  }
+
+  renderCoverageList();
+  renderRuleTable();
+  updateToolbarButtons();
+}
+
+/* ===== 规则操作 ===== */
+function toggleRuleSelect(id, checked) {
+  if (checked) selectedRuleIds.add(String(id));
+  else selectedRuleIds.delete(String(id));
+  renderRuleTable();
+}
+
+function toggleSelectAllRules(checked) {
+  const entity = selectedCoverageId ? findCoverageEntity(selectedCoverageId) : null;
+  if (!entity) return;
+  const g = getGroupById(entity.groupId);
+  if (!g) return;
+  const kw = document.getElementById('ruleSearch').value.trim().toLowerCase();
+  const list = g.rules.filter(r => r.name.toLowerCase().includes(kw));
+  if (checked) list.forEach(r => selectedRuleIds.add(String(r.id)));
+  else list.forEach(r => selectedRuleIds.delete(String(r.id)));
+  renderRuleTable();
+}
+
+/* 获取当前操作的规则组（基于选中覆盖项） */
+function getActiveRuleGroup() {
+  const entity = selectedCoverageId ? findCoverageEntity(selectedCoverageId) : null;
+  return entity ? getGroupById(entity.groupId) : null;
+}
+
+/* ===== 规则选择弹框（新增规则：从规则池选择） ===== */
+const RULE_POOL = [
+  { id: 101, name: '身份证号', algo: '遮盖脱敏', config: '保留前6后1，遮盖字符*', fields: 'csfz|hm,csfzfh,idcard' },
+  { id: 102, name: '年龄',     algo: '遮盖脱敏', config: '遮盖自1到20，遮盖字符*', fields: 'INL' },
+  { id: 103, name: '住址',     algo: '遮盖脱敏', config: '保留前1后1，遮盖字符*', fields: '' },
+  { id: 104, name: '姓名',     algo: '遮盖脱敏', config: '保留前1后1，遮盖字符*', fields: 'name,cbxrm,chzxm,cryxm' },
+  { id: 105, name: '手机号码', algo: '遮盖脱敏', config: '保留前1后1，遮盖字符*', fields: 'telephone,cdhhm,cldxhdhhm' },
+  { id: 106, name: '机构名称', algo: '遮盖脱敏', config: '保留前1后1，遮盖字符*', fields: 'cy|jgmc' }
+];
+let rsmSelected = []; // 已选择的规则对象数组
+
+function openRuleSelectModal() {
+  const entity = selectedCoverageId ? findCoverageEntity(selectedCoverageId) : null;
+  const g = getActiveRuleGroup();
+  if (!g) { toast('请先在左侧选择一条覆盖项', 'warning'); return; }
+  if (entity && (entity.layer === 'toggle-dept' || entity.layer === 'toggle-doctor')) {
+    toast('标准显名规则通过字段开关配置，无需从规则池新增', 'info');
+    return;
+  }
+  rsmSelected = [];
+  document.getElementById('rsmPoolSearch').value = '';
+  document.getElementById('rsmSelSearch').value = '';
+  document.getElementById('rsmPoolSelectAll').checked = false;
+  renderRsmPool();
+  renderRsmSelected();
+  document.getElementById('ruleSelectModal').classList.add('show');
+}
+
+function closeRuleSelectModal() {
+  document.getElementById('ruleSelectModal').classList.remove('show');
+}
+
+/* 左侧全部规则列表 */
+function renderRsmPool() {
+  const tbody = document.getElementById('rsmPoolTbody');
+  const kw = document.getElementById('rsmPoolSearch').value.trim().toLowerCase();
+  const list = RULE_POOL.filter(r => r.name.toLowerCase().includes(kw));
+  const selectedIds = new Set(rsmSelected.map(r => r.id));
+
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;padding:40px 0">无匹配规则</td></tr>';
+    document.getElementById('rsmPoolSelectAll').indeterminate = false;
+    return;
+  }
+
+  let html = '';
+  list.forEach((r, i) => {
+    const checked = selectedIds.has(r.id);
+    html += `<tr class="${checked ? 'selected-row' : ''}">
+      <td><input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleRsmPoolItem(${r.id}, this.checked)"></td>
+      <td>${i + 1}</td>
+      <td title="${escapeHtml(r.name)}">${escapeHtml(r.name)}</td>
+      <td>${escapeHtml(r.algo)}</td>
+      <td title="${escapeHtml(r.config)}">${escapeHtml(r.config)}</td>
+      <td title="${escapeHtml(r.fields)}" style="color:#888;font-size:12px">${fieldsShort(r.fields)}</td>
+    </tr>`;
+  });
+  tbody.innerHTML = html;
+
+  /* 同步全选状态 */
+  const allCb = document.getElementById('rsmPoolSelectAll');
+  const filteredSelected = list.filter(r => selectedIds.has(r.id)).length;
+  allCb.checked = filteredSelected === list.length && list.length > 0;
+  allCb.indeterminate = filteredSelected > 0 && filteredSelected < list.length;
+}
+
+function toggleRsmPoolItem(id, checked) {
+  if (checked) {
+    const rule = RULE_POOL.find(r => r.id === id);
+    if (rule && !rsmSelected.find(s => s.id === id)) rsmSelected.push({ ...rule });
+  } else {
+    rsmSelected = rsmSelected.filter(s => s.id !== id);
+  }
+  renderRsmPool();
+  renderRsmSelected();
+}
+
+function toggleRsmPoolAll(checked) {
+  const kw = document.getElementById('rsmPoolSearch').value.trim().toLowerCase();
+  const list = RULE_POOL.filter(r => r.name.toLowerCase().includes(kw));
+  if (checked) {
+    list.forEach(r => { if (!rsmSelected.find(s => s.id === r.id)) rsmSelected.push({ ...r }); });
+  } else {
+    const ids = new Set(list.map(r => r.id));
+    rsmSelected = rsmSelected.filter(s => !ids.has(s.id));
+  }
+  renderRsmPool();
+  renderRsmSelected();
+}
+
+/* 右侧已选规则列表 */
+function renderRsmSelected() {
+  const tbody = document.getElementById('rsmSelTbody');
+  const emptyHint = document.getElementById('rsmEmptyHint');
+  const countEl = document.getElementById('rsmSelectedCount');
+  const kw = document.getElementById('rsmSelSearch').value.trim().toLowerCase();
+  const list = rsmSelected.filter(r => r.name.toLowerCase().includes(kw));
+
+  countEl.textContent = `已选 ${rsmSelected.length} 条`;
+
+  if (!list.length) {
+    tbody.innerHTML = '';
+    emptyHint.style.display = 'flex';
+    return;
+  }
+
+  emptyHint.style.display = 'none';
+  let html = '';
+  list.forEach((r, i) => {
+    html += `<tr>
+      <td>${i + 1}</td>
+      <td title="${escapeHtml(r.name)}">${escapeHtml(r.name)}</td>
+      <td>${escapeHtml(r.algo)}</td>
+      <td title="${escapeHtml(r.config)}">${escapeHtml(r.config)}</td>
+      <td><button class="rsm-remove-btn" onclick="removeRsmSelected(${r.id})">移除</button></td>
+    </tr>`;
+  });
+  tbody.innerHTML = html;
+}
+
+function removeRsmSelected(id) {
+  rsmSelected = rsmSelected.filter(s => s.id !== id);
+  renderRsmPool();
+  renderRsmSelected();
+}
+
+function confirmRuleSelect() {
+  if (!rsmSelected.length) { toast('请至少选择一条规则', 'warning'); return; }
+  const g = getActiveRuleGroup();
+  if (!g) { toast('规则组不存在', 'error'); return; }
+
+  let added = 0;
+  rsmSelected.forEach(sr => {
+    if (!g.rules.find(r => r.id === sr.id)) {
+      g.rules.push({ ...sr });
+      selectedRuleIds.add(String(sr.id));
+      added++;
+    }
+  });
+
+  closeRuleSelectModal();
+  renderRuleTable();
+  toast(`已添加 ${added} 条规则到「${g.name}」`, 'success');
+}
+
+/* 敏感字段截断显示 */
+function fieldsShort(f) {
+  if (!f) return '-';
+  return f.length > 14 ? f.substring(0, 14) + '…' : f;
+}
+
+/* ===== 脱敏效果 / 批量移除 ===== */
+function previewEffect() {
+  const g = getActiveRuleGroup();
+  if (!g) { toast('请先选择覆盖项', 'warning'); return; }
+  const desensitized = selectedRuleIds.size;
+  const released = g.rules.length - desensitized;
+  toast(`脱敏效果预览：${desensitized} 条字段脱敏，${released} 条字段已释放`, 'info');
+}
+
+/* 删除 — 取消所有勾选（删除全部字段） */
+function batchRelease() {
+  const g = getActiveRuleGroup();
+  if (!g) { toast('请先选择有效的覆盖项', 'warning'); return; }
+  if (selectedRuleIds.size === 0) { toast('当前无脱敏字段可删除', 'warning'); return; }
+  showConfirm('删除', `确定要删除全部 ${selectedRuleIds.size} 条脱敏字段吗？删除后这些字段将不再执行脱敏处理。`, function () {
+    selectedRuleIds.clear();
+    renderRuleTable();
+    toast('删除成功，所有字段已释放', 'success');
+  });
+}
+
+function deleteRule(id) {
+  showConfirm('删除', '确定要删除该规则吗？', function () {
+    const g = getActiveRuleGroup();
+    if (!g) return;
+    g.rules = g.rules.filter(r => r.id !== id);
+    selectedRuleIds.delete(String(id));
+    renderRuleTable();
+    toast('删除成功', 'success');
+  });
+}
+
+/* ===== 统一确认弹框（同 概况视图配置 删除确认规范） ===== */
+let confirmCallback = null;
+function showConfirm(title, msg, onOk) {
+  confirmCallback = onOk;
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  document.getElementById('confirmModal').classList.add('show');
+}
+function closeConfirm() {
+  document.getElementById('confirmModal').classList.remove('show');
+  confirmCallback = null;
+}
+function onConfirmOk() {
+  if (!confirmCallback) return;
+  const cb = confirmCallback;
+  closeConfirm();
+  cb();
+}
+
+/* ===== 绑定实体浮层（人员/科室/角色通用） ===== */
+function renderEntityPanel(entity) {
+  const panel = document.getElementById('entityPanel');
+  const title = document.getElementById('epTitle');
+  const head = document.getElementById('epHead');
+  const tbody = document.getElementById('epTbody');
+  const scope = entity.scope;
+
+  if (scope === 'person') {
+    title.textContent = '绑定人员列表（' + personnelData.length + '人）';
+    head.innerHTML = '<tr><th>用户名</th><th>姓名</th></tr>';
+    tbody.innerHTML = personnelData.map(p =>
+      '<tr><td>'+escapeHtml(p.username)+'</td><td>'+escapeHtml(p.name)+'</td></tr>'
+    ).join('');
+  } else if (scope === 'dept') {
+    title.textContent = '绑定科室列表（' + deptBindData.length + '个）';
+    head.innerHTML = '<tr><th>科室编码</th><th>科室名称</th><th>机构名称</th></tr>';
+    tbody.innerHTML = deptBindData.map(d =>
+      '<tr><td>'+escapeHtml(d.code)+'</td><td>'+escapeHtml(d.name)+'</td><td>'+escapeHtml(d.org)+'</td></tr>'
+    ).join('');
+  } else {
+    title.textContent = '绑定角色列表（' + roleBindData.length + '个）';
+    head.innerHTML = '<tr><th>角色名称</th></tr>';
+    tbody.innerHTML = roleBindData.map(r =>
+      '<tr><td>'+escapeHtml(r.name)+'</td></tr>'
+    ).join('');
+  }
+  panel.style.display = 'block';
+  // 重置折叠状态
+  document.getElementById('epBody').classList.remove('collapsed');
+  document.getElementById('epToggleIcon').textContent = '收起 ▲';
+}
+
+var entityCollapsed = false;
+function toggleEntityPanel() {
+  entityCollapsed = !entityCollapsed;
+  var body = document.getElementById('epBody');
+  var icon = document.getElementById('epToggleIcon');
+  if (entityCollapsed) { body.classList.add('collapsed'); icon.textContent = '展开 ▼'; }
+  else { body.classList.remove('collapsed'); icon.textContent = '收起 ▲'; }
+}
+
+function bindEntity() {
+  var entity = selectedCoverageId ? findCoverageEntity(selectedCoverageId) : null;
+  if (!entity) { toast('请先在左侧选择一条覆盖项', 'warning'); return; }
+
+  // 不同 scope 唤起对应的绑定弹框（样式一致，表格按业务区分）
+  if (entity.scope === 'person') {
+    openBindUserModal();
+  } else if (entity.scope === 'dept') {
+    openBindDeptModal();
+  } else if (entity.scope === 'role') {
+    openBindRoleModal();
+  }
+}
+
+/* ===== 关联用户弹框（绑定人员） ===== */
+let buSelected = new Set();      // 当前弹框已勾选的用户名集合
+let buSelectedOrgs = new Set();  // 当前弹框已勾选的机构 id 集合
+let buOrgDropdownOpen = false;   // 机构多选下拉是否展开
+
+function openBindUserModal() {
+  const entity = selectedCoverageId ? findCoverageEntity(selectedCoverageId) : null;
+  if (!entity) { toast('请先在左侧选择一条覆盖项', 'warning'); return; }
+
+  // 默认选中前 4 个机构（匹配截图「已选择（4）」效果）
+  buSelectedOrgs = new Set(bindUserOrgs.slice(0, 4).map(o => o.id));
+
+  // 初始化科室 / 关键字
+  renderBindUserOrgDropdown();
+  updateBindUserOrgText();
+  refreshBindUserDepts();
+  document.getElementById('buKeyword').value = '';
+  document.getElementById('buKeywordCounter').textContent = '0/10';
+  document.getElementById('buDept').value = '';
+  document.getElementById('buCheckStatus').value = 'all';
+
+  // 已勾选 = 当前已绑定人员（已绑定用户名存在于人员池中时才预选）
+  buSelected = new Set(
+    personnelData
+      .map(p => p.username)
+      .filter(name => bindUserPoolMap[name])
+  );
+
+  renderBindUserTable();
+
+  document.getElementById('bindUserModal').classList.add('show');
+}
+
+function closeBindUserModal() {
+  closeBindUserOrgDropdown();
+  document.getElementById('bindUserModal').classList.remove('show');
+}
+
+/* 渲染机构多选下拉列表 */
+function renderBindUserOrgDropdown() {
+  const list = document.getElementById('buOrgList');
+  list.innerHTML = bindUserOrgs.map(o => {
+    const checked = buSelectedOrgs.has(o.id) ? 'checked' : '';
+    const cls = buSelectedOrgs.has(o.id) ? 'bu-org-item selected' : 'bu-org-item';
+    return `<div class="${cls}" onclick="toggleBindUserOrg('${o.id}', event)">
+      <input type="checkbox" ${checked} onclick="event.stopPropagation();toggleBindUserOrg('${o.id}', event)">
+      <span title="${escapeHtml(o.name)}">${escapeHtml(o.name)}</span>
+    </div>`;
+  }).join('');
+}
+
+/* 更新机构触发器显示文本 */
+function updateBindUserOrgText() {
+  const text = document.getElementById('buOrgText');
+  if (!buSelectedOrgs.size) {
+    text.textContent = '请选择';
+    text.classList.add('placeholder');
+  } else {
+    text.textContent = `已选择（${buSelectedOrgs.size}）`;
+    text.classList.remove('placeholder');
+  }
+}
+
+/* 展开/收起机构下拉 */
+function toggleBindUserOrgDropdown(event) {
+  if (event) event.stopPropagation();
+  buOrgDropdownOpen = !buOrgDropdownOpen;
+  const trigger = document.getElementById('buOrgTrigger');
+  const dropdown = document.getElementById('buOrgDropdown');
+  if (buOrgDropdownOpen) {
+    trigger.classList.add('open');
+    dropdown.classList.add('open');
+    renderBindUserOrgDropdown();
+  } else {
+    trigger.classList.remove('open');
+    dropdown.classList.remove('open');
+  }
+}
+
+function closeBindUserOrgDropdown() {
+  buOrgDropdownOpen = false;
+  const trigger = document.getElementById('buOrgTrigger');
+  const dropdown = document.getElementById('buOrgDropdown');
+  if (trigger) trigger.classList.remove('open');
+  if (dropdown) dropdown.classList.remove('open');
+}
+
+/* 勾选/取消单个机构 */
+function toggleBindUserOrg(orgId, event) {
+  if (event) event.stopPropagation();
+  if (buSelectedOrgs.has(orgId)) buSelectedOrgs.delete(orgId);
+  else buSelectedOrgs.add(orgId);
+  renderBindUserOrgDropdown();
+  updateBindUserOrgText();
+  refreshBindUserDepts();
+}
+
+/* 渲染科室下拉（合并所有已选机构的科室） */
+function refreshBindUserDepts() {
+  const deptSel = document.getElementById('buDept');
+  const set = new Set();
+  const list = [];
+  buSelectedOrgs.forEach(orgId => {
+    (bindUserDepts[orgId] || []).forEach(d => {
+      if (!set.has(d.id)) {
+        set.add(d.id);
+        list.push(d);
+      }
+    });
+  });
+  deptSel.innerHTML = '<option value="">全部科室</option>'
+    + list.map(d => `<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('');
+}
+
+/* 关键字输入：字数计数 */
+function onBindUserKeywordInput() {
+  const input = document.getElementById('buKeyword');
+  const counter = document.getElementById('buKeywordCounter');
+  counter.textContent = `${input.value.length}/10`;
+}
+
+/* 重置 */
+function resetBindUserFilter() {
+  buSelectedOrgs = new Set(bindUserOrgs.map(o => o.id));
+  closeBindUserOrgDropdown();
+  renderBindUserOrgDropdown();
+  updateBindUserOrgText();
+  refreshBindUserDepts();
+  document.getElementById('buDept').value = '';
+  document.getElementById('buKeyword').value = '';
+  document.getElementById('buKeywordCounter').textContent = '0/10';
+  document.getElementById('buCheckStatus').value = 'all';
+  renderBindUserTable();
+}
+
+/* 查询 → 渲染表格 */
+function queryBindUserTable() {
+  if (!buSelectedOrgs.size) {
+    toast('请至少选择一个机构', 'warning');
+    toggleBindUserOrgDropdown();
+    return;
+  }
+  renderBindUserTable();
+}
+
+/* 当前筛选条件下的可见用户列表（机构 / 科室 / 关键字 / 勾选状态） */
+function getBindUserVisible() {
+  const deptId = document.getElementById('buDept').value;
+  const kw = document.getElementById('buKeyword').value.trim().toLowerCase();
+  const status = document.getElementById('buCheckStatus').value;
+
+  return bindUserPool.filter(u => {
+    if (buSelectedOrgs.size && !buSelectedOrgs.has(u.orgId)) return false;
+    if (deptId && u.deptId !== deptId) return false;
+    if (kw) {
+      const orgName = (bindUserOrgs.find(o => o.id === u.orgId) || {}).name || '';
+      const deptName = ((bindUserDepts[u.orgId] || []).find(d => d.id === u.deptId) || {}).name || '';
+      const text = `${u.username} ${u.name} ${orgName} ${deptName}`.toLowerCase();
+      if (!text.includes(kw)) return false;
+    }
+    if (status === 'checked' && !buSelected.has(u.username)) return false;
+    if (status === 'unchecked' && buSelected.has(u.username)) return false;
+    return true;
+  });
+}
+
+/* 点击页面其他区域关闭机构下拉 */
+document.addEventListener('click', function(e) {
+  const control = document.getElementById('buOrgControl');
+  if (buOrgDropdownOpen && control && !control.contains(e.target)) {
+    closeBindUserOrgDropdown();
+  }
+});
+
+/* 渲染人员表格 */
+function renderBindUserTable() {
+  const list = getBindUserVisible();
+
+  const tbody = document.getElementById('buTbody');
+  const empty = document.getElementById('buEmpty');
+
+  if (!list.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+  } else {
+    empty.style.display = 'none';
+    tbody.innerHTML = list.map(u => {
+      const checked = buSelected.has(u.username) ? 'checked' : '';
+      const selectedClass = buSelected.has(u.username) ? ' selected' : '';
+      const orgName = (bindUserOrgs.find(o => o.id === u.orgId) || {}).name || '';
+      const deptName = ((bindUserDepts[u.orgId] || []).find(d => d.id === u.deptId) || {}).name || '';
+      return `
+        <tr class="${selectedClass.trim()}">
+          <td><input type="checkbox" ${checked} onchange="toggleBindUserItem('${u.username}', this.checked)"></td>
+          <td>${escapeHtml(u.username)}</td>
+          <td>${escapeHtml(u.name)}</td>
+          <td class="bu-type">${escapeHtml(u.type)}</td>
+          <td>${escapeHtml(u.mark)}</td>
+          <td>${escapeHtml(u.status)}</td>
+          <td title="${escapeHtml(orgName)}">${escapeHtml(orgName)}</td>
+          <td title="${escapeHtml(deptName)}">${escapeHtml(deptName)}</td>
+        </tr>`;
+    }).join('');
+  }
+
+  updateBindUserSelection();
+}
+
+/* 单行勾选 */
+function toggleBindUserItem(username, checked) {
+  if (checked) buSelected.add(username);
+  else buSelected.delete(username);
+  // 联动行视觉 + 数量
+  const tbody = document.getElementById('buTbody');
+  const cb = tbody.querySelector(`input[onchange*="'${username}'"]`);
+  if (cb) {
+    const tr = cb.closest('tr');
+    if (tr) tr.classList.toggle('selected', checked);
+  }
+  updateBindUserSelection();
+}
+
+/* 全选 */
+function toggleBindUserSelectAll(checked) {
+  // 全选是相对"当前筛选可见行"，避免误选
+  const visible = getBindUserVisible();
+
+  if (checked) visible.forEach(u => buSelected.add(u.username));
+  else visible.forEach(u => buSelected.delete(u.username));
+
+  // 同步所有可见行的勾选状态
+  document.querySelectorAll('#buTbody input[type="checkbox"]').forEach(cb => {
+    cb.checked = checked;
+    const tr = cb.closest('tr');
+    if (tr) tr.classList.toggle('selected', checked);
+  });
+  updateBindUserSelection();
+}
+
+/* 同步选中数量 + 全选状态 */
+function updateBindUserSelection() {
+  document.getElementById('buSelectedNum').textContent = buSelected.size;
+  const tbody = document.getElementById('buTbody');
+  const all = Array.from(tbody.querySelectorAll('input[type="checkbox"]'));
+  const allCb = document.getElementById('buSelectAll');
+  if (!all.length) {
+    allCb.checked = false;
+    allCb.indeterminate = false;
+    return;
+  }
+  const checked = all.filter(cb => cb.checked).length;
+  allCb.checked = checked === all.length;
+  allCb.indeterminate = checked > 0 && checked < all.length;
+}
+
+/* 确定：将勾选人员回填到 personnelData */
+function confirmBindUser() {
+  const entity = selectedCoverageId ? findCoverageEntity(selectedCoverageId) : null;
+  if (!entity) { closeBindUserModal(); return; }
+
+  if (buSelected.size === 0) {
+    toast('请至少选择一名用户', 'warning');
+    return;
+  }
+
+  // 按用户名顺序回填，保持稳定
+  const users = Array.from(buSelected)
+    .map(u => bindUserPoolMap[u])
+    .filter(Boolean)
+    .sort((a, b) => a.username.localeCompare(b.username));
+
+  personnelData.length = 0;
+  users.forEach(u => personnelData.push({ username: u.username, name: u.name, orgId: u.orgId, deptId: u.deptId, type: u.type }));
+
+  // 同步刷新底部"绑定人员列表"浮层
+  if (typeof renderEntityPanel === 'function') {
+    renderEntityPanel(entity);
+  }
+
+  closeBindUserModal();
+  toast(`已绑定 ${personnelData.length} 名用户到「${entity.name}」`, 'success');
+}
+
+/* ===== 关联科室弹框（绑定科室） ===== */
+let bdSelected = new Set();      // 当前弹框已勾选的科室 id 集合
+let bdSelectedOrgs = new Set();  // 当前弹框已勾选的机构 id 集合
+let bdOrgDropdownOpen = false;   // 机构多选下拉是否展开
+
+function openBindDeptModal() {
+  const entity = selectedCoverageId ? findCoverageEntity(selectedCoverageId) : null;
+  if (!entity) { toast('请先在左侧选择一条覆盖项', 'warning'); return; }
+
+  // 默认选中前 4 个机构
+  bdSelectedOrgs = new Set(bindUserOrgs.slice(0, 4).map(o => o.id));
+
+  renderBindDeptOrgDropdown();
+  updateBindDeptOrgText();
+  document.getElementById('bdKeyword').value = '';
+  document.getElementById('bdKeywordCounter').textContent = '0/10';
+  document.getElementById('bdCheckStatus').value = 'all';
+
+  // 已勾选 = 当前已绑定科室（已绑定科室 id 存在于科室池中时才预选）
+  bdSelected = new Set(
+    deptBindData
+      .map(d => bindDeptPool.find(p => p.code === d.code && p.name === d.name && p.org === d.org) ? (bindDeptPool.find(p => p.code === d.code && p.name === d.name && p.org === d.org).id) : null)
+      .filter(Boolean)
+  );
+
+  renderBindDeptTable();
+
+  document.getElementById('bindDeptModal').classList.add('show');
+}
+
+function closeBindDeptModal() {
+  closeBindDeptOrgDropdown();
+  document.getElementById('bindDeptModal').classList.remove('show');
+}
+
+/* 渲染机构多选下拉列表 */
+function renderBindDeptOrgDropdown() {
+  const list = document.getElementById('bdOrgList');
+  list.innerHTML = bindUserOrgs.map(o => {
+    const checked = bdSelectedOrgs.has(o.id) ? 'checked' : '';
+    const cls = bdSelectedOrgs.has(o.id) ? 'bu-org-item selected' : 'bu-org-item';
+    return `<div class="${cls}" onclick="toggleBindDeptOrg('${o.id}', event)">
+      <input type="checkbox" ${checked} onclick="event.stopPropagation();toggleBindDeptOrg('${o.id}', event)">
+      <span title="${escapeHtml(o.name)}">${escapeHtml(o.name)}</span>
+    </div>`;
+  }).join('');
+}
+
+function updateBindDeptOrgText() {
+  const text = document.getElementById('bdOrgText');
+  if (!bdSelectedOrgs.size) {
+    text.textContent = '请选择';
+    text.classList.add('placeholder');
+  } else {
+    text.textContent = `已选择（${bdSelectedOrgs.size}）`;
+    text.classList.remove('placeholder');
+  }
+}
+
+function toggleBindDeptOrgDropdown(event) {
+  if (event) event.stopPropagation();
+  bdOrgDropdownOpen = !bdOrgDropdownOpen;
+  const trigger = document.getElementById('bdOrgTrigger');
+  const dropdown = document.getElementById('bdOrgDropdown');
+  if (bdOrgDropdownOpen) {
+    trigger.classList.add('open');
+    dropdown.classList.add('open');
+    renderBindDeptOrgDropdown();
+  } else {
+    trigger.classList.remove('open');
+    dropdown.classList.remove('open');
+  }
+}
+
+function closeBindDeptOrgDropdown() {
+  bdOrgDropdownOpen = false;
+  const trigger = document.getElementById('bdOrgTrigger');
+  const dropdown = document.getElementById('bdOrgDropdown');
+  if (trigger) trigger.classList.remove('open');
+  if (dropdown) dropdown.classList.remove('open');
+}
+
+function toggleBindDeptOrg(orgId, event) {
+  if (event) event.stopPropagation();
+  if (bdSelectedOrgs.has(orgId)) bdSelectedOrgs.delete(orgId);
+  else bdSelectedOrgs.add(orgId);
+  renderBindDeptOrgDropdown();
+  updateBindDeptOrgText();
+}
+
+/* 关键字输入：字数计数 */
+function onBindDeptKeywordInput() {
+  const input = document.getElementById('bdKeyword');
+  document.getElementById('bdKeywordCounter').textContent = `${input.value.length}/10`;
+}
+
+/* 重置 */
+function resetBindDeptFilter() {
+  bdSelectedOrgs = new Set(bindUserOrgs.map(o => o.id));
+  closeBindDeptOrgDropdown();
+  renderBindDeptOrgDropdown();
+  updateBindDeptOrgText();
+  document.getElementById('bdKeyword').value = '';
+  document.getElementById('bdKeywordCounter').textContent = '0/10';
+  document.getElementById('bdCheckStatus').value = 'all';
+  renderBindDeptTable();
+}
+
+/* 查询 */
+function queryBindDeptTable() {
+  if (!bdSelectedOrgs.size) {
+    toast('请至少选择一个机构', 'warning');
+    toggleBindDeptOrgDropdown();
+    return;
+  }
+  renderBindDeptTable();
+}
+
+/* 当前筛选条件下的可见科室列表（机构 / 关键字 / 勾选状态） */
+function getBindDeptVisible() {
+  const kw = document.getElementById('bdKeyword').value.trim().toLowerCase();
+  const status = document.getElementById('bdCheckStatus').value;
+  return bindDeptPool.filter(d => {
+    if (bdSelectedOrgs.size && !bdSelectedOrgs.has(d.orgId)) return false;
+    if (kw) {
+      const text = `${d.code} ${d.name} ${d.orgName}`.toLowerCase();
+      if (!text.includes(kw)) return false;
+    }
+    if (status === 'checked' && !bdSelected.has(d.id)) return false;
+    if (status === 'unchecked' && bdSelected.has(d.id)) return false;
+    return true;
+  });
+}
+
+/* 渲染科室表格 */
+function renderBindDeptTable() {
+  const list = getBindDeptVisible();
+  const tbody = document.getElementById('bdTbody');
+  const empty = document.getElementById('bdEmpty');
+
+  if (!list.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+  } else {
+    empty.style.display = 'none';
+    tbody.innerHTML = list.map(d => {
+      const checked = bdSelected.has(d.id) ? 'checked' : '';
+      const selectedClass = bdSelected.has(d.id) ? ' selected' : '';
+      return `
+        <tr class="${selectedClass.trim()}">
+          <td><input type="checkbox" ${checked} onchange="toggleBindDeptItem('${d.id}', this.checked)"></td>
+          <td>${escapeHtml(d.code)}</td>
+          <td>${escapeHtml(d.name)}</td>
+          <td title="${escapeHtml(d.orgName)}">${escapeHtml(d.orgName)}</td>
+        </tr>`;
+    }).join('');
+  }
+  updateBindDeptSelection();
+}
+
+/* 单行勾选 */
+function toggleBindDeptItem(id, checked) {
+  if (checked) bdSelected.add(id);
+  else bdSelected.delete(id);
+  const tbody = document.getElementById('bdTbody');
+  const cb = tbody.querySelector(`input[onchange*="'${id}'"]`);
+  if (cb) {
+    const tr = cb.closest('tr');
+    if (tr) tr.classList.toggle('selected', checked);
+  }
+  updateBindDeptSelection();
+}
+
+/* 全选 */
+function toggleBindDeptSelectAll(checked) {
+  const visible = getBindDeptVisible();
+  if (checked) visible.forEach(d => bdSelected.add(d.id));
+  else visible.forEach(d => bdSelected.delete(d.id));
+  document.querySelectorAll('#bdTbody input[type="checkbox"]').forEach(cb => {
+    cb.checked = checked;
+    const tr = cb.closest('tr');
+    if (tr) tr.classList.toggle('selected', checked);
+  });
+  updateBindDeptSelection();
+}
+
+/* 同步选中数量 + 全选状态 */
+function updateBindDeptSelection() {
+  document.getElementById('bdSelectedNum').textContent = bdSelected.size;
+  const tbody = document.getElementById('bdTbody');
+  const all = Array.from(tbody.querySelectorAll('input[type="checkbox"]'));
+  const allCb = document.getElementById('bdSelectAll');
+  if (!all.length) {
+    allCb.checked = false;
+    allCb.indeterminate = false;
+    return;
+  }
+  const checked = all.filter(cb => cb.checked).length;
+  allCb.checked = checked === all.length;
+  allCb.indeterminate = checked > 0 && checked < all.length;
+}
+
+/* 确定：回填 deptBindData */
+function confirmBindDept() {
+  const entity = selectedCoverageId ? findCoverageEntity(selectedCoverageId) : null;
+  if (!entity) { closeBindDeptModal(); return; }
+  if (bdSelected.size === 0) {
+    toast('请至少选择一个科室', 'warning');
+    return;
+  }
+  const depts = Array.from(bdSelected)
+    .map(id => bindDeptPoolMap[id])
+    .filter(Boolean)
+    .sort((a, b) => a.code.localeCompare(b.code));
+
+  deptBindData.length = 0;
+  depts.forEach(d => deptBindData.push({ code: d.code, name: d.name, org: d.orgName }));
+
+  if (typeof renderEntityPanel === 'function') renderEntityPanel(entity);
+  closeBindDeptModal();
+  toast(`已绑定 ${deptBindData.length} 个科室到「${entity.name}」`, 'success');
+}
+
+/* ===== 关联角色弹框（绑定角色） ===== */
+let brSelected = new Set();   // 当前弹框已勾选的角色 id 集合
+
+function openBindRoleModal() {
+  const entity = selectedCoverageId ? findCoverageEntity(selectedCoverageId) : null;
+  if (!entity) { toast('请先在左侧选择一条覆盖项', 'warning'); return; }
+
+  document.getElementById('brKeyword').value = '';
+  document.getElementById('brKeywordCounter').textContent = '0/10';
+  document.getElementById('brCheckStatus').value = 'all';
+
+  // 已勾选 = 当前已绑定角色（按名称匹配）
+  brSelected = new Set(
+    roleBindData
+      .map(r => (bindRolePool.find(p => p.name === r.name) || {}).id)
+      .filter(Boolean)
+  );
+
+  renderBindRoleTable();
+  document.getElementById('bindRoleModal').classList.add('show');
+}
+
+function closeBindRoleModal() {
+  document.getElementById('bindRoleModal').classList.remove('show');
+}
+
+function onBindRoleKeywordInput() {
+  const input = document.getElementById('brKeyword');
+  document.getElementById('brKeywordCounter').textContent = `${input.value.length}/10`;
+}
+
+function resetBindRoleFilter() {
+  document.getElementById('brKeyword').value = '';
+  document.getElementById('brKeywordCounter').textContent = '0/10';
+  document.getElementById('brCheckStatus').value = 'all';
+  renderBindRoleTable();
+}
+
+function queryBindRoleTable() {
+  renderBindRoleTable();
+}
+
+/* 当前筛选条件下的可见角色列表（关键字 / 勾选状态） */
+function getBindRoleVisible() {
+  const kw = document.getElementById('brKeyword').value.trim().toLowerCase();
+  const status = document.getElementById('brCheckStatus').value;
+  return bindRolePool.filter(r => {
+    if (kw) {
+      const text = `${r.id} ${r.name} ${r.type} ${r.desc}`.toLowerCase();
+      if (!text.includes(kw)) return false;
+    }
+    if (status === 'checked' && !brSelected.has(r.id)) return false;
+    if (status === 'unchecked' && brSelected.has(r.id)) return false;
+    return true;
+  });
+}
+
+/* 渲染角色表格 */
+function renderBindRoleTable() {
+  const list = getBindRoleVisible();
+  const tbody = document.getElementById('brTbody');
+  const empty = document.getElementById('brEmpty');
+
+  if (!list.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+  } else {
+    empty.style.display = 'none';
+    tbody.innerHTML = list.map(r => {
+      const checked = brSelected.has(r.id) ? 'checked' : '';
+      const selectedClass = brSelected.has(r.id) ? ' selected' : '';
+      return `
+        <tr class="${selectedClass.trim()}">
+          <td><input type="checkbox" ${checked} onchange="toggleBindRoleItem('${r.id}', this.checked)"></td>
+          <td>${escapeHtml(r.id)}</td>
+          <td>${escapeHtml(r.name)}</td>
+          <td>${escapeHtml(r.type)}</td>
+          <td title="${escapeHtml(r.desc)}">${escapeHtml(r.desc)}</td>
+        </tr>`;
+    }).join('');
+  }
+  updateBindRoleSelection();
+}
+
+/* 单行勾选 */
+function toggleBindRoleItem(id, checked) {
+  if (checked) brSelected.add(id);
+  else brSelected.delete(id);
+  const tbody = document.getElementById('brTbody');
+  const cb = tbody.querySelector(`input[onchange*="'${id}'"]`);
+  if (cb) {
+    const tr = cb.closest('tr');
+    if (tr) tr.classList.toggle('selected', checked);
+  }
+  updateBindRoleSelection();
+}
+
+/* 全选 */
+function toggleBindRoleSelectAll(checked) {
+  const visible = getBindRoleVisible();
+  if (checked) visible.forEach(r => brSelected.add(r.id));
+  else visible.forEach(r => brSelected.delete(r.id));
+  document.querySelectorAll('#brTbody input[type="checkbox"]').forEach(cb => {
+    cb.checked = checked;
+    const tr = cb.closest('tr');
+    if (tr) tr.classList.toggle('selected', checked);
+  });
+  updateBindRoleSelection();
+}
+
+/* 同步选中数量 + 全选状态 */
+function updateBindRoleSelection() {
+  document.getElementById('brSelectedNum').textContent = brSelected.size;
+  const tbody = document.getElementById('brTbody');
+  const all = Array.from(tbody.querySelectorAll('input[type="checkbox"]'));
+  const allCb = document.getElementById('brSelectAll');
+  if (!all.length) {
+    allCb.checked = false;
+    allCb.indeterminate = false;
+    return;
+  }
+  const checked = all.filter(cb => cb.checked).length;
+  allCb.checked = checked === all.length;
+  allCb.indeterminate = checked > 0 && checked < all.length;
+}
+
+/* 确定：回填 roleBindData */
+function confirmBindRole() {
+  const entity = selectedCoverageId ? findCoverageEntity(selectedCoverageId) : null;
+  if (!entity) { closeBindRoleModal(); return; }
+  if (brSelected.size === 0) {
+    toast('请至少选择一个角色', 'warning');
+    return;
+  }
+  const roles = Array.from(brSelected)
+    .map(id => bindRolePoolMap[id])
+    .filter(Boolean)
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  roleBindData.length = 0;
+  roles.forEach(r => roleBindData.push({ name: r.name }));
+
+  if (typeof renderEntityPanel === 'function') renderEntityPanel(entity);
+  closeBindRoleModal();
+  toast(`已绑定 ${roleBindData.length} 个角色到「${entity.name}」`, 'success');
+}
+
+/* 点击页面其他区域关闭科室机构下拉 */
+document.addEventListener('click', function(e) {
+  const control = document.getElementById('bdOrgControl');
+  if (bdOrgDropdownOpen && control && !control.contains(e.target)) {
+    closeBindDeptOrgDropdown();
+  }
+});
+
+/* 公共函数（toggleMenu / navigate / toast / escapeHtml 已提取至 框架.js） */
+
+/* ===== 通用提示气泡（挂载 body 避免祖先 overflow 裁切） ===== */
+let _tooltipEl = null;
+
+function _showTooltip(tipEl, popupClass) {
+  _hideTooltip();
+  var popup = document.createElement('div');
+  popup.className = popupClass;
+  popup.innerHTML = tipEl.getAttribute('data-tip');
+  document.body.appendChild(popup);
+  _tooltipEl = popup;
+  requestAnimationFrame(function() {
+    var rect = tipEl.getBoundingClientRect();
+    var pw = popup.offsetWidth;
+    var left = rect.right + 8;
+    var top = rect.top + rect.height / 2 - popup.offsetHeight / 2;
+    if (left + pw > window.innerWidth - 10) {
+      left = rect.left - pw - 8;
+    }
+    if (top < 10) top = 10;
+    if (top + popup.offsetHeight > window.innerHeight - 10) top = window.innerHeight - popup.offsetHeight - 10;
+    popup.style.left = left + 'px';
+    popup.style.top = top + 'px';
+  });
+}
+
+function _hideTooltip() {
+  if (_tooltipEl) { _tooltipEl.remove(); _tooltipEl = null; }
+}
+
+document.addEventListener('mouseover', function(e) {
+  var pageTip = e.target.closest('.page-title-tip');
+  if (pageTip) { _showTooltip(pageTip, 'page-title-tip-popup'); }
+});
+
+document.addEventListener('mouseout', function(e) {
+  var tip = e.target.closest('.page-title-tip');
+  if (tip && !tip.contains(e.relatedTarget)) _hideTooltip();
+});
+
+/* ===== 初始化 ===== */
+selectedCoverageId = 'default';
+// 默认全选（全部脱敏）— 选中默认规则后自动勾选所有规则
+(function() {
+  const entity = findCoverageEntity('default');
+  if (entity) {
+    const g = getGroupById(entity.groupId);
+    if (g) g.rules.forEach(r => selectedRuleIds.add(String(r.id)));
+  }
+})();
+renderGroupNameDisplay();
+renderCoverageList();
+renderRuleTable();
+updateToolbarButtons();
+
+/* 点击外部关闭下拉和弹框 */
+document.addEventListener('mousedown', function(e) {
+  var sel = document.getElementById('schemeSelect');
+  if (sel && !sel.contains(e.target)) sel.classList.remove('open');
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeConfirm();
+    closeBindUserModal();
+    closeAddSchemeModal();
+    var sel = document.getElementById('schemeSelect');
+    if (sel) sel.classList.remove('open');
+  }
+});
+</script>
+
+
+</body>
+</html>

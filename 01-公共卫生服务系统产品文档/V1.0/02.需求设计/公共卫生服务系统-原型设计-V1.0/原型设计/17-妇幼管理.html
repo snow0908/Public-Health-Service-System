@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>妇幼保健管理 · 公共卫生服务系统原型</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;font-size:14px;color:#333;background:#f0f2f5}
+a{text-decoration:none;color:inherit}
+.layout{display:flex;min-height:100vh}
+aside{width:210px;background:#263238;color:#cfd8dc;flex-shrink:0;display:flex;flex-direction:column}
+.logo{height:56px;background:#1b6bb0;color:#fff;display:flex;align-items:center;padding:0 14px;font-size:15px;font-weight:600;letter-spacing:1px}
+.logo .cross{width:22px;height:22px;border:2px solid #fff;border-radius:4px;position:relative;margin-right:8px;flex-shrink:0}
+.logo .cross:after{content:"+";position:absolute;left:50%;top:50%;transform:translate(-50%,-52%);font-size:20px;font-weight:700}
+.userbar{padding:10px 14px;border-bottom:1px solid #37474f;font-size:12px;line-height:1.9}
+.userbar b{color:#80deea}
+.nav{flex:1;overflow-y:auto;padding:6px 0 30px}
+.nav .grp{padding:12px 14px 4px;font-size:11px;color:#78909c;letter-spacing:1px}
+.nav a{display:block;padding:8px 14px 8px 22px;color:#cfd8dc;font-size:13px;border-left:3px solid transparent}
+.nav a:hover{background:#37474f;color:#fff}
+.nav a.cur{background:#1b6bb0;color:#fff;border-left-color:#4fc3f7}
+main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{height:56px;background:#fff;box-shadow:0 1px 4px rgba(0,21,41,.08);display:flex;align-items:center;padding:0 20px;gap:12px}
+.crumb{font-size:13px;color:#909399}
+.crumb b{color:#303133;font-weight:600}
+.orgsel{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:13px}
+.orgsel .org{border:1px solid #dcdfe6;border-radius:4px;padding:5px 10px;color:#1b6bb0;background:#ecf5ff;cursor:pointer}
+.orgsel .org:before{content:"🏥 "}
+.avatar{width:30px;height:30px;border-radius:50%;background:#1b6bb0;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px}
+.mainwrap{flex:1;padding:14px;overflow-y:auto}
+.modhead{background:#fff;border-radius:4px;padding:14px 18px;margin-bottom:12px;border-left:4px solid #1b6bb0}
+.modhead h1{font-size:17px;color:#303133}
+.modhead p{margin-top:6px;font-size:12px;color:#909399;line-height:1.7}
+.tabs{background:#fff;border-bottom:1px solid #e4e7ed;padding:0 10px;display:flex;flex-wrap:wrap}
+.tabs .tab{padding:11px 18px;font-size:14px;color:#606266;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs .tab:hover{color:#1b6bb0}
+.tabs .tab.cur{color:#1b6bb0;border-bottom-color:#1b6bb0;font-weight:600}
+.page{display:none;padding-top:12px}
+.page.cur{display:block}
+.card{background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:16px 18px;margin-bottom:12px}
+.card .ttl{font-size:14px;font-weight:600;color:#303133;margin-bottom:12px;padding-left:8px;border-left:3px solid #1b6bb0}
+.qgrid{display:flex;flex-wrap:wrap;gap:10px 16px}
+.fitem{display:flex;align-items:center;font-size:13px}
+.fitem label{color:#606266;white-space:nowrap;margin-right:8px}
+.ipt{border:1px solid #dcdfe6;border-radius:4px;height:30px;line-height:28px;padding:0 10px;min-width:150px;color:#606266;background:#fff}
+.ipt.sel{min-width:130px;appearance:auto}
+.fitem textarea.ipt{height:52px;padding:6px 10px;line-height:1.5;font-family:inherit;min-width:340px}
+.qbtns{width:100%;display:flex;gap:8px;padding-top:4px}
+.more{font-size:12px;color:#1b6bb0;cursor:pointer;align-self:flex-end;margin:6px 0 0 4px}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;border-radius:4px;border:1px solid #dcdfe6;background:#fff;color:#606266;font-size:13px;cursor:pointer;gap:4px}
+.btn.pri{background:#1b6bb0;border-color:#1b6bb0;color:#fff}
+.btn.warn{background:#e6a23c;border-color:#e6a23c;color:#fff}
+.btn.txt{border:none;color:#1b6bb0;padding:0 6px;height:auto;font-size:13px}
+.btn.txt.red{color:#f56c6c}
+.toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.toolbar .right{margin-left:auto;display:flex;gap:8px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f5f7fa;color:#606266;font-weight:600;text-align:left;padding:10px 8px;border-bottom:1px solid #ebeef5;white-space:nowrap}
+td{padding:9px 8px;border-bottom:1px solid #ebeef5;color:#606266;white-space:nowrap}
+tr:hover td{background:#f5f7fa}
+.tag{display:inline-block;padding:1px 8px;border-radius:3px;font-size:12px;line-height:18px}
+.tag.blue{background:#ecf5ff;color:#1b6bb0;border:1px solid #b3d8ff}
+.tag.green{background:#f0f9eb;color:#67c23a;border:1px solid #c2e7b0}
+.tag.red{background:#fef0f0;color:#f56c6c;border:1px solid #fbc4c4}
+.tag.orange{background:#fdf6ec;color:#e6a23c;border:1px solid #f5dab1}
+.tag.gray{background:#f4f4f5;color:#909399;border:1px solid #d3d4d6}
+.tag.purple{background:#f4ecfb;color:#8e44ad;border:1px solid #d7bde2}
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:6px;padding-top:12px;font-size:13px;color:#606266}
+.pager .pno{border:1px solid #dcdfe6;border-radius:3px;min-width:28px;height:26px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0 5px}
+.pager .pno.cur{background:#1b6bb0;color:#fff;border-color:#1b6bb0}
+.pagenote{padding:16px 18px;background:#fff;border-radius:4px;font-size:12px;color:#909399;line-height:1.9;margin-top:12px}
+.pagenote b{color:#606266}
+.mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 16px}
+.mask.show{display:flex}
+.modal{background:#fff;border-radius:6px;width:760px;max-width:96vw;box-shadow:0 4px 24px rgba(0,0,0,.2)}
+.modal.wide{width:960px}
+.modal .mh{padding:14px 20px;border-bottom:1px solid #ebeef5;font-size:15px;font-weight:600;display:flex;align-items:center}
+.modal .mh .x{margin-left:auto;cursor:pointer;color:#909399;font-weight:400;font-size:18px}
+.modal .mb{padding:18px 20px;max-height:64vh;overflow-y:auto}
+.modal .mf{padding:12px 20px;border-top:1px solid #ebeef5;display:flex;justify-content:flex-end;gap:8px}
+.formgrid{display:flex;flex-wrap:wrap;gap:14px 24px}
+.formgrid .fi{display:flex;align-items:center;font-size:13px;width:calc(50% - 12px)}
+.formgrid .fi.wide{width:100%}
+.formgrid .fi label{color:#606266;min-width:110px;text-align:right;margin-right:10px;flex-shrink:0}
+.formgrid .fi label.req:before{content:"*";color:#f56c6c;margin-right:2px}
+.formgrid .fi .ipt{flex:1;min-width:0}
+.formgrid .fi textarea.ipt{min-width:0}
+fieldset{border:1px solid #ebeef5;border-radius:4px;padding:12px 16px 16px;margin-bottom:14px;width:100%}
+legend{padding:0 8px;font-size:13px;color:#1b6bb0;font-weight:600}
+.stat4{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.st{flex:1;min-width:150px;background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:16px}
+.st .k{font-size:12px;color:#909399}
+.st .v{font-size:26px;font-weight:700;color:#303133;margin-top:6px}
+.st .v small{font-size:12px;color:#c0c4cc;font-weight:400}
+.st.b .v{color:#1b6bb0}.st.g .v{color:#67c23a}.st.o .v{color:#e6a23c}.st.r .v{color:#f56c6c}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.tl{background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:16px 18px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chart{height:200px;border-radius:4px;background:linear-gradient(180deg,#f5f9ff,#fff);border:1px solid #e4ecf5;display:flex;align-items:flex-end;gap:8px;padding:16px 20px}
+.chart .bar{flex:1;background:linear-gradient(180deg,#5cadff,#1b6bb0);border-radius:3px 3px 0 0;position:relative}
+.chart .bar i{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-style:normal;font-size:11px;color:#606266}
+.chart .bar.g{background:linear-gradient(180deg,#95d475,#67c23a)}
+.chart .bar.o{background:linear-gradient(180deg,#f3d19e,#e6a23c)}
+.chart .bar.r{background:linear-gradient(180deg,#fab6b6,#f56c6c)}
+.chartx{display:flex;justify-content:space-between;font-size:11px;color:#909399;padding:6px 20px 0}
+.note{background:#ecf5ff;border:1px solid #d9ecff;border-radius:4px;padding:10px 14px;font-size:12px;color:#4b6f92;line-height:1.8;margin-bottom:12px}
+.note b{color:#1b6bb0}
+.dl{display:flex;flex-wrap:wrap;border:1px solid #ebeef5;border-radius:4px}
+.dl .row{display:flex;width:100%;border-bottom:1px solid #ebeef5}
+.dl .row:last-child{border-bottom:none}
+.dl .k{width:150px;background:#f5f7fa;color:#909399;padding:9px 12px;font-size:13px;flex-shrink:0}
+.dl .v{flex:1;padding:9px 12px;color:#303133;font-size:13px}
+.dl .v .tag{margin-right:4px}
+</style></head>
+<body><div class="layout">
+<aside><div class="logo"><div class="cross"></div>公共卫生服务系统</div>
+<div class="userbar">机构：<b>山东大学齐鲁医院</b><br>用户：<b>lvxue</b>（公卫科管理员）<br>角色：乡镇公卫科管理员</div>
+<nav class="nav"><div class="grp">工作入口</div><a href="02-工作台.html">工作台</a><a href="01-消息中心.html">消息中心</a><a href="03-计划提醒.html">计划提醒</a><div class="grp">档案与查询</div><a href="04-档案管理.html">档案管理</a><a href="08-业务查询.html">业务查询</a><div class="grp">重点人群管理</div><a href="13-慢病管理.html">慢病管理</a><a href="16-老年人管理.html">老年人管理</a><a href="17-妇幼管理.html" class="cur">妇幼管理</a><a href="06-中医管理.html">中医管理</a><a href="14-重精管理.html">重精管理</a><a href="15-结核管理.html">结核管理</a><div class="grp">疾病防控</div><a href="10-疾病报卡.html">疾病报卡</a><a href="11-突发公卫事件.html">突发公卫事件</a><a href="12-三网监测.html">三网监测</a><a href="07-健教管理.html">健教管理</a><a href="09-卫生监督.html">卫生监督</a><div class="grp">统计与报表</div><a href="18-辖区统计.html">辖区统计</a><a href="19-业务报表.html">业务报表</a><div class="grp">系统管理</div><a href="05-系统设置.html">系统设置</a></nav></aside>
+<main><div class="topbar"><span class="crumb"><b>妇幼管理</b> / 妇幼保健管理</span>
+<div class="orgsel"><span class="org" title="点击切换机构">山东大学齐鲁医院 ▾</span><div class="avatar">雪</div></div></div>
+<div class="mainwrap">
+<div class="modhead"><h1>妇幼保健管理</h1><p>妇女、孕产妇、0-6岁儿童健康管理：孕产期全程管理、儿童健康检查、预防接种与妇幼公共卫生服务项目（两癌筛查、三病阻断）。</p></div>
+<div class="tabs"><div class="tab cur" onclick="showTab(0)">妇女管理</div><div class="tab" onclick="showTab(1)">孕产妇管理</div><div class="tab" onclick="showTab(2)">儿童管理</div><div class="tab" onclick="showTab(3)">计免管理</div><div class="tab" onclick="showTab(4)">宫颈癌筛查</div><div class="tab" onclick="showTab(5)">乳腺癌筛查</div><div class="tab" onclick="showTab(6)">乙肝管理</div><div class="tab" onclick="showTab(7)">梅毒管理</div><div class="tab" onclick="showTab(8)">艾滋管理</div></div>
+<div class="page cur" id="pg0"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fitem"><label>身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fitem"><label>村/居委会</label><select class="ipt sel"><option>全部</option><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fitem"><label>年龄段</label><select class="ipt sel"><option>全部</option><option>育龄期(15-49)</option><option>更年期(45-55)</option><option>老年期(55+)</option></select></div>
+<div class="fitem"><label>责任医生</label><select class="ipt sel"><option>全部</option><option>王建国</option><option>李卫芳</option><option>赵敏</option><option>刘志强</option></select></div>
+<div class="fitem"><label>服务状态</label><select class="ipt sel"><option>全部</option><option>已普查</option><option>待普查</option><option>需转诊</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button><button class="btn">🪪 读卡建档</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="openModal('m-17-0-0')">新建登记</button><button class="btn" onclick="">导出</button><div class="right"><button class="btn">刷新</button></div></div>
+<div class="card"><table><thead><tr><th>档案编号</th><th>姓名</th><th>年龄</th><th>村/居委会</th><th>年龄段</th><th>末次普查</th><th>普查结果</th><th>服务状态</th><th>责任医生</th><th>操作</th></tr></thead><tbody><tr><td>DA-2026-014022</td><td>范秀云</td><td>38</td><td>东关社区</td><td>育龄期(15-49)</td><td>2026-06-12</td><td>无异常</td><td><span class="tag green">已普查</span></td><td>王建国</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>DA-2026-014058</td><td>常桂香</td><td>51</td><td>西河村</td><td>更年期(45-55)</td><td>2026-06-15</td><td>围绝经期综合征</td><td><span class="tag orange">需转诊</span></td><td>李卫芳</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">转诊</span></td></tr>
+<tr><td>DA-2026-014101</td><td>皮凤兰</td><td>47</td><td>殷巷村</td><td>更年期(45-55)</td><td>2026-06-16</td><td>无异常</td><td><span class="tag green">已普查</span></td><td>赵敏</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>DA-2026-014133</td><td>平玉珍</td><td>33</td><td>龙山村</td><td>育龄期(15-49)</td><td>—</td><td>—</td><td><span class="tag blue">待普查</span></td><td>刘志强</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">普查预约</span></td></tr>
+<tr><td>DA-2026-014167</td><td>罗春霞</td><td>56</td><td>张庄社区</td><td>老年期(55+)</td><td>2026-06-20</td><td>阴道炎</td><td><span class="tag green">已普查</span></td><td>王建国</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="mask" id="m-17-0-0"><div class="modal">
+<div class="mh">新建妇女健康登记<span class="x" onclick="closeModal('m-17-0-0')">×</span></div>
+<div class="mb"><fieldset><legend>基本信息</legend><div class="formgrid"><div class="fi"><label class=" req">姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fi"><label class=" req">性别</label><select class="ipt sel"><option>请选择</option><option>男</option><option>女</option></select></div>
+<div class="fi"><label class=" req">出生日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">民族</label><select class="ipt sel"><option>汉族</option><option>回族</option><option>满族</option><option>其他</option></select></div>
+<div class="fi"><label class=" req">身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fi"><label class="">联系电话</label><input class="ipt" placeholder="请输入联系电话"></div>
+<div class="fi"><label class="">婚姻状况</label><select class="ipt sel"><option>未婚</option><option>已婚</option><option>丧偶</option><option>离婚</option><option>不详</option></select></div>
+<div class="fi"><label class="">文化程度</label><select class="ipt sel"><option>研究生</option><option>大学本科</option><option>大专</option><option>中专/高中</option><option>初中</option><option>小学</option><option>不识字或识字很少</option></select></div>
+<div class="fi"><label class="">职业</label><select class="ipt sel"><option>工人</option><option>农民</option><option>商人</option><option>职员</option><option>教师</option><option>医务人员</option><option>家务</option><option>离退休</option><option>其他</option></select></div>
+<div class="fi wide"><label class="">户籍地址</label><input class="ipt" placeholder="请输入户籍地址"></div>
+<div class="fi wide"><label class="">现住址</label><input class="ipt" placeholder="请输入现住址"></div>
+<div class="fi"><label class=" req">村/居委会</label><select class="ipt sel"><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fi"><label class="">家庭档案编号</label><input class="ipt" placeholder="请输入家庭档案编号"></div>
+<div class="fi"><label class="">是否户籍常住</label><select class="ipt sel"><option>请选择</option><option>是</option><option>否</option></select></div>
+<div class="fi"><label class="">迁入日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">责任医生</label><select class="ipt sel"><option>王建国</option><option>李卫芳</option><option>赵敏</option><option>刘志强</option></select></div>
+<div class="fi"><label class=" req">建档医生</label><input class="ipt" placeholder="请输入建档医生"></div>
+<div class="fi"><label class=" req">建档日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">建档机构</label><select class="ipt sel"><option>山东大学齐鲁医院</option><option>东关社区卫生服务站</option><option>西河村卫生室</option><option>殷巷村卫生室</option></select></div>
+</div></fieldset><fieldset><legend>服务信息</legend><div class="formgrid"><div class="fi"><label class="">末次月经</label><input class="ipt" placeholder="请输入末次月经"></div>
+<div class="fi"><label class="">孕产史(G/P)</label><input class="ipt" placeholder="请输入孕产史(G/P)"></div>
+<div class="fi"><label class="">避孕措施</label><select class="ipt sel"><option>未采取</option><option>宫内节育器</option><option>药物</option><option>安全套</option><option>绝育</option></select></div>
+<div class="fi"><label class="">普查日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi wide"><label class="">普查结果</label><textarea class="ipt" placeholder="请输入普查结果"></textarea></div>
+</div></fieldset></div><div class="mf"><button class="btn pri" onclick="alert('原型演示：保存成功');closeModal('m-17-0-0')">保 存</button><button class="btn" onclick="closeModal('m-17-0-0')">取 消</button></div></div></div>
+
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>辖区已婚妇女（15-64岁）健康管理：妇科病普查、更年期保健、计生服务记录。<br><b>交互能力：</b>列表导出、身份证读卡器建档、新建登记、条件重置、组合条件查询、查询条件展开收起、编辑修改、随访登记、普查登记、转诊 等11项<br><b>待确认项：</b>与区域妇幼平台（省妇幼系统）数据同步接口待确认<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg1"><div class="stat4"><div class="st 人"><div class="k">管理孕产妇</div><div class="v">412</div></div><div class="st —"><div class="k">早孕建档率</div><div class="v">92.5%</div></div><div class="st 目标≥85%"><div class="k">产后访视率</div><div class="v">96.1%</div></div><div class="st 人"><div class="k">高危孕产妇</div><div class="v">47</div></div></div>
+<div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fitem"><label>身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fitem"><label>村/居委会</label><select class="ipt sel"><option>全部</option><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fitem"><label>孕周阶段</label><select class="ipt sel"><option>全部</option><option>孕早期(≤12周)</option><option>孕中期(13-27周)</option><option>孕晚期(≥28周)</option><option>产后</option></select></div>
+<div class="fitem"><label>五色分级</label><select class="ipt sel"><option>全部</option><option>绿色(低风险)</option><option>黄色(一般风险)</option><option>橙色(较高风险)</option><option>红色(高风险)</option><option>紫色(传染病)</option></select></div>
+<div class="fitem"><label>责任医生</label><select class="ipt sel"><option>全部</option><option>王建国</option><option>李卫芳</option><option>赵敏</option><option>刘志强</option></select></div>
+<div class="fitem"><label>管理状态</label><select class="ipt sel"><option>全部</option><option>管理中</option><option>已分娩</option><option>结案</option><option>失访</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button><button class="btn">🪪 读卡建档</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="openModal('m-17-1-0')">新建孕产妇档案</button><button class="btn" onclick="">导出</button><div class="right"><button class="btn">刷新</button></div></div>
+<div class="card"><table><thead><tr><th>档案编号</th><th>姓名</th><th>年龄</th><th>村/居委会</th><th>孕周</th><th>预产期</th><th>五色分级</th><th>产检进度</th><th>产后访视</th><th>责任医生</th><th>操作</th></tr></thead><tbody><tr><td>DA-2026-020115</td><td>陈晓丽</td><td>28</td><td>东关社区</td><td>24周</td><td>2026-12-08</td><td><span class="tag green">绿色(低风险)</span></td><td>3/5</td><td>—</td><td>王建国</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">随访</span></td></tr>
+<tr><td>DA-2026-020116</td><td>杨春花</td><td>31</td><td>西河村</td><td>33周</td><td>2026-10-25</td><td><span class="tag red">红色(高风险)</span></td><td>4/5</td><td>—</td><td>李卫芳</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">随访</span> <span style="color:#1b6bb0;cursor:pointer">高危专案</span></td></tr>
+<tr><td>DA-2026-020119</td><td>郑海燕</td><td>29</td><td>张庄社区</td><td>产后3周</td><td>2026-10-10</td><td><span class="tag orange">橙色(较高风险)</span></td><td>5/5</td><td><span class="tag green">已完成</span></td><td>刘志强</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">42天检查</span></td></tr>
+<tr><td>DA-2026-020117</td><td>周美琳</td><td>25</td><td>殷巷村</td><td>10周</td><td>2027-02-14</td><td><span class="tag green">绿色(低风险)</span></td><td>1/5</td><td>—</td><td>赵敏</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">随访</span></td></tr>
+<tr><td>DA-2026-020120</td><td>冯小翠</td><td>27</td><td>东关社区</td><td>6周</td><td>2027-05-17</td><td><span class="tag orange">黄色(一般风险)</span></td><td>1/5</td><td>—</td><td>王建国</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">随访</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="mask" id="m-17-1-0"><div class="modal">
+<div class="mh">新建孕产妇档案<span class="x" onclick="closeModal('m-17-1-0')">×</span></div>
+<div class="mb"><fieldset><legend>基本信息</legend><div class="formgrid"><div class="fi"><label class=" req">姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fi"><label class=" req">性别</label><select class="ipt sel"><option>请选择</option><option>男</option><option>女</option></select></div>
+<div class="fi"><label class=" req">出生日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">民族</label><select class="ipt sel"><option>汉族</option><option>回族</option><option>满族</option><option>其他</option></select></div>
+<div class="fi"><label class=" req">身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fi"><label class="">联系电话</label><input class="ipt" placeholder="请输入联系电话"></div>
+<div class="fi"><label class="">婚姻状况</label><select class="ipt sel"><option>未婚</option><option>已婚</option><option>丧偶</option><option>离婚</option><option>不详</option></select></div>
+<div class="fi"><label class="">文化程度</label><select class="ipt sel"><option>研究生</option><option>大学本科</option><option>大专</option><option>中专/高中</option><option>初中</option><option>小学</option><option>不识字或识字很少</option></select></div>
+<div class="fi"><label class="">职业</label><select class="ipt sel"><option>工人</option><option>农民</option><option>商人</option><option>职员</option><option>教师</option><option>医务人员</option><option>家务</option><option>离退休</option><option>其他</option></select></div>
+<div class="fi wide"><label class="">户籍地址</label><input class="ipt" placeholder="请输入户籍地址"></div>
+<div class="fi wide"><label class="">现住址</label><input class="ipt" placeholder="请输入现住址"></div>
+<div class="fi"><label class=" req">村/居委会</label><select class="ipt sel"><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fi"><label class="">家庭档案编号</label><input class="ipt" placeholder="请输入家庭档案编号"></div>
+<div class="fi"><label class="">是否户籍常住</label><select class="ipt sel"><option>请选择</option><option>是</option><option>否</option></select></div>
+<div class="fi"><label class="">迁入日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">责任医生</label><select class="ipt sel"><option>王建国</option><option>李卫芳</option><option>赵敏</option><option>刘志强</option></select></div>
+<div class="fi"><label class=" req">建档医生</label><input class="ipt" placeholder="请输入建档医生"></div>
+<div class="fi"><label class=" req">建档日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">建档机构</label><select class="ipt sel"><option>山东大学齐鲁医院</option><option>东关社区卫生服务站</option><option>西河村卫生室</option><option>殷巷村卫生室</option></select></div>
+</div></fieldset><fieldset><legend>孕产信息</legend><div class="formgrid"><div class="fi"><label class=" req">末次月经</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class=" req">预产期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">孕次</label><input class="ipt"></div>
+<div class="fi"><label class="">产次</label><input class="ipt"></div>
+<div class="fi"><label class=" req">五色分级</label><select class="ipt sel"><option>绿色(低风险)</option><option>黄色(一般风险)</option><option>橙色(较高风险)</option><option>红色(高风险)</option><option>紫色(传染病)</option></select></div>
+<div class="fi wide"><label class="">高危因素</label><textarea class="ipt" placeholder="请输入高危因素"></textarea></div>
+<div class="fi"><label class=" req">建册日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+</div></fieldset></div><div class="mf"><button class="btn pri" onclick="alert('原型演示：保存成功');closeModal('m-17-1-0')">保 存</button><button class="btn" onclick="closeModal('m-17-1-0')">取 消</button></div></div></div>
+
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>孕产妇全程管理：孕早期建档、5次产检随访、产后访视（出院后1周内）与产后42天健康检查。<br><b>交互能力：</b>列表导出、身份证读卡器建档、新建登记、条件重置、组合条件查询、查询条件展开收起、编辑修改、随访登记、产后访视、高危管理等9项<br><b>待确认项：</b>五色分级（绿/黄/橙/红/紫）与高危孕产妇专案管理流程待确认<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg2"><div class="stat4"><div class="st 人"><div class="k">管理儿童</div><div class="v">1,824</div></div><div class="st 目标≥85%"><div class="k">系统管理率</div><div class="v">91.2%</div></div><div class="st —"><div class="k">新生儿访视率</div><div class="v">97.8%</div></div><div class="st 人"><div class="k">体弱儿童</div><div class="v">86</div></div></div>
+<div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fitem"><label>监护人</label><input class="ipt" placeholder="请输入监护人"></div>
+<div class="fitem"><label>身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fitem"><label>村/居委会</label><select class="ipt sel"><option>全部</option><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fitem"><label>月龄/年龄段</label><select class="ipt sel"><option>全部</option><option>新生儿期</option><option>婴儿期(1-12月)</option><option>幼儿期(1-3岁)</option><option>学龄前期(3-6岁)</option></select></div>
+<div class="fitem"><label>体检状态</label><select class="ipt sel"><option>全部</option><option>按期体检</option><option>逾期未体检</option></select></div>
+<div class="fitem"><label>责任医生</label><select class="ipt sel"><option>全部</option><option>王建国</option><option>李卫芳</option><option>赵敏</option><option>刘志强</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button><button class="btn">🪪 读卡建档</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="openModal('m-17-2-0')">新建儿童档案</button><button class="btn" onclick="">导出</button><div class="right"><button class="btn">刷新</button></div></div>
+<div class="card"><table><thead><tr><th>档案编号</th><th>姓名</th><th>性别</th><th>月龄</th><th>村/居委会</th><th>家长姓名</th><th>年龄段</th><th>体检进度</th><th>生长评级</th><th>责任医生</th><th>操作</th></tr></thead><tbody><tr><td>DA-2026-010201</td><td>刘一诺</td><td>男</td><td>8</td><td>东关社区</td><td>刘志强</td><td>婴儿期(1-12月)</td><td>6/8</td><td><span class="tag green">中上</span></td><td>刘志强</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">随访</span></td></tr>
+<tr><td>DA-2026-010388</td><td>王梓萱</td><td>女</td><td>13</td><td>西河村</td><td>王建国</td><td>幼儿期(1-3岁)</td><td>7/8</td><td><span class="tag green">中</span></td><td>王建国</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">随访</span></td></tr>
+<tr><td>DA-2026-010502</td><td>李昊然</td><td>男</td><td>19</td><td>殷巷村</td><td>李卫芳</td><td>幼儿期(1-3岁)</td><td>6/8</td><td><span class="tag orange">中下</span></td><td>李卫芳</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">随访</span></td></tr>
+<tr><td>DA-2026-010677</td><td>赵欣怡</td><td>女</td><td>25</td><td>龙山村</td><td>赵敏</td><td>幼儿期(1-3岁)</td><td>7/8</td><td><span class="tag green">中上</span></td><td>赵敏</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">随访</span></td></tr>
+<tr><td>DA-2026-010821</td><td>孙浩宇</td><td>男</td><td>52</td><td>张庄社区</td><td>王建国</td><td>学龄前期(3-6岁)</td><td>1/2</td><td><span class="tag green">中</span></td><td>王建国</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">随访</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="mask" id="m-17-2-0"><div class="modal">
+<div class="mh">新建儿童健康档案<span class="x" onclick="closeModal('m-17-2-0')">×</span></div>
+<div class="mb"><fieldset><legend>基本信息</legend><div class="formgrid"><div class="fi"><label class=" req">姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fi"><label class=" req">性别</label><select class="ipt sel"><option>请选择</option><option>男</option><option>女</option></select></div>
+<div class="fi"><label class=" req">出生日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">民族</label><select class="ipt sel"><option>汉族</option><option>回族</option><option>满族</option><option>其他</option></select></div>
+<div class="fi"><label class=" req">身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fi"><label class="">联系电话</label><input class="ipt" placeholder="请输入联系电话"></div>
+<div class="fi"><label class="">婚姻状况</label><select class="ipt sel"><option>未婚</option><option>已婚</option><option>丧偶</option><option>离婚</option><option>不详</option></select></div>
+<div class="fi"><label class="">文化程度</label><select class="ipt sel"><option>研究生</option><option>大学本科</option><option>大专</option><option>中专/高中</option><option>初中</option><option>小学</option><option>不识字或识字很少</option></select></div>
+<div class="fi"><label class="">职业</label><select class="ipt sel"><option>工人</option><option>农民</option><option>商人</option><option>职员</option><option>教师</option><option>医务人员</option><option>家务</option><option>离退休</option><option>其他</option></select></div>
+<div class="fi wide"><label class="">户籍地址</label><input class="ipt" placeholder="请输入户籍地址"></div>
+<div class="fi wide"><label class="">现住址</label><input class="ipt" placeholder="请输入现住址"></div>
+<div class="fi"><label class=" req">村/居委会</label><select class="ipt sel"><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fi"><label class="">家庭档案编号</label><input class="ipt" placeholder="请输入家庭档案编号"></div>
+<div class="fi"><label class="">是否户籍常住</label><select class="ipt sel"><option>请选择</option><option>是</option><option>否</option></select></div>
+<div class="fi"><label class="">迁入日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">责任医生</label><select class="ipt sel"><option>王建国</option><option>李卫芳</option><option>赵敏</option><option>刘志强</option></select></div>
+<div class="fi"><label class=" req">建档医生</label><input class="ipt" placeholder="请输入建档医生"></div>
+<div class="fi"><label class=" req">建档日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">建档机构</label><select class="ipt sel"><option>山东大学齐鲁医院</option><option>东关社区卫生服务站</option><option>西河村卫生室</option><option>殷巷村卫生室</option></select></div>
+</div></fieldset><fieldset><legend>出生与家长信息</legend><div class="formgrid"><div class="fi"><label class=" req">出生日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class=" req">出生体重(g)</label><input class="ipt"></div>
+<div class="fi"><label class="">出生身长</label><input class="ipt"></div>
+<div class="fi"><label class="">分娩方式</label><select class="ipt sel"><option>顺产</option><option>剖宫产</option><option>助产</option></select></div>
+<div class="fi"><label class=" req">家长姓名</label><input class="ipt" placeholder="请输入家长姓名"></div>
+<div class="fi"><label class=" req">与儿童关系</label><input class="ipt" placeholder="请输入与儿童关系"></div>
+<div class="fi"><label class=" req">家长联系电话</label><input class="ipt" placeholder="请输入家长联系电话"></div>
+</div></fieldset><fieldset><legend>检查信息</legend><div class="formgrid"><div class="fi"><label class="">新生儿访视日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">满月访视日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">体弱儿童</label><select class="ipt sel"><option>请选择</option><option>是</option><option>否</option></select></div>
+<div class="fi"><label class="">体弱类别</label><select class="ipt sel"><option>早产儿</option><option>低出生体重儿</option><option>营养不良</option><option>贫血</option><option>反复呼吸道感染</option></select></div>
+</div></fieldset></div><div class="mf"><button class="btn pri" onclick="alert('原型演示：保存成功');closeModal('m-17-2-0')">保 存</button><button class="btn" onclick="closeModal('m-17-2-0')">取 消</button></div></div></div>
+
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>0-6岁儿童健康管理：新生儿访视（出院后1周内）+ 满月、3/6/8/12/18/24/30/36月龄及4-6岁每年健康检查。<br><b>交互能力：</b>列表导出、身份证读卡器建档、新建登记、条件重置、组合条件查询、查询条件展开收起、编辑修改、随访登记 等8项<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg3"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fitem"><label>接种证号</label><input class="ipt" placeholder="请输入接种证号"></div>
+<div class="fitem"><label>村/居委会</label><select class="ipt sel"><option>全部</option><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fitem"><label>疫苗名称</label><select class="ipt sel"><option>全部</option><option>乙肝疫苗</option><option>卡介苗</option><option>脊灰疫苗</option><option>百白破</option><option>麻腮风</option><option>乙脑</option><option>流脑</option><option>甲肝</option><option>白破</option></select></div>
+<div class="fitem"><label>接种日期</label><input class="ipt" type="date"> ~ <input class="ipt" type="date"></div>
+<div class="fitem"><label>接种状态</label><select class="ipt sel"><option>全部</option><option>已完成</option><option>逾期未种</option><option>预约中</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="openModal('m-17-3-0')">新建接种登记</button><button class="btn" onclick="">导出</button><div class="right"><button class="btn">刷新</button></div></div>
+<div class="card"><table><thead><tr><th>接种证号</th><th>姓名</th><th>月龄</th><th>村/居委会</th><th>疫苗名称</th><th>接种剂次</th><th>接种日期</th><th>接种机构</th><th>接种医生</th><th>操作</th></tr></thead><tbody><tr><td>JZ-2026-12001</td><td>刘一诺</td><td>8</td><td>东关社区</td><td>流脑疫苗</td><td>第1剂</td><td>2026-09-14</td><td>山东大学齐鲁医院</td><td>刘志强</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>JZ-2026-12002</td><td>王梓萱</td><td>13</td><td>西河村</td><td>麻腮风疫苗</td><td>第2剂</td><td>2026-09-10</td><td>山东大学齐鲁医院</td><td>王建国</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>JZ-2026-12003</td><td>李昊然</td><td>19</td><td>殷巷村</td><td>甲肝疫苗</td><td>第1剂</td><td>2026-09-05</td><td>山东大学齐鲁医院</td><td>李卫芳</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>JZ-2026-12004</td><td>赵欣怡</td><td>25</td><td>龙山村</td><td>百白破疫苗</td><td>第4剂</td><td>2026-09-02</td><td>山东大学齐鲁医院</td><td>赵敏</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>JZ-2026-12005</td><td>孙浩宇</td><td>52</td><td>张庄社区</td><td>脊灰疫苗</td><td>加强</td><td><span class="tag red">2026-08-30 逾期</span></td><td>山东大学齐鲁医院</td><td>王建国</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">补种预约</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="mask" id="m-17-3-0"><div class="modal">
+<div class="mh">新建接种登记<span class="x" onclick="closeModal('m-17-3-0')">×</span></div>
+<div class="mb"><fieldset><legend>接种信息</legend><div class="formgrid"><div class="fi"><label class=" req">姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fi"><label class=" req">接种证号</label><input class="ipt" placeholder="请输入接种证号"></div>
+<div class="fi"><label class="">月龄</label><input class="ipt"></div>
+<div class="fi"><label class="">村/居委会</label><select class="ipt sel"><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fi"><label class=" req">疫苗名称</label><select class="ipt sel"><option>乙肝疫苗</option><option>卡介苗</option><option>脊灰疫苗</option><option>百白破</option><option>麻腮风</option><option>乙脑</option><option>流脑</option><option>甲肝</option><option>白破</option></select></div>
+<div class="fi"><label class=" req">接种剂次</label><input class="ipt" placeholder="请输入接种剂次"></div>
+<div class="fi"><label class=" req">接种日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class=" req">接种机构</label><select class="ipt sel"><option>山东大学齐鲁医院</option><option>东关社区卫生服务站</option><option>西河村卫生室</option><option>殷巷村卫生室</option></select></div>
+<div class="fi"><label class=" req">接种医生</label><select class="ipt sel"><option>王建国</option><option>李卫芳</option><option>赵敏</option><option>刘志强</option></select></div>
+<div class="fi"><label class="">疫苗批号</label><input class="ipt" placeholder="请输入疫苗批号"></div>
+<div class="fi wide"><label class="">接种反应</label><textarea class="ipt" placeholder="请输入接种反应"></textarea></div>
+</div></fieldset></div><div class="mf"><button class="btn pri" onclick="alert('原型演示：保存成功');closeModal('m-17-3-0')">保 存</button><button class="btn" onclick="closeModal('m-17-3-0')">取 消</button></div></div></div>
+
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>预防接种管理：疫苗预约、接种登记与查漏补种，面向儿童与成人免疫规划疫苗。<br><b>交互能力：</b>列表导出、新建登记、条件重置、组合条件查询<br><b>待确认项：</b>与省级免疫规划系统（疫苗追溯）双向同步待确认<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg4"><div class="stat4"><div class="st 人"><div class="k">应筛人群</div><div class="v">3,216</div></div><div class="st 人"><div class="k">已筛查</div><div class="v">1,864</div></div><div class="st 目标≥50%"><div class="k">筛查率</div><div class="v">57.96%</div></div><div class="st 人"><div class="k">异常转诊</div><div class="v">42</div></div></div>
+<div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fitem"><label>身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fitem"><label>村/居委会</label><select class="ipt sel"><option>全部</option><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fitem"><label>筛查年度</label><select class="ipt sel"><option>全部</option><option>2026</option><option>2025</option></select></div>
+<div class="fitem"><label>筛查结果</label><select class="ipt sel"><option>全部</option><option>阴性</option><option>HPV阳性</option><option>TCT异常</option><option>可疑癌变</option></select></div>
+<div class="fitem"><label>筛查日期</label><input class="ipt" type="date"> ~ <input class="ipt" type="date"></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button><button class="btn">🪪 读卡建档</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="openModal('m-17-4-0')">新建筛查登记</button><button class="btn" onclick="">导出</button><div class="right"><button class="btn">刷新</button></div></div>
+<div class="card"><table><thead><tr><th>筛查编号</th><th>姓名</th><th>年龄</th><th>村/居委会</th><th>筛查日期</th><th>筛查方式</th><th>筛查结果</th><th>处理意见</th><th>随访状态</th><th>操作</th></tr></thead><tbody><tr><td>GA-2026-0731</td><td>范秀云</td><td>38</td><td>东关社区</td><td>2026-08-12</td><td>HPV+TCT</td><td><span class="tag green">阴性</span></td><td>3年后复筛</td><td><span class="tag gray">无需随访</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>GA-2026-0730</td><td>常桂香</td><td>51</td><td>西河村</td><td>2026-08-12</td><td>HPV+TCT</td><td><span class="tag red">HPV阳性</span></td><td>转诊阴道镜</td><td><span class="tag orange">随访中</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">随访</span></td></tr>
+<tr><td>GA-2026-0729</td><td>皮凤兰</td><td>47</td><td>殷巷村</td><td>2026-08-13</td><td>TCT</td><td><span class="tag orange">TCT异常</span></td><td>3-6个月复查</td><td><span class="tag orange">随访中</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">随访</span></td></tr>
+<tr><td>GA-2026-0728</td><td>罗春霞</td><td>56</td><td>张庄社区</td><td>2026-08-15</td><td>HPV+TCT</td><td><span class="tag green">阴性</span></td><td>3年后复筛</td><td><span class="tag gray">无需随访</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>GA-2026-0727</td><td>阎淑芬</td><td>44</td><td>北辛村</td><td>2026-08-18</td><td>HPV</td><td><span class="tag green">阴性</span></td><td>3年后复筛</td><td><span class="tag gray">无需随访</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="mask" id="m-17-4-0"><div class="modal">
+<div class="mh">新建宫颈癌筛查登记<span class="x" onclick="closeModal('m-17-4-0')">×</span></div>
+<div class="mb"><fieldset><legend>基本信息</legend><div class="formgrid"><div class="fi"><label class=" req">姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fi"><label class=" req">性别</label><select class="ipt sel"><option>请选择</option><option>男</option><option>女</option></select></div>
+<div class="fi"><label class=" req">出生日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">民族</label><select class="ipt sel"><option>汉族</option><option>回族</option><option>满族</option><option>其他</option></select></div>
+<div class="fi"><label class=" req">身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fi"><label class="">联系电话</label><input class="ipt" placeholder="请输入联系电话"></div>
+<div class="fi"><label class="">婚姻状况</label><select class="ipt sel"><option>未婚</option><option>已婚</option><option>丧偶</option><option>离婚</option><option>不详</option></select></div>
+<div class="fi"><label class="">文化程度</label><select class="ipt sel"><option>研究生</option><option>大学本科</option><option>大专</option><option>中专/高中</option><option>初中</option><option>小学</option><option>不识字或识字很少</option></select></div>
+<div class="fi"><label class="">职业</label><select class="ipt sel"><option>工人</option><option>农民</option><option>商人</option><option>职员</option><option>教师</option><option>医务人员</option><option>家务</option><option>离退休</option><option>其他</option></select></div>
+<div class="fi wide"><label class="">户籍地址</label><input class="ipt" placeholder="请输入户籍地址"></div>
+<div class="fi wide"><label class="">现住址</label><input class="ipt" placeholder="请输入现住址"></div>
+<div class="fi"><label class=" req">村/居委会</label><select class="ipt sel"><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fi"><label class="">家庭档案编号</label><input class="ipt" placeholder="请输入家庭档案编号"></div>
+<div class="fi"><label class="">是否户籍常住</label><select class="ipt sel"><option>请选择</option><option>是</option><option>否</option></select></div>
+<div class="fi"><label class="">迁入日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">责任医生</label><select class="ipt sel"><option>王建国</option><option>李卫芳</option><option>赵敏</option><option>刘志强</option></select></div>
+<div class="fi"><label class=" req">建档医生</label><input class="ipt" placeholder="请输入建档医生"></div>
+<div class="fi"><label class=" req">建档日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">建档机构</label><select class="ipt sel"><option>山东大学齐鲁医院</option><option>东关社区卫生服务站</option><option>西河村卫生室</option><option>殷巷村卫生室</option></select></div>
+</div></fieldset><fieldset><legend>筛查信息</legend><div class="formgrid"><div class="fi"><label class=" req">筛查年度</label><select class="ipt sel"><option>2026</option><option>2025</option></select></div>
+<div class="fi"><label class=" req">筛查日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class=" req">筛查方式</label><select class="ipt sel"><option>HPV</option><option>TCT</option><option>HPV+TCT</option></select></div>
+<div class="fi"><label class="">HPV检测结果</label><select class="ipt sel"><option>阴性</option><option>阳性</option><option>未查</option></select></div>
+<div class="fi"><label class="">TCT检测结果</label><select class="ipt sel"><option>阴性</option><option>异常</option><option>未查</option></select></div>
+<div class="fi"><label class=" req">处理意见</label><select class="ipt sel"><option>3年后复筛</option><option>3-6个月复查</option><option>转诊阴道镜</option><option>转诊治疗</option></select></div>
+<div class="fi wide"><label class="">随访记录</label><textarea class="ipt" placeholder="请输入随访记录"></textarea></div>
+</div></fieldset></div><div class="mf"><button class="btn pri" onclick="alert('原型演示：保存成功');closeModal('m-17-4-0')">保 存</button><button class="btn" onclick="closeModal('m-17-4-0')">取 消</button></div></div></div>
+
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>35-64岁妇女宫颈癌筛查项目：登记、HPV/TCT检查结果与随访管理。<br><b>交互能力：</b>列表导出、新建登记、条件重置、组合条件查询、查询条件展开收起<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg5"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fitem"><label>身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fitem"><label>村/居委会</label><select class="ipt sel"><option>全部</option><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fitem"><label>筛查年度</label><select class="ipt sel"><option>全部</option><option>2026</option><option>2025</option></select></div>
+<div class="fitem"><label>筛查结果</label><select class="ipt sel"><option>全部</option><option>阴性</option><option>乳腺结节BI-RADS 3类</option><option>BI-RADS 4类及以上</option><option>可疑癌变</option></select></div>
+<div class="fitem"><label>筛查日期</label><input class="ipt" type="date"> ~ <input class="ipt" type="date"></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button><button class="btn">🪪 读卡建档</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="openModal('m-17-5-0')">新建筛查登记</button><button class="btn" onclick="">导出</button><div class="right"><button class="btn">刷新</button></div></div>
+<div class="card"><table><thead><tr><th>筛查编号</th><th>姓名</th><th>年龄</th><th>村/居委会</th><th>筛查日期</th><th>筛查方式</th><th>筛查结果</th><th>处理意见</th><th>随访状态</th><th>操作</th></tr></thead><tbody><tr><td>RA-2026-0602</td><td>范秀云</td><td>38</td><td>东关社区</td><td>2026-08-14</td><td>乳腺超声</td><td><span class="tag green">阴性</span></td><td>2年后复筛</td><td><span class="tag gray">无需随访</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>RA-2026-0601</td><td>常桂香</td><td>51</td><td>西河村</td><td>2026-08-14</td><td>乳腺超声</td><td><span class="tag orange">乳腺结节BI-RADS 3类</span></td><td>6个月复查</td><td><span class="tag orange">随访中</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">随访</span></td></tr>
+<tr><td>RA-2026-0600</td><td>皮凤兰</td><td>47</td><td>殷巷村</td><td>2026-08-15</td><td>超声+钼靶</td><td><span class="tag red">BI-RADS 4类及以上</span></td><td>转诊穿刺活检</td><td><span class="tag red">转诊中</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">随访</span> <span style="color:#1b6bb0;cursor:pointer">转诊</span></td></tr>
+<tr><td>RA-2026-0599</td><td>罗春霞</td><td>56</td><td>张庄社区</td><td>2026-08-18</td><td>乳腺超声</td><td><span class="tag green">阴性</span></td><td>2年后复筛</td><td><span class="tag gray">无需随访</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>RA-2026-0598</td><td>阎淑芬</td><td>44</td><td>北辛村</td><td>2026-08-20</td><td>乳腺超声</td><td>—</td><td>待查</td><td><span class="tag blue">待通知</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">补筛通知</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="mask" id="m-17-5-0"><div class="modal">
+<div class="mh">新建乳腺癌筛查登记<span class="x" onclick="closeModal('m-17-5-0')">×</span></div>
+<div class="mb"><fieldset><legend>基本信息</legend><div class="formgrid"><div class="fi"><label class=" req">姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fi"><label class=" req">性别</label><select class="ipt sel"><option>请选择</option><option>男</option><option>女</option></select></div>
+<div class="fi"><label class=" req">出生日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">民族</label><select class="ipt sel"><option>汉族</option><option>回族</option><option>满族</option><option>其他</option></select></div>
+<div class="fi"><label class=" req">身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fi"><label class="">联系电话</label><input class="ipt" placeholder="请输入联系电话"></div>
+<div class="fi"><label class="">婚姻状况</label><select class="ipt sel"><option>未婚</option><option>已婚</option><option>丧偶</option><option>离婚</option><option>不详</option></select></div>
+<div class="fi"><label class="">文化程度</label><select class="ipt sel"><option>研究生</option><option>大学本科</option><option>大专</option><option>中专/高中</option><option>初中</option><option>小学</option><option>不识字或识字很少</option></select></div>
+<div class="fi"><label class="">职业</label><select class="ipt sel"><option>工人</option><option>农民</option><option>商人</option><option>职员</option><option>教师</option><option>医务人员</option><option>家务</option><option>离退休</option><option>其他</option></select></div>
+<div class="fi wide"><label class="">户籍地址</label><input class="ipt" placeholder="请输入户籍地址"></div>
+<div class="fi wide"><label class="">现住址</label><input class="ipt" placeholder="请输入现住址"></div>
+<div class="fi"><label class=" req">村/居委会</label><select class="ipt sel"><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fi"><label class="">家庭档案编号</label><input class="ipt" placeholder="请输入家庭档案编号"></div>
+<div class="fi"><label class="">是否户籍常住</label><select class="ipt sel"><option>请选择</option><option>是</option><option>否</option></select></div>
+<div class="fi"><label class="">迁入日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">责任医生</label><select class="ipt sel"><option>王建国</option><option>李卫芳</option><option>赵敏</option><option>刘志强</option></select></div>
+<div class="fi"><label class=" req">建档医生</label><input class="ipt" placeholder="请输入建档医生"></div>
+<div class="fi"><label class=" req">建档日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">建档机构</label><select class="ipt sel"><option>山东大学齐鲁医院</option><option>东关社区卫生服务站</option><option>西河村卫生室</option><option>殷巷村卫生室</option></select></div>
+</div></fieldset><fieldset><legend>筛查信息</legend><div class="formgrid"><div class="fi"><label class=" req">筛查年度</label><select class="ipt sel"><option>2026</option><option>2025</option></select></div>
+<div class="fi"><label class=" req">筛查日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class=" req">筛查方式</label><select class="ipt sel"><option>乳腺超声</option><option>超声+钼靶</option></select></div>
+<div class="fi"><label class="">筛查结果</label><select class="ipt sel"><option>阴性</option><option>乳腺结节BI-RADS 3类</option><option>BI-RADS 4类及以上</option><option>可疑癌变</option></select></div>
+<div class="fi"><label class="">处理意见</label><select class="ipt sel"><option>2年后复筛</option><option>6个月复查</option><option>转诊穿刺活检</option><option>转诊治疗</option></select></div>
+<div class="fi wide"><label class="">随访记录</label><textarea class="ipt" placeholder="请输入随访记录"></textarea></div>
+</div></fieldset></div><div class="mf"><button class="btn pri" onclick="alert('原型演示：保存成功');closeModal('m-17-5-0')">保 存</button><button class="btn" onclick="closeModal('m-17-5-0')">取 消</button></div></div></div>
+
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>35-64岁妇女乳腺癌筛查项目：登记、乳腺超声/钼靶检查结果、随访与转诊管理。<br><b>交互能力：</b>列表导出、新建登记、条件重置、组合条件查询、查询条件展开收起、编辑修改、随访登记、转诊登记、结果录入、补筛通知 等10项<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg6"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fitem"><label>身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fitem"><label>村/居委会</label><select class="ipt sel"><option>全部</option><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fitem"><label>管理对象</label><select class="ipt sel"><option>全部</option><option>感染孕产妇</option><option>所生儿童</option></select></div>
+<div class="fitem"><label>阻断状态</label><select class="ipt sel"><option>全部</option><option>阻断中</option><option>已评估</option><option>阻断失败</option></select></div>
+<div class="fitem"><label>登记日期</label><input class="ipt" type="date"> ~ <input class="ipt" type="date"></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button><button class="btn">🪪 读卡建档</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="openModal('m-17-6-0')">新建登记</button><button class="btn" onclick="">导出</button><div class="right"><button class="btn">刷新</button></div></div>
+<div class="card"><table><thead><tr><th>登记编号</th><th>管理对象</th><th>姓名</th><th>年龄</th><th>村/居委会</th><th>感染状态</th><th>阻断措施</th><th>婴儿乙肝免疫球蛋白</th><th>阻断评估</th><th>操作</th></tr></thead><tbody><tr><td>YB-2026-011</td><td>感染孕产妇</td><td>杨春花</td><td>31</td><td>西河村</td><td>HBsAg+</td><td>孕晚期抗病毒</td><td>出生12h内已注射</td><td><span class="tag orange">7月龄评估</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>YB-2026-010</td><td>所生儿童</td><td>杨宝宝(7月)</td><td>—</td><td>西河村</td><td>暴露儿童</td><td>疫苗+球蛋白全程</td><td>已完成</td><td><span class="tag orange">随访中</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">随访</span></td></tr>
+<tr><td>YB-2025-023</td><td>感染孕产妇</td><td>牛桂荣</td><td>29</td><td>中心村</td><td>HBsAg+</td><td>孕晚期抗病毒</td><td>出生12h内已注射</td><td><span class="tag green">阻断成功</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>YB-2025-022</td><td>所生儿童</td><td>牛宝宝(12月)</td><td>—</td><td>中心村</td><td>暴露儿童</td><td>疫苗+球蛋白全程</td><td>已完成</td><td><span class="tag green">已评估</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>YB-2024-031</td><td>感染孕产妇</td><td>黄丽霞</td><td>35</td><td>解放路社区</td><td>HBsAg+/HBeAg+</td><td>孕晚期抗病毒</td><td>出生12h内已注射</td><td><span class="tag gray">已完成评估</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="mask" id="m-17-6-0"><div class="modal">
+<div class="mh">新建乙肝母婴阻断登记<span class="x" onclick="closeModal('m-17-6-0')">×</span></div>
+<div class="mb"><fieldset><legend>基本信息</legend><div class="formgrid"><div class="fi"><label class=" req">姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fi"><label class=" req">性别</label><select class="ipt sel"><option>请选择</option><option>男</option><option>女</option></select></div>
+<div class="fi"><label class=" req">出生日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">民族</label><select class="ipt sel"><option>汉族</option><option>回族</option><option>满族</option><option>其他</option></select></div>
+<div class="fi"><label class=" req">身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fi"><label class="">联系电话</label><input class="ipt" placeholder="请输入联系电话"></div>
+<div class="fi"><label class="">婚姻状况</label><select class="ipt sel"><option>未婚</option><option>已婚</option><option>丧偶</option><option>离婚</option><option>不详</option></select></div>
+<div class="fi"><label class="">文化程度</label><select class="ipt sel"><option>研究生</option><option>大学本科</option><option>大专</option><option>中专/高中</option><option>初中</option><option>小学</option><option>不识字或识字很少</option></select></div>
+<div class="fi"><label class="">职业</label><select class="ipt sel"><option>工人</option><option>农民</option><option>商人</option><option>职员</option><option>教师</option><option>医务人员</option><option>家务</option><option>离退休</option><option>其他</option></select></div>
+<div class="fi wide"><label class="">户籍地址</label><input class="ipt" placeholder="请输入户籍地址"></div>
+<div class="fi wide"><label class="">现住址</label><input class="ipt" placeholder="请输入现住址"></div>
+<div class="fi"><label class=" req">村/居委会</label><select class="ipt sel"><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fi"><label class="">家庭档案编号</label><input class="ipt" placeholder="请输入家庭档案编号"></div>
+<div class="fi"><label class="">是否户籍常住</label><select class="ipt sel"><option>请选择</option><option>是</option><option>否</option></select></div>
+<div class="fi"><label class="">迁入日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">责任医生</label><select class="ipt sel"><option>王建国</option><option>李卫芳</option><option>赵敏</option><option>刘志强</option></select></div>
+<div class="fi"><label class=" req">建档医生</label><input class="ipt" placeholder="请输入建档医生"></div>
+<div class="fi"><label class=" req">建档日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">建档机构</label><select class="ipt sel"><option>山东大学齐鲁医院</option><option>东关社区卫生服务站</option><option>西河村卫生室</option><option>殷巷村卫生室</option></select></div>
+</div></fieldset><fieldset><legend>感染与阻断信息</legend><div class="formgrid"><div class="fi"><label class=" req">管理对象</label><select class="ipt sel"><option>感染孕产妇</option><option>所生儿童</option></select></div>
+<div class="fi"><label class=" req">感染状态</label><input class="ipt" placeholder="请输入感染状态"></div>
+<div class="fi"><label class=" req">阻断措施</label><input class="ipt" placeholder="请输入阻断措施"></div>
+<div class="fi"><label class="">免疫球蛋白注射时间</label><input class="ipt" placeholder="请输入免疫球蛋白注射时间"></div>
+<div class="fi"><label class=" req">阻断状态</label><select class="ipt sel"><option>阻断中</option><option>已评估</option><option>阻断失败</option></select></div>
+<div class="fi wide"><label class="">随访记录</label><textarea class="ipt" placeholder="请输入随访记录"></textarea></div>
+</div></fieldset></div><div class="mf"><button class="btn pri" onclick="alert('原型演示：保存成功');closeModal('m-17-6-0')">保 存</button><button class="btn" onclick="closeModal('m-17-6-0')">取 消</button></div></div></div>
+
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>乙肝感染孕产妇及所生儿童管理：母婴阻断服务记录、阻断效果随访。<br><b>交互能力：</b>列表导出、新建登记、条件重置、组合条件查询、查询条件展开收起<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg7"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fitem"><label>身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fitem"><label>村/居委会</label><select class="ipt sel"><option>全部</option><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fitem"><label>管理对象</label><select class="ipt sel"><option>全部</option><option>感染孕产妇</option><option>所生儿童</option></select></div>
+<div class="fitem"><label>治疗状态</label><select class="ipt sel"><option>全部</option><option>治疗中</option><option>已完成规范治疗</option><option>失访</option></select></div>
+<div class="fitem"><label>登记日期</label><input class="ipt" type="date"> ~ <input class="ipt" type="date"></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button><button class="btn">🪪 读卡建档</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="openModal('m-17-7-0')">新建登记</button><button class="btn" onclick="">导出</button><div class="right"><button class="btn">刷新</button></div></div>
+<div class="card"><table><thead><tr><th>登记编号</th><th>管理对象</th><th>姓名</th><th>年龄</th><th>村/居委会</th><th>筛查结果</th><th>治疗方案</th><th>治疗状态</th><th>儿童随访评估</th><th>操作</th></tr></thead><tbody><tr><td>MS-2026-006</td><td>感染孕产妇</td><td>文美玲</td><td>27</td><td>东关社区</td><td>TPPA+/RPR 1:8</td><td>苄星青霉素规范治疗</td><td><span class="tag green">已完成规范治疗</span></td><td><span class="tag blue">随访中</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">随访</span></td></tr>
+<tr><td>MS-2026-005</td><td>所生儿童</td><td>文宝宝(3月)</td><td>—</td><td>东关社区</td><td>暴露儿童</td><td>预防性治疗完成</td><td><span class="tag green">已完成</span></td><td><span class="tag orange">6月龄评估</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span></td></tr>
+<tr><td>MS-2025-014</td><td>感染孕产妇</td><td>柴凤英</td><td>30</td><td>龙山村</td><td>TPPA+/RPR 1:4</td><td>苄星青霉素规范治疗</td><td><span class="tag green">已完成规范治疗</span></td><td><span class="tag green">已评估</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>MS-2025-013</td><td>所生儿童</td><td>柴宝宝(14月)</td><td>—</td><td>龙山村</td><td>先天梅毒疑似</td><td>规范治疗完成</td><td><span class="tag green">已完成</span></td><td><span class="tag green">已评估</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>MS-2026-007</td><td>感染孕产妇</td><td>邬小燕</td><td>24</td><td>南刘村</td><td>TPPA+/RPR 1:16</td><td>苄星青霉素规范治疗</td><td><span class="tag red">失访</span></td><td><span class="tag red">待追访</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">追访</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="mask" id="m-17-7-0"><div class="modal">
+<div class="mh">新建梅毒感染管理登记<span class="x" onclick="closeModal('m-17-7-0')">×</span></div>
+<div class="mb"><fieldset><legend>基本信息</legend><div class="formgrid"><div class="fi"><label class=" req">姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fi"><label class=" req">性别</label><select class="ipt sel"><option>请选择</option><option>男</option><option>女</option></select></div>
+<div class="fi"><label class=" req">出生日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">民族</label><select class="ipt sel"><option>汉族</option><option>回族</option><option>满族</option><option>其他</option></select></div>
+<div class="fi"><label class=" req">身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fi"><label class="">联系电话</label><input class="ipt" placeholder="请输入联系电话"></div>
+<div class="fi"><label class="">婚姻状况</label><select class="ipt sel"><option>未婚</option><option>已婚</option><option>丧偶</option><option>离婚</option><option>不详</option></select></div>
+<div class="fi"><label class="">文化程度</label><select class="ipt sel"><option>研究生</option><option>大学本科</option><option>大专</option><option>中专/高中</option><option>初中</option><option>小学</option><option>不识字或识字很少</option></select></div>
+<div class="fi"><label class="">职业</label><select class="ipt sel"><option>工人</option><option>农民</option><option>商人</option><option>职员</option><option>教师</option><option>医务人员</option><option>家务</option><option>离退休</option><option>其他</option></select></div>
+<div class="fi wide"><label class="">户籍地址</label><input class="ipt" placeholder="请输入户籍地址"></div>
+<div class="fi wide"><label class="">现住址</label><input class="ipt" placeholder="请输入现住址"></div>
+<div class="fi"><label class=" req">村/居委会</label><select class="ipt sel"><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fi"><label class="">家庭档案编号</label><input class="ipt" placeholder="请输入家庭档案编号"></div>
+<div class="fi"><label class="">是否户籍常住</label><select class="ipt sel"><option>请选择</option><option>是</option><option>否</option></select></div>
+<div class="fi"><label class="">迁入日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">责任医生</label><select class="ipt sel"><option>王建国</option><option>李卫芳</option><option>赵敏</option><option>刘志强</option></select></div>
+<div class="fi"><label class=" req">建档医生</label><input class="ipt" placeholder="请输入建档医生"></div>
+<div class="fi"><label class=" req">建档日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">建档机构</label><select class="ipt sel"><option>山东大学齐鲁医院</option><option>东关社区卫生服务站</option><option>西河村卫生室</option><option>殷巷村卫生室</option></select></div>
+</div></fieldset><fieldset><legend>感染与治疗信息</legend><div class="formgrid"><div class="fi"><label class=" req">管理对象</label><select class="ipt sel"><option>感染孕产妇</option><option>所生儿童</option></select></div>
+<div class="fi"><label class=" req">筛查结果</label><input class="ipt" placeholder="请输入筛查结果"></div>
+<div class="fi"><label class=" req">治疗方案</label><input class="ipt" placeholder="请输入治疗方案"></div>
+<div class="fi"><label class=" req">治疗状态</label><select class="ipt sel"><option>治疗中</option><option>已完成规范治疗</option><option>失访</option></select></div>
+<div class="fi wide"><label class="">儿童随访评估</label><textarea class="ipt" placeholder="请输入儿童随访评估"></textarea></div>
+</div></fieldset></div><div class="mf"><button class="btn pri" onclick="alert('原型演示：保存成功');closeModal('m-17-7-0')">保 存</button><button class="btn" onclick="closeModal('m-17-7-0')">取 消</button></div></div></div>
+
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>梅毒感染孕产妇及所生儿童管理：规范治疗、所生儿童预防性治疗与随访评估。<br><b>交互能力：</b>列表导出、新建登记、条件重置、组合条件查询、查询条件展开收起<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg8"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fitem"><label>身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fitem"><label>村/居委会</label><select class="ipt sel"><option>全部</option><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fitem"><label>管理对象</label><select class="ipt sel"><option>全部</option><option>感染孕产妇</option><option>所生儿童</option></select></div>
+<div class="fitem"><label>治疗状态</label><select class="ipt sel"><option>全部</option><option>抗病毒治疗中</option><option>已完成随访评估</option><option>转介定点医院</option></select></div>
+<div class="fitem"><label>登记日期</label><input class="ipt" type="date"> ~ <input class="ipt" type="date"></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button><button class="btn">🪪 读卡建档</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="openModal('m-17-8-0')">新建登记</button><button class="btn" onclick="">导出</button><div class="right"><button class="btn">刷新</button></div></div>
+<div class="card"><table><thead><tr><th>登记编号</th><th>管理对象</th><th>姓名</th><th>年龄</th><th>村/居委会</th><th>治疗状态</th><th>所生儿童早期诊断</th><th>随访状态</th><th>责任医生</th><th>操作</th></tr></thead><tbody><tr><td>AZ-2026-003</td><td>感染孕产妇</td><td>（保密）**丽</td><td>26</td><td>—</td><td><span class="tag green">抗病毒治疗中</span></td><td><span class="tag blue">待评估</span></td><td><span class="tag orange">随访中</span></td><td>刘志强</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">随访</span></td></tr>
+<tr><td>AZ-2026-002</td><td>所生儿童</td><td>（保密）小**</td><td>4月</td><td>—</td><td>预防性治疗完成</td><td><span class="tag green">阴性(早期诊断)</span></td><td><span class="tag orange">随访中</span></td><td>刘志强</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">随访</span></td></tr>
+<tr><td>AZ-2025-005</td><td>感染孕产妇</td><td>（保密）**芳</td><td>32</td><td>—</td><td><span class="tag gray">已完成随访评估</span></td><td><span class="tag green">阴性</span></td><td><span class="tag green">已结案</span></td><td>赵敏</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+<tr><td>AZ-2025-004</td><td>所生儿童</td><td>（保密）小**</td><td>18月</td><td>—</td><td>随访完成</td><td><span class="tag green">阴性(18月)</span></td><td><span class="tag green">已结案</span></td><td>赵敏</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="mask" id="m-17-8-0"><div class="modal">
+<div class="mh">新建艾滋病感染管理登记<span class="x" onclick="closeModal('m-17-8-0')">×</span></div>
+<div class="mb"><fieldset><legend>基本信息</legend><div class="formgrid"><div class="fi"><label class=" req">姓名</label><input class="ipt" placeholder="请输入姓名"></div>
+<div class="fi"><label class=" req">性别</label><select class="ipt sel"><option>请选择</option><option>男</option><option>女</option></select></div>
+<div class="fi"><label class=" req">出生日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">民族</label><select class="ipt sel"><option>汉族</option><option>回族</option><option>满族</option><option>其他</option></select></div>
+<div class="fi"><label class=" req">身份证号</label><input class="ipt" placeholder="请输入身份证号"></div>
+<div class="fi"><label class="">联系电话</label><input class="ipt" placeholder="请输入联系电话"></div>
+<div class="fi"><label class="">婚姻状况</label><select class="ipt sel"><option>未婚</option><option>已婚</option><option>丧偶</option><option>离婚</option><option>不详</option></select></div>
+<div class="fi"><label class="">文化程度</label><select class="ipt sel"><option>研究生</option><option>大学本科</option><option>大专</option><option>中专/高中</option><option>初中</option><option>小学</option><option>不识字或识字很少</option></select></div>
+<div class="fi"><label class="">职业</label><select class="ipt sel"><option>工人</option><option>农民</option><option>商人</option><option>职员</option><option>教师</option><option>医务人员</option><option>家务</option><option>离退休</option><option>其他</option></select></div>
+<div class="fi wide"><label class="">户籍地址</label><input class="ipt" placeholder="请输入户籍地址"></div>
+<div class="fi wide"><label class="">现住址</label><input class="ipt" placeholder="请输入现住址"></div>
+<div class="fi"><label class=" req">村/居委会</label><select class="ipt sel"><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fi"><label class="">家庭档案编号</label><input class="ipt" placeholder="请输入家庭档案编号"></div>
+<div class="fi"><label class="">是否户籍常住</label><select class="ipt sel"><option>请选择</option><option>是</option><option>否</option></select></div>
+<div class="fi"><label class="">迁入日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">责任医生</label><select class="ipt sel"><option>王建国</option><option>李卫芳</option><option>赵敏</option><option>刘志强</option></select></div>
+<div class="fi"><label class=" req">建档医生</label><input class="ipt" placeholder="请输入建档医生"></div>
+<div class="fi"><label class=" req">建档日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">建档机构</label><select class="ipt sel"><option>山东大学齐鲁医院</option><option>东关社区卫生服务站</option><option>西河村卫生室</option><option>殷巷村卫生室</option></select></div>
+</div></fieldset><fieldset><legend>治疗与随访信息</legend><div class="formgrid"><div class="fi"><label class=" req">管理对象</label><select class="ipt sel"><option>感染孕产妇</option><option>所生儿童</option></select></div>
+<div class="fi"><label class=" req">治疗状态</label><select class="ipt sel"><option>抗病毒治疗中</option><option>已完成随访评估</option><option>转介定点医院</option></select></div>
+<div class="fi"><label class="">所生儿童早期诊断</label><select class="ipt sel"><option>待评估</option><option>阴性</option><option>阳性</option><option>不适用</option></select></div>
+<div class="fi wide"><label class="">随访记录</label><textarea class="ipt" placeholder="请输入随访记录"></textarea></div>
+</div></fieldset></div><div class="mf"><button class="btn pri" onclick="alert('原型演示：保存成功');closeModal('m-17-8-0')">保 存</button><button class="btn" onclick="closeModal('m-17-8-0')">取 消</button></div></div></div>
+
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>艾滋病感染孕产妇及所生儿童管理：抗病毒治疗、所生儿童早期诊断与随访（信息严格保密）。<br><b>交互能力：</b>列表导出、新建登记、条件重置、组合条件查询、查询条件展开收起<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+</div></main></div>
+<script>
+function showTab(n){
+  document.querySelectorAll('.tabs .tab').forEach((t,i)=>t.classList.toggle('cur',i===n));
+  document.querySelectorAll('.page').forEach((p,i)=>p.classList.toggle('cur',i===n));
+  window.scrollTo(0,0);
+}
+function openModal(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+function toggleMore(btn){
+  var box=btn.closest('.qgrid');var h=box.querySelector('.hid');
+  if(h.style.display==='none'){h.style.display='flex';btn.textContent='收起 ▲'}else{h.style.display='none';btn.textContent='展开更多查询 ▼'}
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.mask.show').forEach(m=>m.classList.remove('show'))});
+</script></body></html>

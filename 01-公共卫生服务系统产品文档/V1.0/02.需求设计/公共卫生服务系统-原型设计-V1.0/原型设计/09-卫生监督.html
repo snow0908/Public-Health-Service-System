@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>卫生监督协管 · 公共卫生服务系统原型</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;font-size:14px;color:#333;background:#f0f2f5}
+a{text-decoration:none;color:inherit}
+.layout{display:flex;min-height:100vh}
+aside{width:210px;background:#263238;color:#cfd8dc;flex-shrink:0;display:flex;flex-direction:column}
+.logo{height:56px;background:#1b6bb0;color:#fff;display:flex;align-items:center;padding:0 14px;font-size:15px;font-weight:600;letter-spacing:1px}
+.logo .cross{width:22px;height:22px;border:2px solid #fff;border-radius:4px;position:relative;margin-right:8px;flex-shrink:0}
+.logo .cross:after{content:"+";position:absolute;left:50%;top:50%;transform:translate(-50%,-52%);font-size:20px;font-weight:700}
+.userbar{padding:10px 14px;border-bottom:1px solid #37474f;font-size:12px;line-height:1.9}
+.userbar b{color:#80deea}
+.nav{flex:1;overflow-y:auto;padding:6px 0 30px}
+.nav .grp{padding:12px 14px 4px;font-size:11px;color:#78909c;letter-spacing:1px}
+.nav a{display:block;padding:8px 14px 8px 22px;color:#cfd8dc;font-size:13px;border-left:3px solid transparent}
+.nav a:hover{background:#37474f;color:#fff}
+.nav a.cur{background:#1b6bb0;color:#fff;border-left-color:#4fc3f7}
+main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{height:56px;background:#fff;box-shadow:0 1px 4px rgba(0,21,41,.08);display:flex;align-items:center;padding:0 20px;gap:12px}
+.crumb{font-size:13px;color:#909399}
+.crumb b{color:#303133;font-weight:600}
+.orgsel{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:13px}
+.orgsel .org{border:1px solid #dcdfe6;border-radius:4px;padding:5px 10px;color:#1b6bb0;background:#ecf5ff;cursor:pointer}
+.orgsel .org:before{content:"🏥 "}
+.avatar{width:30px;height:30px;border-radius:50%;background:#1b6bb0;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px}
+.mainwrap{flex:1;padding:14px;overflow-y:auto}
+.modhead{background:#fff;border-radius:4px;padding:14px 18px;margin-bottom:12px;border-left:4px solid #1b6bb0}
+.modhead h1{font-size:17px;color:#303133}
+.modhead p{margin-top:6px;font-size:12px;color:#909399;line-height:1.7}
+.tabs{background:#fff;border-bottom:1px solid #e4e7ed;padding:0 10px;display:flex;flex-wrap:wrap}
+.tabs .tab{padding:11px 18px;font-size:14px;color:#606266;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs .tab:hover{color:#1b6bb0}
+.tabs .tab.cur{color:#1b6bb0;border-bottom-color:#1b6bb0;font-weight:600}
+.page{display:none;padding-top:12px}
+.page.cur{display:block}
+.card{background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:16px 18px;margin-bottom:12px}
+.card .ttl{font-size:14px;font-weight:600;color:#303133;margin-bottom:12px;padding-left:8px;border-left:3px solid #1b6bb0}
+.qgrid{display:flex;flex-wrap:wrap;gap:10px 16px}
+.fitem{display:flex;align-items:center;font-size:13px}
+.fitem label{color:#606266;white-space:nowrap;margin-right:8px}
+.ipt{border:1px solid #dcdfe6;border-radius:4px;height:30px;line-height:28px;padding:0 10px;min-width:150px;color:#606266;background:#fff}
+.ipt.sel{min-width:130px;appearance:auto}
+.fitem textarea.ipt{height:52px;padding:6px 10px;line-height:1.5;font-family:inherit;min-width:340px}
+.qbtns{width:100%;display:flex;gap:8px;padding-top:4px}
+.more{font-size:12px;color:#1b6bb0;cursor:pointer;align-self:flex-end;margin:6px 0 0 4px}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;border-radius:4px;border:1px solid #dcdfe6;background:#fff;color:#606266;font-size:13px;cursor:pointer;gap:4px}
+.btn.pri{background:#1b6bb0;border-color:#1b6bb0;color:#fff}
+.btn.warn{background:#e6a23c;border-color:#e6a23c;color:#fff}
+.btn.txt{border:none;color:#1b6bb0;padding:0 6px;height:auto;font-size:13px}
+.btn.txt.red{color:#f56c6c}
+.toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.toolbar .right{margin-left:auto;display:flex;gap:8px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f5f7fa;color:#606266;font-weight:600;text-align:left;padding:10px 8px;border-bottom:1px solid #ebeef5;white-space:nowrap}
+td{padding:9px 8px;border-bottom:1px solid #ebeef5;color:#606266;white-space:nowrap}
+tr:hover td{background:#f5f7fa}
+.tag{display:inline-block;padding:1px 8px;border-radius:3px;font-size:12px;line-height:18px}
+.tag.blue{background:#ecf5ff;color:#1b6bb0;border:1px solid #b3d8ff}
+.tag.green{background:#f0f9eb;color:#67c23a;border:1px solid #c2e7b0}
+.tag.red{background:#fef0f0;color:#f56c6c;border:1px solid #fbc4c4}
+.tag.orange{background:#fdf6ec;color:#e6a23c;border:1px solid #f5dab1}
+.tag.gray{background:#f4f4f5;color:#909399;border:1px solid #d3d4d6}
+.tag.purple{background:#f4ecfb;color:#8e44ad;border:1px solid #d7bde2}
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:6px;padding-top:12px;font-size:13px;color:#606266}
+.pager .pno{border:1px solid #dcdfe6;border-radius:3px;min-width:28px;height:26px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0 5px}
+.pager .pno.cur{background:#1b6bb0;color:#fff;border-color:#1b6bb0}
+.pagenote{padding:16px 18px;background:#fff;border-radius:4px;font-size:12px;color:#909399;line-height:1.9;margin-top:12px}
+.pagenote b{color:#606266}
+.mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 16px}
+.mask.show{display:flex}
+.modal{background:#fff;border-radius:6px;width:760px;max-width:96vw;box-shadow:0 4px 24px rgba(0,0,0,.2)}
+.modal.wide{width:960px}
+.modal .mh{padding:14px 20px;border-bottom:1px solid #ebeef5;font-size:15px;font-weight:600;display:flex;align-items:center}
+.modal .mh .x{margin-left:auto;cursor:pointer;color:#909399;font-weight:400;font-size:18px}
+.modal .mb{padding:18px 20px;max-height:64vh;overflow-y:auto}
+.modal .mf{padding:12px 20px;border-top:1px solid #ebeef5;display:flex;justify-content:flex-end;gap:8px}
+.formgrid{display:flex;flex-wrap:wrap;gap:14px 24px}
+.formgrid .fi{display:flex;align-items:center;font-size:13px;width:calc(50% - 12px)}
+.formgrid .fi.wide{width:100%}
+.formgrid .fi label{color:#606266;min-width:110px;text-align:right;margin-right:10px;flex-shrink:0}
+.formgrid .fi label.req:before{content:"*";color:#f56c6c;margin-right:2px}
+.formgrid .fi .ipt{flex:1;min-width:0}
+.formgrid .fi textarea.ipt{min-width:0}
+fieldset{border:1px solid #ebeef5;border-radius:4px;padding:12px 16px 16px;margin-bottom:14px;width:100%}
+legend{padding:0 8px;font-size:13px;color:#1b6bb0;font-weight:600}
+.stat4{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.st{flex:1;min-width:150px;background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:16px}
+.st .k{font-size:12px;color:#909399}
+.st .v{font-size:26px;font-weight:700;color:#303133;margin-top:6px}
+.st .v small{font-size:12px;color:#c0c4cc;font-weight:400}
+.st.b .v{color:#1b6bb0}.st.g .v{color:#67c23a}.st.o .v{color:#e6a23c}.st.r .v{color:#f56c6c}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.tl{background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:16px 18px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chart{height:200px;border-radius:4px;background:linear-gradient(180deg,#f5f9ff,#fff);border:1px solid #e4ecf5;display:flex;align-items:flex-end;gap:8px;padding:16px 20px}
+.chart .bar{flex:1;background:linear-gradient(180deg,#5cadff,#1b6bb0);border-radius:3px 3px 0 0;position:relative}
+.chart .bar i{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-style:normal;font-size:11px;color:#606266}
+.chart .bar.g{background:linear-gradient(180deg,#95d475,#67c23a)}
+.chart .bar.o{background:linear-gradient(180deg,#f3d19e,#e6a23c)}
+.chart .bar.r{background:linear-gradient(180deg,#fab6b6,#f56c6c)}
+.chartx{display:flex;justify-content:space-between;font-size:11px;color:#909399;padding:6px 20px 0}
+.note{background:#ecf5ff;border:1px solid #d9ecff;border-radius:4px;padding:10px 14px;font-size:12px;color:#4b6f92;line-height:1.8;margin-bottom:12px}
+.note b{color:#1b6bb0}
+.dl{display:flex;flex-wrap:wrap;border:1px solid #ebeef5;border-radius:4px}
+.dl .row{display:flex;width:100%;border-bottom:1px solid #ebeef5}
+.dl .row:last-child{border-bottom:none}
+.dl .k{width:150px;background:#f5f7fa;color:#909399;padding:9px 12px;font-size:13px;flex-shrink:0}
+.dl .v{flex:1;padding:9px 12px;color:#303133;font-size:13px}
+.dl .v .tag{margin-right:4px}
+</style></head>
+<body><div class="layout">
+<aside><div class="logo"><div class="cross"></div>公共卫生服务系统</div>
+<div class="userbar">机构：<b>山东大学齐鲁医院</b><br>用户：<b>lvxue</b>（公卫科管理员）<br>角色：乡镇公卫科管理员</div>
+<nav class="nav"><div class="grp">工作入口</div><a href="02-工作台.html">工作台</a><a href="01-消息中心.html">消息中心</a><a href="03-计划提醒.html">计划提醒</a><div class="grp">档案与查询</div><a href="04-档案管理.html">档案管理</a><a href="08-业务查询.html">业务查询</a><div class="grp">重点人群管理</div><a href="13-慢病管理.html">慢病管理</a><a href="16-老年人管理.html">老年人管理</a><a href="17-妇幼管理.html">妇幼管理</a><a href="06-中医管理.html">中医管理</a><a href="14-重精管理.html">重精管理</a><a href="15-结核管理.html">结核管理</a><div class="grp">疾病防控</div><a href="10-疾病报卡.html">疾病报卡</a><a href="11-突发公卫事件.html">突发公卫事件</a><a href="12-三网监测.html">三网监测</a><a href="07-健教管理.html">健教管理</a><a href="09-卫生监督.html" class="cur">卫生监督</a><div class="grp">统计与报表</div><a href="18-辖区统计.html">辖区统计</a><a href="19-业务报表.html">业务报表</a><div class="grp">系统管理</div><a href="05-系统设置.html">系统设置</a></nav></aside>
+<main><div class="topbar"><span class="crumb"><b>卫生监督</b> / 卫生监督协管</span>
+<div class="orgsel"><span class="org" title="点击切换机构">山东大学齐鲁医院 ▾</span><div class="avatar">雪</div></div></div>
+<div class="mainwrap">
+<div class="modhead"><h1>卫生监督协管</h1><p>卫生监督协管：被监督地点维护、日常巡查登记与事件报告（食源性疾病、职业卫生、学校卫生、饮用水等线索报告）。</p></div>
+<div class="tabs"><div class="tab cur" onclick="showTab(0)">地点维护</div><div class="tab" onclick="showTab(1)">巡查登记</div><div class="tab" onclick="showTab(2)">事件报告</div></div>
+<div class="page cur" id="pg0"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>单位名称</label><input class="ipt" placeholder="请输入单位名称"></div>
+<div class="fitem"><label>地点类型</label><select class="ipt sel"><option>全部</option><option>学校</option><option>托幼机构</option><option>供水单位</option><option>公共场所</option><option>餐饮单位</option><option>医疗机构</option></select></div>
+<div class="fitem"><label>村/居委会</label><select class="ipt sel"><option>全部</option><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fitem"><label>状态</label><select class="ipt sel"><option>全部</option><option>正常</option><option>停用</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="openModal('m-9-0-0')">新建地点</button><button class="btn" onclick="">导出</button><div class="right"><button class="btn">刷新</button></div></div>
+<div class="card"><table><thead><tr><th>地点编号</th><th>单位名称</th><th>地点类型</th><th>地址</th><th>负责人</th><th>联系电话</th><th>年度巡查次数</th><th>状态</th><th>操作</th></tr></thead><tbody><tr><td>DD-0126</td><td>东关小学</td><td>学校</td><td>东关社区学府路2号</td><td>钱校长</td><td>0531-88****35</td><td>6</td><td><span class="tag green">正常</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">巡查记录</span></td></tr>
+<tr><td>DD-0127</td><td>童心幼儿园</td><td>托幼机构</td><td>解放路社区文华巷8号</td><td>孙园长</td><td>0531-88****67</td><td>8</td><td><span class="tag green">正常</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">巡查记录</span></td></tr>
+<tr><td>DD-0128</td><td>中心村供水站</td><td>供水单位</td><td>中心村北首</td><td>冯站长</td><td>139****0072</td><td>4</td><td><span class="tag green">正常</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">巡查记录</span></td></tr>
+<tr><td>DD-0129</td><td>西河浴池</td><td>公共场所</td><td>西河村商业街12号</td><td>魏老板</td><td>158****9931</td><td>3</td><td><span class="tag green">正常</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">巡查记录</span></td></tr>
+<tr><td>DD-0130</td><td>龙山酒楼</td><td>餐饮单位</td><td>龙山村迎宾路1号</td><td>蔡经理</td><td>136****5208</td><td>5</td><td><span class="tag green">正常</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">巡查记录</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="mask" id="m-9-0-0"><div class="modal">
+<div class="mh">新建被监督地点<span class="x" onclick="closeModal('m-9-0-0')">×</span></div>
+<div class="mb"><fieldset><legend>地点信息</legend><div class="formgrid"><div class="fi wide"><label class=" req">单位名称</label><input class="ipt" placeholder="请输入单位名称"></div>
+<div class="fi"><label class=" req">地点类型</label><select class="ipt sel"><option>学校</option><option>托幼机构</option><option>供水单位</option><option>公共场所</option><option>餐饮单位</option><option>医疗机构</option></select></div>
+<div class="fi wide"><label class=" req">地址</label><input class="ipt" placeholder="请输入地址"></div>
+<div class="fi"><label class=" req">村/居委会</label><select class="ipt sel"><option>东关社区</option><option>西河村</option><option>殷巷村</option><option>龙山村</option><option>张庄社区</option><option>南刘村</option><option>北辛村</option><option>中心村</option><option>解放路社区</option></select></div>
+<div class="fi"><label class=" req">负责人</label><input class="ipt" placeholder="请输入负责人"></div>
+<div class="fi"><label class=" req">联系电话</label><input class="ipt" placeholder="请输入联系电话"></div>
+<div class="fi"><label class="">年度巡查频次</label><input class="ipt"></div>
+<div class="fi"><label class="">状态</label><select class="ipt sel"><option>请选择</option><option>是</option><option>否</option></select></div>
+<div class="fi wide"><label class="">备注</label><textarea class="ipt" placeholder="请输入备注"></textarea></div>
+</div></fieldset></div><div class="mf"><button class="btn pri" onclick="alert('原型演示：保存成功');closeModal('m-9-0-0')">保 存</button><button class="btn" onclick="closeModal('m-9-0-0')">取 消</button></div></div></div>
+
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>被监督单位/地点台账维护：学校、托幼机构、供水单位、公共场所等基本信息与巡查计划。<br><b>交互能力：</b>列表导出、新建登记、条件重置、组合条件查询、编辑修改、详情查看、停用启用 等7项<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg1"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>单位名称</label><input class="ipt" placeholder="请输入单位名称"></div>
+<div class="fitem"><label>地点类型</label><select class="ipt sel"><option>全部</option><option>学校</option><option>托幼机构</option><option>供水单位</option><option>公共场所</option><option>餐饮单位</option></select></div>
+<div class="fitem"><label>巡查日期</label><input class="ipt" type="date"> ~ <input class="ipt" type="date"></div>
+<div class="fitem"><label>整改状态</label><select class="ipt sel"><option>全部</option><option>无问题</option><option>已整改</option><option>整改中</option><option>未整改</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="openModal('m-9-1-0')">新建巡查登记</button><button class="btn" onclick="">导出</button><div class="right"><button class="btn">刷新</button></div></div>
+<div class="card"><table><thead><tr><th>巡查编号</th><th>单位名称</th><th>地点类型</th><th>巡查日期</th><th>巡查内容</th><th>发现问题</th><th>整改状态</th><th>巡查人</th><th>操作</th></tr></thead><tbody><tr><td>XC-2026-0231</td><td>东关小学</td><td>学校</td><td>2026-09-10</td><td>教室采光照明、饮用水、传染病防控</td><td>饮水机滤芯超期</td><td><span class="tag green">已整改</span></td><td>王建国</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">打印</span> <span style="color:#1b6bb0;cursor:pointer">复查</span></td></tr>
+<tr><td>XC-2026-0230</td><td>童心幼儿园</td><td>托幼机构</td><td>2026-09-08</td><td>晨检记录、餐具消毒、接种证查验</td><td>无</td><td><span class="tag gray">无问题</span></td><td>李卫芳</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">打印</span></td></tr>
+<tr><td>XC-2026-0229</td><td>中心村供水站</td><td>供水单位</td><td>2026-09-03</td><td>水质消毒记录、供管水人员健康证</td><td>健康证临期1人</td><td><span class="tag orange">整改中</span></td><td>赵敏</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">打印</span> <span style="color:#1b6bb0;cursor:pointer">复查</span></td></tr>
+<tr><td>XC-2026-0228</td><td>西河浴池</td><td>公共场所</td><td>2026-08-27</td><td>卫生许可证、公共用品消毒</td><td>拖鞋消毒记录缺失</td><td><span class="tag red">未整改</span></td><td>刘志强</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">打印</span> <span style="color:#1b6bb0;cursor:pointer">复查</span></td></tr>
+<tr><td>XC-2026-0227</td><td>龙山酒楼</td><td>餐饮单位</td><td>2026-08-20</td><td>食安制度、从业人员健康证、留样</td><td>留样量不足</td><td><span class="tag green">已整改</span></td><td>王建国</td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">打印</span> <span style="color:#1b6bb0;cursor:pointer">复查</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="mask" id="m-9-1-0"><div class="modal">
+<div class="mh">新建巡查登记<span class="x" onclick="closeModal('m-9-1-0')">×</span></div>
+<div class="mb"><fieldset><legend>巡查信息</legend><div class="formgrid"><div class="fi"><label class=" req">被监督单位</label><select class="ipt sel"><option>东关小学</option><option>童心幼儿园</option><option>中心村供水站</option><option>西河浴池</option><option>龙山酒楼</option></select></div>
+<div class="fi"><label class=" req">巡查日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class=" req">巡查人</label><select class="ipt sel"><option>王建国</option><option>李卫芳</option><option>赵敏</option><option>刘志强</option></select></div>
+<div class="fi wide"><label class=" req">巡查内容</label><input class="ipt" placeholder="请输入巡查内容"></div>
+</div></fieldset><fieldset><legend>问题与整改</legend><div class="formgrid"><div class="fi wide"><label class="">发现问题</label><textarea class="ipt" placeholder="请输入发现问题"></textarea></div>
+<div class="fi wide"><label class="">整改要求</label><textarea class="ipt" placeholder="请输入整改要求"></textarea></div>
+<div class="fi"><label class="">整改期限</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class="">整改状态</label><select class="ipt sel"><option>无问题</option><option>已整改</option><option>整改中</option><option>未整改</option></select></div>
+<div class="fi"><label class="">复查日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi wide"><label class="">复查情况</label><textarea class="ipt" placeholder="请输入复查情况"></textarea></div>
+</div></fieldset></div><div class="mf"><button class="btn pri" onclick="alert('原型演示：保存成功');closeModal('m-9-1-0')">保 存</button><button class="btn" onclick="closeModal('m-9-1-0')">取 消</button></div></div></div>
+
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>日常卫生监督巡查记录：巡查内容、发现问题、整改要求与复查情况，支持打印巡查单。<br><b>交互能力：</b>打印输出、列表导出、新建登记、条件重置、组合条件查询、编辑修改、详情查看、复查登记 等8项<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+<div class="page" id="pg2"><div class="card"><div class="ttl">查询条件</div><div class="qgrid"><div class="fitem"><label>事件名称</label><input class="ipt" placeholder="请输入事件名称"></div>
+<div class="fitem"><label>事件类别</label><select class="ipt sel"><option>全部</option><option>食源性疾病</option><option>职业卫生</option><option>学校卫生</option><option>饮用水卫生</option><option>非法行医</option><option>非法采供血</option></select></div>
+<div class="fitem"><label>报告日期</label><input class="ipt" type="date"> ~ <input class="ipt" type="date"></div>
+<div class="fitem"><label>报告状态</label><select class="ipt sel"><option>全部</option><option>草稿</option><option>已上报卫生监督机构</option><option>已处置</option><option>已归档</option></select></div>
+<div class="qbtns"><button class="btn pri" onclick="alert('原型演示：执行组合条件查询')">查 询</button><button class="btn">重 置</button></div></div></div>
+<div class="toolbar"><button class="btn pri" onclick="openModal('m-9-2-0')">新建事件报告</button><button class="btn" onclick="">导出</button><div class="right"><button class="btn">刷新</button></div></div>
+<div class="card"><table><thead><tr><th>报告编号</th><th>事件名称</th><th>事件类别</th><th>发生地点</th><th>发生日期</th><th>报告日期</th><th>报告人</th><th>报告状态</th><th>操作</th></tr></thead><tbody><tr><td>SJ-2026-018</td><td>西河村家庭自办宴席疑似食源性疾病</td><td>食源性疾病</td><td>西河村</td><td>2026-09-06</td><td>2026-09-06</td><td>李卫芳</td><td><span class="tag blue">已上报卫生监督机构</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">打印</span></td></tr>
+<tr><td>SJ-2026-017</td><td>龙山酒楼从业人员健康证过期</td><td>学校卫生</td><td>龙山村</td><td>2026-08-20</td><td>2026-08-21</td><td>王建国</td><td><span class="tag green">已处置</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">打印</span></td></tr>
+<tr><td>SJ-2026-016</td><td>中心村供水站浊度异常线索</td><td>饮用水卫生</td><td>中心村</td><td>2026-07-28</td><td>2026-07-28</td><td>赵敏</td><td><span class="tag green">已处置</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">编辑</span> <span style="color:#1b6bb0;cursor:pointer">打印</span></td></tr>
+<tr><td>SJ-2026-015</td><td>村卫生室周边疑似无证行医摊点</td><td>非法行医</td><td>殷巷村</td><td>2026-07-05</td><td>2026-07-06</td><td>刘志强</td><td><span class="tag green">已归档</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">打印</span></td></tr>
+<tr><td>SJ-2026-014</td><td>北辛村小卖部销售过期食品线索</td><td>食源性疾病</td><td>北辛村</td><td>2026-06-18</td><td>2026-06-19</td><td>王建国</td><td><span class="tag green">已归档</span></td><td><span style="color:#1b6bb0;cursor:pointer">详情</span> <span style="color:#1b6bb0;cursor:pointer">打印</span></td></tr>
+</tbody></table>
+<div class="pager">共 <b>86</b> 条 每页 <select class="ipt sel" style="height:26px;min-width:60px"><option>10</option><option>20</option><option>50</option></select> 条
+<span class="pno">‹</span><span class="pno cur">1</span><span class="pno">2</span><span class="pno">3</span><span class="pno">…</span><span class="pno">9</span><span class="pno">›</span></div></div>
+<div class="mask" id="m-9-2-0"><div class="modal">
+<div class="mh">新建事件报告<span class="x" onclick="closeModal('m-9-2-0')">×</span></div>
+<div class="mb"><fieldset><legend>事件信息</legend><div class="formgrid"><div class="fi wide"><label class=" req">事件名称</label><input class="ipt" placeholder="请输入事件名称"></div>
+<div class="fi"><label class=" req">事件类别</label><select class="ipt sel"><option>食源性疾病</option><option>职业卫生</option><option>学校卫生</option><option>饮用水卫生</option><option>非法行医</option><option>非法采供血</option></select></div>
+<div class="fi"><label class=" req">发生地点</label><input class="ipt" placeholder="请输入发生地点"></div>
+<div class="fi"><label class=" req">发生日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class=" req">报告日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi"><label class=" req">报告人</label><select class="ipt sel"><option>王建国</option><option>李卫芳</option><option>赵敏</option><option>刘志强</option></select></div>
+<div class="fi wide"><label class=" req">事件经过</label><textarea class="ipt" placeholder="请输入事件经过"></textarea></div>
+</div></fieldset><fieldset><legend>处置与上报</legend><div class="formgrid"><div class="fi wide"><label class="">初步处置措施</label><textarea class="ipt" placeholder="请输入初步处置措施"></textarea></div>
+<div class="fi"><label class=" req">上报卫生监督机构</label><select class="ipt sel"><option>请选择</option><option>是</option><option>否</option></select></div>
+<div class="fi"><label class="">上报日期</label><input class="ipt" type="date" placeholder="选择日期"></div>
+<div class="fi wide"><label class="">机构处置反馈</label><textarea class="ipt" placeholder="请输入机构处置反馈"></textarea></div>
+</div></fieldset></div><div class="mf"><button class="btn pri" onclick="alert('原型演示：保存成功');closeModal('m-9-2-0')">保 存</button><button class="btn" onclick="closeModal('m-9-2-0')">取 消</button></div></div></div>
+
+<div class="pagenote"><b>功能说明（源自项目功能清单）：</b>卫生监督协管事件/线索报告：食源性疾病、职业卫生、学校卫生、饮用水安全等事件报告，支持打印上报。<br><b>交互能力：</b>打印输出、列表导出、新建登记、条件重置、组合条件查询、编辑修改、详情查看、上报登记 等8项<br>本页面为产品原型（基于项目功能清单 V1.0 + 产品规划文档 V1.4 还原），页面内数据均为演示数据，仅用于评审表单结构与交互，不作为真实业务数据。</div></div>
+</div></main></div>
+<script>
+function showTab(n){
+  document.querySelectorAll('.tabs .tab').forEach((t,i)=>t.classList.toggle('cur',i===n));
+  document.querySelectorAll('.page').forEach((p,i)=>p.classList.toggle('cur',i===n));
+  window.scrollTo(0,0);
+}
+function openModal(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+function toggleMore(btn){
+  var box=btn.closest('.qgrid');var h=box.querySelector('.hid');
+  if(h.style.display==='none'){h.style.display='flex';btn.textContent='收起 ▲'}else{h.style.display='none';btn.textContent='展开更多查询 ▼'}
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.mask.show').forEach(m=>m.classList.remove('show'))});
+</script></body></html>

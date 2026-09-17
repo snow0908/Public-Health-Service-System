@@ -1,0 +1,2242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>档案维护 - 居民健康档案</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  /* ===== 档案维护页（独立全屏页面，由 居民档案列表.html「新建 → 下一步」新标签打开） =====
+     引入 框架.js 仅为获得 toast 公共函数（data-embed="true" 不注入系统导航） */
+
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{display:flex;flex-direction:column;overflow:hidden;background:var(--bg-page);font-family:var(--font-ui),-apple-system,"Microsoft YaHei",sans-serif}
+
+  /* ===== 顶部居民信息栏（浅蓝渐变，左侧居民摘要 + 右侧操作按钮） ===== */
+  .pt-bar{flex-shrink:0;display:flex;align-items:center;gap:20px;height:64px;padding:0 24px;background:linear-gradient(90deg,var(--primary-header) 0%,var(--primary-bg) 60%,#FFFFFF 100%);border-bottom:1px solid var(--primary-border)}
+  .pt-avatar{width:40px;height:40px;border-radius:50%;background:#fff;border:1px solid var(--primary-border);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 1px 3px rgba(0,74,158,0.12)}
+  .pt-avatar svg{width:24px;height:24px}
+  .pt-name{font-size:16px;font-weight:var(--font-weight-semibold);color:var(--text-primary);white-space:nowrap}
+  .pt-name em{font-style:normal;font-size:13px;font-weight:var(--font-weight-regular);color:var(--text-secondary);margin-left:4px}
+  .pt-fields{display:flex;align-items:center;gap:18px;flex:1;min-width:0;overflow:hidden}
+  .pt-field{font-size:13px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pt-field b{font-weight:var(--font-weight-medium);color:var(--text-primary)}
+  .pt-field.ellipsis{max-width:260px}
+  .pt-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .pt-panorama{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border:1px solid var(--primary-border);border-radius:var(--r-sm);font-size:14px;color:var(--primary);background:#fff;cursor:pointer;transition:all var(--transition-fast)}
+  .pt-panorama:hover{background:var(--primary-bg)}
+  .pt-panorama svg{width:16px;height:16px}
+  .pt-actions .btn{height:32px;padding:0 18px}
+
+  /* ===== 主体：左侧档案导航 + 内容区 ===== */
+  .pv-body{flex:1;display:flex;overflow:hidden;min-height:0}
+  .pv-nav{width:200px;flex-shrink:0;background:var(--bg-white);border-right:1px solid #E8E8E8;overflow-y:auto;padding-bottom:12px}
+  .nav-group-title{padding:14px 16px 6px;font-size:12px;color:var(--text-tertiary);letter-spacing:1px}
+  .nav-item{display:flex;align-items:center;height:36px;padding:0 16px 0 20px;font-size:14px;color:var(--text-secondary);cursor:pointer;transition:background var(--transition-fast);user-select:none;position:relative}
+  .nav-item:hover{background:var(--primary-bg)}
+  .nav-item.active{background:var(--primary-header);color:var(--primary);font-weight:var(--font-weight-medium)}
+  .nav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--primary);border-radius:0 2px 2px 0}
+  .nav-item.locked{color:var(--text-placeholder);cursor:not-allowed}
+  .nav-item.locked:hover{background:transparent}
+  .pv-content{flex:1;overflow-y:auto;padding:16px 20px;min-width:0}
+
+  /* ===== 通用表单控件 ===== */
+  .ctl{height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:13px;color:var(--text-primary);background:#fff;outline:none;transition:all var(--transition-fast);flex:1;min-width:0;max-width:280px;font-family:inherit}
+  .ctl:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .ctl::placeholder{color:var(--text-placeholder)}
+  .ctl[readonly]{background:#F5F6FA;color:var(--text-secondary);cursor:default}
+  select.ctl{appearance:none;-webkit-appearance:none;cursor:pointer;padding-right:26px;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fr{display:flex;align-items:center;min-width:0}
+  .fr label{width:118px;flex-shrink:0;text-align:right;font-size:13px;color:var(--text-secondary);margin-right:10px;white-space:nowrap}
+  .fr label i{color:var(--text-error);font-style:normal;margin-right:2px}
+  .fr-gap{gap:8px}
+  .cascade{display:flex;gap:6px;flex:1;min-width:0}
+  .cascade .ctl{max-width:none;min-width:0;padding:0 4px;font-size:12px}
+
+  /* 复选/单选 */
+  .opts{display:flex;flex-wrap:wrap;gap:8px 18px;flex:1;min-width:0;align-items:center}
+  .chk,.rad{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);cursor:pointer;white-space:nowrap;line-height:1.9}
+  .chk input,.rad input{cursor:pointer;accent-color:var(--primary)}
+
+  /* ===== 封面视图 ===== */
+  .cover-card{max-width:920px;margin:0 auto;background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 2px 10px rgba(157,169,197,0.25)}
+  .cover-head{position:relative;height:104px;background:linear-gradient(120deg,var(--primary-header) 0%,#EAF4FF 55%,#F7FBFF 100%);border-radius:var(--r-md) var(--r-md) 0 0;display:flex;align-items:center;padding:0 40px;overflow:hidden;border-bottom:1px solid var(--primary-border)}
+  .cover-head h2{font-size:22px;font-weight:var(--font-weight-semibold);color:#004C9E;letter-spacing:3px;position:relative;z-index:1}
+  .cover-head .sub{margin-left:14px;font-size:12px;color:#5B8FCB;letter-spacing:1px;position:relative;z-index:1}
+  .cover-head .cover-art{position:absolute;right:28px;top:0;bottom:0;width:220px;opacity:.9}
+  .cover-form{padding:28px 40px 8px;display:grid;grid-template-columns:1fr 1fr;column-gap:48px;row-gap:18px}
+  .cover-form .fr-full{grid-column:1 / -1}
+  .cover-foot{display:flex;justify-content:flex-end;gap:10px;padding:20px 40px 28px}
+  .cover-arch{display:flex;align-items:center}
+  .cover-arch input{background:#F5F6FA;color:var(--text-secondary)}
+
+  /* ===== 基本信息视图 ===== */
+  .basic-card{max-width:1100px;margin:0 auto;background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 2px 10px rgba(157,169,197,0.25)}
+  .basic-head{display:flex;align-items:center;gap:14px;padding:14px 24px;border-bottom:1px solid #E8E8E8;flex-wrap:wrap}
+  .basic-head h3{font-size:16px;font-weight:var(--font-weight-semibold);color:var(--text-primary)}
+  .bh-status{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 10px;border-radius:11px;background:var(--success-bg);color:var(--success);font-size:12px;border:1px solid rgba(82,195,27,0.35)}
+  .bh-status .dot{width:6px;height:6px;border-radius:50%;background:var(--success)}
+  .bh-meta{font-size:12px;color:var(--text-tertiary)}
+  .bh-meta b{color:var(--text-secondary);font-weight:var(--font-weight-medium)}
+  .bh-complete{margin-left:auto;display:flex;align-items:center;gap:8px}
+  .bh-complete .lbl{font-size:13px;color:var(--text-secondary)}
+  .ring{width:44px;height:44px;flex-shrink:0}
+  .ring .track{stroke:#E4E7ED}
+  .ring .bar{stroke:var(--primary);transition:stroke-dashoffset .4s ease,stroke .4s ease}
+  .ring.done .bar{stroke:var(--success)}
+  .ring text{font-size:11px;fill:var(--text-secondary)}
+  .ring.done text{fill:var(--success);font-weight:600}
+  .basic-body{padding:22px 24px 28px}
+
+  /* 分区 */
+  .sec{margin-bottom:26px}
+  .sec-title{display:flex;align-items:center;font-size:14px;font-weight:var(--font-weight-semibold);color:var(--text-primary);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #EEF0F4}
+  .sec-title::before{content:'';width:3px;height:14px;background:var(--primary);border-radius:2px;margin-right:8px;flex-shrink:0}
+  .sec-title .sec-tip{font-size:12px;font-weight:var(--font-weight-regular);color:var(--text-tertiary);margin-left:10px}
+  .sec-row{display:flex;align-items:flex-start;margin-bottom:10px}
+  .sec-row:last-child{margin-bottom:0}
+  .sr-label{width:118px;flex-shrink:0;font-size:13px;color:var(--text-secondary);text-align:right;margin-right:10px;padding-top:5px;line-height:1.5}
+  .fgrid{display:grid;grid-template-columns:1fr 1fr;column-gap:48px;row-gap:14px}
+  .fgrid .fr-full{grid-column:1 / -1}
+  .sub-label{font-size:12px;color:var(--text-tertiary);width:100%;padding-top:2px;padding-bottom:2px}
+
+  /* 分区内小表格（个人健康凭证 / 家族史） */
+  .mini-tbl{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+  .mini-tbl th{background:#F5F6FA;height:34px;padding:0 10px;font-weight:var(--font-weight-medium);color:var(--text-primary);text-align:left;border:1px solid #E4E7ED;white-space:nowrap}
+  .mini-tbl td{height:40px;padding:4px 10px;border:1px solid #E4E7ED;color:var(--text-secondary);vertical-align:middle}
+  .mini-tbl td .ctl{max-width:none;width:100%}
+  .mini-tbl td.role-cell{background:#FAFBFC;font-weight:var(--font-weight-medium);color:var(--text-primary);text-align:center}
+  .mini-tbl .fam-opts{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center}
+  .mini-tbl .fam-opts .chk{line-height:1.6}
+
+  /* 保存成功后完整度徽标飘绿 */
+  .saved-tip{display:none;align-items:center;gap:6px;font-size:12px;color:var(--success)}
+  .basic-card.saved .saved-tip{display:inline-flex}
+  .pv-view.hidden{display:none}
+
+  /* ===== 左侧导航：可展开分组 + 子菜单项 ===== */
+  .nav-group{position:relative}
+  .nav-group .nav-item.group-toggle{justify-content:space-between;padding-right:12px}
+  .nav-group .nav-item.group-toggle .arrow{width:10px;height:10px;transition:transform var(--transition-fast);flex-shrink:0;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+  .nav-group.open .nav-item.group-toggle .arrow{transform:rotate(90deg)}
+  .nav-sub{display:none;background:#FAFBFC}
+  .nav-group.open .nav-sub{display:block}
+  .nav-sub-item{display:flex;align-items:center;height:32px;padding:0 16px 0 36px;font-size:13px;color:var(--text-secondary);cursor:pointer;transition:background var(--transition-fast);user-select:none;position:relative}
+  .nav-sub-item:hover{background:var(--primary-bg)}
+  .nav-sub-item.active{background:var(--primary-header);color:var(--primary);font-weight:var(--font-weight-medium)}
+  .nav-sub-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--primary);border-radius:0 2px 2px 0}
+
+  /* ===== 高血压专项表 ===== */
+  .hp-card{max-width:1200px;margin:0 auto;background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 2px 10px rgba(157,169,197,0.25);overflow:hidden}
+  .hp-head{display:flex;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid #E8E8E8}
+  .hp-head h3{font-size:16px;font-weight:var(--font-weight-semibold);color:var(--text-primary)}
+  .hp-head .hp-arch{margin-left:auto;font-size:13px;color:var(--text-secondary);white-space:nowrap}
+  .hp-head .hp-arch b{color:var(--text-primary);font-weight:var(--font-weight-medium)}
+  .hp-head .hp-actions{display:flex;gap:8px;margin-left:12px;flex-shrink:0}
+  .hp-head .hp-actions .btn{height:30px;padding:0 14px;font-size:13px}
+  .hp-body{padding:0}
+
+  /* 表单行：统一高度 44px */
+  .hp-row{display:flex;border-bottom:1px solid #EEF0F4;min-height:44px}
+  .hp-row:last-child{border-bottom:none}
+  .hp-label{width:120px;flex-shrink:0;padding:0 14px;font-size:13px;color:var(--text-secondary);text-align:right;background:#F5F9FF;display:flex;align-items:center;justify-content:flex-end;border-right:1px solid #EEF0F4}
+  .hp-label i{color:var(--danger);font-style:normal;margin-right:2px}
+  .hp-field{flex:1;display:flex;align-items:center;gap:8px;padding:6px 14px;min-width:0}
+  .hp-field .ctl{max-width:220px;width:100%;height:30px;font-size:13px}
+  .hp-field .unit{font-size:13px;color:var(--text-tertiary);white-space:nowrap;flex-shrink:0}
+  .hp-field.readonly-val{color:var(--text-primary);font-size:13px;font-weight:var(--font-weight-medium)}
+  .hp-field .opts{flex:1;gap:6px 18px}
+  .hp-field .opts .chk,.hp-field .opts .rad{font-size:13px;line-height:1.8}
+
+  /* 两列布局：grid 等分，每列一个 cell（标签+字段） */
+  .hp-row.two-col{display:grid;grid-template-columns:1fr 1fr}
+  .hp-cell{display:flex;align-items:center;border-right:1px solid #EEF0F4;min-height:44px}
+  .hp-cell:last-child{border-right:none}
+  .hp-cell .hp-label{width:120px;flex-shrink:0;align-self:stretch}
+  .hp-cell .hp-field{flex:1;border-right:none}
+  .hp-cell .hp-field .ctl{max-width:220px;width:100%}
+
+  /* 高行：并发症等多选项行，自动撑开 */
+  .hp-row.tall{min-height:auto}
+  .hp-row.tall .hp-field{padding:10px 14px;align-items:flex-start;padding-top:10px}
+  .hp-row.tall .hp-label{align-items:flex-start;padding-top:12px}
+
+  .hp-foot{display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid #E8E8E8}
+
+  /* ===== 随访表 / 评估表 通用 ===== */
+  .fv-card{max-width:1200px;margin:0 auto;background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 2px 10px rgba(157,169,197,0.25);overflow:hidden}
+  .fv-head{display:flex;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid #E8E8E8}
+  .fv-head h3{font-size:16px;font-weight:var(--font-weight-semibold);color:var(--text-primary)}
+  .fv-head .fv-arch{margin-left:auto;font-size:13px;color:var(--text-secondary);white-space:nowrap}
+  .fv-head .fv-arch b{color:var(--text-primary);font-weight:var(--font-weight-medium)}
+  .fv-head .fv-actions{display:flex;gap:8px;margin-left:12px;flex-shrink:0;align-items:center}
+  .fv-head .fv-actions .btn{height:30px;padding:0 14px;font-size:13px}
+  .fv-head .fv-icon-btn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:1px solid #D9D9D9;border-radius:4px;background:#fff;cursor:pointer;color:var(--text-secondary)}
+  .fv-head .fv-icon-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .fv-body{padding:0}
+
+  /* 分组：左侧分组标签 + 右侧表单行 */
+  .fv-group{display:flex;border-bottom:1px solid #EEF0F4}
+  .fv-group:last-child{border-bottom:none}
+  .fv-group-label{width:72px;flex-shrink:0;background:#EEF4FF;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--text-secondary);border-right:1px solid #EEF0F4;writing-mode:vertical-rl;letter-spacing:4px}
+  .fv-group-body{flex:1;min-width:0}
+  .fv-group-body .hp-row{border-bottom:1px solid #EEF0F4}
+  .fv-group-body .hp-row:last-child{border-bottom:none}
+
+  /* 四列布局（运动等） */
+  .hp-row.four-col{display:grid;grid-template-columns:1fr 1fr 1fr 1fr}
+  .hp-row.four-col .hp-cell{border-right:1px solid #EEF0F4}
+  .hp-row.four-col .hp-cell:last-child{border-right:none}
+  .hp-row.four-col .hp-cell .hp-label{width:88px;font-size:12px}
+  .hp-row.four-col .hp-cell .hp-field .ctl{max-width:100px}
+
+  /* 文本域 */
+  .hp-field textarea.ctl{max-width:none;width:100%;height:60px;resize:vertical;padding:6px 10px;line-height:1.6}
+  .hp-field .char-count{font-size:12px;color:var(--text-tertiary);align-self:flex-end;white-space:nowrap}
+
+  /* 用药情况动态行 */
+  .med-box{flex:1;min-width:0}
+  .med-row{display:grid;grid-template-columns:1fr 1fr 1fr 1.5fr;gap:8px;margin-bottom:8px;align-items:center}
+  .med-row:last-child{margin-bottom:0}
+  .med-row .ctl{height:30px;font-size:13px;max-width:none}
+  .med-row .med-del{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:1px solid #D9D9D9;border-radius:4px;background:#fff;cursor:pointer;color:var(--text-secondary);flex-shrink:0}
+  .med-row .med-del:hover{border-color:var(--danger);color:var(--danger)}
+  .med-add{display:inline-flex;align-items:center;gap:4px;font-size:13px;color:var(--primary);cursor:pointer;margin-top:4px}
+  .med-add:hover{text-decoration:underline}
+
+  /* 随访表隐藏项（初始不显示，保存专项后显示） */
+  .nav-followup-hidden{display:none !important}
+</style>
+</head>
+<body>
+
+<!-- ===== 顶部居民信息栏 ===== -->
+<div class="pt-bar">
+  <div class="pt-avatar">
+    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8.2" r="3.6" stroke="#007AFF" stroke-width="1.6"/><path d="M5 20c.6-3.7 3.4-6 7-6s6.4 2.3 7 6" stroke="#007AFF" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </div>
+  <div class="pt-name"><span id="ptName">--</span><em id="ptAge"></em></div>
+  <div class="pt-fields">
+    <span class="pt-field">居民身份证：<b id="ptIdcard">--</b></span>
+    <span class="pt-field">出生日期：<b id="ptBirth">--</b></span>
+    <span class="pt-field">血型：<b id="ptBlood">--</b></span>
+    <span class="pt-field">联系电话：<b id="ptPhone">--</b></span>
+    <span class="pt-field">药物过敏史：<b id="ptAllergy">--</b></span>
+    <span class="pt-field ellipsis">住址：<b id="ptAddr">--</b></span>
+  </div>
+  <div class="pt-actions">
+    <span class="pt-panorama" onclick="toast('健康全景视图功能建设中','info')">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z" stroke="#007AFF" stroke-width="1.6"/><circle cx="12" cy="12" r="2.6" stroke="#007AFF" stroke-width="1.6"/></svg>
+      健康全景视图
+    </span>
+    <button class="btn btn-default" onclick="goBack()">返回</button>
+    <button class="btn btn-default" onclick="toast('档案预览功能建设中','info')">预览</button>
+    <button class="btn btn-primary" id="btnSave" style="display:none" onclick="saveArchive()">保存</button>
+  </div>
+</div>
+
+<!-- ===== 主体 ===== -->
+<div class="pv-body">
+
+  <!-- 左侧档案导航 -->
+  <aside class="pv-nav">
+    <div class="nav-group-title">个人档案</div>
+    <div class="nav-item active" id="navCover" onclick="switchView('cover')">封面</div>
+    <div class="nav-item" id="navBasic" onclick="switchView('basic')">个人基本信息</div>
+    <div class="nav-group-title">卫生健康服务</div>
+    <div class="nav-item locked" onclick="toast('「健康体检」模块功能建设中','info')">健康体检</div>
+    <div class="nav-item locked" onclick="toast('「死亡登记表」模块功能建设中','info')">死亡登记表</div>
+    <div class="nav-item locked" onclick="toast('「卫生健康服务活动」模块功能建设中','info')">卫生健康服务活动</div>
+    <div class="nav-item locked" onclick="toast('「转诊跟踪」模块功能建设中','info')">转诊跟踪</div>
+    <div class="nav-group" id="navHpGroup">
+      <div class="nav-item group-toggle" onclick="toggleNavGroup('navHpGroup')">
+        <span>高血压管理</span>
+        <svg class="arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <div class="nav-sub">
+        <div class="nav-sub-item" id="navHpSpecial" onclick="switchView('hypertension')">高血压专项</div>
+        <div class="nav-sub-item nav-followup-hidden" id="navHpFollowup" onclick="switchView('followup')">高血压随访</div>
+        <div class="nav-sub-item nav-followup-hidden" id="navHpAssessment" onclick="switchView('assessment')">高血压评估</div>
+      </div>
+    </div>
+    <div class="nav-item locked" onclick="toast('「健康教育」模块功能建设中','info')">健康教育</div>
+    <div class="nav-item locked" onclick="toast('「中医管理」模块功能建设中','info')">中医管理</div>
+    <div class="nav-item locked" onclick="toast('「结核病管理」模块功能建设中','info')">结核病管理</div>
+    <div class="nav-item locked" onclick="toast('「重精管理」模块功能建设中','info')">重精管理</div>
+    <div class="nav-item locked" onclick="toast('「肿瘤管理」模块功能建设中','info')">肿瘤管理</div>
+    <div class="nav-item locked" onclick="toast('「慢阻肺管理」模块功能建设中','info')">慢阻肺管理</div>
+    <div class="nav-item locked" onclick="toast('「心脑血管管理」模块功能建设中','info')">心脑血管管理</div>
+    <div class="nav-item locked" onclick="toast('「高危管理」模块功能建设中','info')">高危管理</div>
+    <div class="nav-item locked" onclick="toast('「残疾人管理」模块功能建设中','info')">残疾人管理</div>
+  </aside>
+
+  <!-- 内容区 -->
+  <div class="pv-content" id="pvContent">
+
+    <!-- ===== 视图一：居民健康档案封面 ===== -->
+    <div class="pv-view" id="viewCover">
+      <div class="cover-card">
+        <div class="cover-head">
+          <h2>居民健康档案</h2>
+          <span class="sub">RESIDENT HEALTH RECORD</span>
+          <svg class="cover-art" viewBox="0 0 220 104" fill="none">
+            <defs>
+              <linearGradient id="artG1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#BFDEFF"/><stop offset="1" stop-color="#E0EFFF"/></linearGradient>
+              <linearGradient id="artG2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#EAF4FF"/><stop offset="1" stop-color="#D6EAFF"/></linearGradient>
+            </defs>
+            <circle cx="196" cy="22" r="9" fill="#BFDEFF" opacity=".6"/>
+            <circle cx="168" cy="90" r="6" fill="#BFDEFF" opacity=".5"/>
+            <rect x="26" y="30" width="64" height="48" rx="5" fill="url(#artG1)" transform="rotate(-10 58 54)"/>
+            <rect x="56" y="24" width="86" height="58" rx="6" fill="#FFFFFF" stroke="#BFDEFF" stroke-width="2"/>
+            <rect x="66" y="36" width="46" height="4" rx="2" fill="#BFDEFF"/>
+            <rect x="66" y="46" width="60" height="4" rx="2" fill="#E0EFFF"/>
+            <rect x="66" y="56" width="38" height="4" rx="2" fill="#E0EFFF"/>
+            <rect x="132" y="34" width="42" height="42" rx="8" fill="url(#artG2)" stroke="#BFDEFF" stroke-width="1.5"/>
+            <path d="M155 42v9h9v8h-9v9h-8v-9h-9v-8h9v-9z" fill="#007AFF"/>
+            <circle cx="80" cy="18" r="4" fill="#E0EFFF"/>
+            <circle cx="42" cy="90" r="5" fill="#E0EFFF"/>
+          </svg>
+        </div>
+        <div class="cover-form">
+          <div class="fr cover-arch">
+            <label>个人档案编号：</label>
+            <input class="ctl" id="cvArchNo" readonly>
+          </div>
+          <div class="fr">
+            <label><i>*</i>姓名：</label>
+            <input class="ctl" id="cvName" maxlength="8" placeholder="请输入">
+          </div>
+          <div class="fr fr-full">
+            <label><i>*</i>现住址：</label>
+            <div class="cascade" id="cvP">
+              <select class="ctl" id="cvP1"></select><select class="ctl" id="cvP2"></select><select class="ctl" id="cvP3"></select><select class="ctl" id="cvP4"></select><select class="ctl" id="cvP5"></select>
+            </div>
+          </div>
+          <div class="fr">
+            <label><i>*</i>管辖网格：</label>
+            <select class="ctl" id="cvGrid">
+              <option value="" selected>请选择</option>
+              <option>第一网格</option><option>第二网格</option><option>第三网格</option><option>第四网格</option>
+            </select>
+          </div>
+          <div class="fr">
+            <label><i>*</i>住址详细地址：</label>
+            <input class="ctl" id="cvAddrDetail" maxlength="50" placeholder="请输入详细地址">
+          </div>
+          <div class="fr fr-full">
+            <label><i>*</i>户籍地址：</label>
+            <div class="cascade" id="cvH">
+              <select class="ctl" id="cvH1"></select><select class="ctl" id="cvH2"></select><select class="ctl" id="cvH3"></select><select class="ctl" id="cvH4"></select><select class="ctl" id="cvH5"></select>
+            </div>
+          </div>
+          <div class="fr">
+            <label><i>*</i>户籍详细地址：</label>
+            <input class="ctl" id="cvHAddrDetail" maxlength="50" placeholder="请输入详细地址">
+          </div>
+          <div class="fr">
+            <label><i>*</i>联系电话：</label>
+            <input class="ctl" id="cvPhone" maxlength="11" placeholder="请输入联系电话">
+          </div>
+          <div class="fr">
+            <label><i>*</i>乡镇(街道)名称：</label>
+            <input class="ctl" id="cvTown" readonly placeholder="选择现住址后自动带出">
+          </div>
+          <div class="fr">
+            <label><i>*</i>村(居)委会名称：</label>
+            <input class="ctl" id="cvVillage" readonly placeholder="选择现住址后自动带出">
+          </div>
+          <div class="fr">
+            <label><i>*</i>建档单位：</label>
+            <select class="ctl" id="cvOrg">
+              <option value="山东大学齐鲁医院" selected>山东大学齐鲁医院</option>
+              <option>扬州市江都区吴桥镇卫生院</option>
+              <option>扬州市江都区宜陵镇中心卫生院</option>
+              <option>扬州市江都区仙女镇社区卫生服务中心</option>
+              <option>扬州市江都区丁沟镇卫生院</option>
+              <option>扬州市江都区樊川镇卫生院</option>
+            </select>
+          </div>
+          <div class="fr">
+            <label><i>*</i>建档人：</label>
+            <select class="ctl" id="cvCreator">
+              <option value="吕雪" selected>吕雪</option>
+              <option>白雪</option>
+              <option>周建国</option>
+              <option>陈桂英</option>
+              <option>刘志强</option>
+            </select>
+          </div>
+          <div class="fr">
+            <label><i>*</i>责任医生：</label>
+            <select class="ctl" id="cvDoctor">
+              <option value="吕雪" selected>吕雪</option>
+              <option>白雪</option>
+              <option>周建国</option>
+              <option>陈桂英</option>
+              <option>刘志强</option>
+            </select>
+          </div>
+          <div class="fr">
+            <label><i>*</i>建档日期：</label>
+            <input class="ctl" id="cvDate" type="date">
+          </div>
+        </div>
+        <div class="cover-foot">
+          <button class="btn btn-primary" onclick="coverNext()">下一步</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 视图二：个人基本信息表 ===== -->
+    <div class="pv-view hidden" id="viewBasic">
+      <div class="basic-card" id="basicCard">
+        <div class="basic-head">
+          <h3>个人基本信息表</h3>
+          <span class="bh-status"><span class="dot"></span>健康档案管理状态：正常</span>
+          <span class="bh-meta">编号：<b id="bhArchNo">--</b></span>
+          <span class="bh-meta">建档单位：<b id="bhOrg">--</b></span>
+          <span class="saved-tip">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none"><circle cx="12" cy="12" r="9" stroke="#52C31B" stroke-width="2"/><path d="M8 12.5l2.6 2.6L16 10" stroke="#52C31B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            已保存归档
+          </span>
+          <div class="bh-complete">
+            <span class="lbl">完整度：</span>
+            <svg class="ring" id="ringSvg" viewBox="0 0 44 44">
+              <circle class="track" cx="22" cy="22" r="16" fill="none" stroke-width="5"/>
+              <circle class="bar" id="ringBar" cx="22" cy="22" r="16" fill="none" stroke-width="5" stroke-linecap="round" stroke-dasharray="100.5" stroke-dashoffset="100.5" transform="rotate(-90 22 22)"/>
+              <text id="ringTxt" x="22" y="26" text-anchor="middle">0%</text>
+            </svg>
+          </div>
+        </div>
+        <div class="basic-body">
+
+          <!-- 1. 人群标识 -->
+          <div class="sec" data-sec="secCrowd">
+            <div class="sec-title">人群标识</div>
+            <div class="sec-row">
+              <div class="sr-label">年龄段：</div>
+              <div class="opts">
+                <label class="chk"><input type="checkbox" name="crowd">0-6岁儿童</label>
+                <label class="chk"><input type="checkbox" name="crowd">65岁及以上老年人</label>
+                <label class="chk"><input type="checkbox" name="crowd">孕产妇</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. 个人健康状态标识 -->
+          <div class="sec" data-sec="secHealth">
+            <div class="sec-title">个人健康状态标识</div>
+            <div class="sec-row">
+              <div class="sr-label">疾病：</div>
+              <div class="opts">
+                <label class="chk"><input type="checkbox" name="hsDis">高血压</label>
+                <label class="chk"><input type="checkbox" name="hsDis">2型糖尿病</label>
+                <label class="chk"><input type="checkbox" name="hsDis">脑卒中</label>
+                <label class="chk"><input type="checkbox" name="hsDis">冠心病</label>
+                <label class="chk"><input type="checkbox" name="hsDis">脑血管病后遗症</label>
+                <label class="chk"><input type="checkbox" name="hsDis">慢性阻塞性肺疾病</label>
+                <label class="chk"><input type="checkbox" name="hsDis">哮喘</label>
+                <label class="chk"><input type="checkbox" name="hsDis">尿毒症</label>
+                <label class="chk"><input type="checkbox" name="hsDis">恶性肿瘤</label>
+                <label class="chk"><input type="checkbox" name="hsDis">严重精神障碍</label>
+                <label class="chk"><input type="checkbox" name="hsDis">地方病</label>
+                <label class="chk"><input type="checkbox" name="hsDis">职业病</label>
+                <label class="chk"><input type="checkbox" name="hsDis">失眠</label>
+                <label class="chk"><input type="checkbox" name="hsDis">失智</label>
+                <label class="chk"><input type="checkbox" name="hsDis">先天畸形</label>
+              </div>
+            </div>
+            <div class="sec-row">
+              <div class="sr-label">法定传染病：</div>
+              <div class="opts">
+                <label class="chk"><input type="checkbox" name="hsInf">肺结核</label>
+                <label class="chk"><input type="checkbox" name="hsInf">肝炎</label>
+                <label class="chk"><input type="checkbox" name="hsInf">其他法定传染病</label>
+              </div>
+            </div>
+            <div class="sec-row">
+              <div class="sr-label">体重状态：</div>
+              <div class="opts">
+                <label class="rad"><input type="radio" name="hsWeight">低体重</label>
+                <label class="rad"><input type="radio" name="hsWeight">正常</label>
+                <label class="rad"><input type="radio" name="hsWeight">超重</label>
+                <label class="rad"><input type="radio" name="hsWeight">肥胖</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. 血型 -->
+          <div class="sec" data-sec="secBlood">
+            <div class="sec-title">血型</div>
+            <div class="sec-row">
+              <div class="sr-label">ABO血型：</div>
+              <div class="opts">
+                <label class="rad"><input type="radio" name="abo" value="A型">A型</label>
+                <label class="rad"><input type="radio" name="abo" value="B型">B型</label>
+                <label class="rad"><input type="radio" name="abo" value="O型">O型</label>
+                <label class="rad"><input type="radio" name="abo" value="AB型">AB型</label>
+                <label class="rad"><input type="radio" name="abo" value="不详">不详</label>
+              </div>
+            </div>
+            <div class="sec-row">
+              <div class="sr-label">RH血型：</div>
+              <div class="opts">
+                <label class="rad"><input type="radio" name="rh">阴性</label>
+                <label class="rad"><input type="radio" name="rh">阳性</label>
+                <label class="rad"><input type="radio" name="rh">不详</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. 基本信息 -->
+          <div class="sec" data-sec="secBase">
+            <div class="sec-title">基本信息</div>
+            <div class="fgrid">
+              <div class="fr"><label><i>*</i>姓名：</label><input class="ctl" id="biName" maxlength="8"></div>
+              <div class="fr"><label><i>*</i>性别：</label>
+                <select class="ctl" id="biGender"><option value="男性">男性</option><option value="女性">女性</option></select>
+              </div>
+              <div class="fr"><label><i>*</i>证件类型：</label>
+                <select class="ctl" id="biIdType">
+                  <option>居民身份证</option><option>居民户口簿</option><option>护照</option>
+                  <option>港澳居民来往内地通行证</option><option>台湾居民来往大陆通行证</option>
+                </select>
+              </div>
+              <div class="fr"><label><i>*</i>证件号：</label><input class="ctl" id="biIdcard" maxlength="18"></div>
+              <div class="fr"><label><i>*</i>出生日期：</label><input class="ctl" id="biBirth" type="date"></div>
+              <div class="fr"><label>工作单位/学校：</label><input class="ctl" id="biWork" maxlength="30" placeholder="请输入"></div>
+              <div class="fr"><label>民族：</label>
+                <select class="ctl" id="biNation">
+                  <option>汉族</option><option>蒙古族</option><option>回族</option><option>藏族</option><option>维吾尔族</option>
+                  <option>苗族</option><option>彝族</option><option>壮族</option><option>满族</option><option>其他</option>
+                </select>
+              </div>
+              <div class="fr"><label>籍贯：</label>
+                <div class="cascade">
+                  <select class="ctl" id="biJG1"></select>
+                  <select class="ctl" id="biJG2"></select>
+                </div>
+              </div>
+              <div class="fr fr-full"><label>出生地：</label><input class="ctl" id="biBirthplace" maxlength="30" placeholder="请输入出生地"></div>
+            </div>
+          </div>
+
+          <!-- 5. 管理信息 -->
+          <div class="sec" data-sec="secMgr">
+            <div class="sec-title">管理信息</div>
+            <div class="fgrid">
+              <div class="fr"><label>管理机构：</label>
+                <select class="ctl" id="biOrg">
+                  <option value="山东大学齐鲁医院" selected>山东大学齐鲁医院</option>
+                  <option>扬州市江都区吴桥镇卫生院</option>
+                  <option>扬州市江都区宜陵镇中心卫生院</option>
+                  <option>扬州市江都区仙女镇社区卫生服务中心</option>
+                  <option>扬州市江都区丁沟镇卫生院</option>
+                  <option>扬州市江都区樊川镇卫生院</option>
+                </select>
+              </div>
+              <div class="fr"><label>档案管理机构电话：</label><input class="ctl" id="biMgrPhone" maxlength="13" placeholder="请输入"></div>
+              <div class="fr"><label>家庭医生是否签约：</label>
+                <div class="opts" style="flex:1">
+                  <label class="rad"><input type="radio" name="fdSign" value="是" checked>是</label>
+                  <label class="rad"><input type="radio" name="fdSign" value="否">否</label>
+                </div>
+              </div>
+              <div class="fr"><label>家庭医生姓名：</label><input class="ctl" id="biFdName" maxlength="10" placeholder="请输入"></div>
+              <div class="fr"><label>家庭医生电话：</label><input class="ctl" id="biFdPhone" maxlength="11" placeholder="请输入"></div>
+              <div class="fr"><label>本人电话：</label><input class="ctl" id="biPhone" maxlength="11" placeholder="请输入"></div>
+            </div>
+          </div>
+
+          <!-- 6. 紧急联系人 -->
+          <div class="sec" data-sec="secEmerg">
+            <div class="sec-title">紧急联系人</div>
+            <div class="sec-row">
+              <div class="sr-label">联系人1：</div>
+              <div class="opts" style="gap:8px">
+                <input class="ctl" id="ec1Name" maxlength="10" placeholder="姓名" style="max-width:150px">
+                <input class="ctl" id="ec1Rel" maxlength="10" placeholder="与本人关系" style="max-width:150px">
+                <input class="ctl" id="ec1Phone" maxlength="11" placeholder="联系电话" style="max-width:180px">
+              </div>
+            </div>
+            <div class="sec-row">
+              <div class="sr-label">联系人2：</div>
+              <div class="opts" style="gap:8px">
+                <input class="ctl" id="ec2Name" maxlength="10" placeholder="姓名" style="max-width:150px">
+                <input class="ctl" id="ec2Rel" maxlength="10" placeholder="与本人关系" style="max-width:150px">
+                <input class="ctl" id="ec2Phone" maxlength="11" placeholder="联系电话" style="max-width:180px">
+              </div>
+            </div>
+          </div>
+
+          <!-- 7. 住址信息 -->
+          <div class="sec">
+            <div class="sec-title">住址信息</div>
+            <div class="sec-row">
+              <div class="sr-label">常住类型：</div>
+              <div class="opts">
+                <label class="rad"><input type="radio" name="rsType" value="户籍" checked>户籍</label>
+                <label class="rad"><input type="radio" name="rsType" value="非户籍">非户籍</label>
+              </div>
+            </div>
+            <div class="sec-row">
+              <div class="sr-label">现住址：</div>
+              <div class="opts" style="flex-direction:column;align-items:flex-start;gap:8px">
+                <div class="cascade" style="width:100%;max-width:720px">
+                  <select class="ctl" id="biP1"></select><select class="ctl" id="biP2"></select><select class="ctl" id="biP3"></select><select class="ctl" id="biP4"></select><select class="ctl" id="biP5"></select>
+                </div>
+                <input class="ctl" id="biAddrDetail" maxlength="50" placeholder="请输入详细地址" style="max-width:714px">
+              </div>
+            </div>
+            <div class="sec-row">
+              <div class="sr-label">户籍地址：</div>
+              <div class="opts" style="flex-direction:column;align-items:flex-start;gap:8px">
+                <div class="cascade" style="width:100%;max-width:720px">
+                  <select class="ctl" id="biH1"></select><select class="ctl" id="biH2"></select><select class="ctl" id="biH3"></select><select class="ctl" id="biH4"></select><select class="ctl" id="biH5"></select>
+                </div>
+                <input class="ctl" id="biHAddrDetail" maxlength="50" placeholder="请输入详细地址" style="max-width:714px">
+              </div>
+            </div>
+          </div>
+
+          <!-- 8. 文化程度 / 职业 / 婚姻状况 -->
+          <div class="sec" data-sec="secEdu">
+            <div class="sec-title">社会经济学状况</div>
+            <div class="sec-row">
+              <div class="sr-label">文化程度：</div>
+              <div class="opts">
+                <label class="rad"><input type="radio" name="edu">研究生</label>
+                <label class="rad"><input type="radio" name="edu">大学本科</label>
+                <label class="rad"><input type="radio" name="edu">大专</label>
+                <label class="rad"><input type="radio" name="edu">中专/中技</label>
+                <label class="rad"><input type="radio" name="edu">高中</label>
+                <label class="rad"><input type="radio" name="edu">初中</label>
+                <label class="rad"><input type="radio" name="edu">小学</label>
+                <label class="rad"><input type="radio" name="edu">文盲及半文盲</label>
+              </div>
+            </div>
+            <div class="sec-row">
+              <div class="sr-label">职业：</div>
+              <div class="opts">
+                <label class="rad"><input type="radio" name="job">国家机关</label>
+                <label class="rad"><input type="radio" name="job">专业技术人员</label>
+                <label class="rad"><input type="radio" name="job">商业</label>
+                <label class="rad"><input type="radio" name="job">农民</label>
+                <label class="rad"><input type="radio" name="job">工人</label>
+                <label class="rad"><input type="radio" name="job">企业</label>
+                <label class="rad"><input type="radio" name="job">军人</label>
+                <label class="rad"><input type="radio" name="job">其他</label>
+              </div>
+            </div>
+            <div class="sec-row">
+              <div class="sr-label">婚姻状况：</div>
+              <div class="opts">
+                <label class="rad"><input type="radio" name="marriage">未婚</label>
+                <label class="rad"><input type="radio" name="marriage">已婚</label>
+                <label class="rad"><input type="radio" name="marriage">初婚</label>
+                <label class="rad"><input type="radio" name="marriage">再婚</label>
+                <label class="rad"><input type="radio" name="marriage">离婚</label>
+                <label class="rad"><input type="radio" name="marriage">丧偶</label>
+                <label class="rad"><input type="radio" name="marriage">未说明的婚姻状况</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 9. 医疗费用支付方式 -->
+          <div class="sec" data-sec="secPay">
+            <div class="sec-title">医疗费用支付方式<span class="sec-tip">可多选</span></div>
+            <div class="sec-row">
+              <div class="sr-label">支付方式：</div>
+              <div class="opts">
+                <label class="chk"><input type="checkbox" name="pay">城镇职工基本医疗保险</label>
+                <label class="chk"><input type="checkbox" name="pay">城镇居民基本医疗保险</label>
+                <label class="chk"><input type="checkbox" name="pay">新型农村合作医疗</label>
+                <label class="chk"><input type="checkbox" name="pay">贫困救助</label>
+                <label class="chk"><input type="checkbox" name="pay">商业医疗保险</label>
+                <label class="chk"><input type="checkbox" name="pay">全公费</label>
+                <label class="chk"><input type="checkbox" name="pay">全自费</label>
+                <label class="chk"><input type="checkbox" name="pay">其他</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 10. 个人健康凭证 -->
+          <div class="sec" data-sec="secCert">
+            <div class="sec-title">个人健康凭证</div>
+            <table class="mini-tbl">
+              <colgroup><col style="width:22%"><col style="width:18%"><col style="width:24%"><col style="width:18%"><col style="width:18%"></colgroup>
+              <thead><tr><th>名称</th><th>编号</th><th>凭证签发机构</th><th>凭证签发时间</th><th>凭证有效期</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><select class="ctl" id="cert1Name"><option value="">请选择</option><option>出生医学证明</option><option>预防接种证</option><option>其他健康凭证</option></select></td>
+                  <td><input class="ctl" id="cert1No" maxlength="20" placeholder="请输入"></td>
+                  <td><input class="ctl" id="cert1Org" maxlength="30" placeholder="请输入"></td>
+                  <td><input class="ctl" id="cert1Date" type="date"></td>
+                  <td><input class="ctl" id="cert1Exp" type="date"></td>
+                </tr>
+                <tr>
+                  <td><select class="ctl" id="cert2Name"><option value="">请选择</option><option>出生医学证明</option><option>预防接种证</option><option>其他健康凭证</option></select></td>
+                  <td><input class="ctl" id="cert2No" maxlength="20" placeholder="请输入"></td>
+                  <td><input class="ctl" id="cert2Org" maxlength="30" placeholder="请输入"></td>
+                  <td><input class="ctl" id="cert2Date" type="date"></td>
+                  <td><input class="ctl" id="cert2Exp" type="date"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 11. 药物过敏史 / 暴露史 -->
+          <div class="sec" data-sec="secAllergy">
+            <div class="sec-title">药物过敏史与暴露史</div>
+            <div class="sec-row">
+              <div class="sr-label">药物过敏史：</div>
+              <div class="opts" id="allergyBox">
+                <label class="chk"><input type="checkbox" name="allergy" value="无">无</label>
+                <label class="chk"><input type="checkbox" name="allergy" value="青霉素">青霉素</label>
+                <label class="chk"><input type="checkbox" name="allergy" value="磺胺">磺胺</label>
+                <label class="chk"><input type="checkbox" name="allergy" value="链霉素">链霉素</label>
+                <label class="chk"><input type="checkbox" name="allergy" value="其他">其他</label>
+              </div>
+            </div>
+            <div class="sec-row">
+              <div class="sr-label">暴露史：</div>
+              <div class="opts" id="exposureBox">
+                <label class="chk"><input type="checkbox" name="exposure" value="无">无</label>
+                <label class="chk"><input type="checkbox" name="exposure" value="化学品">化学品</label>
+                <label class="chk"><input type="checkbox" name="exposure" value="毒物">毒物</label>
+                <label class="chk"><input type="checkbox" name="exposure" value="射线">射线</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 12. 既往史 / 家族史 / 遗传病史 -->
+          <div class="sec" data-sec="secPast">
+            <div class="sec-title">既往史与家族史</div>
+            <div class="sec-row">
+              <div class="sr-label">既往疾病：</div>
+              <div class="opts">
+                <label class="chk"><input type="checkbox" name="pastDis">高血压</label>
+                <label class="chk"><input type="checkbox" name="pastDis">冠心病</label>
+                <label class="chk"><input type="checkbox" name="pastDis">糖尿病</label>
+                <label class="chk"><input type="checkbox" name="pastDis">慢性阻塞性肺疾病</label>
+                <label class="chk"><input type="checkbox" name="pastDis">恶性肿瘤</label>
+                <label class="chk"><input type="checkbox" name="pastDis">脑卒中</label>
+                <label class="chk"><input type="checkbox" name="pastDis">严重精神障碍</label>
+                <label class="chk"><input type="checkbox" name="pastDis">结核病</label>
+                <label class="chk"><input type="checkbox" name="pastDis">肝炎</label>
+                <label class="chk"><input type="checkbox" name="pastDis">其他法定传染病</label>
+                <label class="chk"><input type="checkbox" name="pastDis">职业病</label>
+                <label class="chk"><input type="checkbox" name="pastDis">其他</label>
+              </div>
+            </div>
+            <div class="sec-row">
+              <div class="sr-label">手术史：</div>
+              <div class="opts">
+                <label class="rad"><input type="radio" name="surgery" value="无">无</label>
+                <label class="rad"><input type="radio" name="surgery" value="有">有</label>
+              </div>
+              <span class="sr-label" style="width:auto;margin-left:24px">外伤史：</span>
+              <div class="opts">
+                <label class="rad"><input type="radio" name="trauma" value="无">无</label>
+                <label class="rad"><input type="radio" name="trauma" value="有">有</label>
+              </div>
+              <span class="sr-label" style="width:auto;margin-left:24px">输血史：</span>
+              <div class="opts">
+                <label class="rad"><input type="radio" name="transfusion" value="无">无</label>
+                <label class="rad"><input type="radio" name="transfusion" value="有">有</label>
+              </div>
+            </div>
+            <div class="sec-row">
+              <div class="sr-label">预防接种史：</div>
+              <div class="opts">
+                <label class="rad"><input type="radio" name="vaccine" value="无">无</label>
+                <label class="rad"><input type="radio" name="vaccine" value="有">有</label>
+              </div>
+            </div>
+            <div class="sec-row">
+              <div class="sr-label">遗传病史：</div>
+              <div class="opts">
+                <label class="rad"><input type="radio" name="genetic" value="无">无</label>
+                <label class="rad"><input type="radio" name="genetic" value="有">有</label>
+              </div>
+            </div>
+            <div class="sec-row">
+              <div class="sr-label">家族史：</div>
+              <div class="opts" style="flex-direction:column;align-items:stretch">
+                <table class="mini-tbl" id="famTbl">
+                  <colgroup><col style="width:12%"><col style="width:88%"></colgroup>
+                  <thead><tr><th style="text-align:center">亲属</th><th>患病情况（可多选，勾选「无」将自动清除该行其他选项）</th></tr></thead>
+                  <tbody id="famBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- 13. 残疾情况 / 人群性质 -->
+          <div class="sec" data-sec="secPopu">
+            <div class="sec-title">残疾情况与人群性质</div>
+            <div class="sec-row">
+              <div class="sr-label">残疾情况：</div>
+              <div class="opts" id="disabilityBox">
+                <label class="chk"><input type="checkbox" name="disability" value="无残疾">无残疾</label>
+                <label class="chk"><input type="checkbox" name="disability" value="视力残疾">视力残疾</label>
+                <label class="chk"><input type="checkbox" name="disability" value="听力残疾">听力残疾</label>
+                <label class="chk"><input type="checkbox" name="disability" value="言语残疾">言语残疾</label>
+                <label class="chk"><input type="checkbox" name="disability" value="肢体残疾">肢体残疾</label>
+                <label class="chk"><input type="checkbox" name="disability" value="智力残疾">智力残疾</label>
+                <label class="chk"><input type="checkbox" name="disability" value="精神残疾">精神残疾</label>
+                <label class="chk"><input type="checkbox" name="disability" value="其他残疾">其他残疾</label>
+              </div>
+            </div>
+            <div class="sec-row">
+              <div class="sr-label">人群性质：</div>
+              <div class="opts">
+                <label class="chk"><input type="checkbox" name="population">普通人群</label>
+                <label class="chk"><input type="checkbox" name="population">农村建档立卡贫困人口</label>
+                <label class="chk"><input type="checkbox" name="population">城乡低保五保人口</label>
+                <label class="chk"><input type="checkbox" name="population">计划生育特殊家庭人口</label>
+                <label class="chk"><input type="checkbox" name="population">失能(失智)老年人</label>
+                <label class="chk"><input type="checkbox" name="population">残疾人</label>
+                <label class="chk"><input type="checkbox" name="population">0-6岁儿童</label>
+                <label class="chk"><input type="checkbox" name="population">高血压患者</label>
+                <label class="chk"><input type="checkbox" name="population">糖尿病患者</label>
+                <label class="chk"><input type="checkbox" name="population">65岁以上常住居民</label>
+                <label class="chk"><input type="checkbox" name="population">严重精神障碍患者</label>
+                <label class="chk"><input type="checkbox" name="population">肺结核患者</label>
+                <label class="chk"><input type="checkbox" name="population">离休干部</label>
+                <label class="chk"><input type="checkbox" name="population">孕13周之前建册并进行第一次产前检查的孕产妇</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 14. 建档信息 -->
+          <div class="sec">
+            <div class="sec-title">建档信息</div>
+            <div class="fgrid">
+              <div class="fr"><label>责任医生：</label>
+                <select class="ctl" id="biDoctor">
+                  <option value="吕雪" selected>吕雪</option>
+                  <option>白雪</option>
+                  <option>周建国</option>
+                  <option>陈桂英</option>
+                  <option>刘志强</option>
+                </select>
+              </div>
+              <div class="fr"><label>建档单位：</label><input class="ctl" id="biOrgShow" readonly></div>
+              <div class="fr"><label>建档人：</label>
+                <select class="ctl" id="biCreator">
+                  <option value="吕雪" selected>吕雪</option>
+                  <option>白雪</option>
+                  <option>周建国</option>
+                  <option>陈桂英</option>
+                  <option>刘志强</option>
+                </select>
+              </div>
+              <div class="fr"><label>建档日期：</label><input class="ctl" id="biCreateDate" type="date"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 视图三：高血压专项表 ===== -->
+    <div class="pv-view hidden" id="viewHypertension">
+      <div class="hp-card">
+        <div class="hp-head">
+          <h3>高血压专项表</h3>
+          <span class="hp-arch">档案编号：<b id="hpArchNo">--</b></span>
+          <div class="hp-actions">
+            <button class="btn btn-default" onclick="toast('复制本年体检数据功能建设中','info')">复制本年体检</button>
+            <button class="btn btn-primary" onclick="saveHpArchive()">保存</button>
+          </div>
+        </div>
+        <div class="hp-body">
+          <!-- 姓名 -->
+          <div class="hp-row">
+            <div class="hp-label">姓名</div>
+            <div class="hp-field readonly-val" id="hpName">--</div>
+          </div>
+          <!-- 身高 / 体重 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>身高</div>
+              <div class="hp-field">
+                <input class="ctl" id="hpHeight" maxlength="5" placeholder="请输入" oninput="calcBmi()">
+                <span class="unit">cm</span>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>体重</div>
+              <div class="hp-field">
+                <input class="ctl" id="hpWeight" maxlength="5" placeholder="请输入" oninput="calcBmi()">
+                <span class="unit">kg</span>
+              </div>
+            </div>
+          </div>
+          <!-- 体质指数BMI -->
+          <div class="hp-row">
+            <div class="hp-label"><i>*</i>体质指数(BMI)</div>
+            <div class="hp-field">
+              <input class="ctl" id="hpBmi" readonly style="background:#F5F6FA;color:var(--text-secondary)" placeholder="自动计算">
+              <span class="unit">kg/m²</span>
+            </div>
+          </div>
+          <!-- 收缩压 / 舒张压 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>收缩压</div>
+              <div class="hp-field">
+                <input class="ctl" id="hpSbp" maxlength="4" placeholder="请输入" oninput="autoHpGrade()">
+                <span class="unit">mmHg</span>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>舒张压</div>
+              <div class="hp-field">
+                <input class="ctl" id="hpDbp" maxlength="4" placeholder="请输入" oninput="autoHpGrade()">
+                <span class="unit">mmHg</span>
+              </div>
+            </div>
+          </div>
+          <!-- 高血压分级 / 高血压类型 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label">高血压分级</div>
+              <div class="hp-field">
+                <div class="opts">
+                  <label class="rad"><input type="radio" name="hpGrade" value="一级">一级</label>
+                  <label class="rad"><input type="radio" name="hpGrade" value="二级">二级</label>
+                  <label class="rad"><input type="radio" name="hpGrade" value="三级">三级</label>
+                  <label class="rad"><input type="radio" name="hpGrade" value="其他">其他</label>
+                </div>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label">高血压类型</div>
+              <div class="hp-field">
+                <select class="ctl" id="hpType">
+                  <option value="" selected>请选择</option>
+                  <option value="原发性高血压">原发性高血压</option>
+                  <option value="继发性高血压">继发性高血压</option>
+                  <option value="不详">不详</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <!-- 病例来源 -->
+          <div class="hp-row">
+            <div class="hp-label">病例来源</div>
+            <div class="hp-field">
+              <select class="ctl" id="hpSource">
+                <option value="" selected>请选择</option>
+                <option value="门诊">门诊</option>
+                <option value="住院">住院</option>
+                <option value="体检">体检</option>
+                <option value="上级医院转入">上级医院转入</option>
+                <option value="其他">其他</option>
+              </select>
+            </div>
+          </div>
+          <!-- 并发症 -->
+          <div class="hp-row tall">
+            <div class="hp-label">并发症</div>
+            <div class="hp-field">
+              <div class="opts" id="hpComplicationBox">
+                <label class="chk"><input type="checkbox" name="hpCompl" value="无">无</label>
+                <label class="chk"><input type="checkbox" name="hpCompl" value="糖尿病肾病">糖尿病肾病</label>
+                <label class="chk"><input type="checkbox" name="hpCompl" value="慢性心力衰竭">慢性心力衰竭</label>
+                <label class="chk"><input type="checkbox" name="hpCompl" value="充血性心力衰竭">充血性心力衰竭</label>
+                <label class="chk"><input type="checkbox" name="hpCompl" value="心肌梗死">心肌梗死</label>
+                <label class="chk"><input type="checkbox" name="hpCompl" value="短暂性脑缺血发作(TIA)">短暂性脑缺血发作(TIA)</label>
+                <label class="chk"><input type="checkbox" name="hpCompl" value="外周血管疾病">外周血管疾病</label>
+                <label class="chk"><input type="checkbox" name="hpCompl" value="冠状动脉血运重建史">冠状动脉血运重建史</label>
+                <label class="chk"><input type="checkbox" name="hpCompl" value="症状性动脉疾病">症状性动脉疾病</label>
+                <label class="chk"><input type="checkbox" name="hpCompl" value="缺血性卒中">缺血性卒中</label>
+                <label class="chk"><input type="checkbox" name="hpCompl" value="脑出血">脑出血</label>
+                <label class="chk"><input type="checkbox" name="hpCompl" value="糖尿病">糖尿病</label>
+                <label class="chk"><input type="checkbox" name="hpCompl" value="肾功能衰竭">肾功能衰竭</label>
+                <label class="chk"><input type="checkbox" name="hpCompl" value="夹层动脉瘤">夹层动脉瘤</label>
+                <label class="chk"><input type="checkbox" name="hpCompl" value="心绞痛">心绞痛</label>
+                <label class="chk"><input type="checkbox" name="hpCompl" value="视网膜病变">视网膜病变</label>
+              </div>
+            </div>
+          </div>
+          <!-- 服药依从性 -->
+          <div class="hp-row">
+            <div class="hp-label">服药依从性</div>
+            <div class="hp-field">
+              <div class="opts">
+                <label class="rad"><input type="radio" name="hpCompliance" value="规律">规律</label>
+                <label class="rad"><input type="radio" name="hpCompliance" value="间断">间断</label>
+                <label class="rad"><input type="radio" name="hpCompliance" value="不服药">不服药</label>
+              </div>
+            </div>
+          </div>
+          <!-- 确诊机构 / 确诊日期 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label">确诊机构</div>
+              <div class="hp-field">
+                <select class="ctl" id="hpDiagOrg">
+                  <option value="" selected>请选择</option>
+                  <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
+                  <option value="扬州市江都区人民医院">扬州市江都区人民医院</option>
+                  <option value="扬州市江都区中医院">扬州市江都区中医院</option>
+                </select>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>确诊日期</div>
+              <div class="hp-field">
+                <input class="ctl" id="hpDiagDate" type="date">
+              </div>
+            </div>
+          </div>
+          <!-- 建档机构 / 建档医生 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>建档机构</div>
+              <div class="hp-field">
+                <select class="ctl" id="hpCreateOrg">
+                  <option value="山东大学齐鲁医院" selected>山东大学齐鲁医院</option>
+                  <option value="扬州市江都区吴桥镇卫生院">扬州市江都区吴桥镇卫生院</option>
+                  <option value="扬州市江都区宜陵镇中心卫生院">扬州市江都区宜陵镇中心卫生院</option>
+                </select>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>建档医生</div>
+              <div class="hp-field">
+                <select class="ctl" id="hpCreateDoc">
+                  <option value="吕雪" selected>吕雪</option>
+                  <option value="白雪">白雪</option>
+                  <option value="周建国">周建国</option>
+                  <option value="陈桂英">陈桂英</option>
+                  <option value="刘志强">刘志强</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <!-- 建档日期 -->
+          <div class="hp-row">
+            <div class="hp-label"><i>*</i>建档日期</div>
+            <div class="hp-field">
+              <input class="ctl" id="hpCreateDate" type="date">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 视图四：高血压随访表 ===== -->
+    <div class="pv-view hidden" id="viewFollowup">
+      <div class="fv-card">
+        <div class="fv-head">
+          <h3>高血压随访表</h3>
+          <span class="fv-arch">档案编号：<b id="fuArchNo">--</b></span>
+          <div class="fv-actions">
+            <button class="btn btn-default" onclick="toast('健康教育功能建设中','info')">健康教育</button>
+            <button class="btn btn-default" onclick="toast('复制本年体检数据功能建设中','info')">复制本年体检</button>
+            <button class="btn btn-primary" onclick="toast('高血压随访表保存成功','success')">保存</button>
+            <div class="fv-icon-btn" onclick="toast('随访记录列表功能建设中','info')" title="随访记录列表">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6"/><line x1="7" y1="9" x2="17" y2="9" stroke="currentColor" stroke-width="1.6"/><line x1="7" y1="13" x2="17" y2="13" stroke="currentColor" stroke-width="1.6"/><line x1="7" y1="17" x2="13" y2="17" stroke="currentColor" stroke-width="1.6"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="fv-body">
+          <!-- 姓名 -->
+          <div class="hp-row">
+            <div class="hp-label">姓名</div>
+            <div class="hp-field readonly-val" id="fuName">--</div>
+          </div>
+          <!-- 随访日期 -->
+          <div class="hp-row">
+            <div class="hp-label"><i>*</i>随访日期</div>
+            <div class="hp-field">
+              <input class="ctl" id="fuDate" type="date">
+            </div>
+          </div>
+          <!-- 随访方式 -->
+          <div class="hp-row">
+            <div class="hp-label"><i>*</i>随访方式</div>
+            <div class="hp-field">
+              <div class="opts">
+                <label class="rad"><input type="radio" name="fuWay" value="门诊" checked>门诊</label>
+                <label class="rad"><input type="radio" name="fuWay" value="家庭">家庭</label>
+                <label class="rad"><input type="radio" name="fuWay" value="电话">电话</label>
+                <label class="rad"><input type="radio" name="fuWay" value="短信">短信</label>
+                <label class="rad"><input type="radio" name="fuWay" value="网络">网络</label>
+                <label class="rad"><input type="radio" name="fuWay" value="其他">其他</label>
+              </div>
+            </div>
+          </div>
+          <!-- 症状 -->
+          <div class="hp-row tall">
+            <div class="hp-label"><i>*</i>症状</div>
+            <div class="hp-field">
+              <div class="opts" id="fuSymptomBox">
+                <label class="chk"><input type="checkbox" name="fuSymptom" value="无症状" checked>无症状</label>
+                <label class="chk"><input type="checkbox" name="fuSymptom" value="头痛头晕">头痛头晕</label>
+                <label class="chk"><input type="checkbox" name="fuSymptom" value="恶心呕吐">恶心呕吐</label>
+                <label class="chk"><input type="checkbox" name="fuSymptom" value="眼花耳鸣">眼花耳鸣</label>
+                <label class="chk"><input type="checkbox" name="fuSymptom" value="呼吸困难">呼吸困难</label>
+                <label class="chk"><input type="checkbox" name="fuSymptom" value="心悸胸闷">心悸胸闷</label>
+                <label class="chk"><input type="checkbox" name="fuSymptom" value="鼻衄出血不止">鼻衄出血不止</label>
+                <label class="chk"><input type="checkbox" name="fuSymptom" value="四肢发麻">四肢发麻</label>
+                <label class="chk"><input type="checkbox" name="fuSymptom" value="下肢水肿">下肢水肿</label>
+                <label class="chk"><input type="checkbox" name="fuSymptom" value="其他">其他</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 体征分组 -->
+          <div class="fv-group">
+            <div class="fv-group-label">体征</div>
+            <div class="fv-group-body">
+              <!-- 血压 -->
+              <div class="hp-row two-col">
+                <div class="hp-cell">
+                  <div class="hp-label"><i>*</i>收缩压</div>
+                  <div class="hp-field">
+                    <input class="ctl" id="fuSbp" maxlength="4" placeholder="请输入">
+                    <span class="unit">mmHg</span>
+                  </div>
+                </div>
+                <div class="hp-cell">
+                  <div class="hp-label"><i>*</i>舒张压</div>
+                  <div class="hp-field">
+                    <input class="ctl" id="fuDbp" maxlength="4" placeholder="请输入">
+                    <span class="unit">mmHg</span>
+                  </div>
+                </div>
+              </div>
+              <!-- 体重 -->
+              <div class="hp-row two-col">
+                <div class="hp-cell">
+                  <div class="hp-label">当前体重</div>
+                  <div class="hp-field">
+                    <input class="ctl" id="fuWeight" maxlength="5" placeholder="请输入">
+                    <span class="unit">kg</span>
+                  </div>
+                </div>
+                <div class="hp-cell">
+                  <div class="hp-label">目标体重</div>
+                  <div class="hp-field">
+                    <input class="ctl" id="fuTargetWeight" maxlength="5" placeholder="请输入">
+                    <span class="unit">kg</span>
+                  </div>
+                </div>
+              </div>
+              <!-- 身高 -->
+              <div class="hp-row">
+                <div class="hp-label">身高</div>
+                <div class="hp-field">
+                  <input class="ctl" id="fuHeight" maxlength="5" placeholder="请输入">
+                  <span class="unit">cm</span>
+                </div>
+              </div>
+              <!-- 体质指数BMI -->
+              <div class="hp-row two-col">
+                <div class="hp-cell">
+                  <div class="hp-label">当前体质指数</div>
+                  <div class="hp-field">
+                    <input class="ctl" id="fuBmi" maxlength="5" placeholder="请输入">
+                    <span class="unit">kg/m²</span>
+                  </div>
+                </div>
+                <div class="hp-cell">
+                  <div class="hp-label">目标体质指数</div>
+                  <div class="hp-field">
+                    <input class="ctl" id="fuTargetBmi" maxlength="5" placeholder="请输入">
+                    <span class="unit">kg/m²</span>
+                  </div>
+                </div>
+              </div>
+              <!-- 心率 / 其他 -->
+              <div class="hp-row two-col">
+                <div class="hp-cell">
+                  <div class="hp-label">心率</div>
+                  <div class="hp-field">
+                    <input class="ctl" id="fuHeartRate" maxlength="4" placeholder="请输入">
+                    <span class="unit">次/分</span>
+                  </div>
+                </div>
+                <div class="hp-cell">
+                  <div class="hp-label">其他</div>
+                  <div class="hp-field">
+                    <input class="ctl" id="fuOther" placeholder="请输入">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 生活方式指导分组 -->
+          <div class="fv-group">
+            <div class="fv-group-label">生活方式指导</div>
+            <div class="fv-group-body">
+              <!-- 吸烟 -->
+              <div class="hp-row two-col">
+                <div class="hp-cell">
+                  <div class="hp-label">日吸烟量</div>
+                  <div class="hp-field">
+                    <input class="ctl" id="fuSmoke" maxlength="4" placeholder="请输入">
+                    <span class="unit">支/天</span>
+                  </div>
+                </div>
+                <div class="hp-cell">
+                  <div class="hp-label">目标日吸烟量</div>
+                  <div class="hp-field">
+                    <input class="ctl" id="fuTargetSmoke" maxlength="4" placeholder="请输入">
+                    <span class="unit">支/天</span>
+                  </div>
+                </div>
+              </div>
+              <!-- 饮酒 -->
+              <div class="hp-row two-col">
+                <div class="hp-cell">
+                  <div class="hp-label">日饮酒量</div>
+                  <div class="hp-field">
+                    <input class="ctl" id="fuDrink" maxlength="4" placeholder="请输入">
+                    <span class="unit">两/天</span>
+                  </div>
+                </div>
+                <div class="hp-cell">
+                  <div class="hp-label">目标日饮酒量</div>
+                  <div class="hp-field">
+                    <input class="ctl" id="fuTargetDrink" maxlength="4" placeholder="请输入">
+                    <span class="unit">两/天</span>
+                  </div>
+                </div>
+              </div>
+              <!-- 运动（四列） -->
+              <div class="hp-row four-col">
+                <div class="hp-cell">
+                  <div class="hp-label">当前运动周次</div>
+                  <div class="hp-field">
+                    <input class="ctl" id="fuExerFreq" maxlength="3" placeholder="请输入">
+                    <span class="unit">次/周</span>
+                  </div>
+                </div>
+                <div class="hp-cell">
+                  <div class="hp-label">当前运动时长</div>
+                  <div class="hp-field">
+                    <input class="ctl" id="fuExerDur" maxlength="4" placeholder="请输入">
+                    <span class="unit">分钟/次</span>
+                  </div>
+                </div>
+                <div class="hp-cell">
+                  <div class="hp-label">目标运动周次</div>
+                  <div class="hp-field">
+                    <input class="ctl" id="fuTargetExerFreq" maxlength="3" placeholder="请输入">
+                    <span class="unit">次/周</span>
+                  </div>
+                </div>
+                <div class="hp-cell">
+                  <div class="hp-label">目标运动时长</div>
+                  <div class="hp-field">
+                    <input class="ctl" id="fuTargetExerDur" maxlength="4" placeholder="请输入">
+                    <span class="unit">分钟/次</span>
+                  </div>
+                </div>
+              </div>
+              <!-- 摄盐情况 -->
+              <div class="hp-row two-col">
+                <div class="hp-cell">
+                  <div class="hp-label">当前摄盐情况</div>
+                  <div class="hp-field">
+                    <div class="opts">
+                      <label class="rad"><input type="radio" name="fuSalt" value="轻" checked>轻</label>
+                      <label class="rad"><input type="radio" name="fuSalt" value="中">中</label>
+                      <label class="rad"><input type="radio" name="fuSalt" value="重">重</label>
+                    </div>
+                  </div>
+                </div>
+                <div class="hp-cell">
+                  <div class="hp-label">目标摄盐情况</div>
+                  <div class="hp-field">
+                    <div class="opts">
+                      <label class="rad"><input type="radio" name="fuTargetSalt" value="轻" checked>轻</label>
+                      <label class="rad"><input type="radio" name="fuTargetSalt" value="中">中</label>
+                      <label class="rad"><input type="radio" name="fuTargetSalt" value="重">重</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- 心理调整 / 遵医行为 -->
+              <div class="hp-row two-col">
+                <div class="hp-cell">
+                  <div class="hp-label">心理调整</div>
+                  <div class="hp-field">
+                    <div class="opts">
+                      <label class="rad"><input type="radio" name="fuPsych" value="良好" checked>良好</label>
+                      <label class="rad"><input type="radio" name="fuPsych" value="一般">一般</label>
+                      <label class="rad"><input type="radio" name="fuPsych" value="差">差</label>
+                    </div>
+                  </div>
+                </div>
+                <div class="hp-cell">
+                  <div class="hp-label">遵医行为</div>
+                  <div class="hp-field">
+                    <div class="opts">
+                      <label class="rad"><input type="radio" name="fuCompliance" value="良好" checked>良好</label>
+                      <label class="rad"><input type="radio" name="fuCompliance" value="一般">一般</label>
+                      <label class="rad"><input type="radio" name="fuCompliance" value="差">差</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 辅助检查 -->
+          <div class="hp-row tall">
+            <div class="hp-label">辅助检查</div>
+            <div class="hp-field" style="flex-direction:column;align-items:stretch;gap:4px">
+              <textarea class="ctl" id="fuAuxCheck" maxlength="100" placeholder="请输入" oninput="document.getElementById('fuAuxCount').textContent=this.value.length+'/100'"></textarea>
+              <span class="char-count" id="fuAuxCount">0/100</span>
+            </div>
+          </div>
+          <!-- 服药依从性 / 药物不良反应 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label">服药依从性</div>
+              <div class="hp-field">
+                <div class="opts">
+                  <label class="rad"><input type="radio" name="fuMedCompl" value="规律">规律</label>
+                  <label class="rad"><input type="radio" name="fuMedCompl" value="间断">间断</label>
+                  <label class="rad"><input type="radio" name="fuMedCompl" value="不服药">不服药</label>
+                </div>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label">药物不良反应</div>
+              <div class="hp-field">
+                <div class="opts">
+                  <label class="rad"><input type="radio" name="fuAdverse" value="无" checked>无</label>
+                  <label class="rad"><input type="radio" name="fuAdverse" value="有">有</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 此次随访分类 / 高血压分级 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>此次随访分类</div>
+              <div class="hp-field">
+                <div class="opts">
+                  <label class="rad"><input type="radio" name="fuCategory" value="控制满意">控制满意</label>
+                  <label class="rad"><input type="radio" name="fuCategory" value="控制不满意">控制不满意</label>
+                  <label class="rad"><input type="radio" name="fuCategory" value="不良反应">不良反应</label>
+                  <label class="rad"><input type="radio" name="fuCategory" value="并发症">并发症</label>
+                </div>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label">高血压分级</div>
+              <div class="hp-field">
+                <div class="opts">
+                  <label class="rad"><input type="radio" name="fuGrade" value="一级">一级</label>
+                  <label class="rad"><input type="radio" name="fuGrade" value="二级">二级</label>
+                  <label class="rad"><input type="radio" name="fuGrade" value="三级">三级</label>
+                  <label class="rad"><input type="radio" name="fuGrade" value="其他">其他</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 用药情况 -->
+          <div class="hp-row tall">
+            <div class="hp-label">用药情况</div>
+            <div class="hp-field">
+              <div class="med-box" id="fuMedBox">
+                <div class="med-row">
+                  <select class="ctl"><option value="">药物名称</option><option>氨氯地平</option><option>缬沙坦</option><option>硝苯地平</option><option>美托洛尔</option></select>
+                  <input class="ctl" placeholder="商品名">
+                  <select class="ctl"><option value="">分类</option><option>钙通道阻滞剂</option><option>ACEI</option><option>ARB</option><option>β受体阻滞剂</option></select>
+                  <div style="display:flex;gap:6px;align-items:center">
+                    <select class="ctl" style="flex:1"><option value="">用法</option><option>口服</option><option>注射</option></select>
+                    <input class="ctl" style="width:70px" placeholder="用量">
+                    <select class="ctl" style="width:70px"><option>次/日</option><option>次/周</option></select>
+                  </div>
+                </div>
+                <div class="med-row">
+                  <input class="ctl" colspan="4" placeholder="备注" style="grid-column:1/-1">
+                </div>
+              </div>
+              <div class="med-add" onclick="addMedRow()">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><line x1="12" y1="8" x2="12" y2="16" stroke="currentColor" stroke-width="1.6"/><line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="1.6"/></svg>
+                添加用药
+              </div>
+            </div>
+          </div>
+
+          <!-- 转诊分组 -->
+          <div class="fv-group">
+            <div class="fv-group-label">转诊</div>
+            <div class="fv-group-body">
+              <!-- 转诊情况 -->
+              <div class="hp-row">
+                <div class="hp-label">转诊情况</div>
+                <div class="hp-field">
+                  <div class="opts">
+                    <label class="rad"><input type="radio" name="fuRefer" value="转诊">转诊</label>
+                    <label class="rad"><input type="radio" name="fuRefer" value="不转诊" checked>不转诊</label>
+                  </div>
+                </div>
+              </div>
+              <!-- 转诊原因 -->
+              <div class="hp-row tall">
+                <div class="hp-label">转诊原因</div>
+                <div class="hp-field">
+                  <div class="opts">
+                    <label class="chk"><input type="checkbox" name="fuReferReason" value="慢病转诊原因1">慢病转诊原因1</label>
+                    <label class="chk"><input type="checkbox" name="fuReferReason" value="慢病转诊原因2">慢病转诊原因2</label>
+                    <label class="chk"><input type="checkbox" name="fuReferReason" value="慢病转诊原因3">慢病转诊原因3</label>
+                    <label class="chk"><input type="checkbox" name="fuReferReason" value="其他">其他</label>
+                  </div>
+                </div>
+              </div>
+              <!-- 转诊机构 / 转诊科室 -->
+              <div class="hp-row two-col">
+                <div class="hp-cell">
+                  <div class="hp-label">转诊机构</div>
+                  <div class="hp-field">
+                    <select class="ctl">
+                      <option value="" selected>请选择</option>
+                      <option>山东大学齐鲁医院</option>
+                      <option>扬州市江都区人民医院</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="hp-cell">
+                  <div class="hp-label">转诊科室</div>
+                  <div class="hp-field">
+                    <select class="ctl">
+                      <option value="" selected>请选择</option>
+                      <option>心血管内科</option>
+                      <option>神经内科</option>
+                      <option>肾内科</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 下次随访日期 / 随访医生签名 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>下次随访日期</div>
+              <div class="hp-field">
+                <input class="ctl" id="fuNextDate" type="date">
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>随访医生签名</div>
+              <div class="hp-field">
+                <select class="ctl" id="fuDoctor">
+                  <option value="吕雪" selected>吕雪</option>
+                  <option value="白雪">白雪</option>
+                  <option value="周建国">周建国</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <!-- 随访状态 / 失访日期/死亡日期 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>随访状态</div>
+              <div class="hp-field">
+                <select class="ctl" id="fuStatus" onchange="toggleFuLost()">
+                  <option value="正常" selected>正常</option>
+                  <option value="失访">失访</option>
+                  <option value="死亡">死亡</option>
+                </select>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label" id="fuLostLabel">失访日期/死亡日期</div>
+              <div class="hp-field">
+                <input class="ctl" id="fuLostDate" type="date" disabled style="background:#F5F6FA">
+              </div>
+            </div>
+          </div>
+          <!-- 失访原因/死亡原因 -->
+          <div class="hp-row">
+            <div class="hp-label">失访原因/死亡原因</div>
+            <div class="hp-field">
+              <input class="ctl" id="fuLostReason" placeholder="请输入" disabled style="background:#F5F6FA">
+            </div>
+          </div>
+          <!-- 随访类别 / 随访季度 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label">随访类别</div>
+              <div class="hp-field">
+                <select class="ctl">
+                  <option value="" selected>请选择</option>
+                  <option>常规随访</option>
+                  <option>强化随访</option>
+                  <option>年度评估</option>
+                </select>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>随访季度</div>
+              <div class="hp-field">
+                <select class="ctl">
+                  <option value="" selected>请选择</option>
+                  <option>第一季度</option>
+                  <option>第二季度</option>
+                  <option>第三季度</option>
+                  <option>第四季度</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 视图五：高血压评估记录表 ===== -->
+    <div class="pv-view hidden" id="viewAssessment">
+      <div class="fv-card">
+        <div class="fv-head">
+          <h3>高血压评估记录表</h3>
+          <span class="fv-arch">档案编号：<b id="asArchNo">--</b></span>
+          <div class="fv-actions">
+            <button class="btn btn-primary" onclick="toast('高血压评估记录表保存成功','success')">保存</button>
+          </div>
+        </div>
+        <div class="fv-body">
+          <!-- 姓名 -->
+          <div class="hp-row">
+            <div class="hp-label">姓名</div>
+            <div class="hp-field readonly-val" id="asName">--</div>
+          </div>
+          <!-- 血压 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>收缩压</div>
+              <div class="hp-field">
+                <input class="ctl" id="asSbp" maxlength="4" placeholder="请输入">
+                <span class="unit">mmHg</span>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>舒张压</div>
+              <div class="hp-field">
+                <input class="ctl" id="asDbp" maxlength="4" placeholder="请输入">
+                <span class="unit">mmHg</span>
+              </div>
+            </div>
+          </div>
+          <!-- 心血管病危险因素 / 靶器官损害 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label">心血管病危险因素</div>
+              <div class="hp-field">
+                <select class="ctl">
+                  <option value="1" selected>1;</option>
+                  <option value="0">0</option>
+                  <option value="2">2</option>
+                  <option value="3">≥3</option>
+                </select>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label">靶器官损害</div>
+              <div class="hp-field">
+                <select class="ctl">
+                  <option value="" selected>请选择</option>
+                  <option>无</option>
+                  <option>左心室肥厚</option>
+                  <option>颈动脉内膜增厚</option>
+                  <option>肾功能受损</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <!-- 是否糖尿病 / 血糖情况 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label">是否糖尿病</div>
+              <div class="hp-field">
+                <div class="opts">
+                  <label class="rad"><input type="radio" name="asDiabetes" value="否">否</label>
+                  <label class="rad"><input type="radio" name="asDiabetes" value="是">是</label>
+                  <label class="rad"><input type="radio" name="asDiabetes" value="不详" checked>不详</label>
+                </div>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label">血糖情况①</div>
+              <div class="hp-field">
+                <select class="ctl">
+                  <option value="" selected>请选择</option>
+                  <option>正常</option>
+                  <option>空腹血糖受损</option>
+                  <option>糖耐量异常</option>
+                  <option>糖尿病</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <!-- 脑血管病 -->
+          <div class="hp-row">
+            <div class="hp-label">脑血管病</div>
+            <div class="hp-field">
+              <div class="opts">
+                <label class="rad"><input type="radio" name="asBrain" value="否" checked>否</label>
+                <label class="rad"><input type="radio" name="asBrain" value="是">是</label>
+              </div>
+            </div>
+          </div>
+          <!-- 心脏病 -->
+          <div class="hp-row">
+            <div class="hp-label">心脏病</div>
+            <div class="hp-field">
+              <div class="opts">
+                <label class="rad"><input type="radio" name="asHeart" value="否" checked>否</label>
+                <label class="rad"><input type="radio" name="asHeart" value="是">是</label>
+              </div>
+            </div>
+          </div>
+          <!-- 肾脏病 -->
+          <div class="hp-row">
+            <div class="hp-label">肾脏病</div>
+            <div class="hp-field">
+              <div class="opts">
+                <label class="rad"><input type="radio" name="asKidney" value="否" checked>否</label>
+                <label class="rad"><input type="radio" name="asKidney" value="是">是</label>
+              </div>
+            </div>
+          </div>
+          <!-- 周围血管病 -->
+          <div class="hp-row">
+            <div class="hp-label">周围血管病</div>
+            <div class="hp-field">
+              <div class="opts">
+                <label class="rad"><input type="radio" name="asVessel" value="否" checked>否</label>
+                <label class="rad"><input type="radio" name="asVessel" value="是">是</label>
+              </div>
+            </div>
+          </div>
+          <!-- 视网膜病变 -->
+          <div class="hp-row">
+            <div class="hp-label">视网膜病变</div>
+            <div class="hp-field">
+              <div class="opts">
+                <label class="rad"><input type="radio" name="asRetina" value="否" checked>否</label>
+                <label class="rad"><input type="radio" name="asRetina" value="是">是</label>
+              </div>
+            </div>
+          </div>
+          <!-- 其他 -->
+          <div class="hp-row">
+            <div class="hp-label">其他</div>
+            <div class="hp-field">
+              <div class="opts">
+                <label class="rad"><input type="radio" name="asOther" value="否" checked>否</label>
+                <label class="rad"><input type="radio" name="asOther" value="是">是</label>
+              </div>
+            </div>
+          </div>
+          <!-- 血压分级结果 / 危险分层结果 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label">血压分级结果</div>
+              <div class="hp-field">
+                <div class="opts">
+                  <label class="rad"><input type="radio" name="asBpGrade" value="一级高血压" checked>一级高血压</label>
+                  <label class="rad"><input type="radio" name="asBpGrade" value="二级高血压">二级高血压</label>
+                  <label class="rad"><input type="radio" name="asBpGrade" value="三级高血压">三级高血压</label>
+                </div>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label">危险分层结果</div>
+              <div class="hp-field">
+                <div class="opts">
+                  <label class="rad"><input type="radio" name="asRisk" value="低危">低危</label>
+                  <label class="rad"><input type="radio" name="asRisk" value="中危" checked>中危</label>
+                  <label class="rad"><input type="radio" name="asRisk" value="高危">高危</label>
+                  <label class="rad"><input type="radio" name="asRisk" value="极高危">极高危</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 分层管理结果 -->
+          <div class="hp-row">
+            <div class="hp-label">分层管理结果</div>
+            <div class="hp-field">
+              <div class="opts">
+                <label class="rad"><input type="radio" name="asManage" value="一级管理">一级管理</label>
+                <label class="rad"><input type="radio" name="asManage" value="二级管理" checked>二级管理</label>
+                <label class="rad"><input type="radio" name="asManage" value="三级管理">三级管理</label>
+              </div>
+            </div>
+          </div>
+          <!-- 降压结果 -->
+          <div class="hp-row">
+            <div class="hp-label">降压结果</div>
+            <div class="hp-field">
+              <div class="opts">
+                <label class="rad"><input type="radio" name="asBpResult" value="血压正常">血压正常</label>
+                <label class="rad"><input type="radio" name="asBpResult" value="血压正常伴有药物副反应">血压正常伴有药物副反应</label>
+                <label class="rad"><input type="radio" name="asBpResult" value="血压正常并存其他疾病">血压正常并存其他疾病</label>
+                <label class="rad"><input type="radio" name="asBpResult" value="血压异常">血压异常</label>
+              </div>
+            </div>
+          </div>
+          <!-- 总体评价 -->
+          <div class="hp-row tall">
+            <div class="hp-label"><i>*</i>总体评价</div>
+            <div class="hp-field">
+              <div class="opts">
+                <label class="chk"><input type="checkbox" name="asEval" value="血压控制">血压控制</label>
+                <label class="chk"><input type="checkbox" name="asEval" value="血压未控制">血压未控制</label>
+                <label class="chk"><input type="checkbox" name="asEval" value="血压正常伴有药物不良反应">血压正常伴有药物不良反应</label>
+                <label class="chk"><input type="checkbox" name="asEval" value="血压未控制伴有药物不良反应">血压未控制伴有药物不良反应</label>
+                <label class="chk"><input type="checkbox" name="asEval" value="血压控制伴靶细胞损害">血压控制伴靶细胞损害</label>
+                <label class="chk"><input type="checkbox" name="asEval" value="血压未控制伴靶细胞损害">血压未控制伴靶细胞损害</label>
+                <label class="chk"><input type="checkbox" name="asEval" value="血压有控制伴临床合并症(包括糖尿病)">血压有控制伴临床合并症(包括糖尿病)</label>
+                <label class="chk"><input type="checkbox" name="asEval" value="血压未控制伴临床合并症(包括糖尿病)">血压未控制伴临床合并症(包括糖尿病)</label>
+              </div>
+            </div>
+          </div>
+          <!-- 评价医生 / 评价日期 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>评价医生</div>
+              <div class="hp-field">
+                <select class="ctl" id="asDoctor">
+                  <option value="吕雪" selected>吕雪</option>
+                  <option value="白雪">白雪</option>
+                  <option value="周建国">周建国</option>
+                </select>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>评价日期</div>
+              <div class="hp-field">
+                <input class="ctl" id="asDate" type="date">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== 统一框架：仅引入公共函数（toast 等），不注入系统导航 ===== -->
+<script src="框架.js" data-embed="true"></script>
+
+<script>
+  /* ==========================================================================
+   * 档案维护页逻辑
+   * 流程：居民档案列表「新建 → 下一步」携带表单参数打开本页
+   *   封面（图2）→ 下一步 → 个人基本信息表（图3/4）→ 保存 → 完整度100%（图5）
+   * ========================================================================== */
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+  /* ================= 入参（新建弹框提交的基本信息；直接打开时使用演示数据） ================= */
+  var QS = new URLSearchParams(location.search);
+  var P = {
+    name:   QS.get('name')   || '张三',
+    gender: QS.get('gender') || '女性',
+    idcard: QS.get('idcard') || '510698198508071369',
+    birth:  QS.get('birth')  || '1985-08-07',
+    phone:  QS.get('phone')  || '17896788523',
+    nation: QS.get('nation') || '汉族',
+    region: QS.get('region') || '山东省济南市历下区',
+    addr:   QS.get('addr')   || '解放路105号'
+  };
+
+  /* ================= 地址级联数据（省 → 市 → 区县 → 乡镇/街道 → 村/居社区） ================= */
+  var ADDR = {
+    '江苏省': {
+      '扬州市': {
+        '江都区': {
+          '武坚镇': ['周西社区', '五尖村', '黄思村', '联全村'],
+          '吴桥镇': ['吴桥社区', '西范村', '李桥村'],
+          '宜陵镇': ['宜陵社区', '西湖村'],
+          '仙女镇': ['北苑社区', '东苑社区', '砖桥社区']
+        },
+        '邗江区': { '汊河街道': ['许蒋社区', '胡庄社区'] }
+      },
+      '南京市': { '玄武区': { '梅园新村街道': ['大影壁社区', '明故宫社区'] } },
+      '苏州市': { '姑苏区': { '平江街道': ['历史街区社区', '钮家巷社区'] } }
+    },
+    '山东省': {
+      '济南市': {
+        '历下区': { '解放路街道': ['解放桥社区', '历山路社区'], '文化东路街道': ['文东社区', '和平路社区'] },
+        '市中区': { '杆石桥街道': ['乐山小区社区', '春元里社区'] }
+      }
+    }
+  };
+
+  var PH = '请选择';
+
+  /* 级联选择器通用渲染：prefix 为 5 个 select 的 id 前缀，preset 为默认选中数组 */
+  function fillOptions(sel, list, presetVal) {
+    var html = '<option value="">' + PH + '</option>';
+    list.forEach(function (v) { html += '<option value="' + esc(v) + '"' + (v === presetVal ? ' selected' : '') + '>' + esc(v) + '</option>'; });
+    sel.innerHTML = html;
+  }
+  function subAddr(level, vals) {
+    var d = ADDR;
+    for (var i = 0; i < level && d; i++) d = d[vals[i]];
+    return d || {};
+  }
+  /* 级联选项填充：prefix 为 5 个 select 的 id 前缀，vals 为各级选中值（可截断） */
+  function setCascade(prefix, vals) {
+    vals = vals || [];
+    var sels = [1, 2, 3, 4, 5].map(function (i) { return $(prefix + i); });
+    fillOptions(sels[0], Object.keys(ADDR), vals[0]);
+    fillOptions(sels[1], vals[0] ? Object.keys(subAddr(1, vals)) : [], vals[1]);
+    fillOptions(sels[2], vals[1] ? Object.keys(subAddr(2, vals)) : [], vals[2]);
+    fillOptions(sels[3], vals[2] ? Object.keys(subAddr(3, vals)) : [], vals[3]);
+    fillOptions(sels[4], vals[3] ? (subAddr(4, vals) || []) : [], vals[4]);
+  }
+  /* 级联初始化：填充选项 + 绑定一次 change（某级变化时重置其下级） */
+  var boundPrefixes = {};
+  function initCascade(prefix, preset) {
+    setCascade(prefix, preset);
+    if (boundPrefixes[prefix]) return;
+    boundPrefixes[prefix] = true;
+    var sels = [1, 2, 3, 4, 5].map(function (i) { return $(prefix + i); });
+    sels.forEach(function (sel, idx) {
+      sel.addEventListener('change', function () {
+        var cur = sels.map(function (s) { return s.value; });
+        for (var k = idx + 2; k <= 5; k++) {
+          var opts = [];
+          if (k === 2) opts = cur[0] ? Object.keys(subAddr(1, cur)) : [];
+          if (k === 3) opts = cur[1] ? Object.keys(subAddr(2, cur)) : [];
+          if (k === 4) opts = cur[2] ? Object.keys(subAddr(3, cur)) : [];
+          if (k === 5) opts = cur[3] ? (subAddr(4, cur) || []) : [];
+          fillOptions(sels[k - 1], opts, '');
+        }
+        if (prefix === 'cvP') syncTown();
+      });
+    });
+  }
+
+  /* 乡镇 / 村居委会：随封面现住址选择自动带出 */
+  function syncTown() {
+    var town = $('cvP4').value, village = $('cvP5').value;
+    $('cvTown').value = town || '';
+    $('cvVillage').value = village ? village + '居委会' : '';
+  }
+
+  /* 参数 region（如"山东省济南市历下区"）→ 级联预设数组 */
+  function parseRegion(region) {
+    var out = [];
+    if (!region) return out;
+    var prov = Object.keys(ADDR).filter(function (p) { return region.indexOf(p) === 0; })[0];
+    if (!prov) return out;
+    out.push(prov);
+    var cities = Object.keys(ADDR[prov]);
+    var city = cities.filter(function (c) { return region.indexOf(c) > -1; })[0];
+    if (!city) return out;
+    out.push(city);
+    var dists = Object.keys(ADDR[prov][city]);
+    var dist = dists.filter(function (d) { return region.indexOf(d) > -1; })[0];
+    if (!dist) return out;
+    out.push(dist);
+    return out;
+  }
+
+  /* ================= 年龄 ================= */
+  function calcAge(birth) {
+    if (!birth) return '';
+    var b = new Date(birth), n = new Date();
+    if (isNaN(b.getTime())) return '';
+    var age = n.getFullYear() - b.getFullYear();
+    var m = n.getMonth() - b.getMonth();
+    if (m < 0 || (m === 0 && n.getDate() < b.getDate())) age--;
+    return age >= 0 ? age + '岁' : '';
+  }
+  function todayStr() {
+    var n = new Date();
+    return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
+  }
+
+  /* ================= 家族史表格（父亲/母亲/兄弟姐妹/子女 × 无 + 11 种疾病） ================= */
+  var FAM_ROLES = ['父亲', '母亲', '兄弟姐妹', '子女'];
+  var FAM_DIS = ['高血压', '糖尿病', '冠心病', '慢性阻塞性肺疾病', '恶性肿瘤', '脑卒中', '严重精神障碍', '结核病', '肝炎', '先天畸形', '其他'];
+  function buildFamTable() {
+    var html = '';
+    FAM_ROLES.forEach(function (role, ri) {
+      html += '<tr><td class="role-cell">' + role + '</td><td><div class="fam-opts">';
+      html += '<label class="chk"><input type="checkbox" data-fam="' + ri + '" value="无">无</label>';
+      FAM_DIS.forEach(function (d, di) {
+        html += '<label class="chk"><input type="checkbox" data-fam="' + ri + '" value="' + d + '">' + d + '</label>';
+      });
+      html += '</div></td></tr>';
+    });
+    $('famBody').innerHTML = html;
+  }
+
+  /* ================= 互斥复选组：勾「无」清其他，勾其他清「无」 ================= */
+  function bindMutex(boxId, noneVal) {
+    $(boxId).addEventListener('change', function (e) {
+      var t = e.target;
+      if (t.type !== 'checkbox') return;
+      var boxes = $(boxId).querySelectorAll('input[type="checkbox"]');
+      if (t.value === noneVal && t.checked) {
+        boxes.forEach(function (b) { if (b !== t) b.checked = false; });
+      } else if (t.value !== noneVal && t.checked) {
+        boxes.forEach(function (b) { if (b.value === noneVal) b.checked = false; });
+      }
+    });
+  }
+  function bindFamMutex() {
+    $('famBody').addEventListener('change', function (e) {
+      var t = e.target;
+      if (t.type !== 'checkbox' || t.dataset.fam == null) return;
+      var row = $('famBody').querySelectorAll('input[data-fam="' + t.dataset.fam + '"]');
+      if (t.value === '无' && t.checked) {
+        row.forEach(function (b) { if (b !== t) b.checked = false; });
+      } else if (t.value !== '无' && t.checked) {
+        row.forEach(function (b) { if (b.value === '无') b.checked = false; });
+      }
+    });
+  }
+
+  /* ================= 顶部居民信息栏 ================= */
+  function renderPatientBar() {
+    $('ptName').textContent = $('biName').value || P.name;
+    $('ptAge').textContent = calcAge($('biBirth').value || P.birth);
+    $('ptIdcard').textContent = $('biIdcard').value || P.idcard;
+    $('ptBirth').textContent = $('biBirth').value || P.birth;
+    var abo = document.querySelector('input[name="abo"]:checked');
+    $('ptBlood').textContent = abo ? abo.value : '-';
+    var phone = $('biPhone').value || $('cvPhone').value || P.phone;
+    $('ptPhone').textContent = phone || '-';
+    var al = [];
+    document.querySelectorAll('input[name="allergy"]:checked').forEach(function (c) { al.push(c.value); });
+    $('ptAllergy').textContent = al.length ? al.join('、') : '-';
+    var addrParts = [$('cvP1').value, $('cvP2').value, $('cvP3').value, $('cvP4').value, $('cvP5').value, $('cvAddrDetail').value];
+    var addr = addrParts.filter(Boolean).join('');
+    $('ptAddr').textContent = addr || (P.region + P.addr);
+    $('ptAddr').title = $('ptAddr').textContent;
+  }
+
+  /* ================= 完整度：12 个关键分区，每区 ≈8.33%；保存后 100% ================= */
+  var saved = false;
+  function secDone(sec) {
+    switch (sec) {
+      case 'secCrowd':   return !!document.querySelector('[data-sec="secCrowd"] input:checked');
+      case 'secHealth':  return !!document.querySelector('[data-sec="secHealth"] input:checked');
+      case 'secBlood':   return !!document.querySelector('[data-sec="secBlood"] input:checked');
+      case 'secBase':    return !!($('biWork').value.trim() || $('biJG1').value || $('biBirthplace').value.trim());
+      case 'secMgr':     return !!($('biMgrPhone').value.trim() || $('biFdName').value.trim() || $('biFdPhone').value.trim());
+      case 'secEmerg':   return !!$('ec1Name').value.trim();
+      case 'secEdu':     return !!document.querySelector('[data-sec="secEdu"] input:checked');
+      case 'secPay':     return !!document.querySelector('input[name="pay"]:checked');
+      case 'secCert':    return !!($('cert1Name').value || $('cert2Name').value);
+      case 'secAllergy': return !!document.querySelector('[data-sec="secAllergy"] input:checked');
+      case 'secPast':    return !!document.querySelector('[data-sec="secPast"] input:checked');
+      case 'secPopu':    return !!document.querySelector('[data-sec="secPopu"] input:checked');
+    }
+    return false;
+  }
+  function renderComplete() {
+    var pct;
+    if (saved) { pct = 100; }
+    else {
+      var list = ['secCrowd', 'secHealth', 'secBlood', 'secBase', 'secMgr', 'secEmerg', 'secEdu', 'secPay', 'secCert', 'secAllergy', 'secPast', 'secPopu'];
+      var done = list.filter(secDone).length;
+      pct = Math.round(done / list.length * 100);
+    }
+    var C = 2 * Math.PI * 16;
+    $('ringBar').setAttribute('stroke-dasharray', C.toFixed(1));
+    $('ringBar').setAttribute('stroke-dashoffset', (C * (1 - pct / 100)).toFixed(1));
+    $('ringTxt').textContent = pct + '%';
+    $('ringSvg').classList.toggle('done', pct >= 100);
+  }
+
+  /* ================= 视图切换 ================= */
+  function switchView(name) {
+    var isCover = name === 'cover';
+    var isBasic = name === 'basic';
+    var isHp = name === 'hypertension';
+    var isFu = name === 'followup';
+    var isAs = name === 'assessment';
+    $('viewCover').classList.toggle('hidden', !isCover);
+    $('viewBasic').classList.toggle('hidden', !isBasic);
+    $('viewHypertension').classList.toggle('hidden', !isHp);
+    $('viewFollowup').classList.toggle('hidden', !isFu);
+    $('viewAssessment').classList.toggle('hidden', !isAs);
+    $('navCover').classList.toggle('active', isCover);
+    $('navBasic').classList.toggle('active', isBasic);
+    $('navHpSpecial').classList.toggle('active', isHp);
+    $('navHpFollowup').classList.toggle('active', isFu);
+    $('navHpAssessment').classList.toggle('active', isAs);
+    $('btnSave').style.display = isCover ? 'none' : '';
+    if (isHp || isFu || isAs) {
+      $('navHpGroup').classList.add('open');
+      $('pvContent').scrollTop = 0;
+    } else if (isBasic) {
+      renderComplete();
+      $('pvContent').scrollTop = 0;
+    }
+  }
+
+  /* ================= 左侧导航分组展开/收起 ================= */
+  function toggleNavGroup(groupId) {
+    document.getElementById(groupId).classList.toggle('open');
+  }
+
+  /* ================= 高血压专项表：BMI 自动计算 ================= */
+  function calcBmi() {
+    var h = parseFloat($('hpHeight').value);
+    var w = parseFloat($('hpWeight').value);
+    if (h > 0 && w > 0) {
+      var bmi = w / ((h / 100) * (h / 100));
+      $('hpBmi').value = bmi.toFixed(1);
+    } else {
+      $('hpBmi').value = '';
+    }
+  }
+
+  /* ================= 高血压专项表：根据血压自动判定分级（公卫标准） ================= */
+  /* 分级标准：一级 140-159/90-99，二级 160-179/100-109，三级 ≥180/≥110，收缩压与舒张压分属不同级别时以较高级别为准 */
+  function autoHpGrade() {
+    var sbp = parseInt($('hpSbp').value);
+    var dbp = parseInt($('hpDbp').value);
+    if (!sbp || !dbp || sbp <= 0 || dbp <= 0) return;
+    var grade = '';
+    if (sbp >= 180 || dbp >= 110) {
+      grade = '三级';
+    } else if (sbp >= 160 || dbp >= 100) {
+      grade = '二级';
+    } else if (sbp >= 140 || dbp >= 90) {
+      grade = '一级';
+    } else {
+      grade = '其他';
+    }
+    var radios = document.querySelectorAll('input[name="hpGrade"]');
+    radios.forEach(function (r) { r.checked = (r.value === grade); });
+  }
+
+  /* ================= 高血压专项表：保存 ================= */
+  function saveHpArchive() {
+    var missing = [];
+    if (!$('hpHeight').value.trim()) missing.push('身高');
+    if (!$('hpWeight').value.trim()) missing.push('体重');
+    if (!$('hpSbp').value.trim()) missing.push('收缩压');
+    if (!$('hpDbp').value.trim()) missing.push('舒张压');
+    if (!$('hpDiagDate').value) missing.push('确诊日期');
+    if (!$('hpCreateOrg').value) missing.push('建档机构');
+    if (!$('hpCreateDoc').value) missing.push('建档医生');
+    if (!$('hpCreateDate').value) missing.push('建档日期');
+    if (missing.length) { toast('请完善必填项：' + missing.join('、'), 'warning'); return; }
+    /* 保存成功后显示随访和评估导航项 */
+    $('navHpFollowup').classList.remove('nav-followup-hidden');
+    $('navHpAssessment').classList.remove('nav-followup-hidden');
+    toast('高血压专项表保存成功，已新增高血压随访、高血压评估目录', 'success');
+  }
+
+  /* ================= 高血压专项表：并发症互斥（勾"无"清其他） ================= */
+  function bindHpComplMutex() {
+    $('hpComplicationBox').addEventListener('change', function (e) {
+      var t = e.target;
+      if (t.type !== 'checkbox' || t.name !== 'hpCompl') return;
+      var boxes = $('hpComplicationBox').querySelectorAll('input[type="checkbox"]');
+      if (t.value === '无' && t.checked) {
+        boxes.forEach(function (b) { if (b !== t) b.checked = false; });
+      } else if (t.value !== '无' && t.checked) {
+        boxes.forEach(function (b) { if (b.value === '无') b.checked = false; });
+      }
+    });
+  }
+
+  /* ================= 随访表：用药情况动态添加行 ================= */
+  function addMedRow() {
+    var box = $('fuMedBox');
+    var row = document.createElement('div');
+    row.className = 'med-row';
+    row.innerHTML = '<select class="ctl"><option value="">药物名称</option><option>氨氯地平</option><option>缬沙坦</option><option>硝苯地平</option><option>美托洛尔</option></select>' +
+      '<input class="ctl" placeholder="商品名">' +
+      '<select class="ctl"><option value="">分类</option><option>钙通道阻滞剂</option><option>ACEI</option><option>ARB</option><option>β受体阻滞剂</option></select>' +
+      '<div style="display:flex;gap:6px;align-items:center">' +
+        '<select class="ctl" style="flex:1"><option value="">用法</option><option>口服</option><option>注射</option></select>' +
+        '<input class="ctl" style="width:70px" placeholder="用量">' +
+        '<select class="ctl" style="width:70px"><option>次/日</option><option>次/周</option></select>' +
+        '<div class="med-del" onclick="this.closest(\'.med-row\').remove()" title="删除">' +
+          '<svg viewBox="0 0 24 24" width="14" height="14" fill="none"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m2 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>' +
+        '</div>' +
+      '</div>';
+    box.insertBefore(row, box.querySelector('.med-add') || box.lastChild);
+  }
+
+  /* ================= 随访表：随访状态切换（失访/死亡时启用相关字段） ================= */
+  function toggleFuLost() {
+    var status = $('fuStatus').value;
+    var isLost = status === '失访' || status === '死亡';
+    $('fuLostDate').disabled = !isLost;
+    $('fuLostDate').style.background = isLost ? '' : '#F5F6FA';
+    $('fuLostReason').disabled = !isLost;
+    $('fuLostReason').style.background = isLost ? '' : '#F5F6FA';
+    if (status === '死亡') {
+      $('fuLostLabel').textContent = '死亡日期';
+    } else if (status === '失访') {
+      $('fuLostLabel').textContent = '失访日期';
+    } else {
+      $('fuLostLabel').textContent = '失访日期/死亡日期';
+    }
+  }
+
+  /* ================= 封面「下一步」 ================= */
+  function coverNext() {
+    var missing = [];
+    if (!$('cvName').value.trim()) missing.push('姓名');
+    if (!$('cvP5').value) missing.push('现住址（需选到村/居社区）');
+    if (!$('cvGrid').value) missing.push('管辖网格');
+    if (!$('cvAddrDetail').value.trim()) missing.push('住址详细地址');
+    if (!$('cvH5').value) missing.push('户籍地址（需选到村/居社区）');
+    if (!$('cvHAddrDetail').value.trim()) missing.push('户籍详细地址');
+    if (!$('cvPhone').value.trim()) missing.push('联系电话');
+    if (!$('cvTown').value) missing.push('乡镇(街道)名称');
+    if (!$('cvVillage').value) missing.push('村(居)委会名称');
+    if (!$('cvOrg').value) missing.push('建档单位');
+    if (!$('cvCreator').value) missing.push('建档人');
+    if (!$('cvDoctor').value) missing.push('责任医生');
+    if (!$('cvDate').value) missing.push('建档日期');
+    if (missing.length) { toast('请完善封面必填项：' + missing.join('、'), 'warning'); return; }
+
+    /* 封面数据回填基本信息表，保持两视图一致 */
+    $('biName').value = $('cvName').value.trim();
+    $('biPhone').value = $('cvPhone').value.trim();
+    $('biOrgShow').value = $('cvOrg').value;
+    $('bhOrg').textContent = $('cvOrg').value;
+    $('biCreateDate').value = $('cvDate').value;
+    setCascade('biP', [1, 2, 3, 4, 5].map(function (i) { return $('cvP' + i).value; }));
+    setCascade('biH', [1, 2, 3, 4, 5].map(function (i) { return $('cvH' + i).value; }));
+    $('biAddrDetail').value = $('cvAddrDetail').value;
+    $('biHAddrDetail').value = $('cvHAddrDetail').value;
+
+    switchView('basic');
+    renderPatientBar();
+    toast('封面信息已暂存，请继续填写个人基本信息表', 'success');
+  }
+  /* ================= 保存（图5：完整度 100%） ================= */
+  function saveArchive() {
+    if (saved) { toast('档案已是最新保存状态，无需重复保存', 'info'); return; }
+    var missing = [];
+    if (!$('biName').value.trim()) missing.push('姓名');
+    if (!$('biIdcard').value.trim()) missing.push('证件号');
+    if (!$('biBirth').value) missing.push('出生日期');
+    if (missing.length) { toast('请完善必填项：' + missing.join('、'), 'warning'); return; }
+    saved = true;
+    $('basicCard').classList.add('saved');
+    renderComplete();
+    renderPatientBar();
+    toast('保存成功：个人基本信息表已归档，完整度 100%', 'success');
+  }
+
+  /* ================= 返回 ================= */
+  function goBack() {
+    if (history.length > 1) history.back();
+    else location.href = '居民档案列表.html';
+  }
+
+  /* ================= 初始化 ================= */
+  function init() {
+    buildFamTable();
+    bindFamMutex();
+    bindMutex('allergyBox', '无');
+    bindMutex('exposureBox', '无');
+    bindMutex('disabilityBox', '无残疾');
+
+    /* 档案编号：演示规则 3210121 + 年月日 + 流水号 */
+    var n = new Date();
+    var seq = '3210121' + String(n.getFullYear()).slice(2) + String(n.getMonth() + 1).padStart(2, '0') + String(n.getDate()).padStart(2, '0') + '0001';
+    $('cvArchNo').value = seq;
+    $('bhArchNo').textContent = seq;
+
+    /* 封面预填（新建弹框带来的基本数据） */
+    $('cvName').value = P.name;
+    $('cvPhone').value = P.phone;
+    $('cvDate').value = todayStr();
+    $('cvAddrDetail').value = P.addr;
+    $('cvHAddrDetail').value = P.addr;
+    var regionPreset = parseRegion(P.region);
+    initCascade('cvP', regionPreset);
+    initCascade('cvH', regionPreset);
+    initCascade('biP', regionPreset);
+    initCascade('biH', regionPreset);
+    $('biAddrDetail').value = P.addr;
+    $('biHAddrDetail').value = P.addr;
+
+    /* 基本信息预填 */
+    $('biName').value = P.name;
+    $('biGender').value = P.gender;
+    $('biIdType').value = QS.get('idType') || '居民身份证';
+    $('biIdcard').value = P.idcard;
+    $('biBirth').value = P.birth;
+    $('biNation').value = P.nation;
+    $('biPhone').value = P.phone;
+    $('biOrgShow').value = '山东大学齐鲁医院';
+    $('bhOrg').textContent = '山东大学齐鲁医院';
+    $('biCreateDate').value = todayStr();
+
+    /* 籍贯：省市两级 */
+    (function () {
+      var prov = regionPreset[0] || Object.keys(ADDR)[0];
+      fillOptions($('biJG1'), Object.keys(ADDR), prov);
+      var cities = prov ? Object.keys(ADDR[prov]) : [];
+      fillOptions($('biJG2'), cities, regionPreset[1] || '');
+    })();
+
+    renderPatientBar();
+    renderComplete();
+
+    /* 表单变化 → 完整度与顶部信息栏实时联动 */
+    $('viewBasic').addEventListener('change', function () { renderComplete(); renderPatientBar(); });
+    $('viewBasic').addEventListener('input', function (e) {
+      if (e.target.id === 'biName' || e.target.id === 'biIdcard' || e.target.id === 'biBirth' || e.target.id === 'biPhone') renderPatientBar();
+      renderComplete();
+    });
+    $('viewCover').addEventListener('change', function () { renderPatientBar(); });
+
+    /* 高血压专项表预填 */
+    $('hpName').textContent = P.name;
+    $('hpArchNo').textContent = QS.get('archNo') || $('cvArchNo').value || '--';
+    $('hpCreateDate').value = todayStr();
+    bindHpComplMutex();
+
+    /* 高血压随访表预填 */
+    $('fuName').textContent = P.name;
+    $('fuArchNo').textContent = QS.get('archNo') || $('cvArchNo').value || '--';
+    $('fuDate').value = todayStr();
+
+    /* 高血压评估表预填 */
+    $('asName').textContent = P.name;
+    $('asArchNo').textContent = QS.get('archNo') || $('cvArchNo').value || '--';
+    $('asDate').value = todayStr();
+
+    /* 根据 URL 参数 view 决定初始视图（?view=hypertension 直接进入高血压专项表） */
+    var initView = QS.get('view') || 'cover';
+    if (initView === 'hypertension') {
+      switchView('hypertension');
+    } else if (initView === 'basic') {
+      switchView('basic');
+    } else if (initView === 'followup') {
+      switchView('followup');
+    } else if (initView === 'assessment') {
+      switchView('assessment');
+    }
+  }
+  init();
+</script>
+
+</body>
+</html>

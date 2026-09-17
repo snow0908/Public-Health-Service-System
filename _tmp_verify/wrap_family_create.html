@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  html,body{margin:0;height:100%;overflow:hidden}
+  .fake-top{height:72px;background:#007AFF}
+  iframe{width:100%;height:calc(100% - 72px);border:0;display:block}
+</style>
+</head>
+<body>
+<div class="fake-top"></div>
+<iframe id="f" src="../01-公共卫生服务系统产品文档/V1.0/02.需求设计/原型设计/家庭档案.html?embed=1" onload="onFrame()"></iframe>
+<script>
+function onFrame() {
+  try {
+    var w = document.getElementById('f').contentWindow;
+    var d = w.document;
+    if (typeof w.openCreateView !== 'function') {
+      document.title = 'NOFUNC';
+      return;
+    }
+    w.openCreateView();
+    var cv = d.getElementById('createView');
+    var pane = d.getElementById('paneBase');
+    var footBtn = d.querySelector('#paneBase .cr-foot .btn');
+    var footRect = footBtn.getBoundingClientRect();
+    var div = d.createElement('div');
+    div.style.cssText = 'position:fixed;left:0;bottom:0;background:#000;color:#0f0;font:12px monospace;z-index:99999;padding:3px 8px';
+    div.textContent = 'paneH=' + Math.round(pane.getBoundingClientRect().height)
+      + ' scrollH=' + cv.scrollHeight + ' clientH=' + cv.clientHeight
+      + ' vpH=' + w.innerHeight
+      + ' saveBtnBottom=' + Math.round(footRect.bottom)
+      + (cv.scrollHeight > cv.clientHeight ? ' [NEED-SCROLL]' : ' [FIT-OK]');
+    d.body.appendChild(div);
+    document.title = 'MEASURED';
+  } catch (e) {
+    document.title = 'ERR:' + e.message;
+  }
+}
+</script>
+</body>
+</html>

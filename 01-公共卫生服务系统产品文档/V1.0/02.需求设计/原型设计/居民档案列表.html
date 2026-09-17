@@ -37,7 +37,25 @@
 
   /* ===== 数据表格 ===== */
   .table-wrap{flex:1;overflow:auto;min-height:0}
-  .list-tbl{width:100%;min-width:1386px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+
+  /* 横向滚动时前 4 列冻结（序号/管理机构/姓名/证件号） */
+  .list-tbl th:nth-child(-n+4),.list-tbl td:nth-child(-n+4){position:sticky}
+  .list-tbl td:nth-child(-n+4){z-index:2;background:var(--bg-white)}
+  .list-tbl th:nth-child(-n+4){z-index:6}
+  .list-tbl th:nth-child(1),.list-tbl td:nth-child(1){left:0}
+  .list-tbl th:nth-child(2),.list-tbl td:nth-child(2){left:44px}
+  .list-tbl th:nth-child(3),.list-tbl td:nth-child(3){left:194px}
+  .list-tbl th:nth-child(4),.list-tbl td:nth-child(4){left:270px}
+  .list-tbl th:nth-child(4),.list-tbl td:nth-child(4){box-shadow:6px 0 8px -6px rgba(0,0,0,0.2)}
+  /* 横向滚动时操作列（末列）冻结在右侧 */
+  .list-tbl th:last-child,.list-tbl td:last-child{position:sticky;right:0}
+  .list-tbl td:last-child{z-index:2;background:var(--bg-white)}
+  .list-tbl th:last-child{z-index:6}
+  .list-tbl th:last-child,.list-tbl td:last-child{box-shadow:-6px 0 8px -6px rgba(0,0,0,0.2)}
+  .list-tbl tr.empty-row td:last-child{position:static;box-shadow:none}
+  /* 操作列允许溢出，保证「更多」下拉菜单可正常展开 */
+  .list-tbl tbody tr:not(.empty-row) td:last-child{overflow:visible}
+  .list-tbl{width:100%;min-width:2302px;table-layout:fixed;border-collapse:collapse;font-size:13px}
   .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
   .list-tbl td{height:36px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .list-tbl tbody tr:hover td{background:var(--primary-bg)}
@@ -52,6 +70,11 @@
   .qual-badge{display:inline-flex;align-items:center;justify-content:center;height:20px;padding:0 8px;border-radius:4px;font-size:12px;line-height:1}
   .qual-badge.ok{background:var(--success-bg);color:var(--success);border:1px solid rgba(82,195,27,0.35)}
   .qual-badge.bad{background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger-border)}
+
+  /* 状态圆点（居民状态/银行状态） */
+  .st-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  .st-dot.ok{background:var(--success)}
+  .st-dot.warn{background:#FF9500}
 
   /* 操作列 */
   .op-link{color:var(--primary);cursor:pointer;font-size:13px}
@@ -81,20 +104,20 @@
   /* ===== 新建个人档案弹框 ===== */
   .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
   .modal-overlay.show{opacity:1;pointer-events:auto}
-  .modal{width:920px;max-width:92vw;background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 8px 32px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden;transform:translateY(10px);transition:transform var(--transition-normal)}
+  .modal{width:860px;max-width:92vw;background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 8px 32px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden;transform:translateY(10px);transition:transform var(--transition-normal)}
   .modal-overlay.show .modal{transform:translateY(0)}
   .modal-head{height:48px;display:flex;align-items:center;padding:0 16px;flex-shrink:0}
   .modal-head h3{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--primary)}
   .modal-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:16px}
   .modal-close:hover{background:var(--primary-bg);color:var(--primary)}
-  .modal-body{display:flex;gap:14px;padding:16px 16px 4px;align-items:flex-start}
+  .modal-body{padding:16px 16px 4px}
+  .modal-cols{display:flex;gap:16px;align-items:flex-start}
   .modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:18px 20px 20px}
 
   /* 左侧表单 */
-  .fm-form{width:570px;flex-shrink:0}
+  .fm-form{width:316px;flex-shrink:0}
   .fm-row{display:flex;align-items:center;gap:8px;margin-bottom:14px}
   .fm-row label{width:88px;text-align:right;font-size:14px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
-  .fm-row label.lb-auto{width:auto;margin-left:8px}
   .fm-row label i{color:var(--danger);font-style:normal;margin-right:2px}
   .fm-ctl-wrap{position:relative}
   .fm-ctl{width:220px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
@@ -106,8 +129,19 @@
   .fm-readcard{height:32px;padding:0 10px;border:1px solid var(--primary);color:var(--primary);background:var(--bg-white);border-radius:var(--r-sm);font-size:13px;white-space:nowrap;flex-shrink:0;transition:all var(--transition-fast)}
   .fm-readcard:hover{background:var(--primary-bg)}
 
+  /* 右侧：证件号行 + 信息回显卡 */
+  .pv-side{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px}
+  .pv-side .fm-row{margin-bottom:0}
+  .pv-side .fm-ctl-wrap{flex:1;min-width:0}
+  .pv-side .fm-ctl{width:100%}
+
   /* 右侧信息回显卡 */
-  .pv-card{flex:1;min-width:0;background:var(--primary-bg);border:1px dashed #9EC3F5;border-radius:var(--r-md);padding:22px 18px;display:grid;grid-template-columns:1fr 1fr;row-gap:26px;column-gap:12px;font-size:13px;min-height:236px;align-content:start}
+  .pv-card{flex:1;min-width:0;background:var(--primary-bg);border:1px dashed #9EC3F5;border-radius:var(--r-md);padding:22px 18px;display:grid;grid-template-columns:1fr 1fr;row-gap:26px;column-gap:12px;font-size:13px;min-height:210px;align-content:start}
+
+  /* 联系地址整行铺底 */
+  .fm-addr-row{margin:14px 0 0}
+  .fm-addr-row .fm-ctl-wrap{flex:1;min-width:0}
+  .fm-addr-row .fm-ctl{width:100%}
   .pv-row{display:flex;min-width:0}
   .pv-row.wide{grid-column:1 / -1}
   .pv-label{color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
@@ -230,7 +264,7 @@
       <div class="table-wrap">
         <table class="list-tbl">
           <colgroup>
-            <col style="width:44px"><col style="width:150px"><col style="width:76px"><col style="width:148px"><col style="width:82px"><col style="width:44px"><col style="width:44px"><col style="width:104px"><col style="width:84px"><col style="width:88px"><col style="width:68px"><col style="width:110px"><col style="width:132px"><col style="width:92px"><col style="width:120px">
+            <col style="width:44px"><col style="width:150px"><col style="width:76px"><col style="width:148px"><col style="width:82px"><col style="width:44px"><col style="width:44px"><col style="width:104px"><col style="width:84px"><col style="width:88px"><col style="width:68px"><col style="width:110px"><col style="width:132px"><col style="width:110px"><col style="width:56px"><col style="width:72px"><col style="width:72px"><col style="width:88px"><col style="width:160px"><col style="width:88px"><col style="width:140px"><col style="width:72px"><col style="width:72px"><col style="width:130px">
           </colgroup>
           <thead>
             <tr>
@@ -248,6 +282,15 @@
               <th>现居住址</th>
               <th>档案编号</th>
               <th>管理行政区</th>
+              <th class="center">行政区</th>
+              <th>责任医生</th>
+              <th>建档医生</th>
+              <th>建档日期</th>
+              <th>建档机构</th>
+              <th class="center">档案完整度(%)</th>
+              <th>人群性质</th>
+              <th>居民状态</th>
+              <th>银行状态</th>
               <th class="center">操作</th>
             </tr>
           </thead>
@@ -285,83 +328,90 @@
       <span class="modal-close" onclick="closeCreateModal()">×</span>
     </div>
     <div class="modal-body">
-      <!-- 左侧表单 -->
-      <div class="fm-form">
-        <div class="fm-row">
-          <label><i>*</i>证件类型：</label>
-          <select id="cmIdType" class="fm-select" style="width:104px">
-            <option value="居民身份证" selected>居民身份证</option>
-            <option value="居民户口簿">居民户口簿</option>
-            <option value="护照">护照</option>
-            <option value="港澳居民来往内地通行证">港澳居民来往内地通行证</option>
-            <option value="台湾居民来往大陆通行证">台湾居民来往大陆通行证</option>
-          </select>
-          <label class="lb-auto"><i>*</i>证件号：</label>
-          <div class="fm-ctl-wrap">
-            <input id="cmIdcard" class="fm-ctl has-cnt" style="width:190px" maxlength="18" placeholder="请输入证件号">
-            <span class="cnt" id="cntIdcard">0/18</span>
+      <div class="modal-cols">
+        <!-- 左侧表单 -->
+        <div class="fm-form">
+          <div class="fm-row">
+            <label><i>*</i>证件类型：</label>
+            <select id="cmIdType" class="fm-select">
+              <option value="居民身份证" selected>居民身份证</option>
+              <option value="居民户口簿">居民户口簿</option>
+              <option value="护照">护照</option>
+              <option value="港澳居民来往内地通行证">港澳居民来往内地通行证</option>
+              <option value="台湾居民来往大陆通行证">台湾居民来往大陆通行证</option>
+            </select>
           </div>
-          <button class="fm-readcard" onclick="toast('请连接身份证读卡器','info')">身份证读卡</button>
-        </div>
-        <div class="fm-row">
-          <label><i>*</i>姓名：</label>
-          <div class="fm-ctl-wrap">
-            <input id="cmName" class="fm-ctl has-cnt" maxlength="8" placeholder="请输入">
-            <span class="cnt" id="cntName">0/8</span>
+          <div class="fm-row">
+            <label><i>*</i>姓名：</label>
+            <div class="fm-ctl-wrap">
+              <input id="cmName" class="fm-ctl has-cnt" maxlength="8" placeholder="请输入">
+              <span class="cnt" id="cntName">0/8</span>
+            </div>
+          </div>
+          <div class="fm-row">
+            <label><i>*</i>性别：</label>
+            <select id="cmGender" class="fm-select">
+              <option value="" selected>请选择</option>
+              <option value="男性">男性</option>
+              <option value="女性">女性</option>
+            </select>
+          </div>
+          <div class="fm-row">
+            <label><i>*</i>民族：</label>
+            <select id="cmNation" class="fm-select">
+              <option value="汉族" selected>汉族</option>
+              <option value="蒙古族">蒙古族</option>
+              <option value="回族">回族</option>
+              <option value="藏族">藏族</option>
+              <option value="维吾尔族">维吾尔族</option>
+              <option value="苗族">苗族</option>
+              <option value="彝族">彝族</option>
+              <option value="壮族">壮族</option>
+              <option value="满族">满族</option>
+              <option value="其他">其他</option>
+            </select>
+          </div>
+          <div class="fm-row">
+            <label><i>*</i>联系电话：</label>
+            <input id="cmPhone" class="fm-ctl" maxlength="11" placeholder="请输入联系电话">
+          </div>
+          <div class="fm-row">
+            <label><i>*</i>出生日期：</label>
+            <input id="cmBirth" class="fm-ctl" type="text" placeholder="请选择日期"
+                   onfocus="this.type='date';try{this.showPicker()}catch(e){}"
+                   onblur="if(!this.value){this.type='text'}">
           </div>
         </div>
-        <div class="fm-row">
-          <label><i>*</i>性别：</label>
-          <select id="cmGender" class="fm-select">
-            <option value="" selected>请选择</option>
-            <option value="男性">男性</option>
-            <option value="女性">女性</option>
-          </select>
-        </div>
-        <div class="fm-row">
-          <label><i>*</i>民族：</label>
-          <select id="cmNation" class="fm-select">
-            <option value="汉族" selected>汉族</option>
-            <option value="蒙古族">蒙古族</option>
-            <option value="回族">回族</option>
-            <option value="藏族">藏族</option>
-            <option value="维吾尔族">维吾尔族</option>
-            <option value="苗族">苗族</option>
-            <option value="彝族">彝族</option>
-            <option value="壮族">壮族</option>
-            <option value="满族">满族</option>
-            <option value="其他">其他</option>
-          </select>
-        </div>
-        <div class="fm-row">
-          <label><i>*</i>联系电话：</label>
-          <input id="cmPhone" class="fm-ctl" maxlength="11" placeholder="请输入联系电话">
-        </div>
-        <div class="fm-row">
-          <label><i>*</i>出生日期：</label>
-          <input id="cmBirth" class="fm-ctl" type="text" placeholder="请选择日期"
-                 onfocus="this.type='date';try{this.showPicker()}catch(e){}"
-                 onblur="if(!this.value){this.type='text'}">
-        </div>
-        <div class="fm-row">
-          <label><i>*</i>联系地址：</label>
-          <select id="cmRegion" class="fm-select" style="width:186px">
-            <option value="" selected>请选择现住址</option>
-            <option value="江苏省扬州市江都区">江苏省 / 扬州市 / 江都区</option>
-            <option value="江苏省扬州市邗江区">江苏省 / 扬州市 / 邗江区</option>
-            <option value="江苏省南京市玄武区">江苏省 / 南京市 / 玄武区</option>
-            <option value="江苏省苏州市姑苏区">江苏省 / 苏州市 / 姑苏区</option>
-            <option value="山东省济南市历下区">山东省 / 济南市 / 历下区</option>
-            <option value="山东省济南市市中区">山东省 / 济南市 / 市中区</option>
-          </select>
-          <div class="fm-ctl-wrap">
-            <input id="cmAddr" class="fm-ctl has-cnt" style="width:154px" maxlength="50" placeholder="请输入详细地址">
-            <span class="cnt" id="cntAddr">0/50</span>
+        <!-- 右侧：证件号 + 信息回显卡 -->
+        <div class="pv-side">
+          <div class="fm-row">
+            <label><i>*</i>证件号：</label>
+            <div class="fm-ctl-wrap">
+              <input id="cmIdcard" class="fm-ctl has-cnt" maxlength="18" placeholder="请输入证件号">
+              <span class="cnt" id="cntIdcard">0/18</span>
+            </div>
+            <button class="fm-readcard" onclick="toast('请连接身份证读卡器','info')">身份证读卡</button>
           </div>
+          <div class="pv-card" id="pvCard"></div>
         </div>
       </div>
-      <!-- 右侧信息回显卡 -->
-      <div class="pv-card" id="pvCard"></div>
+      <!-- 联系地址：整行铺底 -->
+      <div class="fm-row fm-addr-row">
+        <label><i>*</i>联系地址：</label>
+        <select id="cmRegion" class="fm-select" style="width:186px">
+          <option value="" selected>请选择现住址</option>
+          <option value="江苏省扬州市江都区">江苏省 / 扬州市 / 江都区</option>
+          <option value="江苏省扬州市邗江区">江苏省 / 扬州市 / 邗江区</option>
+          <option value="江苏省南京市玄武区">江苏省 / 南京市 / 玄武区</option>
+          <option value="江苏省苏州市姑苏区">江苏省 / 苏州市 / 姑苏区</option>
+          <option value="山东省济南市历下区">山东省 / 济南市 / 历下区</option>
+          <option value="山东省济南市市中区">山东省 / 济南市 / 市中区</option>
+        </select>
+        <div class="fm-ctl-wrap">
+          <input id="cmAddr" class="fm-ctl has-cnt" maxlength="50" placeholder="请输入详细地址">
+          <span class="cnt" id="cntAddr">0/50</span>
+        </div>
+      </div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-primary" onclick="submitCreate()">下一步</button>
@@ -438,8 +488,10 @@
 
     var html = '';
     if (list.length === 0) {
-      html = '<tr class="empty-row"><td colspan="15"><div class="ico">📭</div>暂无符合条件的居民档案</td></tr>';
+      html = '<tr class="empty-row"><td colspan="24"><div class="ico">📭</div>暂无符合条件的居民档案</td></tr>';
     } else {
+      var doctors = ['冯仁卉', '李蕾', '朱劲松', '敖鹏天', '陆柳琳', '王盛'];
+      var groupMap = { '老': '65岁及以上老年人', '高': '高血压患者', '糖': '2型糖尿病患者', '儿': '0-6岁儿童' };
       list.forEach(function (r, i) {
         var crowdHtml = r.crowd.length
           ? r.crowd.map(function (c) { return '<span class="crowd-badge">' + esc(c) + '</span>'; }).join('')
@@ -447,6 +499,11 @@
         var qualHtml = r.qualified
           ? '<span class="qual-badge ok">合格</span>'
           : '<span class="qual-badge bad">不合格</span>';
+        var zone = r.address.indexOf('村') !== -1 ? '村' : '社区';
+        var doc = doctors[i % doctors.length];
+        var crowdTxt = r.crowd.length
+          ? r.crowd.map(function (c) { return groupMap[c] || c; }).join('/')
+          : '';
         html += '<tr>'
           + '<td class="center">' + (i + 1) + '</td>'
           + '<td title="' + esc(r.org) + '"><span class="cell">' + esc(r.org) + '</span></td>'
@@ -462,6 +519,15 @@
           + '<td title="' + esc(r.address) + '"><span class="cell">' + esc(r.address) + '</span></td>'
           + '<td title="' + esc(r.archNo) + '"><span class="cell">' + esc(r.archNo) + '</span></td>'
           + '<td>' + esc(r.region) + '</td>'
+          + '<td class="center">' + esc(zone) + '</td>'
+          + '<td>' + esc(doc) + '</td>'
+          + '<td>' + esc(doc) + '</td>'
+          + '<td>' + esc(r.created) + '</td>'
+          + '<td title="' + esc(r.org) + '"><span class="cell">' + esc(r.org) + '</span></td>'
+          + '<td class="center">' + (r.qualified ? 100 : 0) + '</td>'
+          + '<td title="' + esc(crowdTxt) + '"><span class="cell">' + esc(crowdTxt) + '</span></td>'
+          + '<td><span class="st-dot ok"></span>' + esc(r.status) + '</td>'
+          + '<td><span class="st-dot warn"></span>未上传</td>'
           + '<td class="center">'
           +   '<a class="op-link" onclick="toast(\'查看居民档案：' + esc(r.name) + '\',\'info\')">查看</a>'
           +   '<span class="op-gap"></span>'
@@ -599,7 +665,19 @@
     if (!$('cmRegion').value || !$('cmAddr').value.trim()) missing.push('联系地址');
     if (missing.length) { toast('请完善必填项：' + missing.join('、'), 'warning'); return; }
     closeCreateModal();
-    toast('档案信息校验通过，下一步功能建设中', 'success');
+    /* 校验通过：携带弹框信息进入档案维护界面（封面 → 个人基本信息表） */
+    var p = new URLSearchParams();
+    p.set('name', $('cmName').value.trim());
+    p.set('gender', $('cmGender').value);
+    p.set('idType', $('cmIdType').value);
+    p.set('idcard', $('cmIdcard').value.trim());
+    p.set('birth', $('cmBirth').value);
+    p.set('phone', $('cmPhone').value.trim());
+    p.set('nation', $('cmNation').value);
+    p.set('region', $('cmRegion').value);
+    p.set('addr', $('cmAddr').value.trim());
+    window.open('档案维护.html?' + p.toString(), '_blank');
+    toast('档案信息校验通过，已在新窗口打开档案维护界面', 'success');
   }
 
   /* 弹框联动事件 */

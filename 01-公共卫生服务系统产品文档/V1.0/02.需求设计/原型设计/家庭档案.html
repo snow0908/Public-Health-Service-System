@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家庭档案</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  /* ===== 页面局部样式 ===== */
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  /* ===== 布局：content 改为 flex，content-card 撑满并让表格区内部滚动 ===== */
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0}
+
+  /* ===== 页头按钮 ===== */
+  .page-head .right .btn{height:28px;padding:0 14px;font-size:13px}
+
+  /* ===== 筛选区 ===== */
+  .filter-panel{padding:14px 12px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:14px;align-items:center}
+  .filter-row.extra{display:none}
+  .filter-row.extra.show{display:flex}
+  .filter-item{display:flex;align-items:center;gap:8px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:140px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .btn-plain{height:28px;padding:0 8px;font-size:13px;color:var(--primary);border-radius:var(--r-sm)}
+  .btn-plain:hover{background:var(--primary-bg)}
+  .date-range{display:flex;align-items:center;gap:4px}
+  .date-range .fi-ctl{width:130px}
+  .date-sep{color:var(--text-tertiary)}
+
+  /* ===== 数据表格 ===== */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+  .fam-tbl{width:100%;min-width:1560px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .fam-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .fam-tbl td{border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;padding:0 8px;height:36px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fam-tbl th.center,.fam-tbl td.center{text-align:center}
+  .fam-tbl tbody tr.fam-row:hover td{background:var(--primary-bg)}
+  .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* 家庭行 */
+  .fam-tbl tr.fam-row td{background:var(--bg-white)}
+  .fam-tbl tr.fam-row.open td{background:#F0F7FF}
+  .fam-toggle{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-right:6px;border:1px solid var(--color-neutral-300);border-radius:3px;color:var(--text-tertiary);font-size:12px;line-height:1;cursor:pointer;user-select:none;background:var(--bg-white);vertical-align:middle;transition:all var(--transition-fast)}
+  .fam-toggle:hover{color:var(--primary);border-color:var(--primary)}
+
+  /* 成员嵌套块 */
+  tr.member-block > td{padding:0;border-bottom:none;background:var(--bg-white)}
+  .member-tbl{width:100%;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .member-tbl th{height:30px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED;border-top:1px solid #EEF0F4}
+  .member-tbl td{height:32px;padding:0 8px;color:var(--text-secondary);border-bottom:1px solid #F5F6FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .member-tbl th.center,.member-tbl td.center{text-align:center}
+  .member-tbl tbody tr:hover td{background:var(--primary-bg)}
+
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px}
+  .op-link:hover{text-decoration:underline}
+  .op-link.danger{color:var(--danger)}
+  .op-gap{display:inline-block;width:8px}
+  .empty-row td{padding:36px 0;text-align:center;color:var(--text-tertiary);font-size:13px}
+  .empty-row .ico{font-size:32px;margin-bottom:8px}
+
+  /* ===== 分页 ===== */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:52px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 22px 0 8px;font-size:13px;color:var(--text-secondary);background:#fff;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-jump input{width:40px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 6px;font-size:13px;text-align:center;color:var(--text-primary);outline:none}
+  .pg-jump input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+
+  /* ===== 新建家庭档案视图（列表/新建 双视图切换） ===== */
+  #listView{display:flex;flex-direction:column;flex:1;min-height:0}
+  #createView{display:none;flex-direction:column;flex:1;min-height:0;overflow:auto;background:var(--bg-white)}
+  .cr-head{display:flex;align-items:center;height:48px;padding:0 16px;border-bottom:1px solid #E8E8E8;flex-shrink:0}
+  .cr-head h2{font-size:16px;font-weight:var(--font-weight-medium);color:var(--text-primary)}
+  .cr-head .btn{margin-left:auto}
+  .cr-tabs{display:flex;gap:36px;padding:0 16px;border-bottom:1px solid #E8E8E8;flex-shrink:0}
+  .cr-tab{padding:11px 2px;font-size:14px;color:var(--text-secondary);cursor:pointer;border-bottom:2px solid transparent;transition:all var(--transition-fast);user-select:none}
+  .cr-tab:hover{color:var(--primary)}
+  .cr-tab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:var(--font-weight-medium)}
+  .cr-pane{flex-shrink:0}
+  .cr-body{padding:10px 16px 2px}
+  .cr-sec-title{font-size:14px;font-weight:var(--font-weight-semibold);color:var(--text-primary);padding-left:8px;border-left:3px solid var(--primary);margin-bottom:8px}
+  .cr-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 24px;margin-bottom:12px}
+  .cr-item{display:flex;align-items:center;gap:8px;min-width:0}
+  .cr-item label{width:92px;text-align:right;font-size:13px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
+  .cr-item label i{color:var(--danger);font-style:normal;margin-right:2px}
+  .cr-ctl{flex:1;min-width:0;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .cr-ctl:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .cr-ctl::placeholder{color:var(--text-placeholder)}
+  .cr-ctl[readonly]{background:#F5F5F5;cursor:not-allowed;color:var(--text-tertiary)}
+  .cr-ctl[readonly]:focus{border-color:var(--color-neutral-300);box-shadow:none}
+  select.cr-ctl{appearance:none;-webkit-appearance:none;padding-right:26px;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;cursor:pointer}
+  .cr-search{position:relative;display:flex;flex:1;min-width:0}
+  .cr-search .cr-ctl{padding-right:30px;cursor:pointer}
+  .cr-search svg{position:absolute;right:9px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:var(--text-tertiary);fill:none;stroke-width:2;stroke-linecap:round;pointer-events:none}
+
+  /* 家庭社会经济情况选项表 */
+  .soc-tbl{width:100%;border:1px solid #E4E7ED;border-collapse:collapse;font-size:13px;margin-bottom:10px}
+  .soc-tbl th{width:140px;background:var(--primary-bg);color:var(--text-secondary);font-weight:var(--font-weight-medium);text-align:center;padding:5px 12px;border:1px solid #E4E7ED;vertical-align:middle}
+  .soc-tbl td{padding:4px 14px;border:1px solid #E4E7ED;color:var(--text-secondary);vertical-align:middle}
+  .soc-opt{display:inline-flex;align-items:center;gap:5px;margin-right:18px;cursor:pointer;user-select:none;white-space:nowrap}
+  .soc-opt input{accent-color:var(--primary);width:14px;height:14px;cursor:pointer;margin:0}
+  .soc-inline{display:flex;align-items:center;gap:8px}
+  .soc-inline .cr-ctl{width:170px;flex:none}
+  .remark-box{position:relative}
+  .remark-box textarea{width:100%;height:46px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:5px 10px 16px;font-size:13px;font-family:inherit;line-height:1.5;resize:vertical;outline:none;transition:all var(--transition-fast)}
+  .remark-box textarea:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .remark-cnt{position:absolute;right:10px;bottom:4px;font-size:12px;color:var(--text-placeholder);pointer-events:none}
+  .cr-foot{padding:8px 16px 10px;flex-shrink:0}
+  .cr-empty{padding:60px 0;text-align:center;color:var(--text-tertiary);font-size:13px}
+  .cr-empty .ico{font-size:34px;margin-bottom:10px;opacity:.4}
+  .cr-empty .btn{margin-top:14px}
+
+  /* ===== 家庭地址级联选择 ===== */
+  .cascader{position:relative;display:flex;flex:1;min-width:0}
+  .cascader .cr-ctl{flex:1;min-width:0;cursor:pointer;appearance:none;-webkit-appearance:none;padding-right:26px;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;text-overflow:ellipsis}
+  .cs-panel{position:absolute;top:calc(100% + 4px);left:0;z-index:80;background:var(--bg-white);border:1px solid var(--color-neutral-200);border-radius:var(--r-sm);box-shadow:var(--shadow-md);display:none;white-space:nowrap}
+  .cs-panel.show{display:flex}
+  .cs-col{min-width:132px;max-height:246px;overflow-y:auto;border-right:1px solid #F0F0F0;padding:4px 0}
+  .cs-col:last-child{border-right:none}
+  .cs-item{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:6px 10px;font-size:13px;color:var(--text-secondary);cursor:pointer;white-space:nowrap}
+  .cs-item:hover{background:var(--primary-bg)}
+  .cs-item.sel{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .cs-item .arrow{color:var(--text-placeholder);font-size:12px;line-height:1}
+  .cs-item .check{color:var(--primary);font-weight:var(--font-weight-semibold)}
+
+  /* ===== 添加家庭成员弹框（选择户主） ===== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .modal-overlay.show{opacity:1;pointer-events:auto}
+  .modal{width:940px;max-width:94vw;background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 8px 32px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden;transform:translateY(10px);transition:transform var(--transition-normal)}
+  .modal-overlay.show .modal{transform:translateY(0)}
+  .modal-head{height:48px;display:flex;align-items:center;padding:0 16px;flex-shrink:0}
+  .modal-head h3{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+  .modal-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:16px}
+  .modal-close:hover{background:var(--primary-bg);color:var(--primary)}
+  .modal-body{padding:4px 16px 14px;overflow:auto;max-height:76vh}
+  .m-row{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+  .m-item{display:flex;align-items:center;gap:8px}
+  .m-item label{font-size:13px;color:var(--text-secondary);white-space:nowrap}
+  .m-ctl{width:200px;height:30px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .m-ctl:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .m-ctl::placeholder{color:var(--text-placeholder)}
+  select.m-ctl{appearance:none;-webkit-appearance:none;padding-right:24px;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 7px center;cursor:pointer}
+  .m-btns{margin-left:auto;display:flex;gap:8px}
+  .m-btns .btn{height:30px}
+
+  /* ===== 保存成功提示弹框（小号） ===== */
+  .modal-sm{width:400px}
+  .tip-body{padding:28px 20px 22px;text-align:center;font-size:14px;color:var(--text-primary)}
+  .tip-foot{display:flex;justify-content:center;gap:10px;padding:0 20px 20px}
+
+  /* ===== 家庭成员表 ===== */
+  .mem-bar{margin-bottom:12px}
+  .mem-tbl{width:100%;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .mem-tbl th{height:36px;padding:0 10px;background:#EDF3FB;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border:1px solid #E4E7ED}
+  .mem-tbl th .ed-ico{display:inline-block;vertical-align:-2px;margin-left:3px;width:12px;height:12px;fill:none;stroke:var(--primary);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .mem-tbl td{height:38px;padding:0 10px;border:1px solid #E4E7ED;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mem-tbl td.center,.mem-tbl th.center{text-align:center}
+  .mem-tbl tr:hover td{background:var(--primary-bg)}
+  .mem-tbl .op-disabled{color:var(--text-placeholder);cursor:not-allowed;margin-right:8px}
+  .mem-tbl .op-disabled:last-child{margin-right:0}
+  .mem-tbl .op-act{color:var(--primary);cursor:pointer;margin-right:8px}
+  .mem-tbl .op-act:hover{text-decoration:underline}
+  .mem-tbl .op-act.danger{color:var(--danger)}
+  .mem-tbl tr.editing td{background:#EDF5FF}
+  .mem-tbl tr.editing:hover td{background:#EDF5FF}
+  .mem-tbl .mem-edit-sel{width:100%;height:26px;border:1px solid var(--primary);border-radius:var(--r-sm);padding:0 4px;font-size:13px;font-family:inherit;color:var(--text-primary);background:#fff;outline:none;box-shadow:0 0 0 2px rgba(0,122,255,.1);cursor:pointer}
+  .btn-danger{background:var(--danger);color:#fff}
+  .btn-danger:hover{background:#E65555}
+  .btn-danger:active{background:#D94848}
+  .tip-body .cancel-sub{display:block;margin-top:6px;font-size:13px;color:var(--text-secondary);line-height:1.5}
+
+  /* ===== 弹框内"家庭成员信息"录入区 ===== */
+  .mm-info{display:none;margin-top:14px;border-top:1px solid #E8E8E8;padding-top:12px}
+  .mm-info.show{display:block}
+  .mm-info .cr-sec-title{margin-bottom:12px}
+  .mm-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 20px;margin-bottom:14px}
+  .mm-item{display:flex;align-items:center;gap:8px;min-width:0}
+  .mm-item label{font-size:13px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
+  .mm-item label i{color:var(--danger);font-style:normal;margin-right:2px}
+  .mm-item .mm-val{flex:1;min-width:0;height:32px;line-height:32px;padding:0 10px;font-size:13px;color:var(--text-primary);background:var(--bg-white);border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mm-item .cr-ctl{flex:1;min-width:0}
+  .mm-btns{display:flex;justify-content:flex-end;gap:10px}
+  .m-tbl-wrap{border:1px solid #E4E7ED;overflow:auto}
+  .m-tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .m-tbl th{height:34px;padding:0 10px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .m-tbl td{height:34px;padding:0 10px;color:var(--text-secondary);border-bottom:1px solid #F0F2F5;white-space:nowrap}
+  .m-tbl th.center,.m-tbl td.center{text-align:center}
+  .m-tbl tbody tr{cursor:pointer}
+  .m-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .m-foot{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:12px 2px 0;font-size:13px;color:var(--text-secondary)}
+  .m-cancel{display:flex;justify-content:flex-end;padding-top:12px}
+</style>
+</head>
+<body>
+
+<!-- ===== 主内容区（顶部导航栏与左侧菜单栏由 框架.js 注入） ===== -->
+<div class="main-area">
+
+  <!-- 页面标签条（嵌入模式下隐藏，由壳子统一管理） -->
+  <div class="tabbar">
+    <div class="tab-item dashboard active" onclick="toast('当前已在「家庭档案」页','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      家庭档案
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <!-- 列表视图 -->
+      <div id="listView">
+
+      <!-- 页头 -->
+      <div class="page-head">
+        <h1>家庭档案</h1>
+        <div class="right">
+          <button class="btn btn-default" onclick="toast('家庭档案导出成功','success')">导出</button>
+          <button class="btn btn-primary" onclick="openCreateView()">新建</button>
+        </div>
+      </div>
+
+      <!-- 筛选区 -->
+      <div class="filter-panel">
+        <div class="filter-row">
+          <div class="filter-item"><label>管理机构</label><input id="fOrg" class="fi-ctl" placeholder="请输入管理机构"></div>
+          <div class="filter-item"><label>户主姓名</label><input id="fOwner" class="fi-ctl" placeholder="请输入户主姓名"></div>
+          <div class="filter-item"><label>证件号</label><input id="fIdcard" class="fi-ctl" placeholder="请输入证件号"></div>
+          <div class="filter-item"><label>家庭档案编号</label><input id="fFamNo" class="fi-ctl" placeholder="请输入家庭档案编号"></div>
+        </div>
+        <div class="filter-row">
+          <div class="filter-item"><label>建档日期</label>
+            <span class="date-range">
+              <input id="fDateStart" class="fi-ctl" type="text" placeholder="开始日期" onfocus="this.type='date'" onblur="if(!this.value){this.type='text'}">
+              <span class="date-sep">—</span>
+              <input id="fDateEnd" class="fi-ctl" type="text" placeholder="结束日期" onfocus="this.type='date'" onblur="if(!this.value){this.type='text'}">
+            </span>
+          </div>
+          <div class="filter-item"><label>详细地址</label><input id="fAddr" class="fi-ctl" placeholder="请输入详细地址"></div>
+          <div class="filter-item"><label>管理行政区</label>
+            <select id="fRegion" class="fi-select">
+              <option value="" selected>全部</option>
+              <option value="大桥镇">大桥镇</option>
+              <option value="吴桥镇">吴桥镇</option>
+              <option value="真武镇">真武镇</option>
+              <option value="仙女镇">仙女镇</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>家庭状态</label>
+            <select id="fStatus" class="fi-select">
+              <option value="正常" selected>正常</option>
+              <option value="注销">注销</option>
+            </select>
+          </div>
+          <div class="filter-btns">
+            <button class="btn btn-default" onclick="resetFilter()">重置</button>
+            <button class="btn btn-primary" onclick="applyFilter()">查看</button>
+            <button class="btn-plain" id="btnExpand" onclick="toggleExtra()">展开 +</button>
+          </div>
+        </div>
+        <div class="filter-row extra" id="extraRow">
+          <div class="filter-item"><label>建档医生</label><input id="fDoctor" class="fi-ctl" placeholder="请输入建档医生"></div>
+          <div class="filter-item"><label>建档机构</label><input id="fBuildOrg" class="fi-ctl" placeholder="请输入建档机构"></div>
+          <div class="filter-item"><label>贫困情况</label>
+            <select id="fPoverty" class="fi-select">
+              <option value="" selected>全部</option>
+              <option value="未扶贫">未扶贫</option>
+              <option value="贫困户">贫困户</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 家庭档案表（家庭行 + 可展开成员子表） -->
+      <div class="table-wrap">
+      <table class="fam-tbl">
+        <colgroup>
+          <col style="width:34px"><col style="width:170px"><col style="width:90px"><col style="width:150px"><col style="width:90px"><col style="width:150px"><col style="width:90px"><col style="width:70px"><col style="width:110px"><col style="width:80px"><col style="width:90px"><col style="width:130px"><col style="width:150px">
+        </colgroup>
+        <thead>
+          <tr>
+            <th class="center"></th>
+            <th>管理机构</th>
+            <th>户主姓名</th>
+            <th>家庭档案编号</th>
+            <th>户主证件类型</th>
+            <th>户主证件号码</th>
+            <th class="center">户主出生日期</th>
+            <th>贫困情况</th>
+            <th>详细地址</th>
+            <th>建档医生</th>
+            <th>建档日期</th>
+            <th>建档机构</th>
+            <th class="center">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tbBody"></tbody>
+      </table>
+      </div>
+
+      <!-- 分页 -->
+      <div class="page-foot">
+        <span class="pg-total">共 <b>163594</b> 条</span>
+        <span class="pg-size">
+          <select onchange="toast('原型演示：每页条数固定 20 条','info')">
+            <option selected>20条/页</option><option>50条/页</option><option>100条/页</option>
+          </select>
+        </span>
+        <span class="pg-pager">
+          <button class="pg-btn" onclick="toast('已是第一页','info')">‹</button>
+          <button class="pg-btn active">1</button>
+          <button class="pg-btn" onclick="toast('原型演示：仅第 1 页有数据','info')">2</button>
+          <button class="pg-btn" onclick="toast('原型演示：仅第 1 页有数据','info')">3</button>
+          <button class="pg-btn" onclick="toast('原型演示：仅第 1 页有数据','info')">4</button>
+          <button class="pg-btn" onclick="toast('原型演示：仅第 1 页有数据','info')">5</button>
+          <button class="pg-btn" onclick="toast('原型演示：仅第 1 页有数据','info')">6</button>
+          <span>···</span>
+          <button class="pg-btn" onclick="toast('原型演示：仅第 1 页有数据','info')">8180</button>
+          <button class="pg-btn" onclick="toast('原型演示：仅第 1 页有数据','info')">›</button>
+        </span>
+        <span class="pg-jump">前往 <input value="1" onkeydown="if(event.key==='Enter'){toast('原型演示：仅第 1 页','info')}"> 页</span>
+      </div>
+
+      </div><!-- /listView -->
+
+      <!-- 新建家庭档案视图 -->
+      <div id="createView">
+
+        <!-- 标题栏 + 返回 -->
+        <div class="cr-head">
+          <h2>家庭档案信息</h2>
+          <button class="btn btn-default" onclick="backCreateView()">返回</button>
+        </div>
+
+        <!-- 选项卡 -->
+        <div class="cr-tabs">
+          <span class="cr-tab active" onclick="switchCrTab(this,'paneBase')">家庭基本信息</span>
+          <span class="cr-tab" onclick="switchCrTab(this,'paneMember')">家庭成员</span>
+          <span class="cr-tab" onclick="switchCrTab(this,'panePoor')">精准扶贫</span>
+        </div>
+
+        <!-- Tab 1：家庭基本信息 -->
+        <div class="cr-pane" id="paneBase">
+          <div class="cr-body">
+            <div class="cr-sec-title">家庭基本信息</div>
+            <div class="cr-grid">
+              <div class="cr-item"><label>家庭档案编号：</label><input class="cr-ctl" value="51011500100100009" readonly></div>
+              <div class="cr-item"><label><i>*</i>户主姓名：</label>
+                <span class="cr-search">
+                  <input id="cmOwner" class="cr-ctl" placeholder="请选择户主" onclick="openMemberModal()">
+                  <svg id="ownerSearch" viewBox="0 0 24 24" onclick="openMemberModal()" style="cursor:pointer"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+                  <svg id="ownerClear" viewBox="0 0 24 24" style="display:none;cursor:pointer" onclick="clearOwner(event)"><circle cx="12" cy="12" r="9" fill="currentColor" stroke="none" opacity="0.35"/><line x1="9.5" y1="9.5" x2="14.5" y2="14.5"/><line x1="14.5" y1="9.5" x2="9.5" y2="14.5"/></svg>
+                </span>
+              </div>
+              <div class="cr-item"><label><i>*</i>证件类型：</label>
+                <select id="cmIdType" class="cr-ctl">
+                  <option value="" selected>请选择</option>
+                  <option>居民身份证</option>
+                  <option>居民户口簿</option>
+                  <option>护照</option>
+                </select>
+              </div>
+              <div class="cr-item"><label><i>*</i>证件号码：</label><input id="cmIdNo" class="cr-ctl" value="" placeholder="选户主后自动带出"></div>
+              <div class="cr-item"><label><i>*</i>性别：</label>
+                <select id="cmGender" class="cr-ctl">
+                  <option value="" selected>请选择</option>
+                  <option>男性</option>
+                  <option>女性</option>
+                </select>
+              </div>
+              <div class="cr-item"><label><i>*</i>出生日期：</label><input id="cmBirth" class="cr-ctl" type="text" placeholder="请选择" onfocus="this.type='date'" onblur="if(!this.value){this.type='text'}"></div>
+              <div class="cr-item"><label>家庭电话：</label><input id="cmPhone" class="cr-ctl" placeholder="请输入"></div>
+              <div class="cr-item"><label>家庭总人口数：</label><input class="cr-ctl" placeholder="请输入"></div>
+              <div class="cr-item"><label>现住人口数：</label><input class="cr-ctl" placeholder="请输入"></div>
+              <div class="cr-item"><label><i>*</i>家庭地址：</label>
+                <span class="cascader">
+                  <input id="cmRegion" class="cr-ctl" placeholder="请选择" onclick="toggleCascader(event)">
+                  <span class="cs-panel" id="csPanel" onclick="event.stopPropagation()"></span>
+                </span>
+              </div>
+              <div class="cr-item"><label><i>*</i>详细地址：</label><input id="cmDetail" class="cr-ctl" placeholder="请输入"></div>
+              <div class="cr-item"><label><i>*</i>建档时间：</label><input class="cr-ctl" type="text" value="2026-09-17" onfocus="this.type='date'" onblur="if(!this.value){this.type='text'}"></div>
+              <div class="cr-item"><label><i>*</i>建档负责人：</label><input class="cr-ctl" value="1814109564346885890"></div>
+              <div class="cr-item"><label><i>*</i>建档机构：</label>
+                <select class="cr-ctl">
+                  <option value="" >请选择</option>
+                  <option selected>山东大学齐鲁医院</option>
+                  <option>扬州市江都区滨江人民医院</option>
+                  <option>扬州市江都区真武镇杨家田村卫生室</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="cr-sec-title">家庭社会经济情况</div>
+            <table class="soc-tbl">
+              <tr><th>家庭月收入</th><td>
+                <label class="soc-opt"><input type="radio" name="income">小于1000元</label>
+                <label class="soc-opt"><input type="radio" name="income">1000-1999元</label>
+                <label class="soc-opt"><input type="radio" name="income">2000-3999元</label>
+                <label class="soc-opt"><input type="radio" name="income">4000-7999元</label>
+                <label class="soc-opt"><input type="radio" name="income">8000元以上</label>
+                <label class="soc-opt"><input type="radio" name="income">其它</label>
+                <label class="soc-opt"><input type="radio" name="income">拒绝回答</label>
+              </td></tr>
+              <tr><th>家庭居住面积</th><td>
+                <span class="soc-inline"><input class="cr-ctl" placeholder="请输入"><span>㎡</span></span>
+              </td></tr>
+              <tr><th>房屋类型</th><td>
+                <label class="soc-opt"><input type="radio" name="house">无</label>
+                <label class="soc-opt"><input type="radio" name="house">自建房</label>
+                <label class="soc-opt"><input type="radio" name="house">电梯房</label>
+                <label class="soc-opt"><input type="radio" name="house">非电梯房</label>
+                <label class="soc-opt"><input type="radio" name="house">平房</label>
+                <label class="soc-opt"><input type="radio" name="house">简易棚房</label>
+                <label class="soc-opt"><input type="radio" name="house">收容站所</label>
+                <label class="soc-opt"><input type="radio" name="house">其他</label>
+              </td></tr>
+              <tr><th>厨房排风设施</th><td>
+                <label class="soc-opt"><input type="radio" name="kitchen" checked>无</label>
+                <label class="soc-opt"><input type="radio" name="kitchen">抽油烟机</label>
+                <label class="soc-opt"><input type="radio" name="kitchen">换气扇</label>
+                <label class="soc-opt"><input type="radio" name="kitchen">烟囱</label>
+              </td></tr>
+              <tr><th>燃料类型</th><td>
+                <label class="soc-opt"><input type="radio" name="fuel">液化气</label>
+                <label class="soc-opt"><input type="radio" name="fuel">煤</label>
+                <label class="soc-opt"><input type="radio" name="fuel">天然气</label>
+                <label class="soc-opt"><input type="radio" name="fuel">沼气</label>
+                <label class="soc-opt"><input type="radio" name="fuel">柴火</label>
+                <label class="soc-opt"><input type="radio" name="fuel">其他</label>
+              </td></tr>
+              <tr><th>饮水</th><td>
+                <label class="soc-opt"><input type="radio" name="water" checked>自来水</label>
+                <label class="soc-opt"><input type="radio" name="water">经净化过滤的水</label>
+                <label class="soc-opt"><input type="radio" name="water">井水</label>
+                <label class="soc-opt"><input type="radio" name="water">河水</label>
+                <label class="soc-opt"><input type="radio" name="water">塘水</label>
+                <label class="soc-opt"><input type="radio" name="water">其他</label>
+              </td></tr>
+              <tr><th>厕所</th><td>
+                <label class="soc-opt"><input type="radio" name="toilet" checked>卫生厕所</label>
+                <label class="soc-opt"><input type="radio" name="toilet">一格或二格粪池式</label>
+                <label class="soc-opt"><input type="radio" name="toilet">马桶</label>
+                <label class="soc-opt"><input type="radio" name="toilet">露天粪坑</label>
+                <label class="soc-opt"><input type="radio" name="toilet">简易棚厕</label>
+              </td></tr>
+              <tr><th>禽畜栏</th><td>
+                <label class="soc-opt"><input type="radio" name="livestock">单设</label>
+                <label class="soc-opt"><input type="radio" name="livestock">室内</label>
+                <label class="soc-opt"><input type="radio" name="livestock">室外</label>
+                <label class="soc-opt"><input type="radio" name="livestock">无</label>
+              </td></tr>
+              <tr><th>备注</th><td>
+                <div class="remark-box">
+                  <textarea id="remarkInput" maxlength="100" placeholder="请输入备注" oninput="updateRemarkCnt()"></textarea>
+                  <span class="remark-cnt" id="remarkCnt">0/100</span>
+                </div>
+              </td></tr>
+            </table>
+          </div>
+          <div class="cr-foot">
+            <button class="btn btn-primary" onclick="saveFamily()">保存</button>
+          </div>
+        </div>
+
+        <!-- Tab 2：家庭成员 -->
+        <div class="cr-pane" id="paneMember" style="display:none">
+          <div class="cr-body">
+            <div class="mem-bar" id="memBar">
+              <button class="btn btn-primary" onclick="openMemberModal('member')">添加家庭成员</button>
+            </div>
+            <!-- 空态 -->
+            <div class="cr-empty" id="memEmpty">
+              <div class="ico">👥</div>
+              <span id="memEmptyText">暂无家庭成员，请先完善户主信息后添加成员</span>
+            </div>
+            <!-- 成员表（保存成功后出现，含户主行） -->
+            <table class="mem-tbl" id="memTbl" style="display:none">
+              <colgroup>
+                <col style="width:52px"><col style="width:110px"><col style="width:170px"><col style="width:120px"><col style="width:160px"><col style="width:60px"><col style="width:60px"><col style="width:120px"><col style="width:150px"><col style="width:110px"><col style="width:70px"><col style="width:96px">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th class="center">序号</th>
+                  <th>姓名</th>
+                  <th>档案编号</th>
+                  <th>与户主关系<svg class="ed-ico" viewBox="0 0 24 24"><path d="M17 3a2.8 2.8 0 014 4L7.5 20.5 2 22l1.5-5.5z"/></svg></th>
+                  <th>身份证号</th>
+                  <th class="center">性别</th>
+                  <th class="center">年龄</th>
+                  <th>联系电话</th>
+                  <th>血缘关系<svg class="ed-ico" viewBox="0 0 24 24"><path d="M17 3a2.8 2.8 0 014 4L7.5 20.5 2 22l1.5-5.5z"/></svg></th>
+                  <th>常驻住址</th>
+                  <th>掌握</th>
+                  <th class="center">操作</th>
+                </tr>
+              </thead>
+              <tbody id="memTbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 3：精准扶贫 -->
+        <div class="cr-pane" id="panePoor" style="display:none">
+          <div class="cr-body">
+            <div class="cr-sec-title">精准扶贫</div>
+            <div class="cr-empty">
+              <div class="ico">📋</div>
+              暂无精准扶贫信息
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /createView -->
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== 添加家庭成员（选择户主）弹框 ===== -->
+<div class="modal-overlay" id="memberModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>添加家庭成员</h3>
+      <span class="modal-close" onclick="closeMemberModal()">×</span>
+    </div>
+    <div class="modal-body">
+      <div class="m-row">
+        <span class="m-item"><label>姓名：</label><input id="mName" class="m-ctl" placeholder="请输入"></span>
+        <span class="m-item"><label>身份证号：</label><input id="mIdcard" class="m-ctl" placeholder="请输入"></span>
+      </div>
+      <div class="m-row">
+        <span class="m-item"><label>管辖网格：</label>
+          <select id="mGrid" class="m-ctl">
+            <option value="" selected>请选择</option>
+            <option>东苑社区</option>
+            <option>善玉村</option>
+            <option>龙川社区</option>
+          </select>
+        </span>
+        <span class="m-item"><label>档案编号：</label><input id="mNo" class="m-ctl" placeholder="请输入"></span>
+        <span class="m-btns">
+          <button class="btn btn-default" onclick="resetMemberFilter()">重置</button>
+          <button class="btn btn-primary" onclick="renderMemberTable()">查询</button>
+        </span>
+      </div>
+      <div class="m-tbl-wrap">
+        <table class="m-tbl">
+          <thead>
+            <tr>
+              <th class="center">序号</th><th>档案编号</th><th>姓名</th><th>身份证号</th>
+              <th class="center">性别</th><th class="center">年龄</th><th>联系电话</th><th>出生日期</th><th>村(居)委会</th>
+            </tr>
+          </thead>
+          <tbody id="mTbody"></tbody>
+        </table>
+      </div>
+      <div class="m-foot">
+        <span class="pg-total">共 <b id="mTotal">0</b> 条</span>
+        <span class="pg-size">
+          <select onchange="toast('原型演示：每页固定 20 条','info')">
+            <option selected>20条/页</option><option>50条/页</option>
+          </select>
+        </span>
+        <span class="pg-pager" id="mPager"></span>
+        <span class="pg-jump">跳至第 <input value="1" readonly> 页</span>
+      </div>
+      <div class="m-cancel" id="mCancelBar">
+        <button class="btn btn-default" onclick="closeMemberModal()">取消</button>
+      </div>
+
+      <!-- 家庭成员信息录入区（点击成员行后展开，确认后新增成员行） -->
+      <div class="mm-info" id="mmInfo">
+        <div class="cr-sec-title">家庭成员信息</div>
+        <div class="mm-grid">
+          <div class="mm-item"><label>性别：</label><span class="mm-val" id="mmGender">-</span></div>
+          <div class="mm-item"><label>联系电话：</label><span class="mm-val" id="mmPhone">-</span></div>
+          <div class="mm-item"></div>
+          <div class="mm-item"><label>身份证号：</label><span class="mm-val" id="mmIdcard">-</span></div>
+          <div class="mm-item"><label><i>*</i>与户主关系：</label>
+            <select id="mmRel" class="cr-ctl">
+              <option value="" selected>请选择</option>
+            </select>
+          </div>
+          <div class="mm-item"><label><i>*</i>血缘关系：</label>
+            <select id="mmBlood" class="cr-ctl">
+              <option value="" selected>请选择</option>
+            </select>
+          </div>
+          <div class="mm-item" style="grid-column:1/-1"><label>家庭地址：</label><span class="mm-val" id="mmAddr">-</span></div>
+        </div>
+        <div class="mm-btns">
+          <button class="btn btn-primary" onclick="saveMemberRow()">保存</button>
+          <button class="btn btn-default" onclick="cancelMemberRow()">取消</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 保存成功提示弹框 ===== -->
+<div class="modal-overlay" id="tipModal">
+  <div class="modal modal-sm">
+    <div class="modal-head">
+      <h3>提示</h3>
+      <span class="modal-close" onclick="closeTipModal()">×</span>
+    </div>
+    <div class="tip-body">家庭档案建立成功！</div>
+    <div class="tip-foot">
+      <button class="btn btn-primary" onclick="tipGotoMember()">添加家庭成员</button>
+      <button class="btn btn-default" onclick="closeTipModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 注销家庭成员：二次确认弹框 ===== -->
+<div class="modal-overlay" id="cancelModal">
+  <div class="modal modal-sm">
+    <div class="modal-head">
+      <h3>提示</h3>
+      <span class="modal-close" onclick="closeCancelModal()">×</span>
+    </div>
+    <div class="tip-body" id="cancelText"></div>
+    <div class="tip-foot">
+      <button class="btn btn-danger" onclick="confirmCancelMember()">确定注销</button>
+      <button class="btn btn-default" onclick="closeCancelModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ================= 模拟数据（10 户家庭，第一户含 2 名成员） ================= */
+  var familyData = [
+    { org:'扬州市江都区滨江人民医院', owner:'徐唯一', famNo:'51011500100100008', idType:'居民身份证', idcard:'510115199111110116', birth:'1991-11-11', poverty:'未扶贫', addr:'珠江国际中心', region:'仙女镇', doctor:'马思维', created:'2023-09-12', buildOrg:'扬州市江都区',
+      members:[
+        { name:'徐唯一', rel:'本人或户主', gender:'男', idType:'居民身份证', idcard:'510115199111110116', birth:'1991-11-11', phone:'13111111111', addr:'珠江国际中心' },
+        { name:'陈一人', rel:'子', gender:'男', idType:'居民身份证', idcard:'32038219871216124X', birth:'1987-12-16', phone:'13356708987', addr:'大桥镇' }
+      ] },
+    { org:'扬州市江都区滨江人民医院', owner:'栾兰之子', famNo:'51011500100100003', idType:'居民身份证', idcard:'', birth:'2022-12-08', poverty:'未扶贫', addr:'李家', region:'大桥镇', doctor:'宋玉萍', created:'2023-06-07', buildOrg:'扬州市江都区',
+      members:[
+        { name:'栾兰之子', rel:'本人或户主', gender:'男', idType:'居民身份证', idcard:'', birth:'2022-12-08', phone:'', addr:'李家' }
+      ] },
+    { org:'扬州市江都区滨江人民医院', owner:'徐华', famNo:'51011500100100075', idType:'居民身份证', idcard:'310110197603060210', birth:'1976-03-06', poverty:'未扶贫', addr:'2222', region:'仙女镇', doctor:'李蕾', created:'2023-02-16', buildOrg:'扬州市江都区',
+      members:[
+        { name:'徐华', rel:'本人或户主', gender:'男', idType:'居民身份证', idcard:'310110197603060210', birth:'1976-03-06', phone:'13905271076', addr:'2222' }
+      ] },
+    { org:'扬州市江都区滨江人民医院', owner:'葛余兰', famNo:'3210121981800001', idType:'居民身份证', idcard:'321086198013777230', birth:'1988-03-13', poverty:'未扶贫', addr:'朱家组', region:'吴桥镇', doctor:'朱劲松', created:'2022-09-11', buildOrg:'扬州市江都区',
+      members:[
+        { name:'葛余兰', rel:'本人或户主', gender:'女', idType:'居民身份证', idcard:'321086198013777230', birth:'1988-03-13', phone:'13852510099', addr:'朱家组' }
+      ] },
+    { org:'扬州市江都区真武镇杨家田村卫生室', owner:'蔡炳炎', famNo:'1', idType:'居民身份证', idcard:'', birth:'1962-04-10', poverty:'未扶贫', addr:'七组', region:'真武镇', doctor:'吴明凤', created:'2021-06-08', buildOrg:'扬州市江都区',
+      members:[
+        { name:'蔡炳炎', rel:'本人或户主', gender:'男', idType:'居民身份证', idcard:'', birth:'1962-04-10', phone:'', addr:'七组' }
+      ] },
+    { org:'扬州市江都区真武镇杨家田村卫生室', owner:'刘进贵', famNo:'1', idType:'居民身份证', idcard:'', birth:'1956-10-14', poverty:'未扶贫', addr:'刘二组', region:'真武镇', doctor:'姜康荣', created:'2021-06-08', buildOrg:'扬州市江都区',
+      members:[
+        { name:'刘进贵', rel:'本人或户主', gender:'男', idType:'居民身份证', idcard:'', birth:'1956-10-14', phone:'', addr:'刘二组' }
+      ] },
+    { org:'扬州市江都区真武镇杨家田村卫生室', owner:'顾志颖', famNo:'1', idType:'居民身份证', idcard:'', birth:'1950-05-21', poverty:'未扶贫', addr:'油坊组', region:'真武镇', doctor:'赵家兰', created:'2021-06-04', buildOrg:'扬州市江都区',
+      members:[
+        { name:'顾志颖', rel:'本人或户主', gender:'女', idType:'居民身份证', idcard:'', birth:'1950-05-21', phone:'', addr:'油坊组' }
+      ] },
+    { org:'扬州市江都区真武镇杨家田村卫生室', owner:'蔡江元', famNo:'1', idType:'居民身份证', idcard:'', birth:'1949-06-14', poverty:'未扶贫', addr:'油坊组', region:'真武镇', doctor:'赵家兰', created:'2021-06-03', buildOrg:'扬州市江都区',
+      members:[
+        { name:'蔡江元', rel:'本人或户主', gender:'男', idType:'居民身份证', idcard:'', birth:'1949-06-14', phone:'', addr:'油坊组' }
+      ] },
+    { org:'扬州市江都区吴桥镇环比村卫生室', owner:'张桥林', famNo:'1', idType:'居民身份证', idcard:'', birth:'1968-03-22', poverty:'未扶贫', addr:'向梁组', region:'吴桥镇', doctor:'冯仕华', created:'2021-06-03', buildOrg:'扬州市江都区',
+      members:[
+        { name:'张桥林', rel:'本人或户主', gender:'男', idType:'居民身份证', idcard:'', birth:'1968-03-22', phone:'', addr:'向梁组' }
+      ] },
+    { org:'扬州市江都区吴桥镇环比村卫生室', owner:'陈桂英', famNo:'1', idType:'居民身份证', idcard:'', birth:'1953-04-22', poverty:'未扶贫', addr:'沙湾', region:'吴桥镇', doctor:'蔡娟', created:'2021-06-02', buildOrg:'扬州市江都区',
+      members:[
+        { name:'陈桂英', rel:'本人或户主', gender:'女', idType:'居民身份证', idcard:'', birth:'1953-04-22', phone:'', addr:'沙湾' }
+      ] }
+  ];
+
+  function esc(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function $(id) { return document.getElementById(id); }
+
+  var memberCols = 10; /* 成员子表列数 */
+
+  /* ================= 渲染（按筛选条件实时过滤） ================= */
+  function renderTable() {
+    var org = $('fOrg').value.trim(), owner = $('fOwner').value.trim();
+    var idcard = $('fIdcard').value.trim(), famNo = $('fFamNo').value.trim();
+    var dateStart = $('fDateStart').value, dateEnd = $('fDateEnd').value;
+    var addr = $('fAddr').value.trim(), region = $('fRegion').value;
+    var status = $('fStatus').value, doctor = $('fDoctor').value.trim();
+    var buildOrg = $('fBuildOrg').value.trim(), poverty = $('fPoverty').value;
+
+    var list = familyData.filter(function (r) {
+      if (org && r.org.indexOf(org) === -1) return false;
+      if (owner && r.owner.indexOf(owner) === -1) return false;
+      if (idcard && r.idcard.indexOf(idcard) === -1) return false;
+      if (famNo && r.famNo.indexOf(famNo) === -1) return false;
+      if (dateStart && r.created < dateStart) return false;
+      if (dateEnd && r.created > dateEnd) return false;
+      if (addr && r.addr.indexOf(addr) === -1) return false;
+      if (region && r.region !== region) return false;
+      if (status && (r.status || '正常') !== status) return false;
+      if (doctor && r.doctor.indexOf(doctor) === -1) return false;
+      if (buildOrg && r.buildOrg.indexOf(buildOrg) === -1) return false;
+      if (poverty && r.poverty !== poverty) return false;
+      return true;
+    });
+
+    var html = '';
+    if (list.length === 0) {
+      html = '<tr class="empty-row"><td colspan="13"><div class="ico">📭</div>暂无符合条件的家庭档案</td></tr>';
+    } else {
+      list.forEach(function (r, i) {
+        var famId = 'fam_' + i;
+        /* 家庭行（首户默认展开） */
+        var open = i === 0;
+        html += '<tr class="fam-row' + (open ? ' open' : '') + '" id="' + famId + '">'
+          + '<td class="center"><span class="fam-toggle" onclick="toggleFam(\'' + famId + '\',this)">' + (open ? '−' : '+') + '</span></td>'
+          + '<td title="' + esc(r.org) + '"><span class="cell">' + esc(r.org) + '</span></td>'
+          + '<td>' + esc(r.owner) + '</td>'
+          + '<td>' + esc(r.famNo) + '</td>'
+          + '<td>' + esc(r.idType) + '</td>'
+          + '<td title="' + esc(r.idcard) + '"><span class="cell">' + esc(r.idcard) + '</span></td>'
+          + '<td class="center">' + esc(r.birth) + '</td>'
+          + '<td>' + esc(r.poverty) + '</td>'
+          + '<td>' + esc(r.addr) + '</td>'
+          + '<td>' + esc(r.doctor) + '</td>'
+          + '<td>' + esc(r.created) + '</td>'
+          + '<td title="' + esc(r.buildOrg) + '"><span class="cell">' + esc(r.buildOrg) + '</span></td>'
+          + '<td class="center">'
+          +   '<a class="op-link" onclick="toast(\'编辑家庭档案：' + esc(r.owner) + '\',\'info\')">编辑</a>'
+          +   '<span class="op-gap"></span>'
+          +   '<a class="op-link" onclick="toast(\'查看家庭档案：' + esc(r.owner) + '\',\'info\')">查看</a>'
+          +   '<span class="op-gap"></span>'
+          +   '<a class="op-link danger" onclick="toast(\'删除家庭档案：' + esc(r.owner) + '\',\'warning\')">删除家庭档案</a>'
+          + '</td>'
+          + '</tr>';
+        /* 成员块（默认收起，首户默认展开） */
+        html += '<tr class="member-block" id="' + famId + '_members"' + (open ? ' style="display:table-row"' : ' style="display:none"') + '>'
+          + '<td colspan="13" style="padding:0">'
+          +   '<table class="member-tbl">'
+          +     '<colgroup>'
+          +       '<col style="width:34px"><col style="width:90px"><col style="width:110px"><col style="width:50px"><col style="width:100px"><col style="width:170px"><col style="width:100px"><col style="width:120px"><col style="width:200px"><col style="width:120px">'
+          +     '</colgroup>'
+          +     '<thead><tr>'
+          +       '<th class="center">序号</th><th>姓名</th><th>与户主关系</th><th class="center">性别</th><th>证件类型</th><th>证件号</th><th class="center">出生日期</th><th>电话</th><th>地址</th><th class="center">操作</th>'
+          +     '</tr></thead>'
+          +     '<tbody>';
+        (r.members || []).forEach(function (m, j) {
+          html += '<tr>'
+            + '<td class="center">' + (j + 1) + '</td>'
+            + '<td>' + esc(m.name) + '</td>'
+            + '<td>' + esc(m.rel) + '</td>'
+            + '<td class="center">' + esc(m.gender) + '</td>'
+            + '<td>' + esc(m.idType) + '</td>'
+            + '<td title="' + esc(m.idcard) + '"><span class="cell">' + esc(m.idcard) + '</span></td>'
+            + '<td class="center">' + esc(m.birth) + '</td>'
+            + '<td>' + esc(m.phone) + '</td>'
+            + '<td>' + esc(m.addr) + '</td>'
+            + '<td class="center">'
+            +   '<a class="op-link" onclick="toast(\'查看成员：' + esc(m.name) + '\',\'info\')">查看</a>'
+            +   '<span class="op-gap"></span>'
+            +   '<a class="op-link" onclick="toast(\'编辑成员：' + esc(m.name) + '\',\'info\')">编辑</a>'
+            + '</td>'
+            + '</tr>';
+        });
+        html +=     '</tbody>'
+          +   '</table>'
+          + '</td>'
+          + '</tr>';
+      });
+    }
+    $('tbBody').innerHTML = html;
+  }
+
+  /* ================= 交互 ================= */
+  function toggleFam(famId, btn) {
+    var block = $(famId + '_members');
+    var row = $(famId);
+    var show = block.style.display === 'none';
+    block.style.display = show ? 'table-row' : 'none';
+    btn.textContent = show ? '−' : '+';
+    row.classList.toggle('open', show);
+  }
+
+  function toggleExtra() {
+    var row = $('extraRow');
+    row.classList.toggle('show');
+    $('btnExpand').textContent = row.classList.contains('show') ? '收起 −' : '展开 +';
+  }
+
+  function applyFilter() {
+    renderTable();
+    toast('筛选条件已应用', 'success');
+  }
+
+  /* ================= 新建家庭档案视图 ================= */
+  function openCreateView() {
+    $('listView').style.display = 'none';
+    $('createView').style.display = 'flex';
+    /* 重置成员表为空态（重新新建一份家庭档案） */
+    familySaved = false;
+    $('memTbody').innerHTML = '';
+    $('memEmpty').style.display = 'block';
+    $('memTbl').style.display = 'none';
+    switchCrTab(document.querySelector('.cr-tab'), 'paneBase');
+  }
+
+  function backCreateView() {
+    $('createView').style.display = 'none';
+    $('listView').style.display = 'flex';
+  }
+
+  function switchCrTab(el, paneId) {
+    document.querySelectorAll('.cr-tab').forEach(function (t) { t.classList.remove('active'); });
+    el.classList.add('active');
+    ['paneBase', 'paneMember', 'panePoor'].forEach(function (id) { $(id).style.display = 'none'; });
+    $(paneId).style.display = 'block';
+    if (paneId === 'paneMember') { updateMemberTabState(); }
+  }
+
+  /* 家庭成员 tab 状态：未保存家庭基本信息前不显示"添加家庭成员"按钮 */
+  function updateMemberTabState() {
+    $('memBar').style.display = familySaved ? 'flex' : 'none';
+    $('memEmptyText').textContent = familySaved
+      ? '暂无家庭成员，请添加成员'
+      : '请先完善并保存家庭基本信息后再添加家庭成员';
+  }
+
+  function updateRemarkCnt() {
+    $('remarkCnt').textContent = $('remarkInput').value.length + '/100';
+  }
+
+  /* ================= 添加家庭成员（选择户主） ================= */
+  var memberPool = [
+    { no:'32101211811812487', name:'王海云',       idcard:'411602195001222883', gender:'女', age:76, phone:'19984685',    birth:'1950-01-22', village:'善玉村',   detail:'善玉村东街12号' },
+    { no:'32101210010000322', name:'测试',         idcard:'3587311963111269X',  gender:'男', age:62, phone:'88888888',    birth:'1963-11-11', village:'东苑社区', detail:'地址' },
+    { no:'32101210010000321', name:'测试',         idcard:'81994719661217461X', gender:'男', age:59, phone:'88888888',    birth:'1966-12-17', village:'东苑社区', detail:'地址' },
+    { no:'32101210010000320', name:'测试',         idcard:'15827819751024691X', gender:'男', age:50, phone:'88888888',    birth:'1975-10-24', village:'东苑社区', detail:'地址' },
+    { no:'32101210010000319', name:'测试',         idcard:'51032220011213837X', gender:'男', age:24, phone:'88888888',    birth:'2001-12-13', village:'东苑社区', detail:'地址' },
+    { no:'32101210010000318', name:'自动化测试用户', idcard:'51033320011215847X', gender:'男', age:24, phone:'17828966578', birth:'2001-12-15', village:'东苑社区', detail:'地址' },
+    { no:'32101211811812486', name:'李大海',       idcard:'110101198005010149', gender:'女', age:46, phone:'13652478565', birth:'1980-05-01', village:'善玉村',   detail:'善玉村南巷5号' },
+    { no:'32101210010000308', name:'李文顺',       idcard:'51013219990514121X', gender:'男', age:27, phone:'18200551232', birth:'1999-05-14', village:'龙川社区', detail:'龙川社区振兴路3号' }
+  ];
+
+  var memberMode = 'owner';        /* owner=选户主（点行直接带入）；member=添加家庭成员（点行展开录入区） */
+  var currentMemberNo = '';        /* 录入区当前选中的成员档案编号 */
+
+  function openMemberModal(mode) {
+    memberMode = (mode === 'member') ? 'member' : 'owner';
+    ['mName','mIdcard','mNo'].forEach(function (id) { $(id).value = ''; });
+    $('mGrid').value = '';
+    /* member 模式隐藏弹框自带取消行（录入区自带 保存/取消） */
+    $('mCancelBar').style.display = (memberMode === 'member') ? 'none' : 'flex';
+    resetMemberInfo();
+    renderMemberTable();
+    $('memberModal').classList.add('show');
+  }
+
+  function closeMemberModal() {
+    resetMemberInfo();
+    $('memberModal').classList.remove('show');
+  }
+
+  /* 成员行点击：按弹框模式分流 */
+  function memberRowClick(no) {
+    if (memberMode === 'owner') { pickMember(no); return; }
+    showMemberInfo(no);
+  }
+
+  /* 展开下方"家庭成员信息"录入区 */
+  function showMemberInfo(no) {
+    var m = null;
+    for (var i = 0; i < memberPool.length; i++) { if (memberPool[i].no === no) { m = memberPool[i]; break; } }
+    if (!m) return;
+    currentMemberNo = no;
+    $('mmGender').textContent = m.gender || '-';
+    $('mmPhone').textContent = m.phone || '-';
+    $('mmIdcard').textContent = m.idcard || '-';
+    var p = findRegionPath(m.village);
+    $('mmAddr').textContent = (p ? p.join('') : (m.village || '')) + (m.detail || '');
+    $('mmRel').value = '';
+    $('mmBlood').value = '';
+    $('mmInfo').classList.add('show');
+  }
+
+  function resetMemberInfo() {
+    currentMemberNo = '';
+    $('mmInfo').classList.remove('show');
+  }
+
+  function cancelMemberRow() {
+    resetMemberInfo();
+  }
+
+  /* ================= 家庭成员关系字典（公卫标准） ================= */
+  /* 与户主关系：GB/T 4761-2008 家庭关系代码 归类 */
+  var REL_DICT = ['本人或户主', '配偶', '之子', '之女', '之父', '之母', '之祖父', '之祖母',
+    '之孙子', '之孙女', '兄弟', '姐妹', '儿媳', '女婿', '其他亲属', '非亲属'];
+  /* 血缘关系：WS 364.3 CV02.01.201 血缘关系代码表 */
+  var BLOOD_DICT = ['无血缘关系', '直系血缘关系', '三代以内的旁系血缘关系', '三代以外的旁系血缘关系', '不详', '其他'];
+
+  function dictOptions(list, cur) {
+    var h = '';
+    list.forEach(function (v) {
+      h += '<option value="' + esc(v) + '"' + (v === cur ? ' selected' : '') + '>' + esc(v) + '</option>';
+    });
+    return h;
+  }
+  function fillDict(sel, list) {
+    sel.innerHTML = '<option value="" selected>请选择</option>' + dictOptions(list, '');
+  }
+  fillDict($('mmRel'), REL_DICT);
+  fillDict($('mmBlood'), BLOOD_DICT);
+
+  /* ================= 家庭成员表：行内编辑（与户主关系/血缘关系） ================= */
+  var editingTr = null;   /* 当前处于编辑态的行 */
+
+  function memberOpsHtml(name) {
+    return '<span class="op-act" onclick="editMemberRow(this)">编辑</span>'
+      + '<span class="op-act danger" onclick="askCancelMember(this)">注销</span>';
+  }
+
+  /* ================= 注销家庭成员：二次确认 → 确定后删除该行 ================= */
+  var cancelTargetTr = null;   /* 待注销的成员行 */
+
+  function askCancelMember(el) {
+    var tr = el.closest('tr');
+    if (editingTr && editingTr === tr) { cancelMemberEdit(); }   /* 编辑态行先退出编辑 */
+    cancelTargetTr = tr;
+    var name = tr.children[1].textContent;
+    $('cancelText').innerHTML = '确认注销家庭成员「' + esc(name) + '」吗？'
+      + '<span class="cancel-sub">注销后该成员将从本家庭档案中移除</span>';
+    $('cancelModal').classList.add('show');
+  }
+
+  function closeCancelModal() {
+    cancelTargetTr = null;
+    $('cancelModal').classList.remove('show');
+  }
+
+  function confirmCancelMember() {
+    if (!cancelTargetTr) { closeCancelModal(); return; }
+    var name = cancelTargetTr.children[1].textContent;
+    if (editingTr && editingTr === cancelTargetTr) { cancelMemberEdit(); }
+    cancelTargetTr.remove();
+    cancelTargetTr = null;
+    $('cancelModal').classList.remove('show');
+    /* 重新编排剩余行序号 */
+    var rows = $('memTbody').querySelectorAll('tr');
+    rows.forEach(function (r, i) { r.children[0].textContent = i + 1; });
+    if (!rows.length) {
+      $('memTbl').style.display = 'none';
+      $('memEmpty').style.display = 'block';
+    }
+    toast('已注销家庭成员「' + name + '」，该成员数据已删除', 'success');
+  }
+
+  function editMemberRow(el) {
+    var tr = el.closest('tr');
+    if (editingTr && editingTr !== tr) { cancelMemberEdit(); }   /* 同一时间仅一行可编辑 */
+    editingTr = tr;
+    tr.classList.add('editing');
+    var relTd = tr.children[3], bloodTd = tr.children[8];
+    tr.setAttribute('data-rel', relTd.textContent);
+    tr.setAttribute('data-blood', bloodTd.textContent);
+    relTd.innerHTML = '<select class="mem-edit-sel" id="edRel">' + dictOptions(REL_DICT, relTd.textContent) + '</select>';
+    bloodTd.innerHTML = '<select class="mem-edit-sel" id="edBlood">' + dictOptions(BLOOD_DICT, bloodTd.textContent) + '</select>';
+    tr.children[11].innerHTML = '<span class="op-act" onclick="saveMemberEdit()">保存</span>'
+      + '<span class="op-act" onclick="cancelMemberEdit()">取消</span>';
+  }
+
+  function saveMemberEdit() {
+    if (!editingTr) return;
+    var rel = $('edRel').value, blood = $('edBlood').value;
+    if (!rel || !blood) { toast('请选择与户主关系、血缘关系', 'warning'); return; }
+    var name = editingTr.children[1].textContent;
+    editingTr.children[3].textContent = rel;
+    editingTr.children[8].textContent = blood;
+    editingTr.children[11].innerHTML = memberOpsHtml(name);
+    editingTr.classList.remove('editing');
+    editingTr = null;
+    toast('家庭成员「' + name + '」信息已更新', 'success');
+  }
+
+  function cancelMemberEdit() {
+    if (!editingTr) return;
+    editingTr.children[3].textContent = editingTr.getAttribute('data-rel');
+    editingTr.children[8].textContent = editingTr.getAttribute('data-blood');
+    editingTr.children[11].innerHTML = memberOpsHtml(editingTr.children[1].textContent);
+    editingTr.classList.remove('editing');
+    editingTr = null;
+  }
+
+  /* 录入区保存：校验必填 → 成员列表新增一行 → 关闭弹框 */
+  function saveMemberRow() {
+    var rel = $('mmRel').value, blood = $('mmBlood').value;
+    var missing = [];
+    if (!rel) missing.push('与户主关系');
+    if (!blood) missing.push('血缘关系');
+    if (missing.length) { toast('请选择' + missing.join('、'), 'warning'); return; }
+    var m = null;
+    for (var i = 0; i < memberPool.length; i++) { if (memberPool[i].no === currentMemberNo) { m = memberPool[i]; break; } }
+    if (!m) { toast('请先选择成员', 'warning'); return; }
+    var rows = $('memTbody').querySelectorAll('tr').length;
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td class="center">' + (rows + 1) + '</td>'
+      + '<td>' + esc(m.name) + '</td>'
+      + '<td>' + esc(genMemberNo()) + '</td>'
+      + '<td>' + esc(rel) + '</td>'
+      + '<td>' + esc(m.idcard) + '</td>'
+      + '<td class="center">' + esc(m.gender) + '</td>'
+      + '<td class="center">' + m.age + '</td>'
+      + '<td>' + esc(m.phone) + '</td>'
+      + '<td>' + esc(blood) + '</td>'
+      + '<td title="' + esc(m.detail) + '"><span class="cell">' + esc(m.detail) + '</span></td>'
+      + '<td>未掌握</td>'
+      + '<td class="center">' + memberOpsHtml(m.name) + '</td>';
+    $('memTbody').appendChild(tr);
+    $('memEmpty').style.display = 'none';
+    $('memTbl').style.display = 'table';
+    closeMemberModal();
+    toast('家庭成员「' + m.name + '」已添加', 'success');
+  }
+
+  function resetMemberFilter() {
+    ['mName','mIdcard','mNo'].forEach(function (id) { $(id).value = ''; });
+    $('mGrid').value = '';
+    renderMemberTable();
+  }
+
+  function renderMemberTable() {
+    var name = $('mName').value.trim(), idc = $('mIdcard').value.trim();
+    var grid = $('mGrid').value, no = $('mNo').value.trim();
+    var list = memberPool.filter(function (m) {
+      if (name && m.name.indexOf(name) === -1) return false;
+      if (idc && m.idcard.indexOf(idc) === -1) return false;
+      if (grid && m.village !== grid) return false;
+      if (no && m.no.indexOf(no) === -1) return false;
+      return true;
+    });
+    $('mTotal').textContent = list.length;
+    var html = '';
+    if (list.length === 0) {
+      html = '<tr class="empty-row"><td colspan="9">暂无符合条件的档案</td></tr>';
+    } else {
+      list.forEach(function (m, i) {
+        html += '<tr onclick="memberRowClick(\'' + m.no + '\')">'
+          + '<td class="center">' + (i + 1) + '</td>'
+          + '<td>' + esc(m.no) + '</td>'
+          + '<td>' + esc(m.name) + '</td>'
+          + '<td>' + esc(m.idcard) + '</td>'
+          + '<td class="center">' + esc(m.gender) + '</td>'
+          + '<td class="center">' + m.age + '</td>'
+          + '<td>' + esc(m.phone) + '</td>'
+          + '<td>' + esc(m.birth) + '</td>'
+          + '<td>' + esc(m.village) + '</td>'
+          + '</tr>';
+      });
+    }
+    $('mTbody').innerHTML = html;
+    $('mPager').innerHTML = '<button class="pg-btn" onclick="toast(\'已是第一页\',\'info\')">‹</button>'
+      + '<button class="pg-btn active">1</button>'
+      + '<button class="pg-btn" onclick="toast(\'已是最后一页\',\'info\')">›</button>';
+  }
+
+  function pickMember(no) {
+    var m = null;
+    for (var i = 0; i < memberPool.length; i++) { if (memberPool[i].no === no) { m = memberPool[i]; break; } }
+    if (!m) return;
+    $('cmOwner').value = m.name;
+    $('cmIdType').value = '居民身份证';
+    var idn = $('cmIdNo');
+    idn.value = m.idcard;
+    $('cmGender').value = (m.gender === '男') ? '男性' : '女性';
+    var b = $('cmBirth');
+    b.type = 'text';
+    b.value = m.birth;
+    $('cmPhone').value = m.phone;
+    var p = findRegionPath(m.village);
+    $('cmRegion').value = p ? p.join(' / ') : '';
+    $('cmDetail').value = m.detail;
+    syncOwnerIcons();
+    closeMemberModal();
+    toast('已带入「' + m.name + '」的个档信息，可修改部分字段', 'success');
+  }
+
+  function syncOwnerIcons() {
+    var has = !!$('cmOwner').value;
+    $('ownerSearch').style.display = has ? 'none' : 'block';
+    $('ownerClear').style.display = has ? 'block' : 'none';
+  }
+
+  function clearOwner(e) {
+    e.stopPropagation();
+    $('cmOwner').value = '';
+    $('cmIdType').value = '';
+    var idn = $('cmIdNo');
+    idn.value = '';
+    $('cmGender').value = '';
+    var b = $('cmBirth');
+    b.type = 'text';
+    b.value = '';
+    $('cmPhone').value = '';
+    $('cmRegion').value = '';
+    $('cmDetail').value = '';
+    syncOwnerIcons();
+  }
+
+  /* ================= 保存 → 提示弹框 → 家庭成员行 ================= */
+  var familySaved = false;   /* 本次新建是否已成功保存（保存后成员表保留户主行） */
+
+  function saveFamily() {
+    if (!$('cmOwner').value) {
+      toast('请先选择户主', 'warning');
+      return;
+    }
+    openTipModal();
+  }
+
+  function openTipModal() {
+    $('tipModal').classList.add('show');
+  }
+
+  function closeTipModal() {
+    $('tipModal').classList.remove('show');
+  }
+
+  function tipGotoMember() {
+    closeTipModal();
+    if (!familySaved) {
+      renderOwnerRow();
+      familySaved = true;
+    }
+    /* 切到"家庭成员"选项卡 */
+    var tabs = document.querySelectorAll('.cr-tab');
+    switchCrTab(tabs[1], 'paneMember');
+    toast('户主已同步至家庭成员列表（不可注销/删除）', 'success');
+  }
+
+  function renderOwnerRow() {
+    var gender = $('cmGender').value === '女性' ? '女' : ($('cmGender').value === '男性' ? '男' : '-');
+    var birth = $('cmBirth').value;
+    var age = '-';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(birth)) {
+      var now = new Date();
+      age = now.getFullYear() - parseInt(birth.slice(0, 4), 10);
+      if (now.getMonth() + 1 < parseInt(birth.slice(5, 7), 10)) age--;
+    }
+    var addr = $('cmDetail').value || $('cmRegion').value || '';
+    var tr = '<tr>'
+      + '<td class="center">1</td>'
+      + '<td>' + esc($('cmOwner').value) + '</td>'
+      + '<td>' + esc(genMemberNo()) + '</td>'
+      + '<td>本人或户主</td>'
+      + '<td>' + esc($('cmIdNo').value || '-') + '</td>'
+      + '<td class="center">' + esc(gender) + '</td>'
+      + '<td class="center">' + age + '</td>'
+      + '<td>' + esc($('cmPhone').value || '-') + '</td>'
+      + '<td>无血缘关系</td>'
+      + '<td title="' + esc(addr) + '"><span class="cell">' + (esc(addr) || '-') + '</span></td>'
+      + '<td>未掌握</td>'
+      + '<td class="center"><span class="op-disabled" onclick="toast(\'户主不可注销\',\'warning\')">注销</span><span class="op-disabled" onclick="toast(\'户主不可删除\',\'warning\')">删除</span></td>'
+      + '</tr>';
+    $('memTbody').innerHTML = tr;
+    $('memEmpty').style.display = 'none';
+    $('memTbl').style.display = 'table';
+  }
+
+  function genMemberNo() {
+    var s = '1';
+    for (var i = 0; i < 17; i++) { s += Math.floor(Math.random() * 10); }
+    return s;
+  }
+
+  /* ================= 家庭地址级联选择 ================= */
+  var regionTree = [
+    { n:'内蒙古自治区', c:[{ n:'呼和浩特市', c:[{ n:'新城区', c:[{ n:'迎宾街道', c:[{ n:'迎宾社区' }] }] }] }] },
+    { n:'辽宁省', c:[{ n:'沈阳市', c:[{ n:'沈河区', c:[{ n:'滨河街道', c:[{ n:'多福社区' }] }] }] }] },
+    { n:'吉林省', c:[{ n:'长春市', c:[{ n:'南关区', c:[{ n:'曙光街道', c:[{ n:'师大东电社区' }] }] }] }] },
+    { n:'黑龙江省', c:[{ n:'哈尔滨市', c:[{ n:'南岗区', c:[{ n:'燎原街道', c:[{ n:'文化家园社区' }] }] }] }] },
+    { n:'上海市', c:[{ n:'黄浦区', c:[{ n:'外滩街道', c:[{ n:'北京里弄社区' }] }] }] },
+    { n:'江苏省', c:[
+      { n:'南京市', c:[{ n:'玄武区', c:[{ n:'梅园新村街道', c:[{ n:'梅花山庄社区' }] }] }] },
+      { n:'南通市', c:[{ n:'崇川区', c:[{ n:'城东街道', c:[{ n:'东大街社区' }] }] }] },
+      { n:'连云港市', c:[{ n:'海州区', c:[{ n:'新南街道', c:[{ n:'海南社区' }] }] }] },
+      { n:'淮安市', c:[{ n:'清江浦区', c:[{ n:'长西街道', c:[{ n:'上海路社区' }] }] }] },
+      { n:'盐城市', c:[{ n:'亭湖区', c:[{ n:'文峰街道', c:[{ n:'解放桥社区' }] }] }] },
+      { n:'扬州市', c:[
+        { n:'广陵区', c:[{ n:'东关街道', c:[{ n:'东关街社区' }] }] },
+        { n:'邗江区', c:[{ n:'邗上街道', c:[{ n:'冯庄社区' }] }] },
+        { n:'江都区', c:[
+          { n:'仙女镇', c:[{ n:'东苑社区' }, { n:'龙川社区' }, { n:'禹王宫社区' }, { n:'高阳社区' }, { n:'南吴社区' }] },
+          { n:'小纪镇', c:[{ n:'小纪社区' }] },
+          { n:'武坚镇', c:[{ n:'武坚社区' }] },
+          { n:'樊川镇', c:[{ n:'樊川社区' }] },
+          { n:'真武镇', c:[{ n:'真武社区' }, { n:'善玉村' }] },
+          { n:'宜陵镇', c:[{ n:'宜陵社区' }] }
+        ] },
+        { n:'宝应县', c:[{ n:'安宜镇', c:[{ n:'安宜社区' }] }] },
+        { n:'扬州经济技术开发区', c:[{ n:'文汇街道', c:[{ n:'花园社区' }] }] }
+      ] }
+    ] }
+  ];
+
+  var csPath = [];   /* 当前级联路径（节点数组） */
+
+  function toggleCascader(e) {
+    e.stopPropagation();
+    var p = $('csPanel');
+    if (p.classList.contains('show')) {
+      p.classList.remove('show');
+    } else {
+      csPath = [];
+      renderCs();
+      p.classList.add('show');
+    }
+  }
+
+  function renderCs() {
+    var panel = $('csPanel');
+    panel.innerHTML = '';
+    for (var d = 0; d <= csPath.length; d++) {
+      var level = (d === 0) ? regionTree : (csPath[d - 1].c || []);
+      if (!level.length) break;
+      var col = document.createElement('span');
+      col.className = 'cs-col';
+      level.forEach(function (node) {
+        var it = document.createElement('span');
+        it.className = 'cs-item' + (csPath[d] === node ? ' sel' : '');
+        var nm = document.createElement('span');
+        nm.textContent = node.n;
+        it.appendChild(nm);
+        if (node.c && node.c.length) {
+          var ar = document.createElement('span');
+          ar.className = 'arrow';
+          ar.textContent = '›';
+          it.appendChild(ar);
+        }
+        it.onclick = function () { csPick(node, d); };
+        col.appendChild(it);
+      });
+      panel.appendChild(col);
+    }
+  }
+
+  function csPick(node, d) {
+    csPath = csPath.slice(0, d);
+    csPath.push(node);
+    if (node.c && node.c.length) {
+      renderCs();          /* 还有下级：继续展开 */
+    } else {
+      /* 叶子节点：提交选中值 */
+      $('cmRegion').value = csPath.map(function (n) { return n.n; }).join(' / ');
+      $('csPanel').classList.remove('show');
+    }
+  }
+
+  function findRegionPath(name) {
+    var res = null;
+    function walk(list, path) {
+      for (var i = 0; i < list.length; i++) {
+        var p = path.concat([list[i].n]);
+        if (list[i].n === name) { res = p; return true; }
+        if (list[i].c && walk(list[i].c, p)) return true;
+      }
+      return false;
+    }
+    walk(regionTree, []);
+    return res;
+  }
+
+  /* 点击面板外部时收起级联 */
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest || !e.target.closest('.cascader')) {
+      $('csPanel').classList.remove('show');
+    }
+  });
+
+  function resetFilter() {
+    ['fOrg','fOwner','fIdcard','fFamNo','fDateStart','fDateEnd','fAddr','fDoctor','fBuildOrg'].forEach(function (id) { $(id).value = ''; });
+    $('fRegion').value = ''; $('fPoverty').value = '';
+    $('fStatus').value = '正常';
+    renderTable();
+  }
+
+  ['fOrg','fOwner','fIdcard','fFamNo','fAddr','fDoctor','fBuildOrg'].forEach(function (id) {
+    $(id).addEventListener('input', renderTable);
+  });
+  ['fRegion','fStatus','fPoverty','fDateStart','fDateEnd'].forEach(function (id) {
+    $(id).addEventListener('change', renderTable);
+  });
+
+  /* 初始渲染 */
+  renderTable();
+</script>
+
+<!-- ===== 统一框架：顶部导航栏 + 左侧菜单栏（菜单配置见 框架.js） =====
+     data-page    = 左侧菜单高亮项（独立打开时生效）
+     data-embed   = auto：被 iframe 内嵌或 URL 带 ?embed=1 时自动进入嵌入模式 -->
+<script src="框架.js" data-page="family-archives" data-embed="auto"></script>
+</body>
+</html>

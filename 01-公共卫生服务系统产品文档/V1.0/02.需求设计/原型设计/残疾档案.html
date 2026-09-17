@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>残疾档案 - 档案管理</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  /* ===== 残疾档案列表页面特有样式（设计变量与公共样式见 框架.css） ===== */
+
+  /* ===== 嵌入模式（被 index.html 壳子以 iframe 内嵌时，框架.js 自动加 html.embed-mode） ===== */
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  /* ===== 布局 ===== */
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0}
+
+  /* ===== 页头按钮 ===== */
+  .page-head .right .btn{height:28px;padding:0 14px;font-size:13px}
+
+  /* ===== 筛选区 ===== */
+  .filter-panel{padding:14px 12px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:14px;align-items:center}
+  .filter-item{display:flex;align-items:center;gap:8px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:140px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+  /* 日期范围 */
+  .date-range{display:flex;align-items:center;gap:6px}
+  .date-range .fi-ctl{width:130px;padding:0 28px 0 10px;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .date-range .sep{color:var(--text-tertiary);font-size:13px}
+
+  /* ===== 数据表格 ===== */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+
+  /* 横向滚动时前 3 列冻结（序号/管理机构/姓名） */
+  .list-tbl th:nth-child(-n+3),.list-tbl td:nth-child(-n+3){position:sticky}
+  .list-tbl td:nth-child(-n+3){z-index:2;background:var(--bg-white)}
+  .list-tbl th:nth-child(-n+3){z-index:6}
+  .list-tbl th:nth-child(1),.list-tbl td:nth-child(1){left:0}
+  .list-tbl th:nth-child(2),.list-tbl td:nth-child(2){left:44px}
+  .list-tbl th:nth-child(3),.list-tbl td:nth-child(3){left:194px}
+  .list-tbl th:nth-child(3),.list-tbl td:nth-child(3){box-shadow:6px 0 8px -6px rgba(0,0,0,0.2)}
+
+  .list-tbl{width:100%;min-width:1434px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:36px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .list-tbl th.center,.list-tbl td.center{text-align:center}
+  .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* 锁定状态圆点 */
+  .st-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  .st-dot.unlock{background:#FF9500}
+  .st-dot.lock{background:var(--danger)}
+
+  /* 操作列 */
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px}
+  .op-link:hover{text-decoration:underline}
+  .op-link.danger{color:var(--danger)}
+  .op-gap{display:inline-block;width:8px}
+
+  /* ===== 分页 ===== */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:52px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 22px 0 8px;font-size:13px;color:var(--text-secondary);background:#fff;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-jump input{width:40px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 6px;font-size:13px;text-align:center;color:var(--text-primary);outline:none}
+  .pg-jump input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+
+  /* ===== 新建残疾档案弹框 ===== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .modal-overlay.show{opacity:1;pointer-events:auto}
+  .modal{width:720px;max-width:92vw;background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 8px 32px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden;transform:translateY(10px);transition:transform var(--transition-normal)}
+  .modal-overlay.show .modal{transform:translateY(0)}
+  .modal-head{height:48px;display:flex;align-items:center;padding:0 16px;flex-shrink:0}
+  .modal-head h3{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+  .modal-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:16px}
+  .modal-close:hover{background:var(--primary-bg);color:var(--primary)}
+  .modal-body{padding:16px 16px 4px}
+  .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+  .modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:18px 20px 20px}
+
+  .fm-row{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+  .fm-row label{width:88px;text-align:right;font-size:14px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
+  .fm-row label i{color:var(--danger);font-style:normal;margin-right:2px}
+  .fm-ctl-wrap{position:relative;flex:1;min-width:0}
+  .fm-ctl{width:100%;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fm-ctl.has-cnt{padding-right:40px}
+  .fm-select{width:100%;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fm-ctl:focus,.fm-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fm-ctl::placeholder{color:var(--text-placeholder)}
+  .cnt{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text-placeholder);pointer-events:none}
+  .fm-readcard{height:32px;padding:0 10px;border:1px solid var(--primary);color:var(--primary);background:var(--bg-white);border-radius:var(--r-sm);font-size:13px;white-space:nowrap;flex-shrink:0;transition:all var(--transition-fast)}
+  .fm-readcard:hover{background:var(--primary-bg)}
+  .fm-full{grid-column:1 / -1}
+</style>
+</head>
+<body>
+
+<!-- ===== 主内容区（顶部导航栏与左侧菜单栏由 框架.js 注入） ===== -->
+<div class="main-area">
+
+  <!-- 页面标签条（嵌入模式下隐藏，由壳子统一管理） -->
+  <div class="tabbar">
+    <div class="tab-item dashboard active" onclick="toast('当前已在「残疾档案」页','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      残疾档案
+    </div>
+    <div class="tab-item" onclick="toast('「康复管理」功能建设中','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+      康复管理
+      <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <!-- 页头 -->
+      <div class="page-head">
+        <h1>残疾档案</h1>
+        <div class="right">
+          <button class="btn btn-default" onclick="toast('导出功能建设中','info')">导出</button>
+          <button class="btn btn-default" onclick="toast('请连接身份证读卡器','info')">身份证读卡</button>
+          <button class="btn btn-primary" onclick="openCreateModal()">新建</button>
+        </div>
+      </div>
+
+      <!-- 筛选区 -->
+      <div class="filter-panel">
+        <div class="filter-row">
+          <div class="filter-item"><label>管理机构</label>
+            <select id="fOrg" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
+              <option value="扬州市江都区郭村镇卫生院">扬州市江都区郭村镇卫生院</option>
+              <option value="扬州市江都区滨江人民医院">扬州市江都区滨江人民医院</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>姓名</label><input id="fName" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>性别</label>
+            <select id="fGender" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="男">男</option>
+              <option value="女">女</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>证件号</label><input id="fIdcard" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>筛查结果</label>
+            <select id="fScreen" class="fi-select">
+              <option value="" selected>全部</option>
+              <option value="阴性">阴性</option>
+              <option value="阳性">阳性</option>
+            </select>
+          </div>
+        </div>
+        <div class="filter-row">
+          <div class="filter-item"><label>是否领取低保</label>
+            <select id="fWelfare" class="fi-select">
+              <option value="" selected>全部</option>
+              <option value="未领取">未领取</option>
+              <option value="已领取">已领取</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>建档日期</label>
+            <div class="date-range">
+              <input id="fDateStart" class="fi-ctl" type="text" placeholder="开始日期"
+                     onfocus="this.type='date';try{this.showPicker()}catch(e){}"
+                     onblur="if(!this.value){this.type='text'}">
+              <span class="sep">~</span>
+              <input id="fDateEnd" class="fi-ctl" type="text" placeholder="结束日期"
+                     onfocus="this.type='date';try{this.showPicker()}catch(e){}"
+                     onblur="if(!this.value){this.type='text'}">
+            </div>
+          </div>
+          <div class="filter-item"><label>锁定状态</label>
+            <select id="fLock" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="未上锁">未上锁</option>
+              <option value="已锁定">已锁定</option>
+            </select>
+          </div>
+          <div class="filter-btns">
+            <button class="btn btn-default" onclick="resetFilter()">重置</button>
+            <button class="btn btn-primary" onclick="applyFilter()">查询</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 数据表格 -->
+      <div class="table-wrap">
+        <table class="list-tbl">
+          <colgroup>
+            <col style="width:44px"><col style="width:150px"><col style="width:80px"><col style="width:50px"><col style="width:100px"><col style="width:90px"><col style="width:170px"><col style="width:70px"><col style="width:70px"><col style="width:90px"><col style="width:80px"><col style="width:100px"><col style="width:150px"><col style="width:80px"><col style="width:110px">
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="center">序号</th>
+              <th>管理机构</th>
+              <th>姓名</th>
+              <th class="center">性别</th>
+              <th>出生日期</th>
+              <th>证件类型</th>
+              <th>证件号</th>
+              <th class="center">婚姻状况</th>
+              <th class="center">筛查结果</th>
+              <th class="center">是否领取低保</th>
+              <th>建档人员</th>
+              <th>建档时间</th>
+              <th>建档机构</th>
+              <th class="center">锁定状态</th>
+              <th class="center">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tbBody"></tbody>
+        </table>
+      </div>
+
+      <!-- 分页 -->
+      <div class="page-foot">
+        <span class="pg-total">共 <b id="pgTotal">2</b> 条</span>
+        <span class="pg-size">
+          <select onchange="toast('原型演示：每页条数固定 20 条','info')">
+            <option selected>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+        </span>
+        <span class="pg-pager">
+          <button class="pg-btn" onclick="toast('已是第一页','info')">‹</button>
+          <button class="pg-btn active">1</button>
+          <button class="pg-btn" onclick="toast('仅 1 页','info')">›</button>
+        </span>
+        <span class="pg-jump">跳至第 <input id="pgJump" value="1" onkeydown="if(event.key==='Enter'){toast('仅 1 页','info')}"> 页</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== 新建残疾档案弹框 ===== -->
+<div class="modal-overlay" id="createModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>新建残疾档案</h3>
+      <span class="modal-close" onclick="closeCreateModal()">×</span>
+    </div>
+    <div class="modal-body">
+      <div class="modal-grid">
+        <div class="fm-row">
+          <label><i>*</i>管理机构：</label>
+          <select id="cmOrg" class="fm-select">
+            <option value="" selected>请选择</option>
+            <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
+            <option value="扬州市江都区郭村镇卫生院">扬州市江都区郭村镇卫生院</option>
+            <option value="扬州市江都区滨江人民医院">扬州市江都区滨江人民医院</option>
+          </select>
+        </div>
+        <div class="fm-row">
+          <label><i>*</i>姓名：</label>
+          <div class="fm-ctl-wrap">
+            <input id="cmName" class="fm-ctl has-cnt" maxlength="20" placeholder="请输入">
+            <span class="cnt" id="cntName">0/20</span>
+          </div>
+        </div>
+        <div class="fm-row">
+          <label><i>*</i>性别：</label>
+          <select id="cmGender" class="fm-select">
+            <option value="" selected>请选择</option>
+            <option value="男">男</option>
+            <option value="女">女</option>
+          </select>
+        </div>
+        <div class="fm-row">
+          <label><i>*</i>出生日期：</label>
+          <input id="cmBirth" class="fm-ctl" type="text" placeholder="请选择日期"
+                 onfocus="this.type='date';try{this.showPicker()}catch(e){}"
+                 onblur="if(!this.value){this.type='text'}">
+        </div>
+        <div class="fm-row">
+          <label><i>*</i>证件类型：</label>
+          <select id="cmIdType" class="fm-select">
+            <option value="居民身份证" selected>居民身份证</option>
+            <option value="居民户口簿">居民户口簿</option>
+            <option value="护照">护照</option>
+            <option value="港澳居民来往内地通行证">港澳居民来往内地通行证</option>
+            <option value="台湾居民来往大陆通行证">台湾居民来往大陆通行证</option>
+          </select>
+        </div>
+        <div class="fm-row">
+          <label><i>*</i>证件号：</label>
+          <div class="fm-ctl-wrap" style="display:flex;gap:6px;align-items:center">
+            <input id="cmIdcard" class="fm-ctl has-cnt" maxlength="18" placeholder="请输入证件号" style="flex:1">
+            <span class="cnt" id="cntIdcard" style="position:static">0/18</span>
+          </div>
+        </div>
+        <div class="fm-row">
+          <label>婚姻状况：</label>
+          <select id="cmMarital" class="fm-select">
+            <option value="" selected>请选择</option>
+            <option value="未婚">未婚</option>
+            <option value="已婚">已婚</option>
+            <option value="离异">离异</option>
+            <option value="丧偶">丧偶</option>
+          </select>
+        </div>
+        <div class="fm-row">
+          <label>筛查结果：</label>
+          <select id="cmScreen" class="fm-select">
+            <option value="" selected>请选择</option>
+            <option value="阴性">阴性</option>
+            <option value="阳性">阳性</option>
+          </select>
+        </div>
+        <div class="fm-row">
+          <label>是否领取低保：</label>
+          <select id="cmWelfare" class="fm-select">
+            <option value="" selected>请选择</option>
+            <option value="未领取">未领取</option>
+            <option value="已领取">已领取</option>
+          </select>
+        </div>
+        <div class="fm-row">
+          <label>锁定状态：</label>
+          <select id="cmLock" class="fm-select">
+            <option value="未上锁" selected>未上锁</option>
+            <option value="已锁定">已锁定</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" onclick="submitCreate()">保存</button>
+      <button class="btn btn-default" onclick="closeCreateModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 统一框架：顶部导航栏 + 左侧菜单栏（菜单配置见 框架.js） =====
+     data-page    = 左侧菜单高亮项（独立打开时生效）
+     data-embed   = "auto" 被壳子 iframe 内嵌时自动进入嵌入模式 -->
+<script src="框架.js" data-page="disability-archives" data-embed="auto"></script>
+
+<script>
+  /* ================= 模拟数据 ================= */
+  var disabilityData = [
+    { org:'山东大学齐鲁医院', name:'小山东高速', gender:'女', birth:'1990-01-01', idType:'居民身份证', idcard:'510123199001010106', marital:'', screen:'阴性', welfare:'未领取', creator:'朱劲松', created:'2023-04-03', createOrg:'扬州市江都区滨江人民医院', lock:'未上锁' },
+    { org:'扬州市江都区郭村镇卫生院', name:'刘菊兰NV', gender:'女', birth:'1949-08-17', idType:'居民身份证', idcard:'321088194908174139', marital:'已婚', screen:'阴性', welfare:'未领取', creator:'朱劲松', created:'2022-09-01', createOrg:'扬州市江都区滨江人民医院', lock:'未上锁' }
+  ];
+
+  /* ================= 工具函数 ================= */
+  function esc(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function $(id) { return document.getElementById(id); }
+
+  /* ================= 表格渲染（按筛选条件实时过滤） ================= */
+  function renderTable() {
+    var org = $('fOrg').value, name = $('fName').value.trim();
+    var gender = $('fGender').value, idcard = $('fIdcard').value.trim();
+    var screen = $('fScreen').value, welfare = $('fWelfare').value;
+    var dateStart = $('fDateStart').value, dateEnd = $('fDateEnd').value;
+    var lock = $('fLock').value;
+
+    var list = disabilityData.filter(function (r) {
+      if (org && r.org !== org) return false;
+      if (name && r.name.indexOf(name) === -1) return false;
+      if (gender && r.gender !== gender) return false;
+      if (idcard && r.idcard.indexOf(idcard) === -1) return false;
+      if (screen && r.screen !== screen) return false;
+      if (welfare && r.welfare !== welfare) return false;
+      if (lock && r.lock !== lock) return false;
+      if (dateStart && r.created < dateStart) return false;
+      if (dateEnd && r.created > dateEnd) return false;
+      return true;
+    });
+
+    var html = '';
+    if (list.length === 0) {
+      html = '<tr class="empty-row"><td colspan="15"><div class="ico" style="font-size:32px;margin-bottom:8px">📭</div>暂无符合条件的残疾档案</td></tr>';
+    } else {
+      list.forEach(function (r, i) {
+        var lockDot = r.lock === '已锁定' ? 'lock' : 'unlock';
+        html += '<tr>'
+          + '<td class="center">' + (i + 1) + '</td>'
+          + '<td title="' + esc(r.org) + '"><span class="cell">' + esc(r.org) + '</span></td>'
+          + '<td><a class="op-link" onclick="toast(\'查看残疾档案：' + esc(r.name) + '\',\'info\')">' + esc(r.name) + '</a></td>'
+          + '<td class="center">' + esc(r.gender) + '</td>'
+          + '<td>' + esc(r.birth) + '</td>'
+          + '<td>' + esc(r.idType) + '</td>'
+          + '<td title="' + esc(r.idcard) + '"><span class="cell">' + esc(r.idcard) + '</span></td>'
+          + '<td class="center">' + (r.marital ? esc(r.marital) : '-') + '</td>'
+          + '<td class="center">' + esc(r.screen) + '</td>'
+          + '<td class="center">' + esc(r.welfare) + '</td>'
+          + '<td>' + esc(r.creator) + '</td>'
+          + '<td>' + esc(r.created) + '</td>'
+          + '<td title="' + esc(r.createOrg) + '"><span class="cell">' + esc(r.createOrg) + '</span></td>'
+          + '<td class="center"><span class="st-dot ' + lockDot + '"></span>' + esc(r.lock) + '</td>'
+          + '<td class="center">'
+          +   '<a class="op-link" onclick="toast(\'编辑残疾档案：' + esc(r.name) + '\',\'info\')">编辑</a>'
+          +   '<span class="op-gap"></span>'
+          +   '<a class="op-link" onclick="toast(\'查看残疾档案：' + esc(r.name) + '\',\'info\')">查看</a>'
+          +   '<span class="op-gap"></span>'
+          +   '<a class="op-link danger" onclick="confirmDelete(\'' + esc(r.name) + '\')">删除</a>'
+          + '</td>'
+          + '</tr>';
+      });
+    }
+    $('tbBody').innerHTML = html;
+    $('pgTotal').textContent = list.length;
+  }
+
+  /* ================= 交互 ================= */
+  function resetFilter() {
+    $('fOrg').value = ''; $('fName').value = ''; $('fGender').value = '';
+    $('fIdcard').value = ''; $('fScreen').value = ''; $('fWelfare').value = '';
+    $('fDateStart').value = ''; $('fDateEnd').value = ''; $('fLock').value = '';
+    renderTable();
+    toast('筛选条件已重置', 'success');
+  }
+
+  function applyFilter() {
+    renderTable();
+    toast('查询完成，共 ' + $('pgTotal').textContent + ' 条记录', 'success');
+  }
+
+  function confirmDelete(name) {
+    if (confirm('确定要删除残疾档案「' + name + '」吗？')) {
+      toast('已删除：' + name + '（原型演示）', 'success');
+    }
+  }
+
+  /* 筛选控件实时过滤 */
+  ['fName','fIdcard'].forEach(function (id) {
+    $(id).addEventListener('input', renderTable);
+  });
+  ['fOrg','fGender','fScreen','fWelfare','fLock','fDateStart','fDateEnd'].forEach(function (id) {
+    $(id).addEventListener('change', renderTable);
+  });
+
+  /* ================= 新建残疾档案弹框 ================= */
+  function openCreateModal() {
+    $('cmOrg').value = '';
+    $('cmName').value = ''; $('cntName').textContent = '0/20';
+    $('cmGender').value = '';
+    var birth = $('cmBirth'); birth.type = 'text'; birth.value = '';
+    $('cmIdType').value = '居民身份证';
+    $('cmIdcard').value = ''; $('cntIdcard').textContent = '0/18';
+    $('cmMarital').value = '';
+    $('cmScreen').value = '';
+    $('cmWelfare').value = '';
+    $('cmLock').value = '未上锁';
+    $('createModal').classList.add('show');
+  }
+
+  function closeCreateModal() {
+    $('createModal').classList.remove('show');
+  }
+
+  /* 证件号满 18 位：自动解析出生日期与性别 */
+  function parseIdcard() {
+    var v = $('cmIdcard').value.trim();
+    if (!/^\d{17}[\dXx]$/.test(v)) return;
+    $('cmBirth').value = v.slice(6, 10) + '-' + v.slice(10, 12) + '-' + v.slice(12, 14);
+    $('cmGender').value = (parseInt(v[16], 10) % 2 === 1) ? '男' : '女';
+    toast('已根据证件号自动填充出生日期与性别', 'success');
+  }
+
+  function submitCreate() {
+    var missing = [];
+    if (!$('cmOrg').value) missing.push('管理机构');
+    if (!$('cmName').value.trim()) missing.push('姓名');
+    if (!$('cmGender').value) missing.push('性别');
+    if (!$('cmBirth').value) missing.push('出生日期');
+    if (!$('cmIdType').value) missing.push('证件类型');
+    var idcard = $('cmIdcard').value.trim();
+    if (!idcard) missing.push('证件号');
+    else if (!/^\d{17}[\dXx]$/.test(idcard)) { toast('证件号格式不正确，需为 18 位', 'warning'); return; }
+    if (missing.length) { toast('请完善必填项：' + missing.join('、'), 'warning'); return; }
+    closeCreateModal();
+    toast('残疾档案创建成功（原型演示）', 'success');
+  }
+
+  /* 弹框联动事件 */
+  $('cmIdcard').addEventListener('input', function () {
+    $('cntIdcard').textContent = this.value.length + '/18';
+    if (this.value.length === 18) parseIdcard();
+  });
+  $('cmName').addEventListener('input', function () {
+    $('cntName').textContent = this.value.length + '/20';
+  });
+
+  /* 初始渲染 */
+  renderTable();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,49 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  html,body{margin:0;height:100%;overflow:hidden}
+  .fake-top{height:72px;background:#007AFF}
+  iframe{width:100%;height:calc(100% - 72px);border:0;display:block}
+</style>
+</head>
+<body>
+<div class="fake-top"></div>
+<iframe id="f" src="../01-%E5%85%AC%E5%85%B1%E5%8D%AB%E7%94%9F%E6%9C%8D%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%BA%A7%E5%93%81%E6%96%87%E6%A1%A3/V1.0/02.%E9%9C%80%E6%B1%82%E8%AE%BE%E8%AE%A1/%E5%8E%9F%E5%9E%8B%E8%AE%BE%E8%AE%A1/%E5%AE%B6%E5%BA%AD%E6%A1%A3%E6%A1%88.html?embed=1" onload="onFrame()"></iframe>
+<script>
+function onFrame() {
+  try {
+    var w = document.getElementById('f').contentWindow;
+    var d = w.document;
+    if (typeof w.openCreateView !== 'function') { document.title = 'NOFUNC'; return; }
+    w.openCreateView();
+    w.pickMember('32101211811812487');
+    w.saveFamily();
+    w.tipGotoMember();
+    w.openMemberModal('member');
+    w.memberRowClick('32101211811812486');
+    d.getElementById('mmRel').value = '配偶';
+    d.getElementById('mmBlood').value = '直系血缘关系';
+    w.saveMemberRow();
+    var span = d.querySelectorAll('#memTbody tr')[1].querySelector('.op-act');
+    w.editMemberRow(span);
+    d.getElementById('edRel').value = '之女';
+    d.getElementById('edBlood').value = '三代以内的旁系血缘关系';
+    w.saveMemberEdit();
+    
+    var tr2 = d.querySelectorAll('#memTbody tr')[1];
+    var div = d.createElement('div');
+    div.style.cssText = 'position:fixed;left:0;bottom:0;background:#000;color:#0f0;font:12px monospace;z-index:99999;padding:3px 8px;max-width:100%';
+    div.textContent = 'rows=' + d.querySelectorAll('#memTbody tr').length
+      + ' editing=' + (tr2.className.indexOf('editing') > -1)
+      + ' relCell=' + tr2.children[3].textContent.trim()
+      + ' bloodCell=' + tr2.children[8].textContent.trim()
+      + ' modalDict=' + d.querySelectorAll('#mmRel option').length + '/' + d.querySelectorAll('#mmBlood option').length;
+    d.body.appendChild(div);
+    document.title = 'OK';
+  } catch (e) { document.title = 'ERR:' + e.message; }
+}
+</script>
+</body>
+</html>

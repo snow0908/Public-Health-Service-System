@@ -184,12 +184,43 @@
   .fv-group-body .hp-row{border-bottom:1px solid #EEF0F4}
   .fv-group-body .hp-row:last-child{border-bottom:none}
 
-  /* 四列布局（运动等） */
-  .hp-row.four-col{display:grid;grid-template-columns:1fr 1fr 1fr 1fr}
-  .hp-row.four-col .hp-cell{border-right:1px solid #EEF0F4}
-  .hp-row.four-col .hp-cell:last-child{border-right:none}
-  .hp-row.four-col .hp-cell .hp-label{width:88px;font-size:12px}
-  .hp-row.four-col .hp-cell .hp-field .ctl{max-width:100px}
+  /* 随访表：无分组行标签列向左扩展合并（0-192px），不留空白；列位与分组行对齐 */
+  #viewFollowup .fv-body > .hp-row{padding-left:72px}
+  #viewFollowup .fv-body > .hp-row > .hp-label,
+  #viewFollowup .fv-body > .hp-row > .hp-cell:first-child > .hp-label{width:192px;margin-left:-72px}
+  /* 糖尿病随访表：无分组行标签列对齐规则同高血压随访表 */
+  #viewDmFollowup .fv-body > .hp-row{padding-left:72px}
+  #viewDmFollowup .fv-body > .hp-row > .hp-label,
+  #viewDmFollowup .fv-body > .hp-row > .hp-cell:first-child > .hp-label{width:192px;margin-left:-72px}
+  /* 糖尿病专项表 / 糖尿病评估表：长标签（餐后两小时血糖测量方式等）需要的标签列宽 */
+  #viewDiabetes .hp-label, #viewDiabetes .hp-cell .hp-label{width:176px}
+  #viewDmAssessment .hp-label, #viewDmAssessment .hp-cell .hp-label{width:150px}
+
+  /* 行内填写组（标签：控件 单位）：体征 / 生活方式指导通用，子字段不另分列 */
+  .hp-field.lifestyle{flex-wrap:wrap;gap:6px 24px}
+  .ig{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0}
+  .ig .ig-label{font-size:13px;color:var(--text-secondary);flex-shrink:0}
+  .ig .ig-label i{color:var(--danger);font-style:normal;margin-right:2px}
+  .ig .ctl{width:80px;max-width:80px;flex:none}
+  .ig .opts{flex:none;min-width:0;gap:4px 12px}
+
+  /* ===== 随访状态非正常选项：二次确认弹框 ===== */
+  .fu-modal-mask{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:1000}
+  .fu-modal-mask.show{display:flex}
+  .fu-modal-box{width:420px;background:#fff;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+  .fu-modal-head{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid #F0F0F0}
+  .fu-modal-title{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+  .fu-modal-x{font-size:20px;line-height:1;color:var(--text-tertiary);cursor:pointer;user-select:none}
+  .fu-modal-x:hover{color:var(--text-primary)}
+  .fu-modal-body{display:flex;align-items:center;gap:12px;padding:28px 20px;font-size:14px;color:var(--text-primary)}
+  .fu-modal-warn{width:32px;height:32px;border-radius:50%;background:#FAAD14;color:#fff;font-size:20px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .fu-modal-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px 16px}
+
+  /* ===== 随访表禁填态 ===== */
+  .ctl:disabled{background:#F5F6FA;color:#A8ABB2;cursor:not-allowed}
+  .hp-field .opts input:disabled{cursor:not-allowed}
+  .hp-field .opts label:has(input:disabled){color:#A8ABB2;cursor:not-allowed}
+  .med-add.disabled{pointer-events:none;color:#C0C4CC}
 
   /* 文本域 */
   .hp-field textarea.ctl{max-width:none;width:100%;height:60px;resize:vertical;padding:6px 10px;line-height:1.6}
@@ -258,6 +289,17 @@
         <div class="nav-sub-item" id="navHpSpecial" onclick="switchView('hypertension')">高血压专项</div>
         <div class="nav-sub-item nav-followup-hidden" id="navHpFollowup" onclick="switchView('followup')">高血压随访</div>
         <div class="nav-sub-item nav-followup-hidden" id="navHpAssessment" onclick="switchView('assessment')">高血压评估</div>
+      </div>
+    </div>
+    <div class="nav-group" id="navDmGroup">
+      <div class="nav-item group-toggle" onclick="toggleNavGroup('navDmGroup')">
+        <span>糖尿病管理</span>
+        <svg class="arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <div class="nav-sub">
+        <div class="nav-sub-item" id="navDmSpecial" onclick="switchView('diabetes')">糖尿病专项</div>
+        <div class="nav-sub-item nav-followup-hidden" id="navDmFollowup" onclick="switchView('dmFollowup')">糖尿病随访</div>
+        <div class="nav-sub-item nav-followup-hidden" id="navDmAssessment" onclick="switchView('dmAssessment')">糖尿病评估</div>
       </div>
     </div>
     <div class="nav-item locked" onclick="toast('「健康教育」模块功能建设中','info')">健康教育</div>
@@ -883,21 +925,12 @@
               <span class="unit">kg/m²</span>
             </div>
           </div>
-          <!-- 收缩压 / 舒张压 -->
-          <div class="hp-row two-col">
-            <div class="hp-cell">
-              <div class="hp-label"><i>*</i>收缩压</div>
-              <div class="hp-field">
-                <input class="ctl" id="hpSbp" maxlength="4" placeholder="请输入" oninput="autoHpGrade()">
-                <span class="unit">mmHg</span>
-              </div>
-            </div>
-            <div class="hp-cell">
-              <div class="hp-label"><i>*</i>舒张压</div>
-              <div class="hp-field">
-                <input class="ctl" id="hpDbp" maxlength="4" placeholder="请输入" oninput="autoHpGrade()">
-                <span class="unit">mmHg</span>
-              </div>
+          <!-- 血压 -->
+          <div class="hp-row">
+            <div class="hp-label"><i>*</i>血压</div>
+            <div class="hp-field lifestyle">
+              <span class="ig"><span class="ig-label"><i>*</i>收缩压：</span><input class="ctl" id="hpSbp" maxlength="4" placeholder="请输入" oninput="autoHpGrade()"><span class="unit">mmHg</span></span>
+              <span class="ig"><span class="ig-label"><i>*</i>舒张压：</span><input class="ctl" id="hpDbp" maxlength="4" placeholder="请输入" oninput="autoHpGrade()"><span class="unit">mmHg</span></span>
             </div>
           </div>
           <!-- 高血压分级 / 高血压类型 -->
@@ -1030,6 +1063,246 @@
       </div>
     </div>
 
+    <!-- ===== 视图：糖尿病专项表 ===== -->
+    <div class="pv-view hidden" id="viewDiabetes">
+      <div class="hp-card">
+        <div class="hp-head">
+          <h3>糖尿病专项表</h3>
+          <span class="hp-arch">档案编号：<b id="dmArchNo">--</b></span>
+          <div class="hp-actions">
+            <button class="btn btn-default" onclick="toast('复制本单体检数据功能建设中','info')">复制本单体检</button>
+            <button class="btn btn-primary" onclick="saveDmArchive()">保存</button>
+          </div>
+        </div>
+        <div class="hp-body">
+          <!-- 姓名 / 分级 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label">姓名</div>
+              <div class="hp-field readonly-val" id="dmName">--</div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label">分级</div>
+              <div class="hp-field">
+                <div class="opts">
+                  <label class="rad"><input type="radio" name="dmGrade" value="一级">一级</label>
+                  <label class="rad"><input type="radio" name="dmGrade" value="二级">二级</label>
+                  <label class="rad"><input type="radio" name="dmGrade" value="三级">三级</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 糖尿病类型 / 确诊日期 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>糖尿病类型</div>
+              <div class="hp-field">
+                <select class="ctl" id="dmType">
+                  <option value="" selected>请选择</option>
+                  <option value="1型糖尿病">1型糖尿病</option>
+                  <option value="2型糖尿病">2型糖尿病</option>
+                  <option value="特殊类型糖尿病">特殊类型糖尿病</option>
+                  <option value="妊娠期糖尿病">妊娠期糖尿病</option>
+                </select>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>确诊日期</div>
+              <div class="hp-field">
+                <input class="ctl" id="dmDiagDate" type="date">
+              </div>
+            </div>
+          </div>
+          <!-- 确诊机构 / 身高 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label">确诊机构</div>
+              <div class="hp-field">
+                <select class="ctl" id="dmDiagOrg">
+                  <option value="" selected>请选择</option>
+                  <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
+                  <option value="扬州市江都区人民医院">扬州市江都区人民医院</option>
+                  <option value="扬州市江都区中医院">扬州市江都区中医院</option>
+                </select>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>身高</div>
+              <div class="hp-field">
+                <input class="ctl" id="dmHeight" maxlength="5" placeholder="请输入" oninput="calcDmBmi()">
+                <span class="unit">cm</span>
+              </div>
+            </div>
+          </div>
+          <!-- 病例来源 / 体重 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label">病例来源</div>
+              <div class="hp-field">
+                <select class="ctl" id="dmSource">
+                  <option value="" selected>请选择</option>
+                  <option value="门诊就诊">门诊就诊</option>
+                  <option value="住院">住院</option>
+                  <option value="体检">体检</option>
+                  <option value="上级医院转入">上级医院转入</option>
+                  <option value="其他">其他</option>
+                </select>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>体重</div>
+              <div class="hp-field">
+                <input class="ctl" id="dmWeight" maxlength="5" placeholder="请输入" oninput="calcDmBmi()">
+                <span class="unit">kg</span>
+              </div>
+            </div>
+          </div>
+          <!-- 体质指数BMI -->
+          <div class="hp-row">
+            <div class="hp-label"><i>*</i>体质指数(BMI)</div>
+            <div class="hp-field">
+              <input class="ctl" id="dmBmi" readonly style="background:#F5F6FA;color:var(--text-secondary)" placeholder="自动计算">
+              <span class="unit">kg/m²</span>
+            </div>
+          </div>
+          <!-- 空腹血糖 / 空腹血糖测量方式 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>空腹血糖</div>
+              <div class="hp-field">
+                <input class="ctl" id="dmFbg" maxlength="5" placeholder="请输入">
+                <span class="unit">mmol/L</span>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label">空腹血糖测量方式</div>
+              <div class="hp-field">
+                <div class="opts">
+                  <label class="rad"><input type="radio" name="dmFbgWay" value="末梢血" checked>末梢血</label>
+                  <label class="rad"><input type="radio" name="dmFbgWay" value="血浆">血浆</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 随机血糖 / 随机血糖测量方式 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label">随机血糖</div>
+              <div class="hp-field">
+                <input class="ctl" id="dmRbg" maxlength="5" placeholder="请输入">
+                <span class="unit">mmol/L</span>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label">随机血糖测量方式</div>
+              <div class="hp-field">
+                <div class="opts">
+                  <label class="rad"><input type="radio" name="dmRbgWay" value="末梢血">末梢血</label>
+                  <label class="rad"><input type="radio" name="dmRbgWay" value="血浆">血浆</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 餐后两小时血糖 / 餐后两小时血糖测量方式 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label">餐后两小时血糖</div>
+              <div class="hp-field">
+                <input class="ctl" id="dmPbg" maxlength="5" placeholder="请输入">
+                <span class="unit">mmol/L</span>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label">餐后两小时血糖测量方式</div>
+              <div class="hp-field">
+                <div class="opts">
+                  <label class="rad"><input type="radio" name="dmPbgWay" value="末梢血">末梢血</label>
+                  <label class="rad"><input type="radio" name="dmPbgWay" value="血浆">血浆</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 是否口服降糖药物 / 是否注射胰岛素 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label">是否口服降糖药物</div>
+              <div class="hp-field">
+                <div class="opts">
+                  <label class="rad"><input type="radio" name="dmOralDrug" value="是">是</label>
+                  <label class="rad"><input type="radio" name="dmOralDrug" value="否">否</label>
+                </div>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label">是否注射胰岛素</div>
+              <div class="hp-field">
+                <div class="opts">
+                  <label class="rad"><input type="radio" name="dmInsulin" value="是" onchange="toggleDmInsulin()">是</label>
+                  <label class="rad"><input type="radio" name="dmInsulin" value="否" onchange="toggleDmInsulin()">否</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 注射胰岛素剂型（是否注射胰岛素＝是 时显示） -->
+          <div class="hp-row" id="dmInsulinTypeRow" style="display:none">
+            <div class="hp-label">注射胰岛素剂型</div>
+            <div class="hp-field">
+              <div class="opts">
+                <label class="chk"><input type="checkbox" name="dmInsulinType" value="短效" disabled>短效</label>
+                <label class="chk"><input type="checkbox" name="dmInsulinType" value="中效" disabled>中效</label>
+                <label class="chk"><input type="checkbox" name="dmInsulinType" value="长效" disabled>长效</label>
+              </div>
+            </div>
+          </div>
+          <!-- 并发症 -->
+          <div class="hp-row tall">
+            <div class="hp-label">并发症</div>
+            <div class="hp-field">
+              <div class="opts">
+                <label class="chk"><input type="checkbox" name="dmCompl" value="慢性并发症">慢性并发症</label>
+                <label class="chk"><input type="checkbox" name="dmCompl" value="急性并发症">急性并发症</label>
+                <label class="chk"><input type="checkbox" name="dmCompl" value="神经并发症">神经并发症</label>
+                <label class="chk"><input type="checkbox" name="dmCompl" value="微小血管并发症">微小血管并发症</label>
+                <label class="chk"><input type="checkbox" name="dmCompl" value="其他">其他</label>
+              </div>
+            </div>
+          </div>
+          <!-- 建档机构 / 建档医生 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>建档机构</div>
+              <div class="hp-field">
+                <select class="ctl" id="dmCreateOrg">
+                  <option value="山东大学齐鲁医院" selected>山东大学齐鲁医院</option>
+                  <option value="扬州市江都区吴桥镇卫生院">扬州市江都区吴桥镇卫生院</option>
+                  <option value="扬州市江都区宜陵镇中心卫生院">扬州市江都区宜陵镇中心卫生院</option>
+                </select>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>建档医生</div>
+              <div class="hp-field">
+                <select class="ctl" id="dmCreateDoc">
+                  <option value="吕雪" selected>吕雪</option>
+                  <option value="白雪">白雪</option>
+                  <option value="周建国">周建国</option>
+                  <option value="陈桂英">陈桂英</option>
+                  <option value="刘志强">刘志强</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <!-- 建档日期 -->
+          <div class="hp-row">
+            <div class="hp-label"><i>*</i>建档日期</div>
+            <div class="hp-field">
+              <input class="ctl" id="dmCreateDate" type="date">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ===== 视图四：高血压随访表 ===== -->
     <div class="pv-view hidden" id="viewFollowup">
       <div class="fv-card">
@@ -1096,37 +1369,19 @@
             <div class="fv-group-label">体征</div>
             <div class="fv-group-body">
               <!-- 血压 -->
-              <div class="hp-row two-col">
-                <div class="hp-cell">
-                  <div class="hp-label"><i>*</i>收缩压</div>
-                  <div class="hp-field">
-                    <input class="ctl" id="fuSbp" maxlength="4" placeholder="请输入">
-                    <span class="unit">mmHg</span>
-                  </div>
-                </div>
-                <div class="hp-cell">
-                  <div class="hp-label"><i>*</i>舒张压</div>
-                  <div class="hp-field">
-                    <input class="ctl" id="fuDbp" maxlength="4" placeholder="请输入">
-                    <span class="unit">mmHg</span>
-                  </div>
+              <div class="hp-row">
+                <div class="hp-label"><i>*</i>血压</div>
+                <div class="hp-field lifestyle">
+                  <span class="ig"><span class="ig-label"><i>*</i>收缩压：</span><input class="ctl" id="fuSbp" maxlength="4" placeholder="请输入"><span class="unit">mmHg</span></span>
+                  <span class="ig"><span class="ig-label"><i>*</i>舒张压：</span><input class="ctl" id="fuDbp" maxlength="4" placeholder="请输入"><span class="unit">mmHg</span></span>
                 </div>
               </div>
               <!-- 体重 -->
-              <div class="hp-row two-col">
-                <div class="hp-cell">
-                  <div class="hp-label">当前体重</div>
-                  <div class="hp-field">
-                    <input class="ctl" id="fuWeight" maxlength="5" placeholder="请输入">
-                    <span class="unit">kg</span>
-                  </div>
-                </div>
-                <div class="hp-cell">
-                  <div class="hp-label">目标体重</div>
-                  <div class="hp-field">
-                    <input class="ctl" id="fuTargetWeight" maxlength="5" placeholder="请输入">
-                    <span class="unit">kg</span>
-                  </div>
+              <div class="hp-row">
+                <div class="hp-label">体重</div>
+                <div class="hp-field lifestyle">
+                  <span class="ig"><span class="ig-label">当前体重：</span><input class="ctl" id="fuWeight" maxlength="5" placeholder="请输入"><span class="unit">kg</span></span>
+                  <span class="ig"><span class="ig-label">目标体重：</span><input class="ctl" id="fuTargetWeight" maxlength="5" placeholder="请输入"><span class="unit">kg</span></span>
                 </div>
               </div>
               <!-- 身高 -->
@@ -1138,20 +1393,11 @@
                 </div>
               </div>
               <!-- 体质指数BMI -->
-              <div class="hp-row two-col">
-                <div class="hp-cell">
-                  <div class="hp-label">当前体质指数</div>
-                  <div class="hp-field">
-                    <input class="ctl" id="fuBmi" maxlength="5" placeholder="请输入">
-                    <span class="unit">kg/m²</span>
-                  </div>
-                </div>
-                <div class="hp-cell">
-                  <div class="hp-label">目标体质指数</div>
-                  <div class="hp-field">
-                    <input class="ctl" id="fuTargetBmi" maxlength="5" placeholder="请输入">
-                    <span class="unit">kg/m²</span>
-                  </div>
+              <div class="hp-row">
+                <div class="hp-label">体质指数(BMI)</div>
+                <div class="hp-field lifestyle">
+                  <span class="ig"><span class="ig-label">当前体质指数：</span><input class="ctl" id="fuBmi" maxlength="5" placeholder="请输入"><span class="unit">kg/m²</span></span>
+                  <span class="ig"><span class="ig-label">目标体质指数：</span><input class="ctl" id="fuTargetBmi" maxlength="5" placeholder="请输入"><span class="unit">kg/m²</span></span>
                 </div>
               </div>
               <!-- 心率 / 其他 -->
@@ -1178,91 +1424,45 @@
             <div class="fv-group-label">生活方式指导</div>
             <div class="fv-group-body">
               <!-- 吸烟 -->
-              <div class="hp-row two-col">
-                <div class="hp-cell">
-                  <div class="hp-label">日吸烟量</div>
-                  <div class="hp-field">
-                    <input class="ctl" id="fuSmoke" maxlength="4" placeholder="请输入">
-                    <span class="unit">支/天</span>
-                  </div>
-                </div>
-                <div class="hp-cell">
-                  <div class="hp-label">目标日吸烟量</div>
-                  <div class="hp-field">
-                    <input class="ctl" id="fuTargetSmoke" maxlength="4" placeholder="请输入">
-                    <span class="unit">支/天</span>
-                  </div>
+              <div class="hp-row">
+                <div class="hp-label">吸烟</div>
+                <div class="hp-field lifestyle">
+                  <span class="ig"><span class="ig-label">日吸烟量：</span><input class="ctl" id="fuSmoke" maxlength="4" placeholder="请输入"><span class="unit">支/天</span></span>
+                  <span class="ig"><span class="ig-label">目标日吸烟量：</span><input class="ctl" id="fuTargetSmoke" maxlength="4" placeholder="请输入"><span class="unit">支/天</span></span>
                 </div>
               </div>
               <!-- 饮酒 -->
-              <div class="hp-row two-col">
-                <div class="hp-cell">
-                  <div class="hp-label">日饮酒量</div>
-                  <div class="hp-field">
-                    <input class="ctl" id="fuDrink" maxlength="4" placeholder="请输入">
-                    <span class="unit">两/天</span>
-                  </div>
-                </div>
-                <div class="hp-cell">
-                  <div class="hp-label">目标日饮酒量</div>
-                  <div class="hp-field">
-                    <input class="ctl" id="fuTargetDrink" maxlength="4" placeholder="请输入">
-                    <span class="unit">两/天</span>
-                  </div>
+              <div class="hp-row">
+                <div class="hp-label">饮酒</div>
+                <div class="hp-field lifestyle">
+                  <span class="ig"><span class="ig-label">日饮酒量：</span><input class="ctl" id="fuDrink" maxlength="4" placeholder="请输入"><span class="unit">两/天</span></span>
+                  <span class="ig"><span class="ig-label">目标日饮酒量：</span><input class="ctl" id="fuTargetDrink" maxlength="4" placeholder="请输入"><span class="unit">两/天</span></span>
                 </div>
               </div>
-              <!-- 运动（四列） -->
-              <div class="hp-row four-col">
-                <div class="hp-cell">
-                  <div class="hp-label">当前运动周次</div>
-                  <div class="hp-field">
-                    <input class="ctl" id="fuExerFreq" maxlength="3" placeholder="请输入">
-                    <span class="unit">次/周</span>
-                  </div>
-                </div>
-                <div class="hp-cell">
-                  <div class="hp-label">当前运动时长</div>
-                  <div class="hp-field">
-                    <input class="ctl" id="fuExerDur" maxlength="4" placeholder="请输入">
-                    <span class="unit">分钟/次</span>
-                  </div>
-                </div>
-                <div class="hp-cell">
-                  <div class="hp-label">目标运动周次</div>
-                  <div class="hp-field">
-                    <input class="ctl" id="fuTargetExerFreq" maxlength="3" placeholder="请输入">
-                    <span class="unit">次/周</span>
-                  </div>
-                </div>
-                <div class="hp-cell">
-                  <div class="hp-label">目标运动时长</div>
-                  <div class="hp-field">
-                    <input class="ctl" id="fuTargetExerDur" maxlength="4" placeholder="请输入">
-                    <span class="unit">分钟/次</span>
-                  </div>
+              <!-- 运动 -->
+              <div class="hp-row">
+                <div class="hp-label">运动</div>
+                <div class="hp-field lifestyle">
+                  <span class="ig"><span class="ig-label">当前运动周次：</span><input class="ctl" id="fuExerFreq" maxlength="3" placeholder="请输入"><span class="unit">次/周</span></span>
+                  <span class="ig"><span class="ig-label">当前运动时长：</span><input class="ctl" id="fuExerDur" maxlength="4" placeholder="请输入"><span class="unit">分钟/次</span></span>
+                  <span class="ig"><span class="ig-label">目标运动周次：</span><input class="ctl" id="fuTargetExerFreq" maxlength="3" placeholder="请输入"><span class="unit">次/周</span></span>
+                  <span class="ig"><span class="ig-label">目标运动时长：</span><input class="ctl" id="fuTargetExerDur" maxlength="4" placeholder="请输入"><span class="unit">分钟/次</span></span>
                 </div>
               </div>
               <!-- 摄盐情况 -->
-              <div class="hp-row two-col">
-                <div class="hp-cell">
-                  <div class="hp-label">当前摄盐情况</div>
-                  <div class="hp-field">
-                    <div class="opts">
-                      <label class="rad"><input type="radio" name="fuSalt" value="轻" checked>轻</label>
-                      <label class="rad"><input type="radio" name="fuSalt" value="中">中</label>
-                      <label class="rad"><input type="radio" name="fuSalt" value="重">重</label>
-                    </div>
-                  </div>
-                </div>
-                <div class="hp-cell">
-                  <div class="hp-label">目标摄盐情况</div>
-                  <div class="hp-field">
-                    <div class="opts">
-                      <label class="rad"><input type="radio" name="fuTargetSalt" value="轻" checked>轻</label>
-                      <label class="rad"><input type="radio" name="fuTargetSalt" value="中">中</label>
-                      <label class="rad"><input type="radio" name="fuTargetSalt" value="重">重</label>
-                    </div>
-                  </div>
+              <div class="hp-row">
+                <div class="hp-label">摄盐情况(咸淡)</div>
+                <div class="hp-field lifestyle">
+                  <span class="ig"><span class="ig-label">当前摄盐情况：</span><span class="opts">
+                    <label class="rad"><input type="radio" name="fuSalt" value="轻" checked>轻</label>
+                    <label class="rad"><input type="radio" name="fuSalt" value="中">中</label>
+                    <label class="rad"><input type="radio" name="fuSalt" value="重">重</label>
+                  </span></span>
+                  <span class="ig"><span class="ig-label">目标摄盐情况：</span><span class="opts">
+                    <label class="rad"><input type="radio" name="fuTargetSalt" value="轻" checked>轻</label>
+                    <label class="rad"><input type="radio" name="fuTargetSalt" value="中">中</label>
+                    <label class="rad"><input type="radio" name="fuTargetSalt" value="重">重</label>
+                  </span></span>
                 </div>
               </div>
               <!-- 心理调整 / 遵医行为 -->
@@ -1475,7 +1675,7 @@
             <div class="hp-cell">
               <div class="hp-label">随访类别</div>
               <div class="hp-field">
-                <select class="ctl">
+                <select class="ctl" id="fuType">
                   <option value="" selected>请选择</option>
                   <option>常规随访</option>
                   <option>强化随访</option>
@@ -1486,7 +1686,435 @@
             <div class="hp-cell">
               <div class="hp-label"><i>*</i>随访季度</div>
               <div class="hp-field">
-                <select class="ctl">
+                <select class="ctl" id="fuQuarter">
+                  <option value="" selected>请选择</option>
+                  <option>第一季度</option>
+                  <option>第二季度</option>
+                  <option>第三季度</option>
+                  <option>第四季度</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 视图：糖尿病随访表 ===== -->
+    <div class="pv-view hidden" id="viewDmFollowup">
+      <div class="fv-card">
+        <div class="fv-head">
+          <h3>糖尿病随访表</h3>
+          <span class="fv-arch">档案编号：<b id="dmFuArchNo">--</b></span>
+          <div class="fv-actions">
+            <button class="btn btn-default" onclick="toast('健康教育功能建设中','info')">健康教育</button>
+            <button class="btn btn-default" onclick="toast('复制本年体检数据功能建设中','info')">复制本年体检</button>
+            <button class="btn btn-primary" onclick="toast('糖尿病随访表保存成功','success')">保存</button>
+            <div class="fv-icon-btn" onclick="toast('随访记录列表功能建设中','info')" title="随访记录列表">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6"/><line x1="7" y1="9" x2="17" y2="9" stroke="currentColor" stroke-width="1.6"/><line x1="7" y1="13" x2="17" y2="13" stroke="currentColor" stroke-width="1.6"/><line x1="7" y1="17" x2="13" y2="17" stroke="currentColor" stroke-width="1.6"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="fv-body">
+          <!-- 姓名 -->
+          <div class="hp-row">
+            <div class="hp-label">姓名</div>
+            <div class="hp-field readonly-val" id="dmFuName">--</div>
+          </div>
+          <!-- 随访日期 -->
+          <div class="hp-row">
+            <div class="hp-label"><i>*</i>随访日期</div>
+            <div class="hp-field">
+              <input class="ctl" id="dmFuDate" type="date">
+            </div>
+          </div>
+          <!-- 随访方式 -->
+          <div class="hp-row">
+            <div class="hp-label"><i>*</i>随访方式</div>
+            <div class="hp-field">
+              <div class="opts">
+                <label class="rad"><input type="radio" name="dmFuWay" value="门诊" checked>门诊</label>
+                <label class="rad"><input type="radio" name="dmFuWay" value="家庭">家庭</label>
+                <label class="rad"><input type="radio" name="dmFuWay" value="电话">电话</label>
+                <label class="rad"><input type="radio" name="dmFuWay" value="短信">短信</label>
+                <label class="rad"><input type="radio" name="dmFuWay" value="网络">网络</label>
+                <label class="rad"><input type="radio" name="dmFuWay" value="其他">其他</label>
+              </div>
+            </div>
+          </div>
+          <!-- 症状 -->
+          <div class="hp-row tall">
+            <div class="hp-label"><i>*</i>症状</div>
+            <div class="hp-field">
+              <div class="opts">
+                <label class="chk"><input type="checkbox" name="dmFuSymptom" value="无症状" checked>无症状</label>
+                <label class="chk"><input type="checkbox" name="dmFuSymptom" value="多饮">多饮</label>
+                <label class="chk"><input type="checkbox" name="dmFuSymptom" value="多食">多食</label>
+                <label class="chk"><input type="checkbox" name="dmFuSymptom" value="多尿">多尿</label>
+                <label class="chk"><input type="checkbox" name="dmFuSymptom" value="视力模糊">视力模糊</label>
+                <label class="chk"><input type="checkbox" name="dmFuSymptom" value="感染">感染</label>
+                <label class="chk"><input type="checkbox" name="dmFuSymptom" value="手脚麻木">手脚麻木</label>
+                <label class="chk"><input type="checkbox" name="dmFuSymptom" value="下肢浮肿">下肢浮肿</label>
+                <label class="chk"><input type="checkbox" name="dmFuSymptom" value="体重明显下降">体重明显下降</label>
+                <label class="chk"><input type="checkbox" name="dmFuSymptom" value="其他">其他</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 体征分组 -->
+          <div class="fv-group">
+            <div class="fv-group-label">体征</div>
+            <div class="fv-group-body">
+              <!-- 血压 -->
+              <div class="hp-row">
+                <div class="hp-label"><i>*</i>血压</div>
+                <div class="hp-field lifestyle">
+                  <span class="ig"><span class="ig-label"><i>*</i>收缩压：</span><input class="ctl" id="dmFuSbp" maxlength="4" placeholder="请输入"><span class="unit">mmHg</span></span>
+                  <span class="ig"><span class="ig-label"><i>*</i>舒张压：</span><input class="ctl" id="dmFuDbp" maxlength="4" placeholder="请输入"><span class="unit">mmHg</span></span>
+                </div>
+              </div>
+              <!-- 体重 -->
+              <div class="hp-row">
+                <div class="hp-label">体重</div>
+                <div class="hp-field lifestyle">
+                  <span class="ig"><span class="ig-label">当前体重：</span><input class="ctl" id="dmFuWeight" maxlength="5" placeholder="请输入"><span class="unit">kg</span></span>
+                  <span class="ig"><span class="ig-label">目标体重：</span><input class="ctl" id="dmFuTargetWeight" maxlength="5" placeholder="请输入"><span class="unit">kg</span></span>
+                </div>
+              </div>
+              <!-- 身高 -->
+              <div class="hp-row">
+                <div class="hp-label">身高</div>
+                <div class="hp-field">
+                  <input class="ctl" id="dmFuHeight" maxlength="5" placeholder="请输入">
+                  <span class="unit">cm</span>
+                </div>
+              </div>
+              <!-- 体质指数BMI -->
+              <div class="hp-row">
+                <div class="hp-label">体质指数(BMI)</div>
+                <div class="hp-field lifestyle">
+                  <span class="ig"><span class="ig-label">当前体质指数：</span><input class="ctl" id="dmFuBmi" maxlength="5" placeholder="请输入"><span class="unit">kg/m²</span></span>
+                  <span class="ig"><span class="ig-label">目标体质指数：</span><input class="ctl" id="dmFuTargetBmi" maxlength="5" placeholder="请输入"><span class="unit">kg/m²</span></span>
+                </div>
+              </div>
+              <!-- 足背动脉搏动 / 其他 -->
+              <div class="hp-row two-col">
+                <div class="hp-cell">
+                  <div class="hp-label">足背动脉搏动</div>
+                  <div class="hp-field">
+                    <div class="opts">
+                      <label class="rad"><input type="radio" name="dmFuPulse" value="触及正常" checked>触及正常</label>
+                      <label class="rad"><input type="radio" name="dmFuPulse" value="减弱">减弱</label>
+                      <label class="rad"><input type="radio" name="dmFuPulse" value="消失">消失</label>
+                    </div>
+                  </div>
+                </div>
+                <div class="hp-cell">
+                  <div class="hp-label">其他</div>
+                  <div class="hp-field">
+                    <input class="ctl" id="dmFuOther" placeholder="请输入">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 生活方式指导分组 -->
+          <div class="fv-group">
+            <div class="fv-group-label">生活方式指导</div>
+            <div class="fv-group-body">
+              <!-- 吸烟 -->
+              <div class="hp-row">
+                <div class="hp-label">吸烟</div>
+                <div class="hp-field lifestyle">
+                  <span class="ig"><span class="ig-label">日吸烟量：</span><input class="ctl" id="dmFuSmoke" maxlength="4" placeholder="请输入"><span class="unit">支/天</span></span>
+                  <span class="ig"><span class="ig-label">目标日吸烟量：</span><input class="ctl" id="dmFuTargetSmoke" maxlength="4" placeholder="请输入"><span class="unit">支/天</span></span>
+                </div>
+              </div>
+              <!-- 饮酒 -->
+              <div class="hp-row">
+                <div class="hp-label">饮酒</div>
+                <div class="hp-field lifestyle">
+                  <span class="ig"><span class="ig-label">日饮酒量：</span><input class="ctl" id="dmFuDrink" maxlength="4" placeholder="请输入"><span class="unit">两/天</span></span>
+                  <span class="ig"><span class="ig-label">目标日饮酒量：</span><input class="ctl" id="dmFuTargetDrink" maxlength="4" placeholder="请输入"><span class="unit">两/天</span></span>
+                </div>
+              </div>
+              <!-- 运动 -->
+              <div class="hp-row">
+                <div class="hp-label">运动</div>
+                <div class="hp-field lifestyle">
+                  <span class="ig"><span class="ig-label">当前运动周次：</span><input class="ctl" id="dmFuExerFreq" maxlength="3" placeholder="请输入"><span class="unit">次/周</span></span>
+                  <span class="ig"><span class="ig-label">当前运动时长：</span><input class="ctl" id="dmFuExerDur" maxlength="4" placeholder="请输入"><span class="unit">分钟/次</span></span>
+                  <span class="ig"><span class="ig-label">目标运动周次：</span><input class="ctl" id="dmFuTargetExerFreq" maxlength="3" placeholder="请输入"><span class="unit">次/周</span></span>
+                  <span class="ig"><span class="ig-label">目标运动时长：</span><input class="ctl" id="dmFuTargetExerDur" maxlength="4" placeholder="请输入"><span class="unit">分钟/次</span></span>
+                </div>
+              </div>
+              <!-- 主食 -->
+              <div class="hp-row">
+                <div class="hp-label">主食</div>
+                <div class="hp-field lifestyle">
+                  <span class="ig"><span class="ig-label">当前主食量：</span><input class="ctl" id="dmFuStaple" maxlength="4" placeholder="请输入"><span class="unit">克/天</span></span>
+                  <span class="ig"><span class="ig-label">目标主食量：</span><input class="ctl" id="dmFuTargetStaple" maxlength="4" placeholder="请输入"><span class="unit">克/天</span></span>
+                </div>
+              </div>
+              <!-- 心理调整 / 遵医行为 -->
+              <div class="hp-row two-col">
+                <div class="hp-cell">
+                  <div class="hp-label">心理调整</div>
+                  <div class="hp-field">
+                    <div class="opts">
+                      <label class="rad"><input type="radio" name="dmFuPsych" value="良好" checked>良好</label>
+                      <label class="rad"><input type="radio" name="dmFuPsych" value="一般">一般</label>
+                      <label class="rad"><input type="radio" name="dmFuPsych" value="差">差</label>
+                    </div>
+                  </div>
+                </div>
+                <div class="hp-cell">
+                  <div class="hp-label">遵医行为</div>
+                  <div class="hp-field">
+                    <div class="opts">
+                      <label class="rad"><input type="radio" name="dmFuCompliance" value="良好" checked>良好</label>
+                      <label class="rad"><input type="radio" name="dmFuCompliance" value="一般">一般</label>
+                      <label class="rad"><input type="radio" name="dmFuCompliance" value="差">差</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 辅助检查分组 -->
+          <div class="fv-group">
+            <div class="fv-group-label">辅助检查</div>
+            <div class="fv-group-body">
+              <!-- 空腹血糖 / 糖化血红蛋白 -->
+              <div class="hp-row two-col">
+                <div class="hp-cell">
+                  <div class="hp-label">空腹血糖</div>
+                  <div class="hp-field">
+                    <input class="ctl" id="dmFuFbg" maxlength="5" placeholder="请输入">
+                    <span class="unit">mmol/L</span>
+                  </div>
+                </div>
+                <div class="hp-cell">
+                  <div class="hp-label">糖化血红蛋白</div>
+                  <div class="hp-field">
+                    <input class="ctl" id="dmFuHba1c" maxlength="5" placeholder="请输入">
+                    <span class="unit">%</span>
+                  </div>
+                </div>
+              </div>
+              <!-- 检查日期 -->
+              <div class="hp-row">
+                <div class="hp-label">检查日期</div>
+                <div class="hp-field">
+                  <input class="ctl" id="dmFuExamDate" type="date">
+                </div>
+              </div>
+              <!-- 检查结果 -->
+              <div class="hp-row tall">
+                <div class="hp-label">检查结果</div>
+                <div class="hp-field" style="flex-direction:column;align-items:stretch;gap:4px">
+                  <textarea class="ctl" id="dmFuExamResult" maxlength="150" placeholder="请输入" oninput="document.getElementById('dmFuExamCount').textContent=this.value.length+'/150'"></textarea>
+                  <span class="char-count" id="dmFuExamCount">0/150</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 服药依从性 / 药物不良反应 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label">服药依从性</div>
+              <div class="hp-field">
+                <div class="opts">
+                  <label class="rad"><input type="radio" name="dmFuMedCompl" value="规律">规律</label>
+                  <label class="rad"><input type="radio" name="dmFuMedCompl" value="间断">间断</label>
+                  <label class="rad"><input type="radio" name="dmFuMedCompl" value="不服药">不服药</label>
+                </div>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label">药物不良反应</div>
+              <div class="hp-field">
+                <div class="opts">
+                  <label class="rad"><input type="radio" name="dmFuAdverse" value="无" checked>无</label>
+                  <label class="rad"><input type="radio" name="dmFuAdverse" value="有">有</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 此次随访分类 / 分级 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>此次随访分类</div>
+              <div class="hp-field">
+                <div class="opts">
+                  <label class="rad"><input type="radio" name="dmFuCategory" value="控制满意">控制满意</label>
+                  <label class="rad"><input type="radio" name="dmFuCategory" value="控制不满意">控制不满意</label>
+                  <label class="rad"><input type="radio" name="dmFuCategory" value="不良反应">不良反应</label>
+                  <label class="rad"><input type="radio" name="dmFuCategory" value="并发症">并发症</label>
+                </div>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label">分级</div>
+              <div class="hp-field">
+                <div class="opts">
+                  <label class="rad"><input type="radio" name="dmFuGrade" value="一级">一级</label>
+                  <label class="rad"><input type="radio" name="dmFuGrade" value="二级">二级</label>
+                  <label class="rad"><input type="radio" name="dmFuGrade" value="三级">三级</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 用药情况 -->
+          <div class="hp-row tall">
+            <div class="hp-label">用药情况</div>
+            <div class="hp-field">
+              <div class="med-box" id="dmFuMedBox">
+                <div class="med-row">
+                  <select class="ctl"><option value="">药物名称</option><option>二甲双胍</option><option>格列美脲</option><option>阿卡波糖</option><option>格列齐特</option></select>
+                  <input class="ctl" placeholder="商品名">
+                  <select class="ctl"><option value="">分类</option><option>双胍类</option><option>磺脲类</option><option>α-糖苷酶抑制剂</option><option>噻唑烷二酮类</option></select>
+                  <div style="display:flex;gap:6px;align-items:center">
+                    <select class="ctl" style="flex:1"><option value="">用法</option><option>口服</option><option>注射</option></select>
+                    <input class="ctl" style="width:70px" placeholder="用量">
+                    <select class="ctl" style="width:70px"><option>次/日</option><option>次/周</option></select>
+                  </div>
+                </div>
+                <div class="med-row">
+                  <select class="ctl"><option value="">胰岛素名称</option><option>门冬胰岛素30</option><option>甘精胰岛素</option><option>地特胰岛素</option><option>预混人胰岛素</option></select>
+                  <input class="ctl" placeholder="商品名">
+                  <input class="ctl" placeholder="用法用量（如：早10U 晚8U 皮下注射）" style="grid-column:3/5">
+                </div>
+                <div class="med-row">
+                  <input class="ctl" placeholder="备注" style="grid-column:1/-1">
+                </div>
+              </div>
+              <div class="med-add" onclick="addDmMedRow()">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><line x1="12" y1="8" x2="12" y2="16" stroke="currentColor" stroke-width="1.6"/><line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="1.6"/></svg>
+                添加用药
+              </div>
+            </div>
+          </div>
+
+          <!-- 转诊分组 -->
+          <div class="fv-group">
+            <div class="fv-group-label">转诊</div>
+            <div class="fv-group-body">
+              <!-- 转诊情况 -->
+              <div class="hp-row">
+                <div class="hp-label">转诊情况</div>
+                <div class="hp-field">
+                  <div class="opts">
+                    <label class="rad"><input type="radio" name="dmFuRefer" value="转诊">转诊</label>
+                    <label class="rad"><input type="radio" name="dmFuRefer" value="不转诊" checked>不转诊</label>
+                  </div>
+                </div>
+              </div>
+              <!-- 转诊原因 -->
+              <div class="hp-row tall">
+                <div class="hp-label">转诊原因</div>
+                <div class="hp-field">
+                  <div class="opts">
+                    <label class="chk"><input type="checkbox" name="dmFuReferReason" value="慢病转诊原因1">慢病转诊原因1</label>
+                    <label class="chk"><input type="checkbox" name="dmFuReferReason" value="慢病转诊原因2">慢病转诊原因2</label>
+                    <label class="chk"><input type="checkbox" name="dmFuReferReason" value="慢病转诊原因3">慢病转诊原因3</label>
+                    <label class="chk"><input type="checkbox" name="dmFuReferReason" value="其他">其他</label>
+                  </div>
+                </div>
+              </div>
+              <!-- 转诊机构 / 转诊科室 -->
+              <div class="hp-row two-col">
+                <div class="hp-cell">
+                  <div class="hp-label">转诊机构</div>
+                  <div class="hp-field">
+                    <select class="ctl">
+                      <option value="" selected>请选择</option>
+                      <option>山东大学齐鲁医院</option>
+                      <option>扬州市江都区人民医院</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="hp-cell">
+                  <div class="hp-label">转诊科室</div>
+                  <div class="hp-field">
+                    <select class="ctl">
+                      <option value="" selected>请选择</option>
+                      <option>内分泌科</option>
+                      <option>心血管内科</option>
+                      <option>肾内科</option>
+                      <option>眼科</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 下次随访日期 / 随访医生签名 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>下次随访日期</div>
+              <div class="hp-field">
+                <input class="ctl" id="dmFuNextDate" type="date">
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>随访医生签名</div>
+              <div class="hp-field">
+                <select class="ctl" id="dmFuDoctor">
+                  <option value="吕雪" selected>吕雪</option>
+                  <option value="白雪">白雪</option>
+                  <option value="周建国">周建国</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <!-- 随访状态 / 失访日期/死亡日期 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>随访状态</div>
+              <div class="hp-field">
+                <select class="ctl" id="dmFuStatus" onchange="toggleDmFuLost()">
+                  <option value="正常" selected>正常</option>
+                  <option value="失访">失访</option>
+                  <option value="死亡">死亡</option>
+                </select>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label" id="dmFuLostLabel">失访日期/死亡日期</div>
+              <div class="hp-field">
+                <input class="ctl" id="dmFuLostDate" type="date" disabled style="background:#F5F6FA">
+              </div>
+            </div>
+          </div>
+          <!-- 失访原因/死亡原因 -->
+          <div class="hp-row">
+            <div class="hp-label">失访原因/死亡原因</div>
+            <div class="hp-field">
+              <input class="ctl" id="dmFuLostReason" placeholder="请输入" disabled style="background:#F5F6FA">
+            </div>
+          </div>
+          <!-- 随访类别 / 随访季度 -->
+          <div class="hp-row two-col">
+            <div class="hp-cell">
+              <div class="hp-label">随访类别</div>
+              <div class="hp-field">
+                <select class="ctl" id="dmFuType">
+                  <option value="" selected>请选择</option>
+                  <option>常规随访</option>
+                  <option>强化随访</option>
+                  <option>年度评估</option>
+                </select>
+              </div>
+            </div>
+            <div class="hp-cell">
+              <div class="hp-label"><i>*</i>随访季度</div>
+              <div class="hp-field">
+                <select class="ctl" id="dmFuQuarter">
                   <option value="" selected>请选择</option>
                   <option>第一季度</option>
                   <option>第二季度</option>
@@ -1517,20 +2145,11 @@
             <div class="hp-field readonly-val" id="asName">--</div>
           </div>
           <!-- 血压 -->
-          <div class="hp-row two-col">
-            <div class="hp-cell">
-              <div class="hp-label"><i>*</i>收缩压</div>
-              <div class="hp-field">
-                <input class="ctl" id="asSbp" maxlength="4" placeholder="请输入">
-                <span class="unit">mmHg</span>
-              </div>
-            </div>
-            <div class="hp-cell">
-              <div class="hp-label"><i>*</i>舒张压</div>
-              <div class="hp-field">
-                <input class="ctl" id="asDbp" maxlength="4" placeholder="请输入">
-                <span class="unit">mmHg</span>
-              </div>
+          <div class="hp-row">
+            <div class="hp-label"><i>*</i>血压</div>
+            <div class="hp-field lifestyle">
+              <span class="ig"><span class="ig-label"><i>*</i>收缩压：</span><input class="ctl" id="asSbp" maxlength="4" placeholder="请输入"><span class="unit">mmHg</span></span>
+              <span class="ig"><span class="ig-label"><i>*</i>舒张压：</span><input class="ctl" id="asDbp" maxlength="4" placeholder="请输入"><span class="unit">mmHg</span></span>
             </div>
           </div>
           <!-- 心血管病危险因素 / 靶器官损害 -->
@@ -1538,9 +2157,10 @@
             <div class="hp-cell">
               <div class="hp-label">心血管病危险因素</div>
               <div class="hp-field">
-                <select class="ctl">
-                  <option value="1" selected>1;</option>
+                <select class="ctl" id="asRiskFactors">
+                  <option value="" selected>请选择</option>
                   <option value="0">0</option>
+                  <option value="1">1</option>
                   <option value="2">2</option>
                   <option value="3">≥3</option>
                 </select>
@@ -1549,7 +2169,7 @@
             <div class="hp-cell">
               <div class="hp-label">靶器官损害</div>
               <div class="hp-field">
-                <select class="ctl">
+                <select class="ctl" id="asOrganDamage">
                   <option value="" selected>请选择</option>
                   <option>无</option>
                   <option>左心室肥厚</option>
@@ -1574,7 +2194,7 @@
             <div class="hp-cell">
               <div class="hp-label">血糖情况①</div>
               <div class="hp-field">
-                <select class="ctl">
+                <select class="ctl" id="asBloodSugar" disabled>
                   <option value="" selected>请选择</option>
                   <option>正常</option>
                   <option>空腹血糖受损</option>
@@ -1587,61 +2207,85 @@
           <!-- 脑血管病 -->
           <div class="hp-row">
             <div class="hp-label">脑血管病</div>
-            <div class="hp-field">
-              <div class="opts">
+            <div class="hp-field lifestyle">
+              <span class="ig"><span class="opts">
                 <label class="rad"><input type="radio" name="asBrain" value="否" checked>否</label>
                 <label class="rad"><input type="radio" name="asBrain" value="是">是</label>
-              </div>
+              </span></span>
+              <span class="ig" style="display:none"><span class="opts" id="asBrainDzBox">
+                <label class="chk"><input type="checkbox" name="asBrainDz" value="缺血性卒中" disabled>缺血性卒中</label>
+                <label class="chk"><input type="checkbox" name="asBrainDz" value="脑出血" disabled>脑出血</label>
+                <label class="chk"><input type="checkbox" name="asBrainDz" value="短暂性脑缺血发作" disabled>短暂性脑缺血发作</label>
+              </span></span>
             </div>
           </div>
           <!-- 心脏病 -->
           <div class="hp-row">
             <div class="hp-label">心脏病</div>
-            <div class="hp-field">
-              <div class="opts">
+            <div class="hp-field lifestyle">
+              <span class="ig"><span class="opts">
                 <label class="rad"><input type="radio" name="asHeart" value="否" checked>否</label>
                 <label class="rad"><input type="radio" name="asHeart" value="是">是</label>
-              </div>
+              </span></span>
+              <span class="ig" style="display:none"><span class="opts" id="asHeartDzBox">
+                <label class="chk"><input type="checkbox" name="asHeartDz" value="心肌梗死史" disabled>心肌梗死史</label>
+                <label class="chk"><input type="checkbox" name="asHeartDz" value="心绞痛" disabled>心绞痛</label>
+                <label class="chk"><input type="checkbox" name="asHeartDz" value="充血性心力衰竭" disabled>充血性心力衰竭</label>
+                <label class="chk"><input type="checkbox" name="asHeartDz" value="冠状动脉血运重建" disabled>冠状动脉血运重建</label>
+              </span></span>
             </div>
           </div>
           <!-- 肾脏病 -->
           <div class="hp-row">
             <div class="hp-label">肾脏病</div>
-            <div class="hp-field">
-              <div class="opts">
+            <div class="hp-field lifestyle">
+              <span class="ig"><span class="opts">
                 <label class="rad"><input type="radio" name="asKidney" value="否" checked>否</label>
                 <label class="rad"><input type="radio" name="asKidney" value="是">是</label>
-              </div>
+              </span></span>
+              <span class="ig" style="display:none"><span class="opts" id="asKidneyDzBox">
+                <label class="chk"><input type="checkbox" name="asKidneyDz" value="糖尿病肾病" disabled>糖尿病肾病</label>
+                <label class="chk"><input type="checkbox" name="asKidneyDz" value="蛋白尿" disabled>蛋白尿</label>
+                <label class="chk"><input type="checkbox" name="asKidneyDz" value="肾功能受损" disabled>肾功能受损</label>
+              </span></span>
             </div>
           </div>
           <!-- 周围血管病 -->
           <div class="hp-row">
             <div class="hp-label">周围血管病</div>
-            <div class="hp-field">
-              <div class="opts">
+            <div class="hp-field lifestyle">
+              <span class="ig"><span class="opts">
                 <label class="rad"><input type="radio" name="asVessel" value="否" checked>否</label>
                 <label class="rad"><input type="radio" name="asVessel" value="是">是</label>
-              </div>
+              </span></span>
+              <span class="ig" style="display:none"><span class="opts" id="asVesselDzBox">
+                <label class="chk"><input type="checkbox" name="asVesselDz" value="足背动脉搏动减弱" disabled>足背动脉搏动减弱</label>
+              </span></span>
             </div>
           </div>
           <!-- 视网膜病变 -->
           <div class="hp-row">
             <div class="hp-label">视网膜病变</div>
-            <div class="hp-field">
-              <div class="opts">
+            <div class="hp-field lifestyle">
+              <span class="ig"><span class="opts">
                 <label class="rad"><input type="radio" name="asRetina" value="否" checked>否</label>
                 <label class="rad"><input type="radio" name="asRetina" value="是">是</label>
-              </div>
+              </span></span>
+              <span class="ig" style="display:none"><span class="opts" id="asRetinaDzBox">
+                <label class="chk"><input type="checkbox" name="asRetinaDz" value="出血或渗出" disabled>出血或渗出</label>
+                <label class="chk"><input type="checkbox" name="asRetinaDz" value="视乳头水肿" disabled>视乳头水肿</label>
+              </span></span>
             </div>
           </div>
           <!-- 其他 -->
           <div class="hp-row">
             <div class="hp-label">其他</div>
-            <div class="hp-field">
-              <div class="opts">
+            <div class="hp-field lifestyle">
+              <span class="ig"><span class="opts">
                 <label class="rad"><input type="radio" name="asOther" value="否" checked>否</label>
                 <label class="rad"><input type="radio" name="asOther" value="是">是</label>
-              </div>
+              </span></span>
+              <span class="ig" style="display:none"><input class="ctl" id="asOtherDesc" placeholder="请输入具体病种" disabled style="width:200px"></span>
             </div>
           </div>
           <!-- 血压分级结果 / 危险分层结果 -->
@@ -1650,7 +2294,7 @@
               <div class="hp-label">血压分级结果</div>
               <div class="hp-field">
                 <div class="opts">
-                  <label class="rad"><input type="radio" name="asBpGrade" value="一级高血压" checked>一级高血压</label>
+                  <label class="rad"><input type="radio" name="asBpGrade" value="一级高血压">一级高血压</label>
                   <label class="rad"><input type="radio" name="asBpGrade" value="二级高血压">二级高血压</label>
                   <label class="rad"><input type="radio" name="asBpGrade" value="三级高血压">三级高血压</label>
                 </div>
@@ -1661,7 +2305,7 @@
               <div class="hp-field">
                 <div class="opts">
                   <label class="rad"><input type="radio" name="asRisk" value="低危">低危</label>
-                  <label class="rad"><input type="radio" name="asRisk" value="中危" checked>中危</label>
+                  <label class="rad"><input type="radio" name="asRisk" value="中危">中危</label>
                   <label class="rad"><input type="radio" name="asRisk" value="高危">高危</label>
                   <label class="rad"><input type="radio" name="asRisk" value="极高危">极高危</label>
                 </div>
@@ -1674,7 +2318,7 @@
             <div class="hp-field">
               <div class="opts">
                 <label class="rad"><input type="radio" name="asManage" value="一级管理">一级管理</label>
-                <label class="rad"><input type="radio" name="asManage" value="二级管理" checked>二级管理</label>
+                <label class="rad"><input type="radio" name="asManage" value="二级管理">二级管理</label>
                 <label class="rad"><input type="radio" name="asManage" value="三级管理">三级管理</label>
               </div>
             </div>
@@ -1733,6 +2377,18 @@
   </div>
 </div>
 
+<!-- ===== 随访状态非正常选项：二次确认弹框 ===== -->
+<div class="fu-modal-mask" id="fuConfirmMask">
+  <div class="fu-modal-box">
+    <div class="fu-modal-head"><span class="fu-modal-title">提示</span><span class="fu-modal-x" onclick="fuConfirmCancel()">×</span></div>
+    <div class="fu-modal-body"><span class="fu-modal-warn">!</span>此操作将会清空表单, 是否继续?</div>
+    <div class="fu-modal-foot">
+      <button class="btn btn-primary" onclick="fuConfirmOk()">确认</button>
+      <button class="btn btn-default" onclick="fuConfirmCancel()">取消</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== 统一框架：仅引入公共函数（toast 等），不注入系统导航 ===== -->
 <script src="框架.js" data-embed="true"></script>
 
@@ -1744,6 +2400,27 @@
    * ========================================================================== */
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  /* 仅当下拉存在同名选项时才赋值，避免把 select 置空 */
+  function setSelIf(id, val) {
+    if (!val) return;
+    var s = $(id);
+    for (var i = 0; i < s.options.length; i++) {
+      if (s.options[i].value === val) { s.value = val; return; }
+    }
+  }
+  /* 下拉赋值：无同名选项时动态补充选项，保证已有档案的机构/医生可回显 */
+  function setSelAdd(id, val) {
+    if (!val) return;
+    setSelIf(id, val);
+    var s = $(id);
+    if (s.value !== val) {
+      var o = document.createElement('option');
+      o.value = val;
+      o.textContent = val;
+      s.appendChild(o);
+      s.value = val;
+    }
+  }
 
   /* ================= 入参（新建弹框提交的基本信息；直接打开时使用演示数据） ================= */
   var QS = new URLSearchParams(location.search);
@@ -2077,21 +2754,172 @@
     box.insertBefore(row, box.querySelector('.med-add') || box.lastChild);
   }
 
-  /* ================= 随访表：随访状态切换（失访/死亡时启用相关字段） ================= */
+  /* ================= 随访表：随访状态切换（非正常选项二次确认 + 表单禁填） ================= */
+  var fuLocked = false;
+
+  /* 失访日期/失访原因的启停与标签文案 */
+  function fuSetLostFields(status) {
+    var isLost = status === '失访' || status === '死亡';
+    ['fuLostDate', 'fuLostReason'].forEach(function (id) {
+      var el = $(id);
+      el.disabled = !isLost;
+      el.style.background = isLost ? '' : '#F5F6FA';
+    });
+    if (status === '死亡') $('fuLostLabel').textContent = '死亡日期';
+    else if (status === '失访') $('fuLostLabel').textContent = '失访日期';
+    else $('fuLostLabel').textContent = '失访日期/死亡日期';
+  }
+
   function toggleFuLost() {
     var status = $('fuStatus').value;
-    var isLost = status === '失访' || status === '死亡';
-    $('fuLostDate').disabled = !isLost;
-    $('fuLostDate').style.background = isLost ? '' : '#F5F6FA';
-    $('fuLostReason').disabled = !isLost;
-    $('fuLostReason').style.background = isLost ? '' : '#F5F6FA';
-    if (status === '死亡') {
-      $('fuLostLabel').textContent = '死亡日期';
-    } else if (status === '失访') {
-      $('fuLostLabel').textContent = '失访日期';
+    var abnormal = status === '失访' || status === '死亡';
+    if (abnormal) {
+      if (!fuLocked) { $('fuConfirmMask').classList.add('show'); return; }
+      fuSetLostFields(status); /* 已锁定状态下的失访/死亡切换，仅更新标签与失访字段 */
     } else {
-      $('fuLostLabel').textContent = '失访日期/死亡日期';
+      if (fuLocked) {
+        fuUnlockForm();
+        toast('随访状态已恢复正常，表单恢复可填写', 'info');
+      }
+      fuSetLostFields('正常');
     }
+  }
+
+  /* 禁填白名单：随访日期、随访方式、随访医生签名、随访状态、失访日期/死亡日期、失访/死亡原因、随访类别、随访季度 */
+  function fuLockForm() {
+    var allow = { fuDate: 1, fuStatus: 1, fuLostDate: 1, fuLostReason: 1, fuDoctor: 1, fuType: 1, fuQuarter: 1 };
+    $('viewFollowup').querySelectorAll('input,select,textarea').forEach(function (el) {
+      if ((el.id && allow[el.id]) || el.name === 'fuWay') return;
+      el.disabled = true;
+    });
+    var add = $('viewFollowup').querySelector('.med-add');
+    if (add) add.classList.add('disabled');
+  }
+
+  function fuUnlockForm() {
+    fuLocked = false;
+    $('viewFollowup').querySelectorAll('input,select,textarea').forEach(function (el) { el.disabled = false; });
+    var add = $('viewFollowup').querySelector('.med-add');
+    if (add) add.classList.remove('disabled');
+  }
+
+  function fuConfirmOk() {
+    $('fuConfirmMask').classList.remove('show');
+    fuLocked = true;
+    fuLockForm();
+    fuSetLostFields($('fuStatus').value);
+    toast('已锁定表单：除随访日期、随访方式、随访医生签名及失访信息外，其余内容不可填写', 'info');
+  }
+
+  function fuConfirmCancel() {
+    $('fuConfirmMask').classList.remove('show');
+    $('fuStatus').value = '正常';
+    fuSetLostFields('正常');
+  }
+
+  /* ================= 评估表：病史「是」联动病种 + 公卫规范自动判定 ================= */
+  function asRadioVal(name) {
+    var el = document.querySelector('#viewAssessment input[name="' + name + '"]:checked');
+    return el ? el.value : '';
+  }
+
+  /* 病史行：选「是」显示并启用病种（复选组/输入框），否则隐藏、禁用并清空 */
+  function asToggleDz(name) {
+    var is = asRadioVal(name) === '是';
+    var map = {
+      asBrain: 'asBrainDzBox', asHeart: 'asHeartDzBox', asKidney: 'asKidneyDzBox',
+      asVessel: 'asVesselDzBox', asRetina: 'asRetinaDzBox', asOther: 'asOtherDesc'
+    };
+    var target = $(map[name]);
+    if (!target) return;
+    var wrap = target.parentElement;
+    if (wrap && wrap.classList.contains('ig')) wrap.style.display = is ? '' : 'none';
+    if (target.tagName === 'INPUT') {
+      target.disabled = !is;
+      if (!is) target.value = '';
+    } else {
+      target.querySelectorAll('input').forEach(function (el) {
+        el.disabled = !is;
+        if (!is) el.checked = false;
+      });
+    }
+  }
+
+  /* 血压分级：1级 SBP140-159/DBP90-99；2级 SBP160-179/DBP100-109；3级 SBP≥180/DBP≥110；0=正常范围 */
+  function asJudgeGrade() {
+    var sbp = parseInt($('asSbp').value, 10) || 0;
+    var dbp = parseInt($('asDbp').value, 10) || 0;
+    if (!sbp && !dbp) return null;
+    if (sbp >= 180 || dbp >= 110) return 3;
+    if (sbp >= 160 || dbp >= 100) return 2;
+    if (sbp >= 140 || dbp >= 90) return 1;
+    return 0;
+  }
+
+  /* 公卫规范自动判定：血压分级 → 危险分层 → 分层管理 */
+  function asAutoJudge(silent) {
+    var grade = asJudgeGrade();
+    var gradeText = grade === 3 ? '三级高血压' : grade === 2 ? '二级高血压' : grade === 1 ? '一级高血压' : '';
+    ['一级高血压', '二级高血压', '三级高血压'].forEach(function (v) {
+      var el = document.querySelector('#viewAssessment input[name="asBpGrade"][value="' + v + '"]');
+      el.checked = (gradeText === v);
+    });
+
+    var rf = parseInt($('asRiskFactors').value, 10);
+    if (isNaN(rf)) rf = 0;
+    var od = $('asOrganDamage').value !== '' && $('asOrganDamage').value !== '无';
+    var clinical = ['asDiabetes', 'asBrain', 'asHeart', 'asKidney', 'asVessel', 'asRetina', 'asOther'].some(function (n) {
+      return asRadioVal(n) === '是';
+    });
+
+    var risk = null;
+    if (clinical) risk = '极高危';
+    else if (grade === null || grade === 0) risk = null;
+    else if (od || rf >= 3) risk = '高危';
+    else if (rf >= 1) risk = (grade === 3) ? '高危' : '中危';
+    else risk = (grade === 3) ? '高危' : (grade === 2 ? '中危' : '低危');
+    ['低危', '中危', '高危', '极高危'].forEach(function (v) {
+      var el = document.querySelector('#viewAssessment input[name="asRisk"][value="' + v + '"]');
+      el.checked = (risk === v);
+    });
+
+    var manage = risk === '低危' ? '一级管理' : risk === '中危' ? '二级管理' : (risk === '高危' || risk === '极高危') ? '三级管理' : null;
+    ['一级管理', '二级管理', '三级管理'].forEach(function (v) {
+      var el = document.querySelector('#viewAssessment input[name="asManage"][value="' + v + '"]');
+      el.checked = (manage === v);
+    });
+
+    if (!silent) {
+      if (grade === 0) toast('血压在正常范围，不判定高血压分级', 'info');
+      else if (gradeText) toast('已按公卫规范自动判定：' + gradeText + (risk ? '，' + risk + '，' + manage : '') + '（如需调整请先填写血压）', 'success');
+      else if (clinical) toast('已按公卫规范自动判定：' + risk + '，' + manage, 'success');
+    }
+  }
+
+  function bindAssessment() {
+    /* 病史行初始状态：病种默认隐藏（radio=否） */
+    ['asBrain', 'asHeart', 'asKidney', 'asVessel', 'asRetina', 'asOther'].forEach(asToggleDz);
+
+    /* 血压输入、危险因素、靶器官损害 → 自动判定 */
+    ['asSbp', 'asDbp'].forEach(function (id) { $(id).addEventListener('input', function () { asAutoJudge(); }); });
+    $('asRiskFactors').addEventListener('change', function () { asAutoJudge(); });
+    $('asOrganDamage').addEventListener('change', function () { asAutoJudge(); });
+
+    /* 病史单选：病种联动 + 自动判定（并存临床情况影响危险分层） */
+    ['asDiabetes', 'asBrain', 'asHeart', 'asKidney', 'asVessel', 'asRetina', 'asOther'].forEach(function (n) {
+      document.querySelectorAll('#viewAssessment input[name="' + n + '"]').forEach(function (r) {
+        r.addEventListener('change', function () {
+          if (n === 'asDiabetes') {
+            var is = asRadioVal('asDiabetes') === '是';
+            $('asBloodSugar').disabled = !is;
+            if (!is) $('asBloodSugar').value = '';
+          }
+          asToggleDz(n);
+          if (asRadioVal(n) === '是') toast('请选择具体病种', 'info');
+          asAutoJudge();
+        });
+      });
+    });
   }
 
   /* ================= 封面「下一步」 ================= */
@@ -2213,6 +3041,34 @@
     $('hpCreateDate').value = todayStr();
     bindHpComplMutex();
 
+    /* 高血压管理列表「查看/编辑」带参进入：已有档案全量预填专项表，并直接开放随访/评估目录 */
+    if (QS.get('sbp')) {
+      var isMale = (QS.get('gender') || P.gender) === '男性';
+      $('hpHeight').value = isMale ? '170' : '160';
+      $('hpWeight').value = isMale ? '72' : '60';
+      calcBmi();
+      $('hpSbp').value = QS.get('sbp');
+      $('hpDbp').value = QS.get('dbp') || '';
+      autoHpGrade();
+      setSelIf('hpType', QS.get('hpType') || '原发性高血压');
+      setSelIf('hpSource', '门诊');
+      var noCompl = document.querySelector('#hpComplicationBox input[value="无"]');
+      if (noCompl) noCompl.checked = true;
+      var hpReg = document.querySelector('input[name="hpCompliance"][value="规律"]');
+      if (hpReg) hpReg.checked = true;
+      setSelAdd('hpDiagOrg', QS.get('specOrg'));
+      setSelAdd('hpCreateOrg', QS.get('specOrg'));
+      setSelAdd('hpCreateDoc', QS.get('specDoc'));
+      var hpSpec = QS.get('specDate');
+      if (hpSpec) {
+        $('hpCreateDate').value = hpSpec;
+        /* 确诊日期取建档日期前 2 年，贴合病史时间线 */
+        $('hpDiagDate').value = (parseInt(hpSpec.slice(0, 4), 10) - 2) + hpSpec.slice(4);
+      }
+      $('navHpFollowup').classList.remove('nav-followup-hidden');
+      $('navHpAssessment').classList.remove('nav-followup-hidden');
+    }
+
     /* 高血压随访表预填 */
     $('fuName').textContent = P.name;
     $('fuArchNo').textContent = QS.get('archNo') || $('cvArchNo').value || '--';
@@ -2222,6 +3078,7 @@
     $('asName').textContent = P.name;
     $('asArchNo').textContent = QS.get('archNo') || $('cvArchNo').value || '--';
     $('asDate').value = todayStr();
+    bindAssessment();
 
     /* 根据 URL 参数 view 决定初始视图（?view=hypertension 直接进入高血压专项表） */
     var initView = QS.get('view') || 'cover';

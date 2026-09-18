@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>高血压管理 - 慢病管理</title>
+<title>结核病管理 - 慢病管理</title>
 <link rel="stylesheet" href="框架.css">
 <style>
-  /* ===== 高血压管理页面特有样式（设计变量与公共样式见 框架.css） ===== */
+  /* ===== 结核病管理页面特有样式（设计变量与公共样式见 框架.css） ===== */
 
   /* ===== 嵌入模式（被 index.html 壳子以 iframe 内嵌时，框架.js 自动加 html.embed-mode） ===== */
   html.embed-mode .main-area{height:100%}      /* 壳子内自适应：无顶部导航栏包裹 */
@@ -32,44 +32,17 @@
   .fi-select.w-lg{width:210px}
   .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
   .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .fi-date{width:132px;font-size:13px}
+  .fi-sep{font-size:13px;color:var(--text-tertiary)}
   .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
   .btn-plain{height:28px;padding:0 8px;font-size:13px;color:var(--primary);border-radius:var(--r-sm)}
   .btn-plain:hover{background:var(--primary-bg)}
-  /* 筛选区扩展控件：日期区间 / 比较符 / 数值 / 单选复选组 */
-  .fi-date{width:138px}
-  .fi-sep{color:var(--text-placeholder);font-size:13px}
-  .fi-cmp{width:78px}
-  .fi-num{width:80px}
-  .fi-unit{font-size:13px;color:var(--text-secondary)}
-  .fi-opts{display:flex;align-items:center;gap:12px}
-  .fi-radio{display:inline-flex;align-items:center;gap:4px;font-size:14px;color:var(--text-secondary);cursor:pointer}
-  .fi-radio input{margin:0;accent-color:var(--primary);cursor:pointer}
-  .fi-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer}
-  .fi-check input{margin:0;accent-color:var(--primary);cursor:pointer}
-  /* 血压项目触发框：点击弹出体检项目复合筛选面板 */
-  .bp-trigger{cursor:pointer;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
-
-  /* ===== 体检项目复合筛选面板（血压项目点击弹出）：每行内嵌项目/逻辑/存在/比较下拉 ===== */
-  .modal-overlay.bp-modal .modal{width:600px}
-  .bp-body{padding:16px 20px 4px}
-  .bp-cond{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-  .bp-cond select,.bp-cond input{height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);flex-shrink:0}
-  .bp-cond select{padding:0 22px 0 10px;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;cursor:pointer}
-  .bp-cond .s-logic{width:60px}
-  .bp-cond .s-item{width:110px}
-  .bp-cond .s-exist{width:92px}
-  .bp-cond .s-cmp{width:70px}
-  .bp-cond input{flex:1;min-width:0;padding:0 10px}
-  .bp-cond select:focus,.bp-cond input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
-  .bp-del{width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;color:#FF4D4F;cursor:pointer;border-radius:50%;font-size:15px;flex-shrink:0;user-select:none;margin-left:auto}
-  .bp-del:hover{background:#FFECEC}
-  .bp-add{width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;color:var(--primary);border:1px solid var(--primary);border-radius:50%;cursor:pointer;font-size:15px;flex-shrink:0;user-select:none;background:var(--bg-white);transition:all var(--transition-fast)}
-  .bp-add:hover{background:var(--primary);color:#fff}
+  .own-check{width:16px;height:16px;margin:0;cursor:pointer;accent-color:var(--primary)}
 
   /* ===== 数据表格 ===== */
   .table-wrap{flex:1;overflow:auto;min-height:0}
 
-  /* 横向滚动时前 4 列冻结（序号/管理机构/姓名/证件号） */
+  /* 横向滚动时前 4 列冻结（序号/管理机构/姓名/证件类型） */
   .list-tbl th:nth-child(-n+4),.list-tbl td:nth-child(-n+4){position:sticky}
   .list-tbl td:nth-child(-n+4){z-index:2;background:var(--bg-white)}
   .list-tbl th:nth-child(-n+4){z-index:6}
@@ -86,7 +59,7 @@
   .list-tbl tr.empty-row td:last-child{position:static;box-shadow:none}
   /* 操作列允许溢出，保证「更多」下拉菜单可正常展开 */
   .list-tbl tbody tr:not(.empty-row) td:last-child{overflow:visible}
-  .list-tbl{width:100%;min-width:2144px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl{width:100%;min-width:2096px;table-layout:fixed;border-collapse:collapse;font-size:13px}
   .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
   .list-tbl td{height:36px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .list-tbl tbody tr:nth-child(even) td{background:var(--bg-table-even)}
@@ -94,29 +67,21 @@
   .list-tbl tbody tr:hover td,.list-tbl tbody tr:hover td:nth-child(-n+4){background:var(--primary-bg)}
   .list-tbl th.center,.list-tbl td.center{text-align:center}
   .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .td-nil{color:var(--text-placeholder)}
 
-  /* 当前分级（一级绿 / 二级橙 / 三级红） */
-  .grade-badge{display:inline-flex;align-items:center;justify-content:center;height:20px;padding:0 10px;border-radius:4px;font-size:12px;line-height:1}
-  .grade-badge.g1{background:var(--success-bg);color:var(--success);border:1px solid rgba(82,195,27,0.35)}
-  .grade-badge.g2{background:var(--warning-bg);color:var(--warning);border:1px solid rgba(250,140,22,0.35)}
-  .grade-badge.g3{background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger-border)}
+  /* 患者类型（初治=蓝 / 复治=橙）与痰菌情况（阳性=红 / 阴性=绿） */
+  .tb-badge{display:inline-flex;align-items:center;justify-content:center;height:20px;padding:0 8px;border-radius:4px;font-size:12px;line-height:1;white-space:nowrap}
+  .tb-badge.pt-first{background:var(--info-bg);color:var(--info);border:1px solid rgba(0,122,255,0.35)}
+  .tb-badge.pt-re{background:var(--warning-bg);color:var(--warning);border:1px solid rgba(250,140,22,0.35)}
+  .tb-badge.sp-pos{background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger-border)}
+  .tb-badge.sp-neg{background:#F6FFED;color:#52C41A;border:1px solid rgba(82,196,26,0.35)}
+  .tb-badge.sp-none{background:var(--color-neutral-100);color:var(--text-tertiary);border:1px solid var(--color-neutral-300)}
 
-  /* 血压值（收缩压/舒张压，按血压级别着色：3级红 / 2级橙 / 1级默认） */
-  .bp-val{font-weight:var(--font-weight-medium)}
-  .bp-val.lv3{color:var(--danger)}
-  .bp-val.lv2{color:var(--warning)}
-  .bp-val.lv1{color:var(--text-secondary)}
-
-  /* 专项档案完整度 */
-  .full-ok{color:var(--success);font-weight:var(--font-weight-medium)}
-  .full-mid{color:var(--warning)}
-  .full-low{color:var(--danger)}
-
-  /* 状态圆点（居民状态/管理状态/锁定状态） */
+  /* 状态圆点（结案状态：未结案=黄 / 已结案=绿） */
   .st-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:middle}
   .st-dot.ok{background:var(--success)}
-  .st-dot.warn{background:#FF9500}
-  .st-dot.info{background:var(--info)}
+  .st-dot.danger{background:var(--danger)}
+  .st-dot.warn{background:var(--warning)}
 
   /* 操作列 */
   .op-link{color:var(--primary);cursor:pointer;font-size:13px}
@@ -144,7 +109,7 @@
   .pg-jump input{width:40px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 6px;font-size:13px;text-align:center;color:var(--text-primary);outline:none}
   .pg-jump input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
 
-  /* ===== 新建高血压专项档案弹框 ===== */
+  /* ===== 新建结核专项档案弹框 ===== */
   .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
   .modal-overlay.show{opacity:1;pointer-events:auto}
   .modal{width:860px;max-width:92vw;background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 8px 32px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden;transform:translateY(10px);transition:transform var(--transition-normal)}
@@ -241,23 +206,23 @@
 
   <!-- 页面标签条（嵌入模式下隐藏，由壳子统一管理） -->
   <div class="tabbar">
-    <div class="tab-item dashboard active" onclick="toast('当前已在「高血压管理」页','info')">
+    <div class="tab-item dashboard active" onclick="toast('当前已在「结核病管理」页','info')">
       <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      高血压管理
+      结核病管理
     </div>
     <div class="tab-item" onclick="toast('「随访管理」功能建设中','info')">
       <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       随访管理
       <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
     </div>
-    <div class="tab-item" onclick="toast('「血压上报」功能建设中','info')">
-      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      血压上报
+    <div class="tab-item" onclick="toast('「督导服药」功能建设中','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M10.5 20.5L3.5 13.5a3.5 3.5 0 015-5l2 2 2-2a3.5 3.5 0 015 5l-7 7z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="10" y1="11" x2="14" y2="11"/></svg>
+      督导服药
       <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
     </div>
-    <div class="tab-item" onclick="toast('「分级评估」功能建设中','info')">
-      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
-      分级评估
+    <div class="tab-item" onclick="toast('「结案管理」功能建设中','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      结案管理
       <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
     </div>
     <div class="tab-item" onclick="toast('「健康宣教」功能建设中','info')">
@@ -272,7 +237,7 @@
 
       <!-- 页头 -->
       <div class="page-head">
-        <h1>高血压管理</h1>
+        <h1>结核病管理</h1>
         <div class="right">
           <button class="btn btn-default" onclick="toast('导出功能建设中','info')">导出</button>
           <button class="btn btn-default" onclick="toast('请连接身份证读卡器','info')">身份证读卡</button>
@@ -287,187 +252,17 @@
             <select id="fOrg" class="fi-select w-lg">
               <option value="" selected>请选择</option>
               <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
-              <option value="济南市历下区甸柳新村社区卫生服务中心">济南市历下区甸柳新村社区卫生服务中心</option>
-              <option value="济南市市中区舜玉路社区卫生服务中心">济南市市中区舜玉路社区卫生服务中心</option>
-              <option value="济南市历下区千佛山社区卫生服务中心">济南市历下区千佛山社区卫生服务中心</option>
-              <option value="济南市天桥区工人新村社区卫生服务中心">济南市天桥区工人新村社区卫生服务中心</option>
-              <option value="济南市历下区文化东路社区卫生服务中心">济南市历下区文化东路社区卫生服务中心</option>
+              <option value="扬州市江都区宜陵镇同兴村卫生室">扬州市江都区宜陵镇同兴村卫生室</option>
+              <option value="扬州市江都区宜陵镇中心卫生院">扬州市江都区宜陵镇中心卫生院</option>
+              <option value="扬州市江都区郭村镇郭村村卫生室">扬州市江都区郭村镇郭村村卫生室</option>
+              <option value="扬州市江都区郭村镇卫生院">扬州市江都区郭村镇卫生院</option>
+              <option value="扬州市江都区吴桥镇陆袁村卫生室">扬州市江都区吴桥镇陆袁村卫生室</option>
+              <option value="扬州市江都区吴桥镇卫生院">扬州市江都区吴桥镇卫生院</option>
+              <option value="扬州市江都区仙女镇社区卫生服务中心">扬州市江都区仙女镇社区卫生服务中心</option>
+              <option value="扬州市江都区大桥镇中心卫生院">扬州市江都区大桥镇中心卫生院</option>
             </select>
           </div>
-          <div class="filter-item"><label>姓名</label><input id="fName" class="fi-ctl" placeholder="请输入姓名"></div>
-          <div class="filter-item"><label>证件号</label><input id="fIdcard" class="fi-ctl" placeholder="请输入证件号"></div>
-          <div class="filter-item"><label>管辖行政区</label>
-            <select id="fRegion" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="解放路社区">解放路社区</option>
-              <option value="千佛山社区">千佛山社区</option>
-              <option value="燕山社区">燕山社区</option>
-              <option value="姚家社区">姚家社区</option>
-              <option value="舜玉社区">舜玉社区</option>
-              <option value="甸柳社区">甸柳社区</option>
-              <option value="文化东路社区">文化东路社区</option>
-              <option value="工人新村社区">工人新村社区</option>
-              <option value="窑头社区">窑头社区</option>
-              <option value="七里山社区">七里山社区</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>锁定状态</label>
-            <select id="fLock" class="fi-select">
-              <option value="未上锁" selected>未上锁</option>
-              <option value="">全部</option>
-              <option value="已上锁">已上锁</option>
-            </select>
-          </div>
-        </div>
-        <div class="filter-row">
-          <div class="filter-item"><label>居民状态</label>
-            <select id="fRStatus" class="fi-select">
-              <option value="正常" selected>正常</option>
-              <option value="">全部</option>
-              <option value="死亡">死亡</option>
-              <option value="迁出">迁出</option>
-              <option value="注销">注销</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>管理状态</label>
-            <select id="fMStatus" class="fi-select">
-              <option value="有效管理" selected>有效管理</option>
-              <option value="">全部</option>
-              <option value="中断管理">中断管理</option>
-              <option value="终止管理">终止管理</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>当前分级</label>
-            <select id="fGrade" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="一级">一级</option>
-              <option value="二级">二级</option>
-              <option value="三级">三级</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>高血压类型</label>
-            <select id="fHpType" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="原发性高血压">原发性高血压</option>
-              <option value="继发性高血压">继发性高血压</option>
-              <option value="不详">不详</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>管辖网格</label>
-            <select id="fGrid" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="第一网格">第一网格</option>
-              <option value="第二网格">第二网格</option>
-              <option value="第三网格">第三网格</option>
-              <option value="第四网格">第四网格</option>
-            </select>
-          </div>
-          <div class="filter-btns">
-            <button class="btn btn-default" onclick="resetFilter()">重置</button>
-            <button class="btn btn-primary" onclick="applyFilter()">查询</button>
-            <button class="btn-plain" id="btnExpand" onclick="toggleExtra()">展开 ▼</button>
-          </div>
-        </div>
-        <div class="filter-row extra">
-          <div class="filter-item"><label>随访次数</label>
-            <select id="fFuCntOp" class="fi-select fi-cmp">
-              <option value="" selected>请选择</option>
-              <option value="≥">≥</option>
-              <option value="≤">≤</option>
-              <option value="＝">＝</option>
-            </select>
-            <input id="fFuCnt" class="fi-ctl fi-num" placeholder="请输入">
-          </div>
-          <div class="filter-item"><label>体检次数</label>
-            <select id="fExamCntOp" class="fi-select fi-cmp">
-              <option value="" selected>请选择</option>
-              <option value="≥">≥</option>
-              <option value="≤">≤</option>
-              <option value="＝">＝</option>
-            </select>
-            <input id="fExamCnt" class="fi-ctl fi-num" placeholder="请输入">
-          </div>
-          <div class="filter-item"><label>业务日期</label>
-            <input id="fBizStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">—</span>
-            <input id="fBizEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-          </div>
-          <div class="filter-item"><label>随访类型</label>
-            <select id="fFuType" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="一季度随访">一季度随访</option>
-              <option value="二季度随访">二季度随访</option>
-              <option value="三季度随访">三季度随访</option>
-              <option value="四季度随访">四季度随访</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>血压项目</label>
-            <input id="fBpItem" class="fi-ctl bp-trigger" placeholder="请选择" readonly onclick="openBpPanel()" title="点击配置体检项目筛选条件">
-          </div>
-        </div>
-        <div class="filter-row extra">
-          <div class="filter-item"><label>档案完整度</label>
-            <select id="fFullOp" class="fi-select fi-cmp">
-              <option value="" selected>请选择</option>
-              <option value="≥">≥</option>
-              <option value="≤">≤</option>
-              <option value="＝">＝</option>
-            </select>
-            <input id="fFullVal" class="fi-ctl fi-num" placeholder="请输入">
-            <span class="fi-unit">%</span>
-          </div>
-          <div class="filter-item"><label>年度评估</label>
-            <span class="fi-opts">
-              <label class="fi-radio"><input type="radio" name="fYearEval" value="未评估">未评估</label>
-              <label class="fi-radio"><input type="radio" name="fYearEval" value="无">无</label>
-              <label class="fi-radio"><input type="radio" name="fYearEval" value="有">有</label>
-            </span>
-          </div>
-          <div class="filter-item"><label>使用降压药</label>
-            <span class="fi-opts">
-              <label class="fi-radio"><input type="radio" name="fDrug" value="无">无</label>
-              <label class="fi-radio"><input type="radio" name="fDrug" value="有">有</label>
-            </span>
-          </div>
-          <div class="filter-item"><label>专项建档机构</label>
-            <select id="fSpecOrg" class="fi-select w-lg">
-              <option value="" selected>请选择</option>
-              <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
-              <option value="济南市历下区甸柳新村社区卫生服务中心">济南市历下区甸柳新村社区卫生服务中心</option>
-              <option value="济南市市中区舜玉路社区卫生服务中心">济南市市中区舜玉路社区卫生服务中心</option>
-              <option value="济南市历下区千佛山社区卫生服务中心">济南市历下区千佛山社区卫生服务中心</option>
-              <option value="济南市天桥区工人新村社区卫生服务中心">济南市天桥区工人新村社区卫生服务中心</option>
-              <option value="济南市历下区文化东路社区卫生服务中心">济南市历下区文化东路社区卫生服务中心</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>专项建档医生</label><input id="fSpecDoc" class="fi-ctl" placeholder="请输入"></div>
-        </div>
-        <div class="filter-row extra">
-          <div class="filter-item"><label>专项建档日期</label>
-            <input id="fSpecStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">—</span>
-            <input id="fSpecEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-          </div>
-          <div class="filter-item"><label>居民建档日期</label>
-            <input id="fArchStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">—</span>
-            <input id="fArchEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-          </div>
-          <div class="filter-item"><label>居民建档医生</label><input id="fArchDoc" class="fi-ctl" placeholder="请输入"></div>
-          <div class="filter-item"><label>居民类型</label>
-            <select id="fResidentType" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="常住">常住</option>
-              <option value="流动">流动</option>
-            </select>
-          </div>
-        </div>
-        <div class="filter-row extra">
-          <div class="filter-item"><label>出生日期</label>
-            <input id="fBirthStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">—</span>
-            <input id="fBirthEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-          </div>
+          <div class="filter-item"><label>姓名</label><input id="fName" class="fi-ctl" placeholder="请输入"></div>
           <div class="filter-item"><label>性别</label>
             <select id="fGender" class="fi-select">
               <option value="" selected>请选择</option>
@@ -475,21 +270,78 @@
               <option value="女">女</option>
             </select>
           </div>
-          <div class="filter-item"><label>电话号码</label><input id="fPhone" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>证件号</label><input id="fIdcard" class="fi-ctl" placeholder="请输入"></div>
           <div class="filter-item"><label>居住类型</label>
             <select id="fLiveType" class="fi-select">
               <option value="" selected>请选择</option>
-              <option value="常住">常住</option>
-              <option value="暂住">暂住</option>
-              <option value="人户分离">人户分离</option>
+              <option value="城镇">城镇</option>
+              <option value="农村">农村</option>
             </select>
           </div>
-          <div class="filter-item"><label>档案编号</label><input id="fArchNo" class="fi-ctl" placeholder="请输入档案编号"></div>
         </div>
-        <div class="filter-row extra">
-          <div class="filter-item"><label>详细地址</label><input id="fAddress" class="fi-ctl" placeholder="请输入详细地址"></div>
-          <div class="filter-item">
-            <label class="fi-check"><input type="checkbox" id="fMine">只看个人管理档案</label>
+        <div class="filter-row">
+          <div class="filter-item"><label>结案情况</label>
+            <select id="fCloseSt" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="未结案">未结案</option>
+              <option value="已结案">已结案</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>管理行政区</label>
+            <select id="fRegion" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="陆袁村">陆袁村</option>
+              <option value="北街社区">北街社区</option>
+              <option value="同兴村">同兴村</option>
+              <option value="郭村村">郭村村</option>
+              <option value="郭村">郭村</option>
+              <option value="吴桥">吴桥</option>
+              <option value="龙川">龙川</option>
+              <option value="大桥">大桥</option>
+              <option value="谢桥">谢桥</option>
+              <option value="白塔">白塔</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>随访日期</label>
+            <input id="fFollowStart" class="fi-ctl fi-date" type="date">
+            <span class="fi-sep">至</span>
+            <input id="fFollowEnd" class="fi-ctl fi-date" type="date">
+          </div>
+          <div class="filter-item"><label>电话号码</label><input id="fPhone" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>评估医生</label><input id="fEvalDoc" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-btns">
+            <button class="btn btn-default" onclick="resetFilter()">重置</button>
+            <button class="btn btn-primary" onclick="applyFilter()">查询</button>
+            <button class="btn-plain" id="btnExpand" onclick="toggleExtra()">展开 +</button>
+          </div>
+        </div>
+        <div class="filter-row extra" id="extraRow">
+          <div class="filter-item"><label>出生日期</label><input id="fBirth" class="fi-ctl" placeholder="如：1954 或 1954-03"></div>
+          <div class="filter-item"><label>证件类型</label>
+            <select id="fIdType" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="居民身份证">居民身份证</option>
+              <option value="居民户口簿">居民户口簿</option>
+              <option value="护照">护照</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>患者类型</label>
+            <select id="fPatType" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="初治">初治</option>
+              <option value="复治">复治</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>痰菌情况</label>
+            <select id="fSputum" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="阳性">阳性</option>
+              <option value="阴性">阴性</option>
+              <option value="未查">未查</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>只看个人管理档案</label>
+            <input id="fOwn" class="own-check" type="checkbox">
           </div>
         </div>
       </div>
@@ -498,31 +350,29 @@
       <div class="table-wrap">
         <table class="list-tbl">
           <colgroup>
-            <col style="width:44px"><col style="width:150px"><col style="width:76px"><col style="width:148px"><col style="width:82px"><col style="width:70px"><col style="width:92px"><col style="width:104px"><col style="width:44px"><col style="width:44px"><col style="width:110px"><col style="width:96px"><col style="width:160px"><col style="width:130px"><col style="width:104px"><col style="width:100px"><col style="width:92px"><col style="width:140px"><col style="width:76px"><col style="width:76px"><col style="width:76px"><col style="width:130px">
+            <col style="width:44px"><col style="width:150px"><col style="width:76px"><col style="width:82px"><col style="width:148px"><col style="width:44px"><col style="width:56px"><col style="width:100px"><col style="width:110px"><col style="width:140px"><col style="width:100px"><col style="width:90px"><col style="width:90px"><col style="width:170px"><col style="width:140px"><col style="width:100px"><col style="width:100px"><col style="width:90px"><col style="width:90px"><col style="width:176px">
           </colgroup>
           <thead>
             <tr>
               <th class="center">序号</th>
               <th>管理机构</th>
               <th>姓名</th>
-              <th>证件号</th>
               <th>证件类型</th>
-              <th class="center">当前分级</th>
-              <th class="center">血压</th>
-              <th>高血压类型</th>
+              <th>证件号</th>
               <th class="center">性别</th>
               <th class="center">年龄</th>
-              <th>电话号码</th>
               <th>出生日期</th>
+              <th>电话号码</th>
+              <th class="center">第一次入户随访日期</th>
+              <th class="center">结案状态</th>
+              <th class="center">患者类型</th>
+              <th class="center">痰菌情况</th>
               <th>详细地址</th>
               <th>档案编号</th>
               <th>管辖行政区</th>
-              <th>专项建档时间</th>
-              <th>专项建档医生</th>
-              <th class="center">专项档案完整度(%)</th>
-              <th>居民状态</th>
-              <th>管理状态</th>
-              <th>锁定状态</th>
+              <th>填表日期</th>
+              <th>责任医生</th>
+              <th class="center">锁定状态</th>
               <th class="center">操作</th>
             </tr>
           </thead>
@@ -552,7 +402,7 @@
 <div class="modal-overlay select-modal" id="selectModal">
   <div class="modal">
     <div class="modal-head">
-      <h3>新建高血压专项</h3>
+      <h3>新建结核专项</h3>
       <span class="modal-close" onclick="closeSelectModal()">×</span>
     </div>
     <div class="modal-body">
@@ -646,7 +496,7 @@
       </div>
       <!-- 分页 -->
       <div class="select-pagefoot">
-        <span class="pg-total">共 <b id="sfTotal">409</b> 条</span>
+        <span class="pg-total">共 <b id="sfTotal">12</b> 条</span>
         <span class="pg-size">
           <select onchange="toast('原型演示：每页条数固定 20 条','info')">
             <option selected>20条/页</option>
@@ -660,11 +510,11 @@
   </div>
 </div>
 
-<!-- ===== 新建高血压专项档案弹框 ===== -->
+<!-- ===== 新建结核专项档案弹框 ===== -->
 <div class="modal-overlay" id="createModal">
   <div class="modal">
     <div class="modal-head">
-      <h3>新建高血压专项档案</h3>
+      <h3>新建结核专项档案</h3>
       <span class="modal-close" onclick="closeCreateModal()">×</span>
     </div>
     <div class="modal-body">
@@ -707,26 +557,25 @@
             <input id="cmPhone" class="fm-ctl" maxlength="11" placeholder="请输入联系电话">
           </div>
           <div class="fm-row">
-            <label><i>*</i>高血压类型：</label>
-            <select id="cmHpType" class="fm-select">
+            <label><i>*</i>患者类型：</label>
+            <select id="cmPatType" class="fm-select">
               <option value="" selected>请选择</option>
-              <option value="原发性高血压">原发性高血压</option>
-              <option value="继发性高血压">继发性高血压</option>
-              <option value="不详">不详</option>
+              <option value="初治">初治</option>
+              <option value="复治">复治</option>
             </select>
           </div>
           <div class="fm-row">
-            <label><i>*</i>当前分级：</label>
-            <select id="cmGrade" class="fm-select">
+            <label><i>*</i>痰菌情况：</label>
+            <select id="cmSputum" class="fm-select">
               <option value="" selected>请选择</option>
-              <option value="一级">一级</option>
-              <option value="二级">二级</option>
-              <option value="三级">三级</option>
+              <option value="阳性">阳性</option>
+              <option value="阴性">阴性</option>
+              <option value="未查">未查</option>
             </select>
           </div>
           <div class="fm-row">
-            <label><i>*</i>确诊日期：</label>
-            <input id="cmDiagDate" class="fm-ctl" type="text" placeholder="请选择日期"
+            <label><i>*</i>第一次入户随访日期：</label>
+            <input id="cmFollowDate" class="fm-ctl" type="text" placeholder="请选择日期"
                    onfocus="this.type='date';try{this.showPicker()}catch(e){}"
                    onblur="if(!this.value){this.type='text'}">
           </div>
@@ -752,55 +601,38 @@
   </div>
 </div>
 
-<!-- ===== 体检项目复合筛选面板（点击筛选区「血压项目」弹出）：每行内嵌项目下拉 ===== -->
-<div class="modal-overlay bp-modal" id="bpPanel">
-  <div class="modal">
-    <div class="modal-head"><h3>体检项目</h3><span class="modal-close" onclick="closeBpPanel()">×</span></div>
-    <div class="bp-body">
-      <!-- 条件行区：行1=[项目][不为空][比较符][数值][×]，行2+行首带[与/或]，末行尾带 + -->
-      <div id="bpCondBox"></div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-primary" onclick="confirmBpPanel()">确定</button>
-      <button class="btn btn-default" onclick="resetBpPanel()">重置</button>
-      <button class="btn btn-default" onclick="closeBpPanel()">取消</button>
-    </div>
-  </div>
-</div>
-
 <!-- ===== 统一框架：顶部导航栏 + 左侧菜单栏（菜单配置见 框架.js） =====
      data-page    = 左侧菜单高亮项（独立打开时生效）
      data-embed   = "auto" 被壳子 iframe 内嵌时自动进入嵌入模式 -->
-<script src="框架.js" data-page="hypertension-management" data-embed="auto"></script>
+<script src="框架.js" data-page="tuberculosis-management" data-embed="auto"></script>
 
 <script>
-  /* ================= 模拟数据（姓名/证件号/出生日期/性别/年龄相互对应；血压值与当前分级匹配公卫血压分级标准） ================= */
-  var hypertensionData = [
-    { org:'山东大学齐鲁医院', name:'王秀英', idcard:'370102195403152847', idType:'居民身份证', grade:'二级', sbp:168, dbp:102, hpType:'原发性高血压', gender:'女', age:72, phone:'13905312361', birth:'1954-03-15', address:'济南市历下区解放路105号',        archNo:'370102JM26001', region:'解放路社区',   grid:'第一网格', specDate:'2024-03-11', specDoc:'徐东升', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
-    { org:'山东大学齐鲁医院', name:'刘德海', idcard:'37010219551130863X', idType:'居民身份证', grade:'三级', sbp:186, dbp:112, hpType:'原发性高血压', gender:'男', age:70, phone:'13605401937', birth:'1955-11-30', address:'济南市历下区和平路36号',          archNo:'370102JM26004', region:'解放路社区',   grid:'第一网格', specDate:'2024-03-26', specDoc:'徐东升', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
-    { org:'山东大学齐鲁医院', name:'杨春梅', idcard:'370102198109082543', idType:'居民身份证', grade:'一级', sbp:148, dbp:94,  hpType:'原发性高血压', gender:'女', age:45, phone:'18764165283', birth:'1981-09-08', address:'济南市历下区山大南路27号',        archNo:'370102JM26006', region:'千佛山社区',   grid:'第二网格', specDate:'2024-04-15', specDoc:'李蕾',   full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
-    { org:'山东大学齐鲁医院', name:'周振华', idcard:'370102194910056317', idType:'居民身份证', grade:'二级', sbp:172, dbp:105, hpType:'原发性高血压', gender:'男', age:76, phone:'13583176094', birth:'1949-10-05', address:'济南市历下区燕山小区东路18号',    archNo:'370102JM26009', region:'燕山社区',     grid:'第三网格', specDate:'2024-04-27', specDoc:'李蕾',   full:85,  rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
-    { org:'山东大学齐鲁医院', name:'冯立军', idcard:'370102197706285516', idType:'居民身份证', grade:'二级', sbp:164, dbp:101, hpType:'继发性高血压', gender:'男', age:49, phone:'13791046538', birth:'1977-06-28', address:'济南市历城区华信路3号',          archNo:'370102JM26016', region:'姚家社区',     grid:'第二网格', specDate:'2024-05-09', specDoc:'朱劲松', full:60,  rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
-    { org:'济南市市中区舜玉路社区卫生服务中心', name:'高凤仙', idcard:'370102194503124826', idType:'居民身份证', grade:'三级', sbp:192, dbp:118, hpType:'原发性高血压', gender:'女', age:81, phone:'13626415789', birth:'1945-03-12', address:'济南市市中区二环南路2766号',    archNo:'370102JM26017', region:'舜玉社区',     grid:'第一网格', specDate:'2024-05-21', specDoc:'敖鹏天', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
-    { org:'山东大学齐鲁医院', name:'韩淑芬', idcard:'370102195912034420', idType:'居民身份证', grade:'二级', sbp:174, dbp:106, hpType:'原发性高血压', gender:'女', age:66, phone:'13370583146', birth:'1959-12-03', address:'济南市历下区燕山小区南路8号',    archNo:'370102JM26021', region:'燕山社区',     grid:'第三网格', specDate:'2024-06-03', specDoc:'陆柳琳', full:100, rStatus:'正常', mStatus:'中断管理', lock:'未上锁' },
-    { org:'济南市市中区舜玉路社区卫生服务中心', name:'谭德顺', idcard:'370102195008195517', idType:'居民身份证', grade:'三级', sbp:188, dbp:114, hpType:'原发性高血压', gender:'男', age:76, phone:'15588860279', birth:'1950-08-19', address:'济南市市中区舜玉路112号',          archNo:'370102JM26022', region:'舜玉社区',     grid:'第一网格', specDate:'2024-06-16', specDoc:'敖鹏天', full:100, rStatus:'死亡', mStatus:'终止管理', lock:'已上锁' },
-    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'董梅香', idcard:'370102196705244824', idType:'居民身份证', grade:'一级', sbp:154, dbp:96,  hpType:'原发性高血压', gender:'女', age:59, phone:'15863770125', birth:'1967-05-24', address:'济南市历下区甸柳新村七区3号楼',    archNo:'370102JM26023', region:'甸柳社区',     grid:'第二网格', specDate:'2024-06-30', specDoc:'王盛',   full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
-    { org:'山东大学齐鲁医院', name:'贾世昌', idcard:'370102195310076311', idType:'居民身份证', grade:'二级', sbp:176, dbp:108, hpType:'原发性高血压', gender:'男', age:72, phone:'13006597582', birth:'1953-10-07', address:'济南市历下区姚家路29号',            archNo:'370102JM26024', region:'姚家社区',     grid:'第二网格', specDate:'2024-07-11', specDoc:'徐东升', full:0,   rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
-    { org:'济南市天桥区工人新村社区卫生服务中心', name:'潘金凤', idcard:'370102196202144226', idType:'居民身份证', grade:'一级', sbp:148, dbp:92,  hpType:'原发性高血压', gender:'女', age:64, phone:'15098763214', birth:'1962-02-14', address:'济南市天桥区堤口路92号',            archNo:'370105JM26025', region:'工人新村社区', grid:'第一网格', specDate:'2024-07-25', specDoc:'朱劲松', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
-    { org:'济南市历下区千佛山社区卫生服务中心', name:'何广田', idcard:'370102196511023513', idType:'居民身份证', grade:'二级', sbp:160, dbp:102, hpType:'不详',         gender:'男', age:60, phone:'15508660215', birth:'1965-11-02', address:'济南市历下区经十路9777号',         archNo:'370102JM26026', region:'千佛山社区',   grid:'第二网格', specDate:'2024-08-06', specDoc:'王盛',   full:40,  rStatus:'迁出', mStatus:'终止管理', lock:'已上锁' },
-    { org:'济南市历下区文化东路社区卫生服务中心', name:'邵玉洁', idcard:'370102197006084824', idType:'居民身份证', grade:'一级', sbp:146, dbp:90,  hpType:'原发性高血压', gender:'女', age:56, phone:'15562593049', birth:'1970-06-08', address:'济南市历下区文化东路51号',        archNo:'370102JM26027', region:'文化东路社区', grid:'第四网格', specDate:'2024-08-19', specDoc:'李蕾',   full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
-    { org:'山东大学齐鲁医院', name:'崔洪斌', idcard:'370102195609253719', idType:'居民身份证', grade:'三级', sbp:190, dbp:116, hpType:'继发性高血压', gender:'男', age:69, phone:'15589963027', birth:'1956-09-25', address:'济南市历下区窑头路7号',             archNo:'370102JM26028', region:'窑头社区',     grid:'第三网格', specDate:'2024-08-28', specDoc:'徐东升', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
-    { org:'济南市市中区舜玉路社区卫生服务中心', name:'白淑珍', idcard:'370102194804304428', idType:'居民身份证', grade:'二级', sbp:168, dbp:104, hpType:'原发性高血压', gender:'女', age:78, phone:'13064019573', birth:'1948-04-30', address:'济南市市中区六里山南路20号',      archNo:'370103JM26029', region:'舜玉社区',     grid:'第一网格', specDate:'2024-09-10', specDoc:'敖鹏天', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
-    { org:'济南市市中区舜玉路社区卫生服务中心', name:'孙福禄', idcard:'370103195201275511', idType:'居民身份证', grade:'一级', sbp:150, dbp:88,  hpType:'原发性高血压', gender:'男', age:74, phone:'15550062317', birth:'1952-01-27', address:'济南市市中区七里山路15号',        archNo:'370103JM26030', region:'七里山社区',   grid:'第一网格', specDate:'2024-09-24', specDoc:'敖鹏天', full:95,  rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
-    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'罗建萍', idcard:'370102196303184426', idType:'居民身份证', grade:'二级', sbp:166, dbp:98,  hpType:'原发性高血压', gender:'女', age:63, phone:'15806604013', birth:'1963-03-18', address:'济南市历下区甸柳新村二区4号楼',    archNo:'370102JM26031', region:'甸柳社区',     grid:'第二网格', specDate:'2024-10-08', specDoc:'陆柳琳', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
-    { org:'济南市历下区千佛山社区卫生服务中心', name:'蒋春林', idcard:'370102195707065518', idType:'居民身份证', grade:'一级', sbp:144, dbp:92,  hpType:'原发性高血压', gender:'男', age:69, phone:'13793167482', birth:'1957-07-06', address:'济南市历下区科院路19号',           archNo:'370102JM26032', region:'千佛山社区',   grid:'第二网格', specDate:'2024-10-21', specDoc:'朱劲松', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
-    { org:'济南市历下区文化东路社区卫生服务中心', name:'万秀琴', idcard:'370103195505214824', idType:'居民身份证', grade:'二级', sbp:158, dbp:102, hpType:'原发性高血压', gender:'女', age:71, phone:'15165374029', birth:'1955-05-21', address:'济南市历下区文化东路88号',        archNo:'370102JM26033', region:'文化东路社区', grid:'第四网格', specDate:'2024-11-02', specDoc:'李蕾',   full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
-    { org:'山东大学齐鲁医院', name:'顾长顺', idcard:'370102194912113317', idType:'居民身份证', grade:'二级', sbp:170, dbp:100, hpType:'原发性高血压', gender:'男', age:76, phone:'13064029581', birth:'1949-12-11', address:'济南市历下区和平路53号',          archNo:'370102JM26034', region:'解放路社区',   grid:'第一网格', specDate:'2024-11-15', specDoc:'徐东升', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
-    { org:'济南市天桥区工人新村社区卫生服务中心', name:'尹桂芳', idcard:'370102196610154826', idType:'居民身份证', grade:'一级', sbp:142, dbp:90,  hpType:'原发性高血压', gender:'女', age:59, phone:'15066651730', birth:'1966-10-15', address:'济南市天桥区工人新村北街7号',      archNo:'370105JM26035', region:'工人新村社区', grid:'第一网格', specDate:'2024-11-28', specDoc:'王盛',   full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
-    { org:'山东大学齐鲁医院', name:'严守成', idcard:'370102196004083311', idType:'居民身份证', grade:'二级', sbp:176, dbp:104, hpType:'原发性高血压', gender:'男', age:66, phone:'15806609742', birth:'1960-04-08', address:'济南市历下区姚家路118号',           archNo:'370102JM26036', region:'姚家社区',     grid:'第二网格', specDate:'2024-12-10', specDoc:'王盛',   full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
-    { org:'济南市市中区舜玉路社区卫生服务中心', name:'华凤英', idcard:'370102195808304420', idType:'居民身份证', grade:'一级', sbp:152, dbp:94,  hpType:'原发性高血压', gender:'女', age:68, phone:'15562588107', birth:'1958-08-30', address:'济南市市中区玉函路39号',           archNo:'370103JM26037', region:'舜玉社区',     grid:'第一网格', specDate:'2024-12-23', specDoc:'敖鹏天', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
-    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'尤德胜', idcard:'370102197202195513', idType:'居民身份证', grade:'二级', sbp:162, dbp:100, hpType:'原发性高血压', gender:'男', age:54, phone:'13176645908', birth:'1972-02-19', address:'济南市历下区甸柳新村八区2号楼',    archNo:'370102JM26038', region:'甸柳社区',     grid:'第二网格', specDate:'2025-01-06', specDoc:'陆柳琳', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
-    { org:'济南市天桥区工人新村社区卫生服务中心', name:'汤玉珍', idcard:'370103195111234426', idType:'居民身份证', grade:'二级', sbp:172, dbp:106, hpType:'原发性高血压', gender:'女', age:74, phone:'15589917860', birth:'1951-11-23', address:'济南市天桥区济泺路130号',           archNo:'370105JM26039', region:'工人新村社区', grid:'第一网格', specDate:'2025-01-19', specDoc:'朱劲松', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' }
+  /* ================= 模拟数据（姓名/证件号/出生日期/性别/年龄相互对应；患者类型初治为主、痰菌阴阳分布） ================= */
+  var tuberculosisData = [
+    { org:'扬州市江都区吴桥镇陆袁村卫生室',   name:'褚玉华',   idcard:'321088195806266141', idType:'居民身份证', gender:'女', age:68, phone:'13626117816', birth:'1958-06-26', follow:'2025-03-27', closeSt:'未结案', patType:'复治', sputum:'阳性', address:'江苏省扬州市江都区吴桥镇陆袁村前褚组12号', region:'陆袁村', liveType:'农村', evalDoc:'徐东升', archNo:'32101211811812501', fillDate:'2025-03-27', dutyDoc:'徐东升', lockSt:'未上锁', own:false },
+    { org:'山东大学齐鲁医院',                 name:'小山东高速', idcard:'510123199001010106', idType:'居民身份证', gender:'女', age:36, phone:'13899229292', birth:'1990-01-01', follow:'2025-03-26', closeSt:'未结案', patType:'初治', sputum:'阳性', address:'四川省成都市温江区柳城街道北街社区',     region:'北街社区', liveType:'城镇', evalDoc:'徐东升', archNo:'51011500100100076', fillDate:'2025-03-26', dutyDoc:'徐东升', lockSt:'未上锁', own:true },
+    { org:'扬州市江都区宜陵镇同兴村卫生室',   name:'吴昊',     idcard:'321088197104073635', idType:'居民身份证', gender:'男', age:55, phone:'15190413861', birth:'1971-04-07', follow:'2023-04-03', closeSt:'未结案', patType:'初治', sputum:'阴性', address:'江苏省扬州市江都区宜陵镇同兴村李庄组',       region:'同兴村',   liveType:'农村', evalDoc:'朱劲松', archNo:'32101201201136301', fillDate:'2023-04-03', dutyDoc:'朱劲松', lockSt:'未上锁', own:false },
+    { org:'扬州市江都区郭村镇郭村村卫生室',   name:'刘菊兰NV', idcard:'321088194908174139', idType:'居民身份证', gender:'女', age:77, phone:'13813131350', birth:'1949-08-17', follow:'2022-09-01', closeSt:'未结案', patType:'初治', sputum:'阳性', address:'江苏省扬州市江都区郭村镇郭村村周庄组',       region:'郭村村',   liveType:'农村', evalDoc:'朱劲松', archNo:'32101211211200035', fillDate:'2022-09-01', dutyDoc:'朱劲松', lockSt:'未上锁', own:false },
+    { org:'扬州市江都区宜陵镇中心卫生院',     name:'高德旺',   idcard:'321088195502143617', idType:'居民身份证', gender:'男', age:71, phone:'13705271654', birth:'1955-02-14', follow:'2025-06-18', closeSt:'未结案', patType:'初治', sputum:'阳性', address:'江苏省扬州市江都区宜陵镇同兴村李庄组18号', region:'同兴村',   liveType:'农村', evalDoc:'徐东升', archNo:'32101211811812502', fillDate:'2025-06-18', dutyDoc:'徐东升', lockSt:'未上锁', own:true },
+    { org:'扬州市江都区郭村镇卫生院',         name:'陈秀兰',   idcard:'321088194811205826', idType:'居民身份证', gender:'女', age:77, phone:'13852712346', birth:'1948-11-20', follow:'2024-11-02', closeSt:'未结案', patType:'初治', sputum:'阴性', address:'江苏省扬州市江都区郭村镇周庄组26号',       region:'郭村',     liveType:'农村', evalDoc:'李蕾', archNo:'32101211811812514', fillDate:'2024-11-02', dutyDoc:'李蕾', lockSt:'未上锁', own:false },
+    { org:'扬州市江都区吴桥镇卫生院',         name:'赵庆丰',   idcard:'321088196208157913', idType:'居民身份证', gender:'男', age:64, phone:'13952735678', birth:'1962-08-15', follow:'2025-01-15', closeSt:'未结案', patType:'复治', sputum:'阳性', address:'江苏省扬州市江都区吴桥镇兴吴路22号',       region:'吴桥',     liveType:'城镇', evalDoc:'朱劲松', archNo:'32101211811812504', fillDate:'2025-01-15', dutyDoc:'朱劲松', lockSt:'未上锁', own:false },
+    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'孙桂英', idcard:'321088194603054428', idType:'居民身份证', gender:'女', age:80, phone:'15805273456', birth:'1946-03-05', follow:'2024-05-20', closeSt:'已结案', patType:'初治', sputum:'阴性', address:'江苏省扬州市江都区仙女镇龙川社区7号',     region:'龙川',     liveType:'城镇', evalDoc:'陆柳琳', archNo:'32101211811812505', fillDate:'2024-05-20', dutyDoc:'陆柳琳', lockSt:'已锁定', own:false },
+    { org:'扬州市江都区大桥镇中心卫生院',     name:'王建国',   idcard:'321088195810126019', idType:'居民身份证', gender:'男', age:68, phone:'13665279874', birth:'1958-10-12', follow:'2023-08-09', closeSt:'未结案', patType:'初治', sputum:'阳性', address:'江苏省扬州市江都区大桥镇东大街31号',       region:'大桥',     liveType:'城镇', evalDoc:'王盛', archNo:'32101211811812515', fillDate:'2023-08-09', dutyDoc:'王盛', lockSt:'未上锁', own:false },
+    { org:'扬州市江都区宜陵镇中心卫生院',     name:'周淑芬',   idcard:'321088195306224826', idType:'居民身份证', gender:'女', age:73, phone:'15952765432', birth:'1953-06-22', follow:'2025-04-11', closeSt:'未结案', patType:'初治', sputum:'阴性', address:'江苏省扬州市江都区宜陵镇振兴路15号',       region:'同兴村',   liveType:'农村', evalDoc:'李蕾', archNo:'32101211811812516', fillDate:'2025-04-11', dutyDoc:'李蕾', lockSt:'未上锁', own:true },
+    { org:'扬州市江都区郭村镇卫生院',         name:'朱文明',   idcard:'321088196504075317', idType:'居民身份证', gender:'男', age:61, phone:'13805278653', birth:'1965-04-07', follow:'2024-02-27', closeSt:'已结案', patType:'复治', sputum:'阳性', address:'江苏省扬州市江都区郭村镇通扬路9号',       region:'郭村',     liveType:'城镇', evalDoc:'徐东升', archNo:'32101211811812508', fillDate:'2024-02-27', dutyDoc:'徐东升', lockSt:'已锁定', own:false },
+    { org:'扬州市江都区吴桥镇卫生院',         name:'钱玉梅',   idcard:'321088197211092643', idType:'居民身份证', gender:'女', age:53, phone:'13773581920', birth:'1972-11-09', follow:'2023-12-06', closeSt:'未结案', patType:'初治', sputum:'阴性', address:'江苏省扬州市江都区吴桥镇兴吴路8号',         region:'吴桥',     liveType:'农村', evalDoc:'朱劲松', archNo:'32101211811812509', fillDate:'2023-12-06', dutyDoc:'朱劲松', lockSt:'未上锁', own:false },
+    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'冯国强', idcard:'321088196009185615', idType:'居民身份证', gender:'男', age:66, phone:'15862009753', birth:'1960-09-18', follow:'2025-02-14', closeSt:'未结案', patType:'初治', sputum:'阳性', address:'江苏省扬州市江都区仙女镇东方红路45号',     region:'龙川',     liveType:'城镇', evalDoc:'敖鹏天', archNo:'32101211811812510', fillDate:'2025-02-14', dutyDoc:'敖鹏天', lockSt:'未上锁', own:false },
+    { org:'扬州市江都区大桥镇中心卫生院',     name:'何秀珍',   idcard:'321088195405236724', idType:'居民身份证', gender:'女', age:72, phone:'13952739518', birth:'1954-05-23', follow:'2024-08-30', closeSt:'未结案', patType:'初治', sputum:'阴性', address:'江苏省扬州市江都区大桥镇忠诚村8组',         region:'大桥',     liveType:'农村', evalDoc:'王盛', archNo:'32101211811812517', fillDate:'2024-08-30', dutyDoc:'王盛', lockSt:'未上锁', own:true },
+    { org:'扬州市江都区宜陵镇同兴村卫生室',   name:'蒋立新',   idcard:'321088196712304718', idType:'居民身份证', gender:'男', age:58, phone:'13615187246', birth:'1967-12-30', follow:'2023-06-19', closeSt:'已结案', patType:'初治', sputum:'阳性', address:'江苏省扬州市江都区宜陵镇文星路18号',       region:'同兴村',   liveType:'城镇', evalDoc:'李蕾', archNo:'32101211811812518', fillDate:'2023-06-19', dutyDoc:'李蕾', lockSt:'已锁定', own:false },
+    { org:'扬州市江都区郭村镇卫生院',         name:'沈玉兰',   idcard:'321088195108275842', idType:'居民身份证', gender:'女', age:75, phone:'15905274683', birth:'1951-08-27', follow:'2024-04-08', closeSt:'未结案', patType:'初治', sputum:'阴性', address:'江苏省扬州市江都区郭村镇佘坂组3号',       region:'郭村',     liveType:'农村', evalDoc:'陆柳琳', archNo:'32101211811812513', fillDate:'2024-04-08', dutyDoc:'陆柳琳', lockSt:'未上锁', own:false },
+    { org:'扬州市江都区吴桥镇卫生院',         name:'韩德顺',   idcard:'321088195511196312', idType:'居民身份证', gender:'男', age:70, phone:'13852796317', birth:'1955-11-19', follow:'2025-05-23', closeSt:'未结案', patType:'复治', sputum:'阳性', address:'江苏省扬州市江都区吴桥镇谢桥村12组',       region:'谢桥',     liveType:'农村', evalDoc:'敖鹏天', archNo:'32101211811812522', fillDate:'2025-05-23', dutyDoc:'敖鹏天', lockSt:'未上锁', own:false },
+    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'潘玉珍', idcard:'321088197209134426', idType:'居民身份证', gender:'女', age:54, phone:'15190872465', birth:'1972-09-13', follow:'2023-10-31', closeSt:'未结案', patType:'初治', sputum:'阴性', address:'江苏省扬州市江都区仙女镇利民南路60号',     region:'龙川',     liveType:'城镇', evalDoc:'王盛', archNo:'32101211811812519', fillDate:'2023-10-31', dutyDoc:'王盛', lockSt:'未上锁', own:false },
+    { org:'扬州市江都区大桥镇中心卫生院',     name:'严洪斌',   idcard:'321088196005063417', idType:'居民身份证', gender:'男', age:66, phone:'13773365498', birth:'1960-05-06', follow:'2024-01-26', closeSt:'未结案', patType:'初治', sputum:'阳性', address:'江苏省扬州市江都区大桥镇白塔村5组',         region:'白塔',     liveType:'农村', evalDoc:'徐东升', archNo:'32101211811812523', fillDate:'2024-01-26', dutyDoc:'徐东升', lockSt:'未上锁', own:true },
+    { org:'扬州市江都区宜陵镇中心卫生院',     name:'尹桂香',   idcard:'321088194810124425', idType:'居民身份证', gender:'女', age:77, phone:'15952738102', birth:'1948-10-12', follow:'2025-07-07', closeSt:'未结案', patType:'初治', sputum:'阴性', address:'江苏省扬州市江都区宜陵镇七里村2组',         region:'同兴村',   liveType:'农村', evalDoc:'李蕾', archNo:'32101211811812520', fillDate:'2025-07-07', dutyDoc:'李蕾', lockSt:'未上锁', own:false },
+    { org:'扬州市江都区郭村镇郭村村卫生室',   name:'石卫东',   idcard:'321088197503084316', idType:'居民身份证', gender:'男', age:51, phone:'13852794518', birth:'1975-03-08', follow:'2024-09-14', closeSt:'已结案', patType:'初治', sputum:'阳性', address:'江苏省扬州市江都区郭村镇振兴东路26号',     region:'郭村村',   liveType:'城镇', evalDoc:'朱劲松', archNo:'32101211811812524', fillDate:'2024-09-14', dutyDoc:'朱劲松', lockSt:'已锁定', own:false },
+    { org:'扬州市江都区吴桥镇卫生院',         name:'魏春霞',   idcard:'321088196806192844', idType:'居民身份证', gender:'女', age:58, phone:'13773592164', birth:'1968-06-19', follow:'2022-12-20', closeSt:'未结案', patType:'初治', sputum:'阴性', address:'江苏省扬州市江都区吴桥镇谢桥村4组',         region:'谢桥',     liveType:'农村', evalDoc:'陆柳琳', archNo:'32101211811812525', fillDate:'2022-12-20', dutyDoc:'陆柳琳', lockSt:'未上锁', own:false },
+    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'姜文斌', idcard:'321088198201257313', idType:'居民身份证', gender:'男', age:44, phone:'15862003517', birth:'1982-01-25', follow:'2024-06-05', closeSt:'未结案', patType:'初治', sputum:'阳性', address:'江苏省扬州市江都区仙女镇龙城路12号',       region:'龙川',     liveType:'城镇', evalDoc:'敖鹏天', archNo:'32101211811812526', fillDate:'2024-06-05', dutyDoc:'敖鹏天', lockSt:'未上锁', own:false },
+    { org:'扬州市江都区大桥镇中心卫生院',     name:'崔美凤',   idcard:'321088195707304428', idType:'居民身份证', gender:'女', age:69, phone:'13952745682', birth:'1957-07-30', follow:'2023-03-17', closeSt:'未结案', patType:'初治', sputum:'阴性', address:'江苏省扬州市江都区大桥镇昌松村6组',         region:'大桥',     liveType:'农村', evalDoc:'王盛', archNo:'32101211811812521', fillDate:'2023-03-17', dutyDoc:'王盛', lockSt:'未上锁', own:false }
   ];
 
   /* ================= 工具函数 ================= */
@@ -818,53 +650,32 @@
 
   /* ================= 表格渲染（按筛选条件实时过滤 + 分页） ================= */
   function renderTable() {
-    var org = $('fOrg').value, name = $('fName').value.trim(), idcard = $('fIdcard').value.trim();
-    var region = $('fRegion').value, lock = $('fLock').value;
-    var rStatus = $('fRStatus').value, mStatus = $('fMStatus').value;
-    var grade = $('fGrade').value, hpType = $('fHpType').value, grid = $('fGrid').value;
-    var phone = $('fPhone').value.trim(), archNo = $('fArchNo').value.trim();
-    var gender = $('fGender').value, address = $('fAddress').value.trim();
-    var specDoc = $('fSpecDoc').value.trim();
-    var fullOp = $('fFullOp').value, fullVal = $('fFullVal').value.trim();
-    var birthStart = $('fBirthStart').value, birthEnd = $('fBirthEnd').value;
-    var specStart = $('fSpecStart').value, specEnd = $('fSpecEnd').value;
+    var org = $('fOrg').value, name = $('fName').value.trim(), gender = $('fGender').value;
+    var idcard = $('fIdcard').value.trim(), liveType = $('fLiveType').value;
+    var closeSt = $('fCloseSt').value, region = $('fRegion').value;
+    var followStart = $('fFollowStart').value, followEnd = $('fFollowEnd').value;
+    var phone = $('fPhone').value.trim(), evalDoc = $('fEvalDoc').value.trim();
+    var birth = $('fBirth').value.trim(), idType = $('fIdType').value;
+    var patType = $('fPatType').value, sputum = $('fSputum').value;
+    var onlyOwn = $('fOwn').checked;
 
-    lastList = hypertensionData.filter(function (r) {
+    lastList = tuberculosisData.filter(function (r) {
       if (org && r.org !== org) return false;
       if (name && r.name.indexOf(name) === -1) return false;
-      if (idcard && r.idcard.indexOf(idcard) === -1) return false;
-      if (region && r.region !== region) return false;
-      if (lock && r.lock !== lock) return false;
-      if (rStatus && r.rStatus !== rStatus) return false;
-      if (mStatus && r.mStatus !== mStatus) return false;
-      if (grade && r.grade !== grade) return false;
-      if (hpType && r.hpType !== hpType) return false;
-      if (grid && r.grid !== grid) return false;
-      if (phone && r.phone.indexOf(phone) === -1) return false;
-      if (archNo && r.archNo.indexOf(archNo) === -1) return false;
       if (gender && r.gender !== gender) return false;
-      if (address && r.address.indexOf(address) === -1) return false;
-      if (specDoc && r.specDoc.indexOf(specDoc) === -1) return false;
-      if (birthStart && r.birth < birthStart) return false;
-      if (birthEnd && r.birth > birthEnd) return false;
-      if (specStart && r.specDate < specStart) return false;
-      if (specEnd && r.specDate > specEnd) return false;
-      if (bpApplied.length) {
-        var bpRes = null;
-        bpApplied.forEach(function (c, i) {
-          var m = bpMatchRow(r, c);
-          bpRes = i === 0 ? m : (c.logic === '或' ? (bpRes || m) : (bpRes && m));
-        });
-        if (!bpRes) return false;
-      }
-      if (fullOp && fullVal !== '') {
-        var v = parseInt(fullVal, 10);
-        if (!isNaN(v)) {
-          if (fullOp === '≥' && r.full < v) return false;
-          if (fullOp === '≤' && r.full > v) return false;
-          if (fullOp === '＝' && r.full !== v) return false;
-        }
-      }
+      if (idcard && r.idcard.indexOf(idcard) === -1) return false;
+      if (liveType && r.liveType !== liveType) return false;
+      if (closeSt && r.closeSt !== closeSt) return false;
+      if (region && r.region !== region) return false;
+      if (followStart && (!r.follow || r.follow < followStart)) return false;
+      if (followEnd && (!r.follow || r.follow > followEnd)) return false;
+      if (phone && r.phone.indexOf(phone) === -1) return false;
+      if (evalDoc && r.evalDoc.indexOf(evalDoc) === -1) return false;
+      if (birth && r.birth.indexOf(birth) === -1) return false;
+      if (idType && r.idType !== idType) return false;
+      if (patType && r.patType !== patType) return false;
+      if (sputum && r.sputum !== sputum) return false;
+      if (onlyOwn && !r.own) return false;
       return true;
     });
 
@@ -873,49 +684,49 @@
     var start = (curPage - 1) * PAGE_SIZE;
     var slice = lastList.slice(start, start + PAGE_SIZE);
 
-    var gradeCls = { '一级': 'g1', '二级': 'g2', '三级': 'g3' };
     var html = '';
     if (slice.length === 0) {
-      html = '<tr class="empty-row"><td colspan="22"><div class="ico">📭</div>暂无符合条件的高血压管理档案</td></tr>';
+      html = '<tr class="empty-row"><td colspan="20"><div class="ico">📭</div>暂无符合条件的结核病管理档案</td></tr>';
     } else {
       slice.forEach(function (r, i) {
-        var bpLv = (r.sbp >= 180 || r.dbp >= 110) ? 'lv3' : (r.sbp >= 160 || r.dbp >= 100) ? 'lv2' : 'lv1';
-        var fullCls = r.full >= 90 ? 'full-ok' : r.full >= 60 ? 'full-mid' : 'full-low';
-        var rsDot = r.rStatus === '正常' ? 'ok' : 'warn';
-        var msDot = r.mStatus === '有效管理' ? 'info' : 'warn';
-        var lkDot = r.lock === '未上锁' ? 'ok' : 'warn';
+        var closeHtml = '<span class="st-dot ' + (r.closeSt === '已结案' ? 'ok' : 'warn') + '"></span>' + esc(r.closeSt);
+        var patHtml = '<span class="tb-badge ' + (r.patType === '复治' ? 'pt-re' : 'pt-first') + '">' + esc(r.patType) + '</span>';
+        var dutyDocHtml = r.dutyDoc ? esc(r.dutyDoc) : '<span class="td-nil">—</span>';
+        var lockStHtml = r.lockSt
+          ? '<span class="st-dot ' + (r.lockSt === '已锁定' ? 'ok' : 'warn') + '"></span>' + esc(r.lockSt)
+          : '<span class="td-nil">—</span>';
+        var spCls = r.sputum === '阳性' ? 'sp-pos' : (r.sputum === '阴性' ? 'sp-neg' : 'sp-none');
+        var spHtml = r.sputum ? '<span class="tb-badge ' + spCls + '">' + esc(r.sputum) + '</span>' : '<span class="td-nil">—</span>';
         html += '<tr>'
           + '<td class="center">' + (start + i + 1) + '</td>'
           + '<td title="' + esc(r.org) + '"><span class="cell">' + esc(r.org) + '</span></td>'
-          + '<td><a class="op-link" onclick="goArchive(\'' + esc(r.archNo) + '\')" title="查看高血压专项档案">' + esc(r.name) + '</a></td>'
-          + '<td title="' + esc(r.idcard) + '"><span class="cell">' + esc(r.idcard) + '</span></td>'
+          + '<td><a class="op-link" onclick="toast(\'查看结核专项档案：' + esc(r.name) + '\',\'info\')">' + esc(r.name) + '</a></td>'
           + '<td>' + esc(r.idType) + '</td>'
-          + '<td class="center"><span class="grade-badge ' + gradeCls[r.grade] + '">' + esc(r.grade) + '</span></td>'
-          + '<td class="center" title="收缩压/舒张压（mmHg）"><span class="bp-val ' + bpLv + '">' + r.sbp + '/' + r.dbp + '</span></td>'
-          + '<td>' + esc(r.hpType) + '</td>'
+          + '<td title="' + esc(r.idcard) + '"><span class="cell">' + esc(r.idcard) + '</span></td>'
           + '<td class="center">' + esc(r.gender) + '</td>'
           + '<td class="center">' + r.age + '</td>'
-          + '<td title="' + esc(r.phone) + '"><span class="cell">' + esc(r.phone) + '</span></td>'
           + '<td>' + esc(r.birth) + '</td>'
+          + '<td title="' + esc(r.phone) + '"><span class="cell">' + esc(r.phone) + '</span></td>'
+          + '<td class="center">' + esc(r.follow) + '</td>'
+          + '<td class="center">' + closeHtml + '</td>'
+          + '<td class="center">' + patHtml + '</td>'
+          + '<td class="center">' + spHtml + '</td>'
           + '<td title="' + esc(r.address) + '"><span class="cell">' + esc(r.address) + '</span></td>'
           + '<td title="' + esc(r.archNo) + '"><span class="cell">' + esc(r.archNo) + '</span></td>'
           + '<td>' + esc(r.region) + '</td>'
-          + '<td>' + esc(r.specDate) + '</td>'
-          + '<td>' + esc(r.specDoc) + '</td>'
-          + '<td class="center"><span class="' + fullCls + '">' + r.full + '</span></td>'
-          + '<td><span class="st-dot ' + rsDot + '"></span>' + esc(r.rStatus) + '</td>'
-          + '<td><span class="st-dot ' + msDot + '"></span>' + esc(r.mStatus) + '</td>'
-          + '<td><span class="st-dot ' + lkDot + '"></span>' + esc(r.lock) + '</td>'
+          + '<td>' + esc(r.fillDate) + '</td>'
+          + '<td>' + dutyDocHtml + '</td>'
+          + '<td class="center">' + lockStHtml + '</td>'
           + '<td class="center">'
-          +   '<a class="op-link" onclick="goArchive(\'' + esc(r.archNo) + '\')">查看</a>'
+          +   '<a class="op-link" onclick="toast(\'编辑结核专项档案：' + esc(r.name) + '\',\'info\')">编辑</a>'
           +   '<span class="op-gap"></span>'
-          +   '<a class="op-link" onclick="goArchive(\'' + esc(r.archNo) + '\')">编辑</a>'
+          +   '<a class="op-link" onclick="toast(\'新建随访：' + esc(r.name) + '（功能建设中）\',\'info\')">新建随访</a>'
           +   '<span class="op-gap"></span>'
           +   '<span class="op-more">'
           +     '<a class="more-btn" onclick="toggleOpMenu(this,event)">更多<svg viewBox="0 0 24 24" style="width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="6 9 12 15 18 9"/></svg></a>'
           +     '<span class="op-menu">'
           +       '<button class="mi" onclick="opAction(\'随访记录\',\'' + esc(r.name) + '\')">随访记录</button>'
-          +       '<button class="mi" onclick="opAction(\'血压上报\',\'' + esc(r.name) + '\')">血压上报</button>'
+          +       '<button class="mi" onclick="opAction(\'结案评估\',\'' + esc(r.name) + '\')">结案评估</button>'
           +       '<button class="mi" onclick="opAction(\'打印专项档案\',\'' + esc(r.name) + '\')">打印专项档案</button>'
           +     '</span>'
           +   '</span>'
@@ -968,17 +779,10 @@
 
   /* ================= 交互 ================= */
   function resetFilter() {
-    ['fName', 'fIdcard', 'fArchNo', 'fPhone', 'fAddress', 'fSpecDoc', 'fArchDoc', 'fFuCnt', 'fExamCnt', 'fFullVal'].forEach(function (id) { $(id).value = ''; });
-    ['fOrg', 'fRegion', 'fGrid', 'fGrade', 'fHpType', 'fFuCntOp', 'fExamCntOp', 'fFullOp', 'fFuType', 'fBpItem', 'fSpecOrg', 'fResidentType', 'fGender', 'fLiveType'].forEach(function (id) { $(id).value = ''; });
-    ['fBizStart', 'fBizEnd', 'fSpecStart', 'fSpecEnd', 'fArchStart', 'fArchEnd', 'fBirthStart', 'fBirthEnd'].forEach(function (id) { var el = $(id); el.value = ''; el.type = 'text'; });
-    $('fLock').value = '未上锁';
-    $('fRStatus').value = '正常';
-    $('fMStatus').value = '有效管理';
-    document.querySelectorAll('input[name=fYearEval],input[name=fDrug]').forEach(function (r) { r.checked = false; });
-    $('fMine').checked = false;
-    $('fBpItem').value = '';
-    bpApplied = [];
-    resetBpPanel();
+    ['fName', 'fIdcard', 'fPhone', 'fEvalDoc', 'fBirth', 'fFollowStart', 'fFollowEnd'].forEach(function (id) { $(id).value = ''; });
+    $('fOrg').value = ''; $('fGender').value = '';
+    $('fLiveType').value = ''; $('fCloseSt').value = ''; $('fRegion').value = '';
+    $('fIdType').value = ''; $('fPatType').value = ''; $('fSputum').value = ''; $('fOwn').checked = false;
     curPage = 1;
     renderTable();
     toast('筛选条件已重置', 'success');
@@ -991,121 +795,9 @@
   }
 
   function toggleExtra() {
-    var rows = document.querySelectorAll('.filter-row.extra');
-    var btn = $('btnExpand');
-    var show = !rows[0].classList.contains('show');
-    rows.forEach(function (row) { row.classList.toggle('show', show); });
-    btn.textContent = show ? '收起 ▲' : '展开 ▼';
-    /* 展开：按钮组移到最后一行筛选条件右侧；收起：移回第二行末尾 */
-    var btns = document.querySelector('.filter-panel .filter-btns');
-    var mainRows = document.querySelectorAll('.filter-panel .filter-row:not(.extra)');
-    if (show) {
-      rows[rows.length - 1].appendChild(btns);
-    } else {
-      mainRows[mainRows.length - 1].appendChild(btns);
-    }
-  }
-
-  /* ================= 体检项目复合筛选面板（血压项目）：每行内嵌项目下拉，行间与/或组合 ================= */
-  var BP_ITEMS = ['收缩压', '舒张压'];
-  var BP_LOGIC = ['与', '或'];
-  var BP_OPS = ['=', '>', '<', '≥', '≤'];
-  var bpConditions = [];
-  var bpApplied = [];   /* 确认后的条件快照，用于实际过滤 */
-
-  function openBpPanel() {
-    if (!bpConditions.length) addBpCond();
-    renderBpConds();
-    $('bpPanel').classList.add('show');
-  }
-
-  function closeBpPanel() {
-    $('bpPanel').classList.remove('show');
-  }
-
-  function addBpCond() {
-    bpConditions.push({ logic: '或', item: '', exist: '不为空', cmp: '', val: '' });
-    renderBpConds();
-  }
-
-  function removeBpCond(i) {
-    bpConditions.splice(i, 1);
-    if (!bpConditions.length) addBpCond();
-    else renderBpConds();
-  }
-
-  function bpSelect(cls, opts, val, onch, ph) {
-    var h = '<select class="' + cls + '" onchange="' + onch + '">';
-    if (ph !== undefined) h += '<option value=""' + (val === '' ? ' selected' : '') + '>' + ph + '</option>';
-    opts.forEach(function (o) {
-      h += '<option value="' + o + '"' + (o === val ? ' selected' : '') + '>' + o + '</option>';
-    });
-    return h + '</select>';
-  }
-
-  /* 存在条件切换：为空时清掉已选比较符/数值，避免隐藏控件残留旧值 */
-  function bpSetExist(i, v) {
-    bpConditions[i].exist = v;
-    if (v === '为空') { bpConditions[i].cmp = ''; bpConditions[i].val = ''; }
-    renderBpConds();
-  }
-
-  function renderBpConds() {
-    var html = '';
-    bpConditions.forEach(function (c, i) {
-      html += '<div class="bp-cond">'
-        + (i > 0 ? bpSelect('s-logic', BP_LOGIC, c.logic, 'bpConditions[' + i + '].logic=this.value') : '')
-        + bpSelect('s-item', BP_ITEMS, c.item, 'bpConditions[' + i + '].item=this.value', '请选择')
-        + bpSelect('s-exist', ['不为空', '为空'], c.exist, 'bpSetExist(' + i + ',this.value)');
-      /* 为空：一元条件，隐藏比较符与数值输入 */
-      if (c.exist !== '为空') {
-        html += bpSelect('s-cmp', BP_OPS, c.cmp, 'bpConditions[' + i + '].cmp=this.value', '请选择')
-          + '<input value="' + esc(c.val) + '" placeholder="请输入数字" oninput="bpConditions[' + i + '].val=this.value">';
-      }
-      html += '<span class="bp-del" onclick="removeBpCond(' + i + ')" title="删除该条件">×</span>'
-        + (i === bpConditions.length - 1 ? '<span class="bp-add" onclick="addBpCond()" title="添加条件">+</span>' : '')
-        + '</div>';
-    });
-    $('bpCondBox').innerHTML = html;
-  }
-
-  function confirmBpPanel() {
-    for (var i = 0; i < bpConditions.length; i++) {
-      if (!bpConditions[i].item) { toast('第 ' + (i + 1) + ' 行请选择体检项目', 'warning'); return; }
-      if (bpConditions[i].exist !== '为空' && bpConditions[i].val !== '' && !bpConditions[i].cmp) { toast('第 ' + (i + 1) + ' 行请选择比较符', 'warning'); return; }
-    }
-    bpApplied = bpConditions.map(function (c) {
-      return { logic: c.logic, item: c.item, exist: c.exist, cmp: c.cmp, val: c.val };
-    });
-    var text = bpApplied.map(function (c, i) {
-      var t = c.val !== '' ? (c.item + c.cmp + c.val) : (c.item + (c.exist === '为空' ? '为空' : '不为空'));
-      return (i > 0 ? c.logic + ' ' : '') + t;
-    }).join(' ');
-    $('fBpItem').value = text;
-    closeBpPanel();
-    curPage = 1;
-    renderTable();
-    toast('已设置血压项目条件：' + text, 'success');
-  }
-
-  function resetBpPanel() {
-    bpConditions = [];
-    addBpCond();
-  }
-
-  /* 单行条件匹配（按行内选择的项目取收缩压/舒张压值） */
-  function bpMatchRow(r, c) {
-    var v = c.item === '收缩压' ? r.sbp : r.dbp;
-    if (c.exist === '为空') return false;
-    if (c.val === '') return true;
-    var n = parseFloat(c.val);
-    if (isNaN(n)) return true;
-    if (c.cmp === '=') return v === n;
-    if (c.cmp === '>') return v > n;
-    if (c.cmp === '<') return v < n;
-    if (c.cmp === '≥') return v >= n;
-    if (c.cmp === '≤') return v <= n;
-    return true;
+    var row = $('extraRow'), btn = $('btnExpand');
+    var show = row.classList.toggle('show');
+    btn.textContent = show ? '收起 −' : '展开 +';
   }
 
   function toggleOpMenu(el, ev) {
@@ -1130,15 +822,13 @@
   });
 
   /* 筛选控件输入即实时过滤（并回到第一页） */
-  ['fName', 'fIdcard', 'fPhone', 'fArchNo', 'fAddress', 'fSpecDoc', 'fArchDoc', 'fFuCnt', 'fExamCnt', 'fFullVal'].forEach(function (id) {
+  ['fName', 'fIdcard', 'fPhone', 'fEvalDoc', 'fBirth'].forEach(function (id) {
     $(id).addEventListener('input', function () { curPage = 1; renderTable(); });
   });
-  ['fOrg', 'fRegion', 'fLock', 'fRStatus', 'fMStatus', 'fGrade', 'fHpType', 'fGrid', 'fFuCntOp', 'fExamCntOp', 'fFuType', 'fFullOp', 'fSpecOrg', 'fResidentType', 'fGender', 'fLiveType', 'fBizStart', 'fBizEnd', 'fSpecStart', 'fSpecEnd', 'fArchStart', 'fArchEnd', 'fBirthStart', 'fBirthEnd'].forEach(function (id) {
+  ['fOrg', 'fGender', 'fLiveType', 'fCloseSt', 'fRegion', 'fFollowStart', 'fFollowEnd', 'fIdType', 'fPatType', 'fSputum'].forEach(function (id) {
     $(id).addEventListener('change', function () { curPage = 1; renderTable(); });
   });
-  document.querySelectorAll('input[name=fYearEval],input[name=fDrug],#fMine').forEach(function (el) {
-    el.addEventListener('change', function () { curPage = 1; renderTable(); });
-  });
+  $('fOwn').addEventListener('change', function () { curPage = 1; renderTable(); });
 
   /* ================= 档案选择弹框（新建专项第一步） ================= */
   var selectArchiveData = [
@@ -1147,13 +837,13 @@
     { archNo:'32101210010000321', name:'测试',       gender:'男', age:59, idType:'居民身份证', idcard:'81994719661217461X', crowd:'',             region:'东苑社区', org:'山东大学齐鲁医院', grid:'第一网格', rStatus:'正常', lock:'未上锁', op:'create' },
     { archNo:'32101210010000320', name:'测试',       gender:'男', age:50, idType:'居民身份证', idcard:'15827819751024691X', crowd:'',             region:'东苑社区', org:'山东大学齐鲁医院', grid:'第二网格', rStatus:'正常', lock:'未上锁', op:'create' },
     { archNo:'32101210010000319', name:'测试',       gender:'男', age:24, idType:'居民身份证', idcard:'51032220011213837X', crowd:'',             region:'东苑社区', org:'山东大学齐鲁医院', grid:'第三网格', rStatus:'正常', lock:'未上锁', op:'create' },
-    { archNo:'32101210010000318', name:'自动化测试', gender:'男', age:24, idType:'居民身份证', idcard:'51033320011215847X', crowd:'',             region:'东苑社区', org:'山东大学齐鲁医院', grid:'第一网格', rStatus:'正常', lock:'未上锁', op:'none' },
     { archNo:'32101211811812486', name:'李大海',     gender:'女', age:46, idType:'居民身份证', idcard:'110101198005010149', crowd:'',             region:'善玉村',   org:'山东大学齐鲁医院', grid:'第二网格', rStatus:'正常', lock:'未上锁', op:'create' },
-    { archNo:'32101210010000308', name:'李文顺',     gender:'男', age:27, idType:'居民身份证', idcard:'51013219990514121X', crowd:'',             region:'龙川社区', org:'山东大学齐鲁医院', grid:'第三网格', rStatus:'正常', lock:'未上锁', op:'none' },
+    { archNo:'32101210010000308', name:'李文顺',     gender:'男', age:27, idType:'居民身份证', idcard:'51013219990514121X', crowd:'',             region:'龙川社区', org:'山东大学齐鲁医院', grid:'第三网格', rStatus:'正常', lock:'未上锁', op:'create' },
     { archNo:'51011500100100070', name:'刘柳',       gender:'女', age:36, idType:'居民身份证', idcard:'510123199001010026', crowd:'',             region:'北街社区', org:'山东大学齐鲁医院', grid:'第二网格', rStatus:'正常', lock:'未上锁', op:'create' },
     { archNo:'51011500100100076', name:'小山东高速', gender:'女', age:36, idType:'居民身份证', idcard:'510123199001010106', crowd:'高血压 糖尿病', region:'北街社区', org:'山东大学齐鲁医院', grid:'第二网格', rStatus:'正常', lock:'未上锁', op:'enter' },
     { archNo:'51011500100100074', name:'徐华',       gender:'男', age:50, idType:'居民身份证', idcard:'31011019760306201X', crowd:'',             region:'西街社区', org:'山东大学齐鲁医院', grid:'第三网格', rStatus:'正常', lock:'未上锁', op:'create' },
-    { archNo:'51011500100100073', name:'张兰之子',   gender:'女', age:3,  idType:'居民身份证', idcard:'',                   crowd:'儿童',         region:'西街社区', org:'山东大学齐鲁医院', grid:'第一网格', rStatus:'正常', lock:'未上锁', op:'none' }
+    { archNo:'51011500100100073', name:'张兰之子',   gender:'女', age:3,  idType:'居民身份证', idcard:'',                   crowd:'儿童',         region:'西街社区', org:'山东大学齐鲁医院', grid:'第一网格', rStatus:'正常', lock:'未上锁', op:'none' },
+    { archNo:'51011500100100068', name:'陈志远',     gender:'男', age:43, idType:'居民身份证', idcard:'510104198308154017', crowd:'',             region:'南街社区', org:'山东大学齐鲁医院', grid:'第四网格', rStatus:'正常', lock:'未上锁', op:'create' }
   ];
 
   var SF_PAGE_SIZE = 20;
@@ -1284,7 +974,7 @@
     $('selectModal').classList.remove('show');
   }
 
-  /* 选择档案后点击"新建专项"：跳转至档案维护页，切换到高血压专项表填报界面 */
+  /* 选择档案后点击"新建专项"：跳转至档案维护页，切换到结核专项表填报界面 */
   function selectArchive(archNo) {
     var r = null;
     for (var i = 0; i < selectArchiveData.length; i++) {
@@ -1293,7 +983,7 @@
     if (!r) return;
     closeSelectModal();
     var params = [
-      'view=hypertension',
+      'view=tuberculosis',
       'name=' + encodeURIComponent(r.name),
       'gender=' + encodeURIComponent(r.gender === '男' ? '男性' : '女性'),
       'idcard=' + encodeURIComponent(r.idcard),
@@ -1309,34 +999,7 @@
   /* 已有专项档案：点击"进入专项" */
   function enterArchive(name) {
     closeSelectModal();
-    toast('进入高血压专项档案：' + name + '（功能建设中）', 'info');
-  }
-
-  /* 列表操作列「查看/编辑」：跳转档案维护页并定位到高血压专项表（带行数据预填） */
-  function goArchive(archNo) {
-    var r = null;
-    for (var i = 0; i < hypertensionData.length; i++) {
-      if (hypertensionData[i].archNo === archNo) { r = hypertensionData[i]; break; }
-    }
-    if (!r) return;
-    var params = [
-      'view=hypertension',
-      'name=' + encodeURIComponent(r.name),
-      'gender=' + encodeURIComponent(r.gender === '男' ? '男性' : '女性'),
-      'idcard=' + encodeURIComponent(r.idcard),
-      'idType=' + encodeURIComponent(r.idType || '居民身份证'),
-      'archNo=' + encodeURIComponent(r.archNo),
-      'addr=' + encodeURIComponent(r.address || '')
-    ];
-    if (r.birth) params.push('birth=' + encodeURIComponent(r.birth));
-    if (r.phone) params.push('phone=' + encodeURIComponent(r.phone));
-    if (r.sbp) params.push('sbp=' + encodeURIComponent(r.sbp));
-    if (r.dbp) params.push('dbp=' + encodeURIComponent(r.dbp));
-    if (r.hpType) params.push('hpType=' + encodeURIComponent(r.hpType));
-    if (r.org) params.push('specOrg=' + encodeURIComponent(r.org));
-    if (r.specDoc) params.push('specDoc=' + encodeURIComponent(r.specDoc));
-    if (r.specDate) params.push('specDate=' + encodeURIComponent(r.specDate));
-    location.href = '档案维护.html?' + params.join('&');
+    toast('进入结核专项档案：' + name + '（功能建设中）', 'info');
   }
 
   /* 筛选控件实时过滤 */
@@ -1347,7 +1010,7 @@
     $(id).addEventListener('change', function () { sfCurPage = 1; renderSelectTable(); });
   });
 
-  /* ================= 新建高血压专项档案弹框 ================= */
+  /* ================= 新建结核专项档案弹框 ================= */
   function pvRow(label, val, wide) {
     return '<div class="pv-row' + (wide ? ' wide' : '') + '"><span class="pv-label">' + label + '</span><span class="pv-val">' + esc(val || '') + '</span></div>';
   }
@@ -1361,9 +1024,9 @@
       pvRow('证件类型：', $('cmIdType').value) +
       pvRow('证件号：', $('cmIdcard').value.trim(), true) +
       pvRow('联系电话：', $('cmPhone').value.trim()) +
-      pvRow('高血压类型：', $('cmHpType').value) +
-      pvRow('当前分级：', $('cmGrade').value) +
-      pvRow('确诊日期：', $('cmDiagDate').value);
+      pvRow('患者类型：', $('cmPatType').value) +
+      pvRow('痰菌情况：', $('cmSputum').value) +
+      pvRow('第一次入户随访日期：', $('cmFollowDate').value);
   }
 
   /* 弹框刚打开时回显卡为空（贴合原型：仅展示标签） */
@@ -1372,8 +1035,8 @@
       pvRow('姓名：', '') + pvRow('性别：', '') +
       pvRow('出生年月：', '') + pvRow('证件类型：', '') +
       pvRow('证件号：', '', true) +
-      pvRow('联系电话：', '') + pvRow('高血压类型：', '') +
-      pvRow('当前分级：', '') + pvRow('确诊日期：', '');
+      pvRow('联系电话：', '') + pvRow('患者类型：', '') +
+      pvRow('痰菌情况：', '') + pvRow('第一次入户随访日期：', '');
   }
 
   function openCreateModal() {
@@ -1404,16 +1067,16 @@
     if (!$('cmGender').value) missing.push('性别');
     if (!$('cmBirth').value) missing.push('出生日期');
     if (!$('cmPhone').value.trim()) missing.push('联系电话');
-    if (!$('cmHpType').value) missing.push('高血压类型');
-    if (!$('cmGrade').value) missing.push('当前分级');
-    if (!$('cmDiagDate').value) missing.push('确诊日期');
+    if (!$('cmPatType').value) missing.push('患者类型');
+    if (!$('cmSputum').value) missing.push('痰菌情况');
+    if (!$('cmFollowDate').value) missing.push('第一次入户随访日期');
     if (missing.length) { toast('请完善必填项：' + missing.join('、'), 'warning'); return; }
     closeCreateModal();
     toast('专项档案信息校验通过，创建流程后续步骤建设中', 'success');
   }
 
   /* 弹框联动事件 */
-  ['cmIdType', 'cmGender', 'cmBirth', 'cmHpType', 'cmGrade', 'cmDiagDate'].forEach(function (id) {
+  ['cmIdType', 'cmGender', 'cmBirth', 'cmPatType', 'cmSputum', 'cmFollowDate'].forEach(function (id) {
     $(id).addEventListener('change', renderPreview);
   });
   $('cmPhone').addEventListener('input', renderPreview);

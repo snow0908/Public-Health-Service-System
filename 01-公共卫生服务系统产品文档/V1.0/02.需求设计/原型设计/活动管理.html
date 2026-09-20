@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>活动管理 - 健教管理</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  /* ===== 活动管理页面特有样式（设计变量与公共样式见 框架.css） ===== */
+
+  /* ===== 嵌入模式（被 index.html 壳子以 iframe 内嵌时，框架.js 自动加 html.embed-mode） ===== */
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  /* ===== 布局 ===== */
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0}
+
+  /* ===== 页头按钮 ===== */
+  .page-head .right .btn{height:28px;padding:0 14px;font-size:13px}
+
+  /* ===== 视图切换 ===== */
+  .view{display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+  .view.active{display:flex}
+
+  /* ===== 筛选区 ===== */
+  .filter-panel{padding:14px 12px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:14px;align-items:center}
+  .filter-item{display:flex;align-items:center;gap:8px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .btn-plain{height:28px;padding:0 8px;font-size:13px;color:var(--primary);border-radius:var(--r-sm)}
+  .btn-plain:hover{background:var(--primary-bg)}
+  /* 日期区间 */
+  .fi-date-range{display:flex;align-items:center;gap:6px}
+  .fi-date{width:130px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 28px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-size:14px;appearance:none;-webkit-appearance:none}
+  .fi-date:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-sep{color:var(--text-placeholder);font-size:13px}
+
+  /* ===== 数据表格 ===== */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+  .list-tbl{width:100%;min-width:1400px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:38px;padding:0 10px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:38px;padding:0 10px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:nth-child(even) td{background:var(--bg-table-even)}
+  .list-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .list-tbl th.center,.list-tbl td.center{text-align:center}
+  .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* 二维码 */
+  .qr-cell{width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;background:#fff;border:1px solid #E8E8E8;border-radius:2px;cursor:pointer}
+  .qr-cell svg{width:18px;height:18px}
+
+  /* 操作列 */
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px}
+  .op-link:hover{text-decoration:underline}
+  .op-gap{display:inline-block;width:8px}
+  .op-more{position:relative;display:inline-flex;align-items:center}
+  .op-more .more-btn{display:inline-flex;align-items:center;gap:2px;color:var(--primary);cursor:pointer;font-size:13px}
+  .op-more .more-btn:hover{text-decoration:underline}
+  .op-more .more-btn svg{transition:transform var(--transition-fast)}
+  .op-more.open .more-btn svg{transform:rotate(180deg)}
+  .op-menu{position:absolute;top:calc(100% + 6px);right:-8px;min-width:110px;background:var(--bg-white);border:1px solid var(--color-neutral-200);border-radius:var(--r-sm);box-shadow:var(--shadow-md);padding:4px 0;display:none;z-index:30}
+  .op-more.open .op-menu{display:block}
+  .op-menu .mi{display:block;width:100%;text-align:left;padding:7px 14px;font-size:13px;color:var(--text-secondary);line-height:1.4;background:none;border:none;cursor:pointer}
+  .op-menu .mi:hover{background:var(--primary-bg);color:var(--primary)}
+  .op-menu .mi.danger{color:var(--danger)}
+  .op-menu .mi.danger:hover{background:var(--danger-bg);color:var(--danger)}
+
+  /* ===== 分页 ===== */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:52px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 22px 0 8px;font-size:13px;color:var(--text-secondary);background:#fff;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-jump input{width:40px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 6px;font-size:13px;text-align:center;color:var(--text-primary);outline:none}
+  .pg-jump input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+
+  /* ===== 详情/表单页面 ===== */
+  .detail-body{flex:1;overflow:auto;padding:16px 20px;min-height:0}
+
+  /* 信息表格（详情页和表单共用） */
+  .info-tbl{width:100%;border-collapse:collapse;font-size:14px;border:1px solid var(--primary-border)}
+  .info-tbl th{text-align:right;padding:0 12px;height:40px;background:var(--primary-header);color:var(--text-primary);font-weight:var(--font-weight-medium);border:1px solid var(--primary-border);white-space:nowrap;width:140px;vertical-align:middle}
+  .info-tbl td{padding:0 12px;height:40px;background:var(--bg-white);border:1px solid var(--primary-border);color:var(--text-secondary);vertical-align:middle}
+  .info-tbl tr.textarea-row th,.info-tbl tr.textarea-row td{height:120px;vertical-align:top;padding-top:10px;padding-bottom:10px}
+  .info-tbl tr.upload-row th,.info-tbl tr.upload-row td{height:160px;vertical-align:top;padding-top:10px;padding-bottom:10px}
+  .info-tbl .required::before{content:"*";color:var(--danger);margin-right:2px}
+
+  /* 表单控件 */
+  .fm-ctl{width:100%;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fm-select{width:100%;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fm-date{width:100%;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 28px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-size:14px;appearance:none;-webkit-appearance:none}
+  .fm-ctl:focus,.fm-select:focus,.fm-date:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fm-ctl::placeholder{color:var(--text-placeholder)}
+  .fm-textarea{width:100%;min-height:100px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:8px 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);resize:vertical;font-family:inherit;line-height:1.6}
+  .fm-textarea:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fm-textarea::placeholder{color:var(--text-placeholder)}
+  .textarea-wrap{position:relative}
+  .textarea-cnt{position:absolute;right:8px;bottom:6px;font-size:12px;color:var(--text-placeholder);pointer-events:none}
+
+  /* 复选框组 */
+  .check-group{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+  .check-item{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer}
+  .check-item input{margin:0;accent-color:var(--primary);cursor:pointer;width:14px;height:14px}
+
+  /* 文件上传 */
+  .upload-area{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}
+  .upload-box{width:120px;height:120px;border:1px dashed var(--color-neutral-300);border-radius:var(--r-sm);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all var(--transition-fast);background:var(--bg-white)}
+  .upload-box:hover{border-color:var(--primary);background:var(--primary-bg)}
+  .upload-box .plus{font-size:28px;color:var(--text-tertiary);line-height:1;margin-bottom:4px}
+  .upload-tip{width:100%;font-size:12px;color:var(--text-tertiary);margin-top:4px}
+
+  /* 参与居民 */
+  .resident-row{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text-secondary)}
+  .resident-row .count{color:var(--text-primary)}
+  .resident-row .link{color:var(--primary);cursor:pointer}
+  .resident-row .link:hover{text-decoration:underline}
+
+  /* 操作按钮组（详情/表单页头右侧） */
+  .view-head{display:flex;align-items:center;height:48px;padding:0 16px;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .view-head h1{font-size:18px;font-weight:var(--font-weight-medium);color:var(--text-primary);line-height:25px;margin-right:auto}
+  .view-head .right{display:flex;gap:8px;align-items:center}
+
+  /* ===== 弹窗 ===== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .modal-overlay.show{opacity:1;pointer-events:auto}
+  .modal{width:560px;max-width:92vw;background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 8px 32px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden;transform:translateY(10px);transition:transform var(--transition-normal)}
+  .modal-overlay.show .modal{transform:translateY(0)}
+  .modal.small{width:420px}
+  .modal-head{height:48px;display:flex;align-items:center;padding:0 16px;flex-shrink:0;border-bottom:1px solid #E8E8E8}
+  .modal-head h3{font-size:16px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+  .modal-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:18px;line-height:1}
+  .modal-close:hover{background:var(--primary-bg);color:var(--primary)}
+  .modal-body{padding:20px 24px}
+  .modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid #E8E8E8}
+
+  /* 表单行（弹窗内） */
+  .mf-row{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+  .mf-row:last-child{margin-bottom:0}
+  .mf-row label{width:80px;text-align:right;font-size:14px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
+  .mf-row label i{color:var(--danger);font-style:normal;margin-right:2px}
+  .mf-ctl{width:100%;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .mf-select{width:100%;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .mf-date{width:100%;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 28px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-size:14px;appearance:none;-webkit-appearance:none}
+  .mf-ctl:focus,.mf-select:focus,.mf-date:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .mf-ctl::placeholder{color:var(--text-placeholder)}
+  .mf-textarea{width:100%;min-height:90px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:8px 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);resize:vertical;font-family:inherit;line-height:1.6}
+  .mf-textarea:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .mf-textarea::placeholder{color:var(--text-placeholder)}
+  .mf-textarea-wrap{position:relative;flex:1}
+  .mf-textarea-cnt{position:absolute;right:8px;bottom:6px;font-size:12px;color:var(--text-placeholder);pointer-events:none}
+  .mf-cols{display:flex;gap:16px}
+  .mf-cols .mf-col{flex:1}
+
+  /* 文件上传按钮 */
+  .upload-btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:14px;color:var(--text-secondary);background:var(--bg-white);cursor:pointer;transition:all var(--transition-fast)}
+  .upload-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .upload-btn svg{width:14px;height:14px}
+  .upload-hint{font-size:12px;color:var(--text-tertiary);margin-top:8px}
+
+  /* 确认弹窗 */
+  .confirm-body{display:flex;align-items:flex-start;gap:12px;padding:24px 20px}
+  .confirm-icon{width:28px;height:28px;border-radius:50%;background:var(--warning-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .confirm-icon svg{width:16px;height:16px;stroke:var(--warning);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .confirm-text{font-size:14px;color:var(--text-primary);line-height:28px}
+</style>
+</head>
+<body>
+
+<div class="main-area">
+
+  <!-- 标签栏（独立页面时显示；嵌入模式由壳子管理，框架.css 中隐藏） -->
+  <div class="tabbar">
+    <div class="tab-item active">活动管理</div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <!-- ========== 视图1：列表 ========== -->
+      <div class="view active" id="view-list">
+        <div class="page-head">
+          <h1>健康教育活动管理</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="toast('导出成功','success')">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              导出
+            </button>
+            <button class="btn btn-default" onclick="toast('模板下载中...','info')">模板下载</button>
+            <button class="btn btn-primary" onclick="showView('create')">新建</button>
+          </div>
+        </div>
+
+        <div class="filter-panel">
+          <div class="filter-row">
+            <div class="filter-item">
+              <label>填表机构：</label>
+              <select class="fi-select">
+                <option value="">请选择</option>
+                <option>扬州市江都区滨江人民医院</option>
+                <option>扬州市江都区丁沟镇乔河村友...</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>活动地点：</label>
+              <input class="fi-ctl" placeholder="请输入" type="text">
+            </div>
+            <div class="filter-item">
+              <label>健康教育资料发放种类：</label>
+              <select class="fi-select">
+                <option value="">请选择</option>
+                <option>高血压</option>
+                <option>糖尿病</option>
+                <option>慢阻肺</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>活动时间：</label>
+              <div class="fi-date-range">
+                <input class="fi-date" placeholder="开始日期" type="text">
+                <span class="fi-sep">~</span>
+                <input class="fi-date" placeholder="结束日期" type="text">
+              </div>
+            </div>
+          </div>
+          <div class="filter-row">
+            <div class="filter-item">
+              <label>填表日期：</label>
+              <div class="fi-date-range">
+                <input class="fi-date" placeholder="开始日期" type="text">
+                <span class="fi-sep">~</span>
+                <input class="fi-date" placeholder="结束日期" type="text">
+              </div>
+            </div>
+            <div class="filter-item">
+              <label>填表人：</label>
+              <input class="fi-ctl" placeholder="请输入" type="text">
+            </div>
+            <div class="filter-btns">
+              <button class="btn btn-default btn-sm" onclick="toast('已重置','info')">重置</button>
+              <button class="btn btn-primary btn-sm" onclick="toast('查询成功','success')">查询</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="list-tbl">
+            <thead>
+              <tr>
+                <th style="width:56px">序号</th>
+                <th style="width:220px">填表机构</th>
+                <th style="width:90px">组织者</th>
+                <th style="width:60px">主题</th>
+                <th style="width:150px">健康教育资料发放种类</th>
+                <th style="width:150px">健康教育资料发放数量</th>
+                <th style="width:90px">活动二维码</th>
+                <th style="width:180px">活动内容</th>
+                <th style="width:180px">活动总结评价</th>
+                <th style="width:90px">填表人</th>
+                <th style="width:90px">负责人</th>
+                <th style="width:110px">填表时间</th>
+                <th style="width:140px">操作</th>
+              </tr>
+            </thead>
+            <tbody id="list-tbody">
+              <tr>
+                <td>1</td>
+                <td><span class="cell" title="扬州市江都区滨江人民医院">扬州市江都区滨江人民医院</span></td>
+                <td>马思唯</td>
+                <td>高血压</td>
+                <td>高血压</td>
+                <td>10</td>
+                <td>
+                  <span class="qr-cell" title="查看二维码">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
+                  </span>
+                </td>
+                <td><span class="cell" title="高血压">高血压</span></td>
+                <td><span class="cell" title="高血压">高血压</span></td>
+                <td>马思唯</td>
+                <td>马思唯</td>
+                <td>2023-04-03</td>
+                <td>
+                  <a class="op-link" onclick="showView('edit')">编辑</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link" onclick="showView('detail')">查看</a>
+                  <span class="op-gap"></span>
+                  <span class="op-more" onclick="toggleMore(this,event)">
+                    <span class="more-btn">更多<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+                    <div class="op-menu">
+                      <button class="mi" onclick="event.stopPropagation();openModal('modal-evaluate')">评估</button>
+                      <button class="mi" onclick="event.stopPropagation();openModal('modal-import')">导入居民</button>
+                      <button class="mi danger" onclick="event.stopPropagation();openModal('modal-cancel')">注销</button>
+                    </div>
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td><span class="cell" title="扬州市江都区丁沟镇乔河村友...">扬州市江都区丁沟镇乔河村友...</span></td>
+                <td>陈渣渣</td>
+                <td>防治</td>
+                <td>高血压</td>
+                <td>89</td>
+                <td>
+                  <span class="qr-cell" title="查看二维码">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
+                  </span>
+                </td>
+                <td><span class="cell" title="宣讲慢病防治">宣讲慢病防治</span></td>
+                <td><span class="cell" title="很成功">很成功</span></td>
+                <td>陈渣渣</td>
+                <td>陈渣渣</td>
+                <td>2023-04-03</td>
+                <td>
+                  <a class="op-link" onclick="showView('edit')">编辑</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link" onclick="showView('detail')">查看</a>
+                  <span class="op-gap"></span>
+                  <span class="op-more" onclick="toggleMore(this,event)">
+                    <span class="more-btn">更多<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+                    <div class="op-menu">
+                      <button class="mi" onclick="event.stopPropagation();openModal('modal-evaluate')">评估</button>
+                      <button class="mi" onclick="event.stopPropagation();openModal('modal-import')">导入居民</button>
+                      <button class="mi danger" onclick="event.stopPropagation();openModal('modal-cancel')">注销</button>
+                    </div>
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="page-foot">
+          <div class="pg-total">共 <b>2</b> 条</div>
+          <div class="pg-size">
+            <select>
+              <option>20 条/页</option>
+              <option>50 条/页</option>
+              <option>100 条/页</option>
+            </select>
+          </div>
+          <div class="pg-pager">
+            <button class="pg-btn">&lt;</button>
+            <button class="pg-btn active">1</button>
+            <button class="pg-btn">&gt;</button>
+          </div>
+          <div class="pg-jump">跳至 <input type="text" value="1"> 页</div>
+        </div>
+      </div>
+
+      <!-- ========== 视图2：详情 ========== -->
+      <div class="view" id="view-detail">
+        <div class="view-head">
+          <h1>健康教育活动记录详情</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="showView('list')">返回</button>
+            <button class="btn btn-primary" onclick="toast('打印中...','info')">打印</button>
+          </div>
+        </div>
+        <div class="detail-body">
+          <table class="info-tbl">
+            <tr>
+              <th>活动时间</th>
+              <td>2023-04-01</td>
+              <th>活动地点</th>
+              <td>社区</td>
+            </tr>
+            <tr>
+              <th>活动形式</th>
+              <td>活动</td>
+              <th>活动主题</th>
+              <td>主题</td>
+            </tr>
+            <tr>
+              <th>组织者</th>
+              <td>马思唯</td>
+              <th>主讲人</th>
+              <td>马思唯</td>
+            </tr>
+            <tr>
+              <th>接受教育人员类别</th>
+              <td>老年人</td>
+              <th>接受教育人数</th>
+              <td>10</td>
+            </tr>
+            <tr>
+              <th>教育发放资料种类</th>
+              <td>高血压</td>
+              <th>教育发放资料数量</th>
+              <td>10</td>
+            </tr>
+            <tr class="textarea-row">
+              <th>活动内容</th>
+              <td colspan="3">高血压</td>
+            </tr>
+            <tr class="textarea-row">
+              <th>活动总结评价</th>
+              <td colspan="3">高血压</td>
+            </tr>
+            <tr>
+              <th>参与居民</th>
+              <td colspan="3">
+                <div class="resident-row">
+                  共 <span class="count">0</span> 人
+                  <span class="link">居民明细</span>
+                </div>
+              </td>
+            </tr>
+            <tr class="upload-row">
+              <th>上传附件</th>
+              <td colspan="3">
+                <div class="upload-area">
+                  <div class="upload-tip">暂无附件</div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th>存档材料</th>
+              <td colspan="3">
+                <div class="check-group">
+                  <label class="check-item"><input type="checkbox" checked disabled>书面材料</label>
+                  <label class="check-item"><input type="checkbox" disabled>图片材料</label>
+                  <label class="check-item"><input type="checkbox" disabled>印刷材料</label>
+                  <label class="check-item"><input type="checkbox" disabled>影音材料</label>
+                  <label class="check-item"><input type="checkbox" disabled>签到表</label>
+                  <label class="check-item"><input type="checkbox" disabled>其他材料</label>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th>负责人</th>
+              <td colspan="3">马思唯</td>
+            </tr>
+            <tr>
+              <th>填表机构</th>
+              <td>山东大学齐鲁医院</td>
+              <th>填表人</th>
+              <td>马思唯</td>
+            </tr>
+            <tr>
+              <th>填表时间</th>
+              <td colspan="3">2023-04-03</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- ========== 视图3：新建 ========== -->
+      <div class="view" id="view-create">
+        <div class="view-head">
+          <h1>新建健康教育活动记录</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="showView('list')">返回</button>
+            <button class="btn btn-primary" onclick="toast('保存成功','success');showView('list')">保存</button>
+          </div>
+        </div>
+        <div class="detail-body">
+          <table class="info-tbl">
+            <tr>
+              <th class="required">活动时间</th>
+              <td><input class="fm-date" placeholder="请选择" type="text"></td>
+              <th class="required">活动地点</th>
+              <td><input class="fm-ctl" placeholder="请输入" type="text"></td>
+            </tr>
+            <tr>
+              <th class="required">活动形式</th>
+              <td><input class="fm-ctl" placeholder="请输入" type="text"></td>
+              <th class="required">活动主题</th>
+              <td>
+                <div class="textarea-wrap" style="position:relative">
+                  <input class="fm-ctl" placeholder="请输入" type="text">
+                  <span class="textarea-cnt">0/100</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">组织者</th>
+              <td>
+                <select class="fm-select">
+                  <option>吕雪</option>
+                  <option>马思唯</option>
+                  <option>陈渣渣</option>
+                </select>
+              </td>
+              <th class="required">主讲人</th>
+              <td>
+                <select class="fm-select">
+                  <option>吕雪</option>
+                  <option>马思唯</option>
+                  <option>陈渣渣</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">接受教育人员类别</th>
+              <td>
+                <select class="fm-select">
+                  <option value="">请选择</option>
+                  <option>老年人</option>
+                  <option>儿童</option>
+                  <option>妇女</option>
+                  <option>慢病患者</option>
+                </select>
+              </td>
+              <th class="required">接受教育人数</th>
+              <td><input class="fm-ctl" placeholder="请输入" type="text"></td>
+            </tr>
+            <tr>
+              <th class="required">教育发放资料种类</th>
+              <td>
+                <select class="fm-select">
+                  <option value="">请选择</option>
+                  <option>高血压</option>
+                  <option>糖尿病</option>
+                  <option>慢阻肺</option>
+                </select>
+              </td>
+              <th class="required">教育发放资料数量</th>
+              <td><input class="fm-ctl" placeholder="请输入" type="text"></td>
+            </tr>
+            <tr class="textarea-row">
+              <th class="required">活动内容</th>
+              <td colspan="3">
+                <div class="textarea-wrap">
+                  <textarea class="fm-textarea" placeholder="请输入" maxlength="500"></textarea>
+                  <span class="textarea-cnt">0/500</span>
+                </div>
+              </td>
+            </tr>
+            <tr class="textarea-row">
+              <th class="required">活动总结评价</th>
+              <td colspan="3">
+                <div class="textarea-wrap">
+                  <textarea class="fm-textarea" placeholder="请输入" maxlength="500"></textarea>
+                  <span class="textarea-cnt">0/500</span>
+                </div>
+              </td>
+            </tr>
+            <tr class="upload-row">
+              <th>上传附件</th>
+              <td colspan="3">
+                <div class="upload-area">
+                  <div class="upload-box" onclick="toast('选择文件','info')">
+                    <div class="plus">+</div>
+                  </div>
+                  <div class="upload-tip">最多允许上传6个文件，可选择jpeg、png、jpg、bmp、gif格式文件，且单个文件不能大于5Mb</div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">存档材料</th>
+              <td colspan="3">
+                <div class="check-group">
+                  <label class="check-item"><input type="checkbox">书面材料</label>
+                  <label class="check-item"><input type="checkbox">图片材料</label>
+                  <label class="check-item"><input type="checkbox">印刷材料</label>
+                  <label class="check-item"><input type="checkbox">影音材料</label>
+                  <label class="check-item"><input type="checkbox">签到表</label>
+                  <label class="check-item"><input type="checkbox">其他材料</label>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">负责人</th>
+              <td colspan="3">
+                <select class="fm-select">
+                  <option>吕雪</option>
+                  <option>马思唯</option>
+                  <option>陈渣渣</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">填表机构</th>
+              <td>
+                <select class="fm-select">
+                  <option>山东大学齐鲁医院</option>
+                  <option>扬州市江都区滨江人民医院</option>
+                </select>
+              </td>
+              <th class="required">填表人</th>
+              <td>
+                <select class="fm-select">
+                  <option>吕雪</option>
+                  <option>马思唯</option>
+                  <option>陈渣渣</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">填表时间</th>
+              <td colspan="3"><input class="fm-date" value="2026-09-20" type="text"></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- ========== 视图4：编辑 ========== -->
+      <div class="view" id="view-edit">
+        <div class="view-head">
+          <h1>编辑健康教育活动记录</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="showView('list')">返回</button>
+            <button class="btn btn-primary" onclick="toast('保存成功','success');showView('list')">保存</button>
+          </div>
+        </div>
+        <div class="detail-body">
+          <table class="info-tbl">
+            <tr>
+              <th class="required">活动时间</th>
+              <td><input class="fm-date" value="2023-04-01" type="text"></td>
+              <th class="required">活动地点</th>
+              <td><input class="fm-ctl" value="社区" type="text"></td>
+            </tr>
+            <tr>
+              <th class="required">活动形式</th>
+              <td><input class="fm-ctl" value="活动" type="text"></td>
+              <th class="required">活动主题</th>
+              <td>
+                <div class="textarea-wrap">
+                  <input class="fm-ctl" value="主题" type="text">
+                  <span class="textarea-cnt">2/100</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">组织者</th>
+              <td>
+                <select class="fm-select">
+                  <option>马思唯</option>
+                  <option>吕雪</option>
+                  <option>陈渣渣</option>
+                </select>
+              </td>
+              <th class="required">主讲人</th>
+              <td>
+                <select class="fm-select">
+                  <option>马思唯</option>
+                  <option>吕雪</option>
+                  <option>陈渣渣</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">接受教育人员类别</th>
+              <td>
+                <select class="fm-select">
+                  <option>老年人</option>
+                  <option>儿童</option>
+                  <option>妇女</option>
+                </select>
+              </td>
+              <th class="required">接受教育人数</th>
+              <td><input class="fm-ctl" value="10" type="text"></td>
+            </tr>
+            <tr>
+              <th class="required">教育发放资料种类</th>
+              <td>
+                <select class="fm-select">
+                  <option>高血压</option>
+                  <option>糖尿病</option>
+                </select>
+              </td>
+              <th class="required">教育发放资料数量</th>
+              <td><input class="fm-ctl" value="10" type="text"></td>
+            </tr>
+            <tr class="textarea-row">
+              <th class="required">活动内容</th>
+              <td colspan="3">
+                <div class="textarea-wrap">
+                  <textarea class="fm-textarea" maxlength="500">高血压</textarea>
+                  <span class="textarea-cnt">3/500</span>
+                </div>
+              </td>
+            </tr>
+            <tr class="textarea-row">
+              <th class="required">活动总结评价</th>
+              <td colspan="3">
+                <div class="textarea-wrap">
+                  <textarea class="fm-textarea" maxlength="500">高血压</textarea>
+                  <span class="textarea-cnt">3/500</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th>参与居民</th>
+              <td colspan="3">
+                <div class="resident-row">
+                  共 <span class="count">0</span> 人
+                  <span class="link">居民明细</span>
+                </div>
+              </td>
+            </tr>
+            <tr class="upload-row">
+              <th>上传附件</th>
+              <td colspan="3">
+                <div class="upload-area">
+                  <div class="upload-box" onclick="toast('选择文件','info')">
+                    <div class="plus">+</div>
+                  </div>
+                  <div class="upload-tip">最多允许上传6个文件，可选择jpeg、png、jpg、bmp、gif格式文件，且单个文件不能大于5Mb</div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">存档材料</th>
+              <td colspan="3">
+                <div class="check-group">
+                  <label class="check-item"><input type="checkbox" checked>书面材料</label>
+                  <label class="check-item"><input type="checkbox">图片材料</label>
+                  <label class="check-item"><input type="checkbox">印刷材料</label>
+                  <label class="check-item"><input type="checkbox">影音材料</label>
+                  <label class="check-item"><input type="checkbox">签到表</label>
+                  <label class="check-item"><input type="checkbox">其他材料</label>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">负责人</th>
+              <td colspan="3">
+                <select class="fm-select">
+                  <option>马思唯</option>
+                  <option>吕雪</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">填表机构</th>
+              <td>
+                <select class="fm-select">
+                  <option>山东大学齐鲁医院</option>
+                  <option>扬州市江都区滨江人民医院</option>
+                </select>
+              </td>
+              <th class="required">填表人</th>
+              <td>
+                <select class="fm-select">
+                  <option>马思唯</option>
+                  <option>吕雪</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">填表时间</th>
+              <td colspan="3"><input class="fm-date" value="2023-04-03" type="text"></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========== 弹窗：评估 ========== -->
+  <div class="modal-overlay" id="modal-evaluate">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>评估</h3>
+        <div class="modal-close" onclick="closeModal('modal-evaluate')">×</div>
+      </div>
+      <div class="modal-body">
+        <div class="mf-row">
+          <label>评估说明：</label>
+          <div class="mf-textarea-wrap">
+            <textarea class="mf-textarea" placeholder="请输入" maxlength="200"></textarea>
+            <span class="mf-textarea-cnt">0/200</span>
+          </div>
+        </div>
+        <div class="mf-cols">
+          <div class="mf-col">
+            <div class="mf-row">
+              <label>评估得分：</label>
+              <input class="mf-ctl" placeholder="请输入" type="text">
+            </div>
+          </div>
+          <div class="mf-col">
+            <div class="mf-row">
+              <label><i>*</i>评估医生：</label>
+              <select class="mf-select">
+                <option value="">请选择</option>
+                <option>马思唯</option>
+                <option>吕雪</option>
+                <option>陈渣渣</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="mf-cols">
+          <div class="mf-col">
+            <div class="mf-row">
+              <label><i>*</i>评估机构：</label>
+              <select class="mf-select">
+                <option value="">请选择</option>
+                <option>山东大学齐鲁医院</option>
+                <option>扬州市江都区滨江人民医院</option>
+              </select>
+            </div>
+          </div>
+          <div class="mf-col">
+            <div class="mf-row">
+              <label><i>*</i>评估日期：</label>
+              <input class="mf-date" placeholder="请选择" type="text">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-default" onclick="closeModal('modal-evaluate')">取消</button>
+        <button class="btn btn-primary" onclick="toast('评估已提交','success');closeModal('modal-evaluate')">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 弹窗：导入居民 ========== -->
+  <div class="modal-overlay" id="modal-import">
+    <div class="modal small">
+      <div class="modal-head">
+        <h3>导入居民</h3>
+        <div class="modal-close" onclick="closeModal('modal-import')">×</div>
+      </div>
+      <div class="modal-body">
+        <div class="mf-row">
+          <label><i>*</i>文件：</label>
+          <div>
+            <button class="upload-btn" onclick="toast('选择文件','info')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              点击上传
+            </button>
+            <div class="upload-hint">最多允许上传1个文件，可选择xlsx、xls格式文件，且文件不能大于20Mb</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-default" onclick="closeModal('modal-import')">取消</button>
+        <button class="btn btn-primary" onclick="toast('导入成功','success');closeModal('modal-import')">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 弹窗：注销确认 ========== -->
+  <div class="modal-overlay" id="modal-cancel">
+    <div class="modal small">
+      <div class="modal-head">
+        <h3>提示</h3>
+        <div class="modal-close" onclick="closeModal('modal-cancel')">×</div>
+      </div>
+      <div class="confirm-body">
+        <div class="confirm-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="confirm-text">确认注销此条记录？</div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-default" onclick="closeModal('modal-cancel')">取消</button>
+        <button class="btn btn-primary" onclick="toast('已注销','success');closeModal('modal-cancel')">确定</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="框架.js" data-page="activity-management" data-embed="auto"></script>
+<script>
+  /* ================= 视图切换 ================= */
+  function showView(name) {
+    document.querySelectorAll('.view').forEach(function (v) {
+      v.classList.remove('active');
+    });
+    var target = document.getElementById('view-' + name);
+    if (target) target.classList.add('active');
+    // 关闭所有更多下拉
+    document.querySelectorAll('.op-more.open').forEach(function (m) {
+      m.classList.remove('open');
+    });
+  }
+
+  /* ================= 更多下拉菜单 ================= */
+  function toggleMore(el, ev) {
+    ev.stopPropagation();
+    var isOpen = el.classList.contains('open');
+    // 先关闭所有
+    document.querySelectorAll('.op-more.open').forEach(function (m) {
+      m.classList.remove('open');
+    });
+    if (!isOpen) el.classList.add('open');
+  }
+  // 点击空白处关闭更多下拉
+  document.addEventListener('click', function () {
+    document.querySelectorAll('.op-more.open').forEach(function (m) {
+      m.classList.remove('open');
+    });
+  });
+
+  /* ================= 文本域字数统计 ================= */
+  document.querySelectorAll('.fm-textarea').forEach(function (ta) {
+    ta.addEventListener('input', function () {
+      var wrap = ta.closest('.textarea-wrap');
+      var cnt = wrap.querySelector('.textarea-cnt');
+      if (cnt) {
+        var max = ta.getAttribute('maxlength') || 500;
+        cnt.textContent = ta.value.length + '/' + max;
+      }
+    });
+  });
+  document.querySelectorAll('.mf-textarea').forEach(function (ta) {
+    ta.addEventListener('input', function () {
+      var wrap = ta.closest('.mf-textarea-wrap');
+      var cnt = wrap.querySelector('.mf-textarea-cnt');
+      if (cnt) {
+        var max = ta.getAttribute('maxlength') || 200;
+        cnt.textContent = ta.value.length + '/' + max;
+      }
+    });
+  });
+
+  /* ================= 弹窗控制 ================= */
+  function openModal(id) {
+    var m = document.getElementById(id);
+    if (m) m.classList.add('show');
+    // 关闭所有更多下拉
+    document.querySelectorAll('.op-more.open').forEach(function (el) {
+      el.classList.remove('open');
+    });
+  }
+  function closeModal(id) {
+    var m = document.getElementById(id);
+    if (m) m.classList.remove('show');
+  }
+  // 点击遮罩层关闭弹窗
+  document.querySelectorAll('.modal-overlay').forEach(function (overlay) {
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) overlay.classList.remove('show');
+    });
+  });
+</script>
+</body>
+</html>

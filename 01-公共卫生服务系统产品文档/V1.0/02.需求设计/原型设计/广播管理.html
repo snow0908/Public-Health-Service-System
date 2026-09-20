@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>广播管理 - 健教管理</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0}
+
+  .page-head .right .btn{height:28px;padding:0 14px;font-size:13px}
+
+  .view{display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+  .view.active{display:flex}
+
+  /* 筛选区 */
+  .filter-panel{padding:14px 12px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:14px;align-items:center}
+  .filter-item{display:flex;align-items:center;gap:8px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:170px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .fi-date-range{display:flex;align-items:center;gap:6px}
+  .fi-date{width:130px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 28px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-size:14px;appearance:none;-webkit-appearance:none}
+  .fi-date:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-sep{color:var(--text-placeholder);font-size:13px}
+
+  /* 数据表格 */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+  .list-tbl{width:100%;min-width:1100px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:38px;padding:0 10px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:38px;padding:0 10px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:nth-child(even) td{background:var(--bg-table-even)}
+  .list-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* 操作列 */
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px}
+  .op-link:hover{text-decoration:underline}
+  .op-gap{display:inline-block;width:8px}
+  .op-link.danger{color:var(--danger)}
+  .op-link.danger:hover{text-decoration:underline}
+
+  /* 分页 */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:52px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 22px 0 8px;font-size:13px;color:var(--text-secondary);background:#fff;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-jump input{width:40px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 6px;font-size:13px;text-align:center;color:var(--text-primary);outline:none}
+  .pg-jump input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+
+  /* 详情/表单页 */
+  .detail-body{flex:1;overflow:auto;padding:16px 20px;min-height:0}
+  .view-head{display:flex;align-items:center;height:48px;padding:0 16px;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .view-head h1{font-size:18px;font-weight:var(--font-weight-medium);color:var(--text-primary);line-height:25px;margin-right:auto}
+  .view-head .right{display:flex;gap:8px;align-items:center}
+
+  /* 信息表格 */
+  .info-tbl{width:100%;border-collapse:collapse;font-size:14px;border:1px solid var(--primary-border)}
+  .info-tbl th{text-align:right;padding:0 12px;height:40px;background:var(--primary-header);color:var(--text-primary);font-weight:var(--font-weight-medium);border:1px solid var(--primary-border);white-space:nowrap;width:140px;vertical-align:middle}
+  .info-tbl td{padding:0 12px;height:40px;background:var(--bg-white);border:1px solid var(--primary-border);color:var(--text-secondary);vertical-align:middle}
+  .info-tbl tr.textarea-row th,.info-tbl tr.textarea-row td{height:120px;vertical-align:top;padding-top:10px;padding-bottom:10px}
+  .info-tbl tr.upload-row th,.info-tbl tr.upload-row td{height:160px;vertical-align:top;padding-top:10px;padding-bottom:10px}
+  .info-tbl .required::before{content:"*";color:var(--danger);margin-right:2px}
+
+  /* 表单控件 */
+  .fm-ctl{width:100%;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fm-select{width:100%;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fm-date{width:100%;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 28px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-size:14px;appearance:none;-webkit-appearance:none}
+  .fm-ctl:focus,.fm-select:focus,.fm-date:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fm-ctl::placeholder{color:var(--text-placeholder)}
+  .fm-textarea{width:100%;min-height:100px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:8px 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);resize:vertical;font-family:inherit;line-height:1.6}
+  .fm-textarea:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fm-textarea::placeholder{color:var(--text-placeholder)}
+  .textarea-wrap{position:relative}
+  .textarea-cnt{position:absolute;right:8px;bottom:6px;font-size:12px;color:var(--text-placeholder);pointer-events:none}
+
+  /* 文件上传 */
+  .upload-area{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}
+  .upload-box{width:120px;height:120px;border:1px dashed var(--color-neutral-300);border-radius:var(--r-sm);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all var(--transition-fast);background:var(--bg-white)}
+  .upload-box:hover{border-color:var(--primary);background:var(--primary-bg)}
+  .upload-box .plus{font-size:28px;color:var(--text-tertiary);line-height:1;margin-bottom:4px}
+  .upload-tip{width:100%;font-size:12px;color:var(--text-tertiary);margin-top:4px}
+
+  /* 弹窗 */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .modal-overlay.show{opacity:1;pointer-events:auto}
+  .modal{width:420px;max-width:92vw;background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 8px 32px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden;transform:translateY(10px);transition:transform var(--transition-normal)}
+  .modal-overlay.show .modal{transform:translateY(0)}
+  .modal-head{height:48px;display:flex;align-items:center;padding:0 16px;flex-shrink:0;border-bottom:1px solid #E8E8E8}
+  .modal-head h3{font-size:16px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+  .modal-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:18px;line-height:1}
+  .modal-close:hover{background:var(--primary-bg);color:var(--primary)}
+  .modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid #E8E8E8}
+
+  /* 确认弹窗 */
+  .confirm-body{display:flex;align-items:flex-start;gap:12px;padding:24px 20px}
+  .confirm-icon{width:28px;height:28px;border-radius:50%;background:var(--warning-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .confirm-icon svg{width:16px;height:16px;stroke:var(--warning);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .confirm-text{font-size:14px;color:var(--text-primary);line-height:28px}
+</style>
+</head>
+<body>
+
+<div class="main-area">
+
+  <div class="tabbar">
+    <div class="tab-item active">广播管理</div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <!-- 视图1：列表 -->
+      <div class="view active" id="view-list">
+        <div class="page-head">
+          <h1>健康教育广播管理</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="toast('导出成功','success')">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              导出
+            </button>
+            <button class="btn btn-primary" onclick="showView('create')">新建</button>
+          </div>
+        </div>
+
+        <div class="filter-panel">
+          <div class="filter-row">
+            <div class="filter-item">
+              <label>机构名称：</label>
+              <select class="fi-select">
+                <option value="">请选择</option>
+                <option>扬州市江都区滨江人民医院</option>
+                <option>山东大学齐鲁医院</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>广播内容：</label>
+              <input class="fi-ctl" placeholder="请输入" type="text">
+            </div>
+            <div class="filter-item">
+              <label>负责人：</label>
+              <input class="fi-ctl" placeholder="请输入" type="text">
+            </div>
+            <div class="filter-item">
+              <label>播放地点：</label>
+              <input class="fi-ctl" placeholder="请输入" type="text">
+            </div>
+            <div class="filter-item">
+              <label>广播时间：</label>
+              <div class="fi-date-range">
+                <input class="fi-date" placeholder="开始日期" type="text">
+                <span class="fi-sep">~</span>
+                <input class="fi-date" placeholder="结束日期" type="text">
+              </div>
+            </div>
+            <div class="filter-btns">
+              <button class="btn btn-default btn-sm" onclick="toast('已重置','info')">重置</button>
+              <button class="btn btn-primary btn-sm" onclick="toast('查询成功','success')">查询</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="list-tbl">
+            <thead>
+              <tr>
+                <th style="width:56px">序号</th>
+                <th style="width:220px">机构名称</th>
+                <th style="width:180px">开始广播时间</th>
+                <th style="width:180px">结束广播时间</th>
+                <th style="width:140px">播放地点</th>
+                <th style="width:180px">广播内容</th>
+                <th style="width:100px">负责人</th>
+                <th style="width:140px">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td><span class="cell" title="扬州市江都区滨江人民医院">扬州市江都区滨江人民医院</span></td>
+                <td>2023-04-01 00:00:00</td>
+                <td>2023-04-02 00:00:00</td>
+                <td>家里</td>
+                <td><span class="cell" title="预防新冠">预防新冠</span></td>
+                <td>龙傲天</td>
+                <td>
+                  <a class="op-link" onclick="showView('edit')">编辑</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link" onclick="showView('detail')">查看</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link danger" onclick="openModal('modal-cancel')">注销</a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="page-foot">
+          <div class="pg-total">共 <b>1</b> 条</div>
+          <div class="pg-size">
+            <select>
+              <option>20 条/页</option>
+              <option>50 条/页</option>
+              <option>100 条/页</option>
+            </select>
+          </div>
+          <div class="pg-pager">
+            <button class="pg-btn">&lt;</button>
+            <button class="pg-btn active">1</button>
+            <button class="pg-btn">&gt;</button>
+          </div>
+          <div class="pg-jump">跳至 <input type="text" value="1"> 页</div>
+        </div>
+      </div>
+
+      <!-- 视图2：详情 -->
+      <div class="view" id="view-detail">
+        <div class="view-head">
+          <h1>健康教育广播详情</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="showView('list')">返回</button>
+          </div>
+        </div>
+        <div class="detail-body">
+          <table class="info-tbl">
+            <tr>
+              <th>机构名称</th>
+              <td>山东大学齐鲁医院</td>
+              <th>广播地点</th>
+              <td>家里</td>
+            </tr>
+            <tr>
+              <th>开始广播时间</th>
+              <td>2023-04-01 00:00:00</td>
+              <th>结束广播时间</th>
+              <td>2023-04-02 00:00:00</td>
+            </tr>
+            <tr class="textarea-row">
+              <th>广播内容</th>
+              <td colspan="3">预防新冠</td>
+            </tr>
+            <tr class="upload-row">
+              <th>上传附件</th>
+              <td colspan="3">
+                <div class="upload-area">
+                  <div class="upload-tip">暂无附件</div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th>填表日期</th>
+              <td>2023-04-02</td>
+              <th>负责人</th>
+              <td>龙傲天</td>
+            </tr>
+            <tr class="textarea-row">
+              <th>备注</th>
+              <td colspan="3"></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- 视图3：新建 -->
+      <div class="view" id="view-create">
+        <div class="view-head">
+          <h1>新建健康教育广播</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="showView('list')">返回</button>
+            <button class="btn btn-primary" onclick="toast('保存成功','success');showView('list')">保存</button>
+          </div>
+        </div>
+        <div class="detail-body">
+          <table class="info-tbl">
+            <tr>
+              <th class="required">机构名称</th>
+              <td>
+                <select class="fm-select">
+                  <option>山东大学齐鲁医院</option>
+                  <option>扬州市江都区滨江人民医院</option>
+                </select>
+              </td>
+              <th class="required">广播地点</th>
+              <td><input class="fm-ctl" placeholder="请输入" type="text"></td>
+            </tr>
+            <tr>
+              <th class="required">开始广播时间</th>
+              <td><input class="fm-date" placeholder="请选择" type="text"></td>
+              <th class="required">结束广播时间</th>
+              <td><input class="fm-date" placeholder="请选择" type="text"></td>
+            </tr>
+            <tr class="textarea-row">
+              <th class="required">广播内容</th>
+              <td colspan="3">
+                <div class="textarea-wrap">
+                  <textarea class="fm-textarea" placeholder="请输入" maxlength="500"></textarea>
+                  <span class="textarea-cnt">0/500</span>
+                </div>
+              </td>
+            </tr>
+            <tr class="upload-row">
+              <th>上传附件</th>
+              <td colspan="3">
+                <div class="upload-area">
+                  <div class="upload-box" onclick="toast('选择文件','info')">
+                    <div class="plus">+</div>
+                  </div>
+                  <div class="upload-tip">最多允许上传6个文件，可选择jpeg、png、jpg、bmp、MP3、wma、flac、avi、wmv、mpeg、flash、mpeg-4、RealVideo格式文件，且单个文件不能大于500Mb</div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">填表日期</th>
+              <td><input class="fm-date" placeholder="请选择" type="text"></td>
+              <th class="required">负责人</th>
+              <td>
+                <select class="fm-select">
+                  <option>吕雪</option>
+                  <option>龙傲天</option>
+                  <option>马思唯</option>
+                </select>
+              </td>
+            </tr>
+            <tr class="textarea-row">
+              <th>备注</th>
+              <td colspan="3">
+                <div class="textarea-wrap">
+                  <textarea class="fm-textarea" placeholder="请输入" maxlength="500"></textarea>
+                  <span class="textarea-cnt">0/500</span>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- 视图4：编辑 -->
+      <div class="view" id="view-edit">
+        <div class="view-head">
+          <h1>编辑健康教育广播</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="showView('list')">返回</button>
+            <button class="btn btn-primary" onclick="toast('保存成功','success');showView('list')">保存</button>
+          </div>
+        </div>
+        <div class="detail-body">
+          <table class="info-tbl">
+            <tr>
+              <th class="required">机构名称</th>
+              <td>
+                <select class="fm-select">
+                  <option>山东大学齐鲁医院</option>
+                  <option>扬州市江都区滨江人民医院</option>
+                </select>
+              </td>
+              <th class="required">广播地点</th>
+              <td><input class="fm-ctl" value="家里" type="text"></td>
+            </tr>
+            <tr>
+              <th class="required">开始广播时间</th>
+              <td><input class="fm-date" value="2023-04-01 00:00:00" type="text"></td>
+              <th class="required">结束广播时间</th>
+              <td><input class="fm-date" value="2023-04-02 00:00:00" type="text"></td>
+            </tr>
+            <tr class="textarea-row">
+              <th class="required">广播内容</th>
+              <td colspan="3">
+                <div class="textarea-wrap">
+                  <textarea class="fm-textarea" maxlength="500">预防新冠</textarea>
+                  <span class="textarea-cnt">4/500</span>
+                </div>
+              </td>
+            </tr>
+            <tr class="upload-row">
+              <th>上传附件</th>
+              <td colspan="3">
+                <div class="upload-area">
+                  <div class="upload-box" onclick="toast('选择文件','info')">
+                    <div class="plus">+</div>
+                  </div>
+                  <div class="upload-tip">最多允许上传6个文件，可选择jpeg、png、jpg、bmp、MP3、wma、flac、avi、wmv、mpeg、flash、mpeg-4、RealVideo格式文件，且单个文件不能大于500Mb</div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">填表日期</th>
+              <td><input class="fm-date" value="2023-04-02" type="text"></td>
+              <th class="required">负责人</th>
+              <td>
+                <select class="fm-select">
+                  <option>龙傲天</option>
+                  <option>吕雪</option>
+                  <option>马思唯</option>
+                </select>
+              </td>
+            </tr>
+            <tr class="textarea-row">
+              <th>备注</th>
+              <td colspan="3">
+                <div class="textarea-wrap">
+                  <textarea class="fm-textarea" placeholder="请输入" maxlength="500"></textarea>
+                  <span class="textarea-cnt">0/500</span>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 弹窗：注销确认 -->
+  <div class="modal-overlay" id="modal-cancel">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>提示</h3>
+        <div class="modal-close" onclick="closeModal('modal-cancel')">×</div>
+      </div>
+      <div class="confirm-body">
+        <div class="confirm-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="confirm-text">确认注销此条记录？</div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-default" onclick="closeModal('modal-cancel')">取消</button>
+        <button class="btn btn-primary" onclick="toast('已注销','success');closeModal('modal-cancel')">确定</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="框架.js" data-page="broadcast-management" data-embed="auto"></script>
+<script>
+  function showView(name) {
+    document.querySelectorAll('.view').forEach(function (v) { v.classList.remove('active'); });
+    var target = document.getElementById('view-' + name);
+    if (target) target.classList.add('active');
+  }
+  document.querySelectorAll('.fm-textarea').forEach(function (ta) {
+    ta.addEventListener('input', function () {
+      var wrap = ta.closest('.textarea-wrap');
+      var cnt = wrap.querySelector('.textarea-cnt');
+      if (cnt) {
+        var max = ta.getAttribute('maxlength') || 500;
+        cnt.textContent = ta.value.length + '/' + max;
+      }
+    });
+  });
+  function openModal(id) {
+    var m = document.getElementById(id);
+    if (m) m.classList.add('show');
+  }
+  function closeModal(id) {
+    var m = document.getElementById(id);
+    if (m) m.classList.remove('show');
+  }
+  document.querySelectorAll('.modal-overlay').forEach(function (overlay) {
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) overlay.classList.remove('show');
+    });
+  });
+</script>
+</body>
+</html>

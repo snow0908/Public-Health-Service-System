@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>儿童保健 - 妇幼管理</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0}
+
+  .page-head .right .btn{height:28px;padding:0 14px;font-size:13px}
+
+  /* 筛选区 */
+  .filter-panel{padding:14px 12px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:14px;align-items:center}
+  .filter-item{display:flex;align-items:center;gap:8px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+  /* 数据表格 */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+  .list-tbl{width:100%;min-width:1400px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:36px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:nth-child(even) td{background:var(--bg-table-even)}
+  .list-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .list-tbl th.center,.list-tbl td.center{text-align:center}
+  .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* 分页 */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:44px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 22px 0 8px;font-size:13px;color:var(--text-secondary);background:#fff;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-jump input{width:40px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 6px;font-size:13px;text-align:center;color:var(--text-primary);outline:none}
+  .pg-jump input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+</style>
+</head>
+<body>
+
+<div class="main-area">
+
+  <div class="tabbar">
+    <div class="tab-item active">儿童保健</div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <div class="page-head">
+        <h1>儿童保健</h1>
+      </div>
+
+      <!-- 筛选区 -->
+      <div class="filter-panel">
+        <div class="filter-row">
+          <div class="filter-item"><label>保健号：</label>
+            <input class="fi-ctl" placeholder="请输入" type="text">
+          </div>
+          <div class="filter-item"><label>姓名：</label>
+            <input class="fi-ctl" placeholder="请输入" type="text">
+          </div>
+          <div class="filter-item"><label>性别：</label>
+            <select class="fi-select">
+              <option value="">请选择</option>
+              <option>男性</option>
+              <option>女性</option>
+            </select>
+          </div>
+          <div class="filter-btns">
+            <button class="btn btn-default btn-sm" onclick="toast('已重置','info')">重置</button>
+            <button class="btn btn-primary btn-sm" onclick="toast('查询成功','success')">查询</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 数据表格 -->
+      <div class="table-wrap">
+        <table class="list-tbl">
+          <thead>
+            <tr>
+              <th style="width:50px">序号</th>
+              <th style="width:120px">保健号</th>
+              <th style="width:70px">姓名</th>
+              <th style="width:54px">性别</th>
+              <th style="width:90px">出生日期</th>
+              <th style="width:54px">年龄</th>
+              <th style="width:80px">母亲姓名</th>
+              <th style="width:100px">母亲证件类型</th>
+              <th style="width:150px">母亲证件号码</th>
+              <th style="width:80px">数据来源</th>
+              <th style="width:90px">登记日期</th>
+              <th style="width:150px">登记机构</th>
+              <th style="width:70px">登记医生</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 分页 -->
+      <div class="page-foot">
+        <div class="pg-total">共 <b>38926</b> 条</div>
+        <div class="pg-size">
+          <select>
+            <option>20 条/页</option>
+            <option>50 条/页</option>
+            <option>100 条/页</option>
+          </select>
+        </div>
+        <div class="pg-pager">
+          <button class="pg-btn">&lt;</button>
+          <button class="pg-btn active">1</button>
+          <button class="pg-btn">2</button>
+          <button class="pg-btn">3</button>
+          <button class="pg-btn">4</button>
+          <button class="pg-btn">5</button>
+          <button class="pg-btn">6</button>
+          <button class="pg-btn">…</button>
+          <button class="pg-btn">1947</button>
+          <button class="pg-btn">&gt;</button>
+        </div>
+        <div class="pg-jump">跳至 <input type="text" value="1"> 页</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="框架.js" data-page="child-health" data-embed="auto"></script>
+<script>
+  var MOCK_DATA = [
+    { no:'32108419902218', name:'张令娣', gender:'女性', birth:'2019-09-14', age:7, mother:'高银苗', mIdType:'居民身份证', mIdNo:'321023199407140840', source:'高邮龙腾', regDate:'2019-09-14', org:'高邮市人民医院', doctor:'李雯' },
+    { no:'32108419902040', name:'王佳熙', gender:'女性', birth:'2019-07-27', age:7, mother:'张蕾', mIdType:'居民身份证', mIdNo:'321084196601182628', source:'高邮龙腾', regDate:'2019-07-27', org:'高邮市人民医院', doctor:'李雯' },
+    { no:'32108419902001', name:'扈梓豪', gender:'男性', birth:'2019-07-18', age:7, mother:'王兰', mIdType:'居民身份证', mIdNo:'321088198503117724', source:'高邮龙腾', regDate:'2019-07-18', org:'高邮市人民医院', doctor:'李雯' },
+    { no:'32108419900734', name:'周锰杰', gender:'男性', birth:'2019-06-14', age:7, mother:'王春', mIdType:'居民身份证', mIdNo:'513030198502146323', source:'高邮龙腾', regDate:'2019-06-27', org:'高邮市送桥中心卫...', doctor:'刘佳' },
+    { no:'32108419902908', name:'冯雨熙', gender:'女性', birth:'2019-06-22', age:7, mother:'黄露', mIdType:'居民身份证', mIdNo:'321088199212012222', source:'高邮龙腾', regDate:'2019-06-26', org:'高邮市中医医院', doctor:'郭力群' },
+    { no:'32108419903341', name:'韩妤', gender:'女性', birth:'2019-06-11', age:7, mother:'张倩文', mIdType:'居民身份证', mIdNo:'321084199204284820', source:'高邮龙腾', regDate:'2019-06-12', org:'高邮市中西医结合...', doctor:'赵书金' },
+    { no:'32101219903953', name:'陈宇轩', gender:'男性', birth:'2019-03-07', age:7, mother:'栾霞', mIdType:'居民身份证', mIdNo:'321088199401246925', source:'江都龙腾', regDate:'2019-03-07', org:'扬州洪泉医院', doctor:'韩云' },
+    { no:'32101219900164', name:'俞君翔', gender:'男性', birth:'2019-01-28', age:7, mother:'陶红', mIdType:'居民身份证', mIdNo:'320922198504263946', source:'江都龙腾', regDate:'2019-01-29', org:'扬州市江都妇幼保...', doctor:'王芳' },
+    { no:'32101219903582', name:'管思语', gender:'女性', birth:'2019-01-19', age:7, mother:'陈婷', mIdType:'居民身份证', mIdNo:'321088199503016522', source:'江都龙腾', regDate:'2019-01-22', org:'扬州市江都人民医院', doctor:'殷春霞' },
+    { no:'32108419901286', name:'彭子墨', gender:'男性', birth:'2019-01-04', age:7, mother:'李萍', mIdType:'居民身份证', mIdNo:'321088198902102087', source:'高邮龙腾', regDate:'2019-01-04', org:'高邮市人民医院', doctor:'李雯' },
+    { no:'32101218901469', name:'周恬馨', gender:'女性', birth:'2018-12-12', age:8, mother:'袁香', mIdType:'居民身份证', mIdNo:'321088199302208928', source:'江都龙腾', regDate:'2018-12-12', org:'扬州市江都妇幼保...', doctor:'周爱兰' },
+    { no:'32108418902886', name:'李亦洲', gender:'男性', birth:'2018-10-05', age:8, mother:'周敏', mIdType:'居民身份证', mIdNo:'321088199103044882', source:'高邮龙腾', regDate:'2018-10-05', org:'高邮市人民医院', doctor:'李雯' },
+    { no:'32101218901063', name:'孙梓菁', gender:'女性', birth:'2018-09-11', age:8, mother:'王淳雅', mIdType:'居民身份证', mIdNo:'321088199005245269', source:'江都龙腾', regDate:'2018-09-11', org:'扬州市江都妇幼保...', doctor:'朱节' },
+    { no:'32108418903885', name:'吕峻熙', gender:'男性', birth:'2018-08-30', age:8, mother:'张晶晶', mIdType:'居民身份证', mIdNo:'321088199011085142', source:'高邮龙腾', regDate:'2018-09-05', org:'高邮市中医医院', doctor:'郭力群' },
+    { no:'32101218903172', name:'孟启源', gender:'男性', birth:'2018-07-11', age:8, mother:'任艳', mIdType:'居民身份证', mIdNo:'340402199303220427', source:'江都龙腾', regDate:'2018-07-12', org:'扬州洪泉医院', doctor:'朱海艳' },
+    { no:'32101218902162', name:'陈语潼', gender:'女性', birth:'2018-06-27', age:8, mother:'潘莉', mIdType:'居民身份证', mIdNo:'321088199206225264', source:'江都龙腾', regDate:'2018-06-28', org:'扬州市江都人民医院', doctor:'殷春霞' },
+    { no:'32101218903134', name:'朱奕承', gender:'男性', birth:'2018-06-15', age:8, mother:'任梦雅', mIdType:'居民身份证', mIdNo:'321088199011124885', source:'江都龙腾', regDate:'2018-06-15', org:'扬州洪泉医院', doctor:'朱海艳' },
+    { no:'32101218901953', name:'宦夏婷', gender:'女性', birth:'2018-04-24', age:8, mother:'陈志霞', mIdType:'居民身份证', mIdNo:'321088198104195266', source:'江都龙腾', regDate:'2018-04-25', org:'扬州市江都人民医院', doctor:'殷春霞' },
+    { no:'32101218900659', name:'李天宙', gender:'男性', birth:'2018-04-23', age:8, mother:'陈鑫', mIdType:'居民身份证', mIdNo:'321088198401126325', source:'江都龙腾', regDate:'2018-04-23', org:'扬州市江都妇幼保...', doctor:'周爱兰' },
+    { no:'32101218901893', name:'陈贝雨', gender:'女性', birth:'2018-04-11', age:8, mother:'何娜', mIdType:'居民身份证', mIdNo:'522101198311144426', source:'江都龙腾', regDate:'2018-04-12', org:'扬州市江都人民医院', doctor:'殷春霞' }
+  ];
+
+  function renderTable() {
+    var tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+    MOCK_DATA.forEach(function (row, i) {
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td class="center">' + (i+1) + '</td>' +
+        '<td>' + row.no + '</td>' +
+        '<td>' + row.name + '</td>' +
+        '<td class="center">' + row.gender + '</td>' +
+        '<td>' + row.birth + '</td>' +
+        '<td class="center">' + row.age + '</td>' +
+        '<td>' + row.mother + '</td>' +
+        '<td>' + row.mIdType + '</td>' +
+        '<td>' + row.mIdNo + '</td>' +
+        '<td>' + row.source + '</td>' +
+        '<td>' + row.regDate + '</td>' +
+        '<td title="' + row.org + '"><span class="cell">' + row.org + '</span></td>' +
+        '<td>' + row.doctor + '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+  renderTable();
+</script>
+</body>
+</html>

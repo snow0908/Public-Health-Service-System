@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>menutest2</title>
+<link rel="stylesheet" href="../01-公共卫生服务系统产品文档/V1.0/02.需求设计/原型设计/框架.css">
+<style>
+  body{margin:0;font-family:sans-serif}
+  .report{position:fixed;right:8px;top:8px;z-index:9;background:#fff;border:1px solid #333;padding:8px;font-size:13px;width:380px;white-space:pre-wrap;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="main-area" id="ma"></div>
+<div class="report" id="report">running…</div>
+<script>
+window.__errs=[];
+window.onerror=function(m,s,l){window.__errs.push(m+' @'+l);};
+</script>
+<script src="../01-公共卫生服务系统产品文档/V1.0/02.需求设计/原型设计/框架.js" data-shell="true"></script>
+<script>
+function snap(tag){
+  var lines=[tag];
+  document.querySelectorAll('.menu-item').forEach(function(mi){
+    var sub=mi.nextElementSibling;
+    var open=sub&&sub.classList.contains('open');
+    var h=sub?Math.round(sub.getBoundingClientRect().height):'-';
+    lines.push(mi.querySelector('.menu-label').textContent+': exp='+mi.classList.contains('expanded')+' open='+open+' h='+h);
+  });
+  document.querySelectorAll('.sub-item.has-children').forEach(function(hc){
+    var sub=hc.nextElementSibling;
+    var open=sub&&sub.classList.contains('open');
+    var h=sub?Math.round(sub.getBoundingClientRect().height):'-';
+    lines.push('  L '+hc.querySelector('.sub-label').textContent+': exp='+hc.classList.contains('expanded')+' open='+open+' h='+h);
+  });
+  return lines.join('\n');
+}
+function run(){
+  var r=document.getElementById('report');
+  var diags=[];
+  diags.push('sidebar='+document.querySelectorAll('.sidebar').length);
+  diags.push('menuItem='+document.querySelectorAll('.menu-item').length);
+  diags.push('errs='+window.__errs.join(' | '));
+  var wm=document.querySelector('.menu-item[data-key="women-child"]');
+  if(wm) wm.click();
+  var cc=document.querySelector('.sub-item.has-children[data-key="cancer-screening"]');
+  if(cc) cc.click();
+  var before=snap('【展开 妇幼/两癌后】');
+  var gj=document.querySelector('.sub-item.sub3[data-key="cervical-cancer-screening"]');
+  if(gj) gj.click();
+  var after=snap('【点击 宫颈癌筛查后】');
+  r.textContent=diags.join('\n')+'\n\n'+before+'\n\n'+after;
+  document.title='DONE';
+}
+if(document.querySelector('.menu-item')) run();
+else window.addEventListener('load',function(){ setTimeout(run,50); });
+</script>
+</body>
+</html>

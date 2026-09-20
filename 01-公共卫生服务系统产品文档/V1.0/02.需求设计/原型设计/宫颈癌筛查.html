@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>宫颈癌筛查 - 妇幼管理</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  /* ===== 宫颈癌筛查页面特有样式（设计变量与公共样式见 框架.css） ===== */
+
+  /* ===== 嵌入模式（被 index.html 壳子以 iframe 内嵌时，框架.js 自动加 html.embed-mode） ===== */
+  html.embed-mode .main-area{height:100%}      /* 壳子内自适应：无顶部导航栏包裹 */
+  html.embed-mode .tabbar{display:none}        /* 标签栏由壳子统一管理，本页隐藏 */
+  html.embed-mode .toast{top:24px}             /* 壳内提示位置上移 */
+
+  /* ===== 布局：content 改为 flex，content-card 撑满并让表格区内部滚动 ===== */
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0}
+
+  /* ===== 页头按钮 ===== */
+  .page-head .right .btn{height:28px;padding:0 14px;font-size:13px}
+
+  /* ===== 筛选区 ===== */
+  .filter-panel{padding:14px 12px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:14px;align-items:center}
+  .filter-item{display:flex;align-items:center;gap:8px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:140px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-select.w-lg{width:210px}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+  /* 日期区间 / 复选 */
+  .fi-date{width:138px}
+  .fi-sep{color:var(--text-placeholder);font-size:13px}
+  .fi-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer}
+  .fi-check input{margin:0;accent-color:var(--primary);cursor:pointer}
+
+  /* ===== 数据表格 ===== */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+
+  /* 横向滚动时前 4 列冻结（序号/管理机构/姓名/证件号） */
+  .list-tbl th:nth-child(-n+4),.list-tbl td:nth-child(-n+4){position:sticky}
+  .list-tbl td:nth-child(-n+4){z-index:2;background:var(--bg-white)}
+  .list-tbl th:nth-child(-n+4){z-index:6}
+  .list-tbl th:nth-child(1),.list-tbl td:nth-child(1){left:0}
+  .list-tbl th:nth-child(2),.list-tbl td:nth-child(2){left:44px}
+  .list-tbl th:nth-child(3),.list-tbl td:nth-child(3){left:244px}
+  .list-tbl th:nth-child(4),.list-tbl td:nth-child(4){left:320px}
+  .list-tbl th:nth-child(4),.list-tbl td:nth-child(4){box-shadow:6px 0 8px -6px rgba(0,0,0,0.2)}
+  /* 横向滚动时操作列（末列）冻结在右侧 */
+  .list-tbl th:last-child,.list-tbl td:last-child{position:sticky;right:0}
+  .list-tbl td:last-child{z-index:2;background:var(--bg-white)}
+  .list-tbl th:last-child{z-index:6}
+  .list-tbl th:last-child,.list-tbl td:last-child{box-shadow:-6px 0 8px -6px rgba(0,0,0,0.2)}
+  .list-tbl tr.empty-row td:last-child{position:static;box-shadow:none}
+  .list-tbl{width:100%;min-width:1582px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:36px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:nth-child(even) td{background:var(--bg-table-even)}
+  .list-tbl tbody tr:nth-child(even) td:nth-child(-n+4){background:var(--bg-table-even)}
+  .list-tbl tbody tr:hover td,.list-tbl tbody tr:hover td:nth-child(-n+4){background:var(--primary-bg)}
+  .list-tbl th.center,.list-tbl td.center{text-align:center}
+  .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* 镜检状态圆点（未上镜橙 / 已上镜绿） */
+  .st-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  .st-dot.ok{background:var(--success)}
+  .st-dot.warn{background:#FF9500}
+
+  /* ===== 操作列 ===== */
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px}
+  .op-link:hover{text-decoration:underline}
+  .op-link.danger{color:var(--danger)}
+  .op-link.danger:hover{text-decoration:underline}
+  .op-gap{display:inline-block;width:8px}
+
+  /* ===== 分页 ===== */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:52px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 22px 0 8px;font-size:13px;color:var(--text-secondary);background:#fff;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-ellipsis{display:inline-block;padding:0 4px;line-height:26px;color:var(--text-tertiary)}
+  .pg-jump input{width:40px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 6px;font-size:13px;text-align:center;color:var(--text-primary);outline:none}
+  .pg-jump input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+
+  /* ===== 弹框（新建 / 编辑 / 查看 / 注销确认） ===== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .modal-overlay.show{opacity:1;pointer-events:auto}
+  .modal{width:860px;max-width:92vw;background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 8px 32px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden;transform:translateY(10px);transition:transform var(--transition-normal)}
+  .modal-overlay.show .modal{transform:translateY(0)}
+  .modal-head{height:48px;display:flex;align-items:center;padding:0 16px;flex-shrink:0}
+  .modal-head h3{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+  .modal-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:16px}
+  .modal-close:hover{background:var(--primary-bg);color:var(--primary)}
+  .modal-body{padding:16px 16px 4px}
+  .modal-cols{display:flex;gap:16px;align-items:flex-start}
+  .modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:18px 20px 20px}
+  /* 注销确认小弹框 */
+  .modal-sm{width:400px;max-width:90vw}
+  .confirm-body{padding:8px 22px 4px;font-size:14px;color:var(--text-primary);line-height:1.7}
+  .confirm-body b{font-weight:var(--font-weight-medium)}
+  .confirm-tip{font-size:13px;color:var(--text-tertiary);margin-top:6px}
+  .btn-danger{background:var(--danger);border-color:var(--danger);color:#fff}
+  .btn-danger:hover{background:#e64545;border-color:#e64545;color:#fff}
+
+  /* 左侧表单 */
+  .fm-form{width:316px;flex-shrink:0}
+  .fm-row{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+  .fm-row label{width:104px;text-align:right;font-size:14px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
+  .fm-row label i{color:var(--danger);font-style:normal;margin-right:2px}
+  .fm-ctl-wrap{position:relative}
+  .fm-ctl{width:212px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fm-ctl.has-cnt{padding-right:40px}
+  .fm-select{width:212px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fm-ctl:focus,.fm-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fm-ctl::placeholder{color:var(--text-placeholder)}
+  .cnt{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text-placeholder);pointer-events:none}
+  .fm-readcard{height:32px;padding:0 10px;border:1px solid var(--primary);color:var(--primary);background:var(--bg-white);border-radius:var(--r-sm);font-size:13px;white-space:nowrap;flex-shrink:0;transition:all var(--transition-fast)}
+  .fm-readcard:hover{background:var(--primary-bg)}
+
+  /* 右侧：证件号行 + 信息回显卡 */
+  .pv-side{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px}
+  .pv-side .fm-row{margin-bottom:0}
+  .pv-side .fm-ctl-wrap{flex:1;min-width:0}
+  .pv-side .fm-ctl{width:100%}
+  .pv-card{flex:1;min-width:0;background:var(--primary-bg);border:1px dashed #9EC3F5;border-radius:var(--r-md);padding:22px 18px;display:grid;grid-template-columns:1fr 1fr;row-gap:24px;column-gap:12px;font-size:13px;min-height:210px;align-content:start}
+  .pv-row{display:flex;min-width:0}
+  .pv-row.wide{grid-column:1 / -1}
+  .pv-label{color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
+  .pv-val{color:var(--primary);word-break:break-all}
+
+  /* ===== 查看详情弹框：字段网格 ===== */
+  .modal.view-modal .modal{width:720px}
+  .view-grid{display:grid;grid-template-columns:1fr 1fr;row-gap:16px;column-gap:12px;padding:6px 6px 10px;font-size:13px}
+  .view-grid .pv-row.wide{grid-column:1 / -1}
+  .view-grid .pv-val{color:var(--text-primary)}
+
+  /* ===== 档案选择弹框（新建筛查记录第一步：选择居民档案） ===== */
+  .modal.select-modal .modal{width:980px;max-width:94vw;max-height:88vh;display:flex;flex-direction:column}
+  .modal.select-modal .modal-body{padding:12px 0 0;display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+  .select-filter{padding:0 16px 10px;border-bottom:1px solid #E8E8E8;flex-shrink:0}
+  .select-filter .filter-row{margin-bottom:10px}
+  .select-filter .fi-ctl{width:150px;height:30px;font-size:13px}
+  .select-filter .fi-select{width:130px;height:30px;font-size:13px}
+  .select-filter .fi-select.w-lg{width:170px}
+  .select-filter .btn{height:28px;padding:0 12px;font-size:13px}
+  .select-table-wrap{flex:1;overflow:auto;min-height:0;min-width:0}
+  .select-tbl{width:100%;min-width:1000px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .select-tbl th{position:sticky;top:0;z-index:5;height:34px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .select-tbl td{height:34px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* 横向滚动时前 3 列（序号/档案编号/姓名）冻结在左侧 */
+  .select-tbl th:nth-child(-n+3),.select-tbl td:nth-child(-n+3){position:sticky}
+  .select-tbl td:nth-child(-n+3){z-index:2;background:var(--bg-white)}
+  .select-tbl th:nth-child(-n+3){z-index:6}
+  .select-tbl th:nth-child(1),.select-tbl td:nth-child(1){left:0}
+  .select-tbl th:nth-child(2),.select-tbl td:nth-child(2){left:50px}
+  .select-tbl th:nth-child(3),.select-tbl td:nth-child(3){left:190px}
+  .select-tbl th:nth-child(3),.select-tbl td:nth-child(3){box-shadow:6px 0 8px -6px rgba(0,0,0,0.2)}
+  /* 操作列（末列）冻结在右侧 */
+  .select-tbl th:last-child,.select-tbl td:last-child{position:sticky;right:0}
+  .select-tbl td:last-child{z-index:2;background:var(--bg-white)}
+  .select-tbl th:last-child{z-index:6}
+  .select-tbl th:last-child,.select-tbl td:last-child{box-shadow:-6px 0 8px -6px rgba(0,0,0,0.2)}
+  .select-tbl tr.empty-row td:last-child{position:static;box-shadow:none}
+  .select-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .select-tbl th.center,.select-tbl td.center{text-align:center}
+  .select-tbl .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .select-tbl .op-create{color:var(--primary);cursor:pointer;font-size:13px}
+  .select-tbl .op-create:hover{text-decoration:underline}
+  .select-pagefoot{display:flex;align-items:center;justify-content:flex-end;gap:10px;height:44px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .select-pagefoot .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .select-pagefoot .pg-pager{display:flex;align-items:center;gap:3px}
+  .select-pagefoot .pg-btn{min-width:24px;height:24px;padding:0 5px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:12px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff}
+  .select-pagefoot .pg-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .select-pagefoot .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+
+</style>
+</head>
+<body>
+
+<!-- ===== 主内容区（顶部导航栏与左侧菜单栏由 框架.js 注入） ===== -->
+<div class="main-area">
+
+  <div class="content">
+    <div class="content-card">
+
+      <!-- 页头 -->
+      <div class="page-head">
+        <h1>宫颈癌筛查</h1>
+        <div class="right">
+          <button class="btn btn-default" onclick="toast('导出功能建设中','info')">导出</button>
+          <button class="btn btn-primary" onclick="openSelectModal()">新建</button>
+        </div>
+      </div>
+
+      <!-- 筛选区 -->
+      <div class="filter-panel">
+        <div class="filter-row">
+          <div class="filter-item"><label>管理机构</label>
+            <select id="fOrg" class="fi-select w-lg">
+              <option value="" selected>请选择</option>
+              <option value="扬州市江都区吴桥镇人民医院">扬州市江都区吴桥镇人民医院</option>
+              <option value="扬州市江都区宜陵镇中心卫生院">扬州市江都区宜陵镇中心卫生院</option>
+              <option value="扬州市江都区仙女镇社区卫生服务中心">扬州市江都区仙女镇社区卫生服务中心</option>
+              <option value="扬州市江都区丁沟镇卫生院">扬州市江都区丁沟镇卫生院</option>
+              <option value="扬州市江都区樊川镇卫生院">扬州市江都区樊川镇卫生院</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>姓名</label><input id="fName" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>建档日期</label>
+            <input id="fRegStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+            <span class="fi-sep">—</span>
+            <input id="fRegEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+          </div>
+          <div class="filter-item"><label>责任医生</label><input id="fDoc" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>证件号</label><input id="fIdcard" class="fi-ctl" placeholder="请输入"></div>
+        </div>
+        <div class="filter-row">
+          <div class="filter-item"><label>出生日期</label>
+            <input id="fBirthStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+            <span class="fi-sep">—</span>
+            <input id="fBirthEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+          </div>
+          <div class="filter-item"><label>婚姻状况</label>
+            <select id="fMarriage" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="未婚">未婚</option>
+              <option value="已婚">已婚</option>
+              <option value="丧偶">丧偶</option>
+              <option value="离婚">离婚</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>管理行政区</label>
+            <select id="fRegion" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="吴桥社区">吴桥社区</option>
+              <option value="宜陵社区">宜陵社区</option>
+              <option value="仙女社区">仙女社区</option>
+              <option value="丁沟社区">丁沟社区</option>
+              <option value="樊川社区">樊川社区</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>镜检状态</label>
+            <select id="fMirror" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="未上镜">未上镜</option>
+              <option value="已上镜">已上镜</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label class="fi-check"><input type="checkbox" id="fMine">只看个人管理档案</label>
+          </div>
+          <div class="filter-btns">
+            <button class="btn btn-default" onclick="resetFilter()">重置</button>
+            <button class="btn btn-primary" onclick="applyFilter()">查询</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 数据表格 -->
+      <div class="table-wrap">
+        <table class="list-tbl">
+          <colgroup>
+            <col style="width:44px"><col style="width:200px"><col style="width:76px"><col style="width:160px"><col style="width:104px"><col style="width:104px"><col style="width:112px"><col style="width:96px"><col style="width:180px"><col style="width:96px"><col style="width:84px"><col style="width:96px"><col style="width:84px"><col style="width:100px">
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="center">序号</th>
+              <th>管理机构</th>
+              <th>姓名</th>
+              <th>证件号</th>
+              <th>妇科临床诊断</th>
+              <th>醋酸染色检查</th>
+              <th>复方碘染色检查</th>
+              <th class="center">巴氏染色级别</th>
+              <th>详细地址</th>
+              <th>最后诊断</th>
+              <th>责任医生</th>
+              <th class="center">检查日期</th>
+              <th>镜检状态</th>
+              <th class="center">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tbBody"></tbody>
+        </table>
+      </div>
+
+      <!-- 分页 -->
+      <div class="page-foot">
+        <span class="pg-total">共 <b id="pgTotal">0</b> 条</span>
+        <span class="pg-size">
+          <select onchange="toast('原型演示：每页条数固定 20 条','info')">
+            <option selected>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+        </span>
+        <span class="pg-pager" id="pgPager"></span>
+        <span class="pg-jump">前往 <input id="pgJump" value="1" onkeydown="if(event.key==='Enter'){jumpPage()}"> 页</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== 档案选择弹框（新建筛查记录第一步：选择居民档案） ===== -->
+<div class="modal-overlay select-modal" id="selectModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>新建宫颈癌筛查记录</h3>
+      <span class="modal-close" onclick="closeSelectModal()">×</span>
+    </div>
+    <div class="modal-body">
+      <!-- 筛选区 -->
+      <div class="select-filter">
+        <div class="filter-row">
+          <div class="filter-item"><label>姓名</label><input id="sfName" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>证件号</label><input id="sfIdcard" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>管理机构</label>
+            <select id="sfOrg" class="fi-select w-lg">
+              <option value="" selected>请选择</option>
+              <option value="扬州市江都区吴桥镇人民医院">扬州市江都区吴桥镇人民医院</option>
+              <option value="扬州市江都区宜陵镇中心卫生院">扬州市江都区宜陵镇中心卫生院</option>
+              <option value="扬州市江都区仙女镇社区卫生服务中心">扬州市江都区仙女镇社区卫生服务中心</option>
+              <option value="扬州市江都区丁沟镇卫生院">扬州市江都区丁沟镇卫生院</option>
+              <option value="扬州市江都区樊川镇卫生院">扬州市江都区樊川镇卫生院</option>
+            </select>
+          </div>
+          <div class="filter-btns">
+            <button class="btn btn-default" onclick="resetSelectFilter()">重置</button>
+            <button class="btn btn-primary" onclick="applySelectFilter()">查询</button>
+          </div>
+        </div>
+      </div>
+      <!-- 档案列表表格 -->
+      <div class="select-table-wrap">
+        <table class="select-tbl">
+          <colgroup>
+            <col style="width:50px"><col style="width:140px"><col style="width:70px"><col style="width:44px"><col style="width:44px"><col style="width:150px"><col style="width:88px"><col style="width:170px"><col style="width:80px">
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="center">序号</th>
+              <th>档案编号</th>
+              <th>姓名</th>
+              <th class="center">性别</th>
+              <th class="center">年龄</th>
+              <th>证件号</th>
+              <th>管辖行政区</th>
+              <th>管辖机构</th>
+              <th class="center">操作</th>
+            </tr>
+          </thead>
+          <tbody id="sfTbBody"></tbody>
+        </table>
+      </div>
+      <!-- 分页 -->
+      <div class="select-pagefoot">
+        <span class="pg-total">共 <b id="sfTotal">0</b> 条</span>
+        <span class="pg-pager" id="sfPager"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 新建/编辑宫颈癌筛查记录弹框 ===== -->
+<div class="modal-overlay" id="formModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="fmTitle">新建宫颈癌筛查记录</h3>
+      <span class="modal-close" onclick="closeFormModal()">×</span>
+    </div>
+    <div class="modal-body">
+      <div class="modal-cols">
+        <!-- 左侧表单 -->
+        <div class="fm-form">
+          <div class="fm-row">
+            <label><i>*</i>证件类型：</label>
+            <select id="fmIdType" class="fm-select">
+              <option value="居民身份证" selected>居民身份证</option>
+              <option value="居民户口簿">居民户口簿</option>
+              <option value="护照">护照</option>
+              <option value="港澳居民来往内地通行证">港澳居民来往内地通行证</option>
+              <option value="台湾居民来往大陆通行证">台湾居民来往大陆通行证</option>
+            </select>
+          </div>
+          <div class="fm-row">
+            <label><i>*</i>姓名：</label>
+            <div class="fm-ctl-wrap">
+              <input id="fmName" class="fm-ctl has-cnt" maxlength="8" placeholder="请输入">
+              <span class="cnt" id="fmCntName">0/8</span>
+            </div>
+          </div>
+          <div class="fm-row">
+            <label><i>*</i>性别：</label>
+            <select id="fmGender" class="fm-select">
+              <option value="" selected>请选择</option>
+              <option value="女性">女性</option>
+              <option value="男性">男性</option>
+            </select>
+          </div>
+          <div class="fm-row">
+            <label><i>*</i>出生日期：</label>
+            <input id="fmBirth" class="fm-ctl" type="text" placeholder="请选择日期"
+                   onfocus="this.type='date';try{this.showPicker()}catch(e){}"
+                   onblur="if(!this.value){this.type='text'}">
+          </div>
+          <div class="fm-row">
+            <label><i>*</i>联系电话：</label>
+            <input id="fmPhone" class="fm-ctl" maxlength="11" placeholder="请输入联系电话">
+          </div>
+          <div class="fm-row">
+            <label><i>*</i>婚姻状况：</label>
+            <select id="fmMarriage" class="fm-select">
+              <option value="" selected>请选择</option>
+              <option value="未婚">未婚</option>
+              <option value="已婚">已婚</option>
+              <option value="丧偶">丧偶</option>
+              <option value="离婚">离婚</option>
+            </select>
+          </div>
+          <div class="fm-row">
+            <label><i>*</i>妇科临床诊断：</label>
+            <select id="fmDiag" class="fm-select">
+              <option value="" selected>请选择</option>
+              <option value="阴性（正常）">阴性（正常）</option>
+              <option value="阳性（异常）">阳性（异常）</option>
+            </select>
+          </div>
+          <div class="fm-row">
+            <label><i>*</i>醋酸染色检查：</label>
+            <select id="fmAcetic" class="fm-select">
+              <option value="" selected>请选择</option>
+              <option value="阴性（正常）">阴性（正常）</option>
+              <option value="阳性（异常）">阳性（异常）</option>
+            </select>
+          </div>
+          <div class="fm-row">
+            <label>复方碘染色检查：</label>
+            <select id="fmIodine" class="fm-select">
+              <option value="" selected>请选择</option>
+              <option value="阴性（正常）">阴性（正常）</option>
+              <option value="阳性（异常）">阳性（异常）</option>
+            </select>
+          </div>
+        </div>
+        <!-- 右侧：证件号 + 信息回显卡 -->
+        <div class="pv-side">
+          <div class="fm-row">
+            <label><i>*</i>证件号：</label>
+            <div class="fm-ctl-wrap">
+              <input id="fmIdcard" class="fm-ctl has-cnt" maxlength="18" placeholder="请输入证件号">
+              <span class="cnt" id="fmCntIdcard">0/18</span>
+            </div>
+            <button class="fm-readcard" onclick="toast('请连接身份证读卡器','info')">身份证读卡</button>
+          </div>
+          <div class="fm-row">
+            <label><i>*</i>巴氏染色级别：</label>
+            <select id="fmPap" class="fm-select">
+              <option value="" selected>请选择</option>
+              <option value="I级">I级</option>
+              <option value="II级">II级</option>
+              <option value="III级">III级</option>
+            </select>
+          </div>
+          <div class="fm-row">
+            <label><i>*</i>检查日期：</label>
+            <input id="fmExamDate" class="fm-ctl" type="text" placeholder="请选择日期"
+                   onfocus="this.type='date';try{this.showPicker()}catch(e){}"
+                   onblur="if(!this.value){this.type='text'}">
+          </div>
+          <div class="fm-row">
+            <label><i>*</i>责任医生：</label>
+            <input id="fmDoc" class="fm-ctl" maxlength="10" placeholder="请输入责任医生">
+          </div>
+          <div class="fm-row">
+            <label>最后诊断：</label>
+            <input id="fmLastDiag" class="fm-ctl" maxlength="20" placeholder="请输入最后诊断">
+          </div>
+          <div class="fm-row">
+            <label>详细地址：</label>
+            <input id="fmAddress" class="fm-ctl" maxlength="40" placeholder="请输入详细地址">
+          </div>
+          <div class="pv-card" id="pvCard"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" onclick="submitForm()">确定</button>
+      <button class="btn btn-default" onclick="closeFormModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 查看详情弹框 ===== -->
+<div class="modal-overlay view-modal" id="viewModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>宫颈癌筛查记录详情</h3>
+      <span class="modal-close" onclick="closeViewModal()">×</span>
+    </div>
+    <div class="modal-body">
+      <div class="view-grid" id="viewGrid"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeViewModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 注销确认弹框 ===== -->
+<div class="modal-overlay" id="cancelModal">
+  <div class="modal modal-sm">
+    <div class="modal-head">
+      <h3>注销确认</h3>
+      <span class="modal-close" onclick="closeCancelModal()">×</span>
+    </div>
+    <div class="confirm-body" id="cancelBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-danger" onclick="confirmCancel()">确定注销</button>
+      <button class="btn btn-default" onclick="closeCancelModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 统一框架：顶部导航栏 + 左侧菜单栏（菜单配置见 框架.js） =====
+     data-page    = 左侧菜单高亮项（独立打开时生效）
+     data-embed   = "auto" 被壳子 iframe 内嵌时自动进入嵌入模式 -->
+<script src="框架.js" data-page="cervical-cancer-screening" data-embed="auto"></script>
+
+<script>
+  /* ================= 模拟数据（姓名/证件号/出生日期对应；诊断与染色结果自洽） ================= */
+  var screeningData = [
+    { org:'扬州市江都区吴桥镇人民医院',           name:'夏余兰', idcard:'321088195803177723', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区吴桥镇吴桥路24号',   lastDiag:'正常',       doc:'朱劲松', examDate:'2022-09-03', mirror:'已上镜', regDate:'2022-08-28', birth:'1958-03-13', marriage:'已婚', region:'吴桥社区', mine:true },
+    { org:'扬州市江都区吴桥镇人民医院',           name:'小山东', idcard:'510123199001101066', diag:'阴性（正常）', acetic:'阳性（异常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区吴桥镇育才巷7号',   lastDiag:'正常',       doc:'朱劲松', examDate:'2023-04-03', mirror:'未上镜', regDate:'2023-03-21', birth:'1990-01-01', marriage:'未婚', region:'吴桥社区', mine:false },
+    { org:'扬州市江都区宜陵镇中心卫生院',         name:'王秀英', idcard:'321088196502244826', diag:'阳性（异常）', acetic:'阳性（异常）', iodine:'阳性（异常）', pap:'II级', address:'扬州市江都区宜陵镇宜陵东路51号', lastDiag:'炎症',       doc:'李蕾',   examDate:'2023-05-16', mirror:'已上镜', regDate:'2023-05-09', birth:'1965-02-24', marriage:'已婚', region:'宜陵社区', mine:true },
+    { org:'扬州市江都区宜陵镇中心卫生院',         name:'刘德兰', idcard:'32108819711130863X', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区宜陵镇振兴街12号',   lastDiag:'正常',       doc:'李蕾',   examDate:'2023-06-22', mirror:'已上镜', regDate:'2023-06-15', birth:'1971-11-30', marriage:'已婚', region:'宜陵社区', mine:false },
+    { org:'扬州市江都区仙女镇社区卫生服务中心',   name:'杨春梅', idcard:'321088198109082543', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区仙女镇龙川南路88号', lastDiag:'正常',       doc:'王盛',   examDate:'2023-07-11', mirror:'未上镜', regDate:'2023-07-02', birth:'1981-09-08', marriage:'已婚', region:'仙女社区', mine:false },
+    { org:'扬州市江都区仙女镇社区卫生服务中心',   name:'周建华', idcard:'321088194910056317', diag:'阳性（异常）', acetic:'阳性（异常）', iodine:'阳性（异常）', pap:'III级',address:'扬州市江都区仙女镇三江路215号',  lastDiag:'高级别病变', doc:'王盛',   examDate:'2023-08-03', mirror:'已上镜', regDate:'2023-07-26', birth:'1949-10-05', marriage:'丧偶', region:'仙女社区', mine:true },
+    { org:'扬州市江都区丁沟镇卫生院',             name:'冯立珍', idcard:'321088197706285516', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区丁沟镇人民路9号',   lastDiag:'正常',       doc:'徐东升', examDate:'2023-09-14', mirror:'未上镜', regDate:'2023-09-01', birth:'1977-06-28', marriage:'已婚', region:'丁沟社区', mine:false },
+    { org:'扬州市江都区丁沟镇卫生院',             name:'高凤仙', idcard:'321088194503124826', diag:'阳性（异常）', acetic:'阳性（异常）', iodine:'阴性（正常）', pap:'II级', address:'扬州市江都区丁沟镇丁沟巷33号',  lastDiag:'炎症',       doc:'徐东升', examDate:'2023-10-19', mirror:'已上镜', regDate:'2023-10-08', birth:'1945-03-12', marriage:'丧偶', region:'丁沟社区', mine:true },
+    { org:'扬州市江都区樊川镇卫生院',             name:'韩淑芬', idcard:'321088195912034420', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区樊川镇樊川路66号',  lastDiag:'正常',       doc:'陆柳琳', examDate:'2023-11-27', mirror:'已上镜', regDate:'2023-11-15', birth:'1959-12-03', marriage:'已婚', region:'樊川社区', mine:false },
+    { org:'扬州市江都区樊川镇卫生院',             name:'谭德顺', idcard:'321088195008195517', diag:'阴性（正常）', acetic:'阳性（异常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区樊川镇永安街18号',  lastDiag:'正常',       doc:'陆柳琳', examDate:'2023-12-06', mirror:'未上镜', regDate:'2023-11-29', birth:'1950-08-19', marriage:'已婚', region:'樊川社区', mine:false },
+    { org:'扬州市江都区吴桥镇人民医院',           name:'董梅香', idcard:'321088196705244824', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区吴桥镇通扬路102号', lastDiag:'正常',       doc:'朱劲松', examDate:'2024-01-15', mirror:'已上镜', regDate:'2024-01-06', birth:'1967-05-24', marriage:'离婚', region:'吴桥社区', mine:false },
+    { org:'扬州市江都区吴桥镇人民医院',           name:'贾淑华', idcard:'321088195310076311', diag:'阳性（异常）', acetic:'阳性（异常）', iodine:'阳性（异常）', pap:'II级', address:'扬州市江都区吴桥镇桥南小区5号', lastDiag:'低级别病变', doc:'朱劲松', examDate:'2024-02-27', mirror:'已上镜', regDate:'2024-02-19', birth:'1953-10-07', marriage:'丧偶', region:'吴桥社区', mine:true },
+    { org:'扬州市江都区宜陵镇中心卫生院',         name:'潘金凤', idcard:'321088196202144226', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区宜陵镇光明路77号',  lastDiag:'正常',       doc:'李蕾',   examDate:'2024-03-21', mirror:'未上镜', regDate:'2024-03-12', birth:'1962-02-14', marriage:'已婚', region:'宜陵社区', mine:false },
+    { org:'扬州市江都区宜陵镇中心卫生院',         name:'何广霞', idcard:'321088196511023513', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阳性（异常）', pap:'I级',  address:'扬州市江都区宜陵镇育才路8号',   lastDiag:'炎症',       doc:'李蕾',   examDate:'2024-04-09', mirror:'已上镜', regDate:'2024-04-01', birth:'1965-11-02', marriage:'离婚', region:'宜陵社区', mine:false },
+    { org:'扬州市江都区仙女镇社区卫生服务中心',   name:'邵玉洁', idcard:'321088197006084824', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区仙女镇仙城路46号',  lastDiag:'正常',       doc:'王盛',   examDate:'2024-05-23', mirror:'未上镜', regDate:'2024-05-14', birth:'1970-06-08', marriage:'已婚', region:'仙女社区', mine:false },
+    { org:'扬州市江都区仙女镇社区卫生服务中心',   name:'崔桂英', idcard:'321088195609253719', diag:'阳性（异常）', acetic:'阳性（异常）', iodine:'阳性（异常）', pap:'III级',address:'扬州市江都区仙女镇镇南路32号',  lastDiag:'高级别病变', doc:'王盛',   examDate:'2024-06-17', mirror:'已上镜', regDate:'2024-06-05', birth:'1956-09-25', marriage:'丧偶', region:'仙女社区', mine:true },
+    { org:'扬州市江都区丁沟镇卫生院',             name:'白淑珍', idcard:'321088194804304428', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区丁沟镇丁沟北路3号', lastDiag:'正常',       doc:'徐东升', examDate:'2024-07-29', mirror:'已上镜', regDate:'2024-07-18', birth:'1948-04-30', marriage:'已婚', region:'丁沟社区', mine:false },
+    { org:'扬州市江都区丁沟镇卫生院',             name:'孙福霞', idcard:'321088195201275511', diag:'阴性（正常）', acetic:'阳性（异常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区丁沟镇向阳巷21号',  lastDiag:'正常',       doc:'徐东升', examDate:'2024-08-13', mirror:'未上镜', regDate:'2024-08-02', birth:'1952-01-27', marriage:'已婚', region:'丁沟社区', mine:false },
+    { org:'扬州市江都区樊川镇卫生院',             name:'罗建萍', idcard:'321088196303184426', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区樊川镇樊南路58号',  lastDiag:'正常',       doc:'陆柳琳', examDate:'2024-09-24', mirror:'已上镜', regDate:'2024-09-11', birth:'1963-03-18', marriage:'离婚', region:'樊川社区', mine:false },
+    { org:'扬州市江都区樊川镇卫生院',             name:'蒋春林', idcard:'321088195707065518', diag:'阳性（异常）', acetic:'阳性（异常）', iodine:'阴性（正常）', pap:'II级', address:'扬州市江都区樊川镇富民路16号',  lastDiag:'炎症',       doc:'陆柳琳', examDate:'2024-10-15', mirror:'已上镜', regDate:'2024-10-08', birth:'1957-07-06', marriage:'丧偶', region:'樊川社区', mine:true },
+    { org:'扬州市江都区吴桥镇人民医院',           name:'万秀琴', idcard:'321088195505214824', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区吴桥镇迎宾大道9号', lastDiag:'正常',       doc:'朱劲松', examDate:'2024-11-06', mirror:'未上镜', regDate:'2024-10-29', birth:'1955-05-21', marriage:'已婚', region:'吴桥社区', mine:false },
+    { org:'扬州市江都区仙女镇社区卫生服务中心',   name:'顾长英', idcard:'321088194912113317', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阳性（异常）', pap:'I级',  address:'扬州市江都区仙女镇惠民花园11号',lastDiag:'炎症',       doc:'王盛',   examDate:'2024-12-11', mirror:'已上镜', regDate:'2024-12-02', birth:'1949-12-11', marriage:'丧偶', region:'仙女社区', mine:false }
+  ];
+
+  /* 档案选择弹框模拟数据（新建筛查记录第一步：选择居民档案，仅女性居民） */
+  var archiveData = [
+    { archNo:'321088JM26001', name:'许秀兰', gender:'女', age:58, idcard:'321088196803152847', region:'吴桥社区', org:'扬州市江都区吴桥镇人民医院' },
+    { archNo:'321088JM26002', name:'陈玉梅', gender:'女', age:45, idcard:'321088198109082543', region:'仙女社区', org:'扬州市江都区仙女镇社区卫生服务中心' },
+    { archNo:'321088JM26003', name:'张丽华', gender:'女', age:36, idcard:'321088199004124420', region:'宜陵社区', org:'扬州市江都区宜陵镇中心卫生院' },
+    { archNo:'321088JM26004', name:'李桂芳', gender:'女', age:62, idcard:'321088196408304428', region:'丁沟社区', org:'扬州市江都区丁沟镇卫生院' },
+    { archNo:'321088JM26005', name:'赵春兰', gender:'女', age:51, idcard:'321088197502194826', region:'樊川社区', org:'扬州市江都区樊川镇卫生院' },
+    { archNo:'321088JM26006', name:'孙美玲', gender:'女', age:40, idcard:'321088198606215517', region:'吴桥社区', org:'扬州市江都区吴桥镇人民医院' },
+    { archNo:'321088JM26007', name:'周淑珍', gender:'女', age:67, idcard:'32108819590930863X', region:'仙女社区', org:'扬州市江都区仙女镇社区卫生服务中心' },
+    { archNo:'321088JM26008', name:'吴玉兰', gender:'女', age:33, idcard:'321088199311074824', region:'宜陵社区', org:'扬州市江都区宜陵镇中心卫生院' },
+    { archNo:'321088JM26009', name:'郑晓燕', gender:'女', age:29, idcard:'321088199703174226', region:'丁沟社区', org:'扬州市江都区丁沟镇卫生院' },
+    { archNo:'321088JM26010', name:'王凤英', gender:'女', age:55, idcard:'321088197107124420', region:'樊川社区', org:'扬州市江都区樊川镇卫生院' },
+    { archNo:'321088JM26011', name:'冯连娣', gender:'女', age:48, idcard:'321088197805234826', region:'吴桥社区', org:'扬州市江都区吴桥镇人民医院' },
+    { archNo:'321088JM26012', name:'褚秀云', gender:'女', age:60, idcard:'321088196610023513', region:'仙女社区', org:'扬州市江都区仙女镇社区卫生服务中心' }
+  ];
+
+  /* ================= 工具函数 ================= */
+  function esc(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function $(id) { return document.getElementById(id); }
+
+  /* ================= 分页状态 ================= */
+  var PAGE_SIZE = 20;
+  var curPage = 1;
+  var lastList = [];
+
+  /* ================= 主表格渲染（按筛选条件过滤 + 分页） ================= */
+  function renderTable() {
+    var org = $('fOrg').value, name = $('fName').value.trim(), idcard = $('fIdcard').value.trim();
+    var doc = $('fDoc').value.trim(), region = $('fRegion').value, mirror = $('fMirror').value;
+    var marriage = $('fMarriage').value;
+    var regStart = $('fRegStart').value, regEnd = $('fRegEnd').value;
+    var birthStart = $('fBirthStart').value, birthEnd = $('fBirthEnd').value;
+    var mine = $('fMine').checked;
+
+    var list = screeningData.filter(function (r) {
+      if (org && r.org !== org) return false;
+      if (name && r.name.indexOf(name) < 0) return false;
+      if (idcard && r.idcard.indexOf(idcard) < 0) return false;
+      if (doc && r.doc.indexOf(doc) < 0) return false;
+      if (region && r.region !== region) return false;
+      if (mirror && r.mirror !== mirror) return false;
+      if (marriage && r.marriage !== marriage) return false;
+      if (regStart && r.regDate < regStart) return false;
+      if (regEnd && r.regDate > regEnd) return false;
+      if (birthStart && r.birth < birthStart) return false;
+      if (birthEnd && r.birth > birthEnd) return false;
+      if (mine && !r.mine) return false;
+      return true;
+    });
+
+    lastList = list;
+    var totalPage = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+    if (curPage > totalPage) curPage = totalPage;
+    var start = (curPage - 1) * PAGE_SIZE;
+    var rows = list.slice(start, start + PAGE_SIZE);
+
+    var html = '';
+    if (!rows.length) {
+      html = '<tr class="empty-row"><td colspan="14" style="text-align:center;padding:40px 0;color:var(--text-tertiary)">暂无数据</td></tr>';
+    } else {
+      rows.forEach(function (r, i) {
+        html += '<tr>' +
+          '<td class="center">' + (start + i + 1) + '</td>' +
+          '<td><span class="cell" title="' + esc(r.org) + '">' + esc(r.org) + '</span></td>' +
+          '<td>' + esc(r.name) + '</td>' +
+          '<td>' + esc(r.idcard) + '</td>' +
+          '<td>' + esc(r.diag) + '</td>' +
+          '<td>' + esc(r.acetic) + '</td>' +
+          '<td>' + esc(r.iodine) + '</td>' +
+          '<td class="center">' + esc(r.pap) + '</td>' +
+          '<td><span class="cell" title="' + esc(r.address) + '">' + esc(r.address) + '</span></td>' +
+          '<td>' + esc(r.lastDiag) + '</td>' +
+          '<td>' + esc(r.doc) + '</td>' +
+          '<td class="center">' + esc(r.examDate) + '</td>' +
+          '<td><span class="st-dot ' + (r.mirror === '已上镜' ? 'ok' : 'warn') + '"></span>' + esc(r.mirror) + '</td>' +
+          '<td class="center">' +
+            '<span class="op-link" onclick="openEditModal(' + (start + i) + ')">编辑</span>' +
+            '<span class="op-gap"></span>' +
+            '<span class="op-link" onclick="openViewModal(' + (start + i) + ')">查看</span>' +
+            '<span class="op-gap"></span>' +
+            '<span class="op-link danger" onclick="openCancelModal(' + (start + i) + ')">注销</span>' +
+          '</td>' +
+        '</tr>';
+      });
+    }
+    $('tbBody').innerHTML = html;
+    renderPager(list.length);
+  }
+
+  /* ================= 分页 ================= */
+  function renderPager(total) {
+    $('pgTotal').textContent = total;
+    var totalPage = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    var html = '';
+    html += '<span class="pg-btn" onclick="gotoPage(' + (curPage - 1) + ')">‹</span>';
+    for (var p = 1; p <= totalPage; p++) {
+      if (totalPage > 7 && p > 2 && p < totalPage - 1 && Math.abs(p - curPage) > 1) {
+        if (html.slice(-3) !== '…</span>') html += '<span class="pg-ellipsis">…</span>';
+        continue;
+      }
+      html += '<span class="pg-btn' + (p === curPage ? ' active' : '') + '" onclick="gotoPage(' + p + ')">' + p + '</span>';
+    }
+    html += '<span class="pg-btn" onclick="gotoPage(' + (curPage + 1) + ')">›</span>';
+    $('pgPager').innerHTML = html;
+    $('pgJump').value = curPage;
+  }
+  function gotoPage(p) {
+    var totalPage = Math.max(1, Math.ceil(lastList.length / PAGE_SIZE));
+    if (p < 1 || p > totalPage) return;
+    curPage = p;
+    renderTable();
+  }
+  function jumpPage() {
+    var p = parseInt($('pgJump').value, 10);
+    if (!isNaN(p)) gotoPage(p);
+  }
+
+  /* ================= 筛选 ================= */
+  function applyFilter() { curPage = 1; renderTable(); toast('查询完成', 'success'); }
+  function resetFilter() {
+    ['fName','fIdcard','fDoc','fRegStart','fRegEnd','fBirthStart','fBirthEnd'].forEach(function (id) { $(id).value = ''; });
+    ['fOrg','fRegion','fMirror','fMarriage'].forEach(function (id) { $(id).value = ''; });
+    $('fMine').checked = false;
+    curPage = 1;
+    renderTable();
+    toast('筛选条件已重置', 'info');
+  }
+
+  /* ================= 档案选择弹框（新建第一步） ================= */
+  var sfList = archiveData.slice();
+  function renderSelectTable() {
+    var name = $('sfName').value.trim(), idcard = $('sfIdcard').value.trim(), org = $('sfOrg').value;
+    sfList = archiveData.filter(function (r) {
+      if (name && r.name.indexOf(name) < 0) return false;
+      if (idcard && r.idcard.indexOf(idcard) < 0) return false;
+      if (org && r.org !== org) return false;
+      return true;
+    });
+    var html = '';
+    if (!sfList.length) {
+      html = '<tr class="empty-row"><td colspan="9" style="text-align:center;padding:32px 0;color:var(--text-tertiary)">暂无数据</td></tr>';
+    } else {
+      sfList.forEach(function (r, i) {
+        html += '<tr>' +
+          '<td class="center">' + (i + 1) + '</td>' +
+          '<td><span class="cell">' + esc(r.archNo) + '</span></td>' +
+          '<td>' + esc(r.name) + '</td>' +
+          '<td class="center">' + esc(r.gender) + '</td>' +
+          '<td class="center">' + r.age + '</td>' +
+          '<td>' + esc(r.idcard) + '</td>' +
+          '<td>' + esc(r.region) + '</td>' +
+          '<td><span class="cell" title="' + esc(r.org) + '">' + esc(r.org) + '</span></td>' +
+          '<td class="center"><span class="op-create" onclick="enterArchive(' + i + ')">选择</span></td>' +
+        '</tr>';
+      });
+    }
+    $('sfTbBody').innerHTML = html;
+    $('sfTotal').textContent = sfList.length;
+    $('sfPager').innerHTML = '<span class="pg-btn active">1</span>';
+  }
+  function openSelectModal() { $('selectModal').classList.add('show'); renderSelectTable(); }
+  function closeSelectModal() { $('selectModal').classList.remove('show'); }
+  function resetSelectFilter() { $('sfName').value = ''; $('sfIdcard').value = ''; $('sfOrg').value = ''; renderSelectTable(); }
+  function applySelectFilter() { renderSelectTable(); }
+
+  /* 选择档案 → 进入新建筛查记录表单（带入基础信息） */
+  function enterArchive(i) {
+    var r = sfList[i];
+    closeSelectModal();
+    openFormModal('create');
+    $('fmIdType').value = '居民身份证';
+    $('fmName').value = r.name;
+    $('fmGender').value = r.gender === '女' ? '女性' : '男性';
+    var b = r.idcard.substr(6, 8);
+    $('fmBirth').value = b.substr(0, 4) + '-' + b.substr(4, 2) + '-' + b.substr(6, 2);
+    $('fmBirth').type = 'date';
+    $('fmIdcard').value = r.idcard;
+    $('fmCntName').textContent = r.name.length + '/8';
+    $('fmCntIdcard').textContent = r.idcard.length + '/18';
+    renderPreview();
+  }
+
+  /* ================= 新建/编辑表单弹框 ================= */
+  var formMode = 'create';   // create | edit
+  var editIdx = -1;
+  function openFormModal(mode, idx) {
+    formMode = mode || 'create';
+    editIdx = (typeof idx === 'number') ? idx : -1;
+    $('fmTitle').textContent = formMode === 'edit' ? '编辑宫颈癌筛查记录' : '新建宫颈癌筛查记录';
+    if (formMode === 'edit') {
+      var r = lastList[editIdx];
+      $('fmIdType').value = r.idType || '居民身份证';
+      $('fmName').value = r.name;
+      $('fmGender').value = r.gender || '女性';
+      $('fmBirth').value = r.birth; $('fmBirth').type = 'date';
+      $('fmPhone').value = r.phone || '';
+      $('fmMarriage').value = r.marriage;
+      $('fmDiag').value = r.diag;
+      $('fmAcetic').value = r.acetic;
+      $('fmIodine').value = r.iodine;
+      $('fmIdcard').value = r.idcard;
+      $('fmPap').value = r.pap;
+      $('fmExamDate').value = r.examDate; $('fmExamDate').type = 'date';
+      $('fmDoc').value = r.doc;
+      $('fmLastDiag').value = r.lastDiag;
+      $('fmAddress').value = r.address;
+      $('fmCntName').textContent = r.name.length + '/8';
+      $('fmCntIdcard').textContent = r.idcard.length + '/18';
+    } else {
+      ['fmName','fmBirth','fmPhone','fmIdcard','fmLastDiag','fmAddress','fmDoc'].forEach(function (id) { $(id).value = ''; });
+      ['fmGender','fmMarriage','fmDiag','fmAcetic','fmIodine','fmPap'].forEach(function (id) { $(id).value = ''; });
+      $('fmIdType').value = '居民身份证';
+      $('fmCntName').textContent = '0/8';
+      $('fmCntIdcard').textContent = '0/18';
+    }
+    renderPreview();
+    $('formModal').classList.add('show');
+  }
+  function closeFormModal() { $('formModal').classList.remove('show'); }
+
+  /* 编辑入口（由表格操作列调用） */
+  function openEditModal(idx) { openFormModal('edit', idx); }
+
+  /* ================= 右侧信息回显卡 ================= */
+  function pvRow(label, val, wide) {
+    return '<div class="pv-row' + (wide ? ' wide' : '') + '"><span class="pv-label">' + label + '：</span><span class="pv-val">' + esc(val || '—') + '</span></div>';
+  }
+  function renderPreview() {
+    var age = '';
+    var b = $('fmBirth').value;
+    if (b) {
+      var born = new Date(b), now = new Date();
+      age = now.getFullYear() - born.getFullYear();
+    }
+    $('pvCard').innerHTML =
+      pvRow('姓名', $('fmName').value) +
+      pvRow('性别', $('fmGender').value) +
+      pvRow('出生日期', $('fmBirth').value) +
+      pvRow('年龄', age ? age + ' 岁' : '') +
+      pvRow('联系电话', $('fmPhone').value) +
+      pvRow('婚姻状况', $('fmMarriage').value) +
+      pvRow('详细地址', $('fmAddress').value, true);
+  }
+
+  /* ================= 提交（新建/编辑） ================= */
+  function submitForm() {
+    var name = $('fmName').value.trim(), idcard = $('fmIdcard').value.trim();
+    var gender = $('fmGender').value, birth = $('fmBirth').value;
+    var diag = $('fmDiag').value, acetic = $('fmAcetic').value;
+    var pap = $('fmPap').value, examDate = $('fmExamDate').value, doc = $('fmDoc').value.trim();
+    if (!name) return toast('请输入姓名', 'error');
+    if (!gender) return toast('请选择性别', 'error');
+    if (!birth) return toast('请选择出生日期', 'error');
+    if (!idcard || idcard.length !== 18) return toast('请输入 18 位证件号', 'error');
+    if (!diag) return toast('请选择妇科临床诊断', 'error');
+    if (!acetic) return toast('请选择醋酸染色检查结果', 'error');
+    if (!pap) return toast('请选择巴氏染色级别', 'error');
+    if (!examDate) return toast('请选择检查日期', 'error');
+    if (!doc) return toast('请输入责任医生', 'error');
+
+    if (formMode === 'edit') {
+      var r = lastList[editIdx];
+      r.name = name; r.idcard = idcard; r.gender = gender; r.birth = birth;
+      r.phone = $('fmPhone').value.trim(); r.marriage = $('fmMarriage').value || r.marriage;
+      r.diag = diag; r.acetic = acetic; r.iodine = $('fmIodine').value || r.iodine;
+      r.pap = pap; r.examDate = examDate; r.doc = doc;
+      r.lastDiag = $('fmLastDiag').value.trim() || r.lastDiag;
+      r.address = $('fmAddress').value.trim() || r.address;
+      closeFormModal();
+      renderTable();
+      toast('修改保存成功', 'success');
+    } else {
+      var regionMap = { '吴桥':'吴桥社区', '宜陵':'宜陵社区', '仙女':'仙女社区', '丁沟':'丁沟社区', '樊川':'樊川社区' };
+      var region = '仙女社区';
+      for (var k in regionMap) { if (idcard.indexOf(k) > -1) { region = regionMap[k]; break; } }
+      screeningData.unshift({
+        org: '扬州市江都区仙女镇社区卫生服务中心',
+        name: name, idcard: idcard,
+        diag: diag, acetic: acetic, iodine: $('fmIodine').value || '阴性（正常）', pap: pap,
+        address: $('fmAddress').value.trim() || '扬州市江都区仙女镇',
+        lastDiag: $('fmLastDiag').value.trim() || '正常',
+        doc: doc, examDate: examDate, mirror: '未上镜',
+        regDate: '2026-09-20', birth: birth, marriage: $('fmMarriage').value || '已婚',
+        region: region, mine: true,
+        phone: $('fmPhone').value.trim(), gender: gender, idType: $('fmIdType').value
+      });
+      closeFormModal();
+      curPage = 1;
+      renderTable();
+      toast('宫颈癌筛查记录建立成功', 'success');
+    }
+  }
+
+  /* ================= 查看详情 ================= */
+  function openViewModal(idx) {
+    var r = lastList[idx];
+    $('viewGrid').innerHTML =
+      pvRow('管理机构', r.org, true) +
+      pvRow('姓名', r.name) +
+      pvRow('证件号', r.idcard) +
+      pvRow('妇科临床诊断', r.diag) +
+      pvRow('醋酸染色检查', r.acetic) +
+      pvRow('复方碘染色检查', r.iodine) +
+      pvRow('巴氏染色级别', r.pap) +
+      pvRow('最后诊断', r.lastDiag) +
+      pvRow('责任医生', r.doc) +
+      pvRow('检查日期', r.examDate) +
+      pvRow('镜检状态', r.mirror) +
+      pvRow('建档日期', r.regDate) +
+      pvRow('出生日期', r.birth) +
+      pvRow('婚姻状况', r.marriage) +
+      pvRow('管理行政区', r.region) +
+      pvRow('详细地址', r.address, true);
+    $('viewModal').classList.add('show');
+  }
+  function closeViewModal() { $('viewModal').classList.remove('show'); }
+
+  /* ================= 注销（二次确认） ================= */
+  var cancelIdx = -1;
+  function openCancelModal(idx) {
+    cancelIdx = idx;
+    var r = lastList[idx];
+    $('cancelBody').innerHTML = '确定注销居民 <b>' + esc(r.name) + '</b>（' + esc(r.idcard) + '）的宫颈癌筛查记录吗？' +
+      '<div class="confirm-tip">注销后该条筛查记录将不再展示，此操作不可恢复。</div>';
+    $('cancelModal').classList.add('show');
+  }
+  function closeCancelModal() { $('cancelModal').classList.remove('show'); }
+  function confirmCancel() {
+    if (cancelIdx < 0 || !lastList[cancelIdx]) return;
+    var name = lastList[cancelIdx].name;
+    var idxInAll = screeningData.indexOf(lastList[cancelIdx]);
+    if (idxInAll > -1) screeningData.splice(idxInAll, 1);
+    closeCancelModal();
+    renderTable();
+    toast('已注销 ' + name + ' 的筛查记录', 'success');
+  }
+
+  /* ================= 回显卡联动 ================= */
+  ['fmName','fmGender','fmBirth','fmPhone','fmMarriage','fmAddress'].forEach(function (id) {
+    $(id).addEventListener('input', renderPreview);
+    $(id).addEventListener('change', renderPreview);
+  });
+  $('fmName').addEventListener('input', function () {
+    $('fmCntName').textContent = this.value.length + '/8';
+  });
+  $('fmIdcard').addEventListener('input', function () {
+    $('fmCntIdcard').textContent = this.value.length + '/18';
+  });
+
+  /* ================= 初始化 ================= */
+  renderTable();
+</script>
+</body>
+</html>

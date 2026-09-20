@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8">
+<style>html,body{margin:0;height:100%;background:#fff}#f{width:1600px;height:900px;border:0}#info{position:fixed;left:0;top:0;z-index:99;background:#ffe94d;color:#000;font:bold 16px/1.5 Consolas,monospace;padding:4px 10px;max-width:1600px;white-space:pre-wrap}</style>
+</head>
+<body>
+<div id="info">loading...</div>
+<iframe id="f"></iframe>
+<script>
+var base = 'file:///D:/AI_Project/Public-Health-Service-System/Public-Health-Service-System/';
+var dir = base + ['01-公共卫生服务系统产品文档','V1.0','02.需求设计','原型设计'].map(encodeURIComponent).join('/') + '/';
+var f = document.getElementById('f');
+f.src = dir + encodeURIComponent('宫颈癌筛查.html') + '?embed=1';
+f.onload = function () {
+  try {
+    var page = f.contentDocument;
+    var out = [];
+    out.push('h1=' + page.querySelector('.page-head h1').textContent);
+    out.push('cols=' + page.querySelectorAll('.list-tbl thead th').length);
+    out.push('rows=' + page.querySelectorAll('#tbBody tr:not(.empty-row)').length);
+    out.push('total=' + page.getElementById('pgTotal').textContent);
+    var ths = page.querySelectorAll('.list-tbl thead th');
+    var names = []; ths.forEach(function (t) { names.push(t.textContent.trim()); });
+    out.push('th=' + names.join('|'));
+    var r1 = page.querySelectorAll('#tbBody tr')[0];
+    out.push('row1tds=' + r1.querySelectorAll('td').length);
+    // 交互冒烟：查询/重置
+    page.getElementById('fName').value = '夏余兰';
+    page.getElementById('fName').dispatchEvent(new page.defaultView.Event('input', {bubbles:true}));
+    // 直接调 applyFilter
+    page.defaultView.applyFilter();
+    out.push('filtered=' + page.querySelectorAll('#tbBody tr:not(.empty-row)').length);
+    page.defaultView.resetFilter();
+    out.push('reset=' + page.querySelectorAll('#tbBody tr:not(.empty-row)').length);
+    // 弹框冒烟：新建选择档案
+    page.defaultView.openSelectModal();
+    out.push('selectRows=' + page.querySelectorAll('#sfTbBody tr').length);
+    page.defaultView.enterArchive(0);
+    out.push('formName=' + page.getElementById('fmName').value);
+    out.push('formIdcard=' + page.getElementById('fmIdcard').value);
+    page.defaultView.closeFormModal();
+    // 查看/注销冒烟
+    page.defaultView.openViewModal(0);
+    out.push('viewRows=' + page.querySelectorAll('#viewGrid .pv-row').length);
+    page.defaultView.closeViewModal();
+    page.defaultView.openCancelModal(0);
+    page.defaultView.confirmCancel();
+    out.push('afterCancel=' + page.getElementById('pgTotal').textContent);
+    document.getElementById('info').textContent = 'OK\n' + out.join('\n');
+  } catch (e) {
+    document.getElementById('info').textContent = 'ERR ' + e.message;
+  }
+};
+</script>
+</body>
+</html>

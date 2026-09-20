@@ -50,21 +50,86 @@
         { key: 'hyperlipidemia-management', label: '高血脂管理', url: '高血脂管理.html' },
         { key: 'cardio-cerebro-management', label: '心脑血管管理', url: '心脑血管管理.html' },
         { key: 'tumor-management',          label: '肿瘤管理', url: '肿瘤管理.html' },
-        { key: 'highrisk-management',       label: '高危人群管理' },
-        { key: 'psychosis-management',      label: '重精管理' },
-        { key: 'tuberculosis-management',   label: '结核病管理' }
+        { key: 'highrisk-management',       label: '高危人群管理', url: '高危人群管理.html' },
+        { key: 'psychosis-management',      label: '重精管理', url: '重精管理.html' },
+        { key: 'tuberculosis-management',   label: '结核病管理', url: '结核病管理.html' }
       ] },
     { type: 'divider' },
+    { type: 'group', key: 'elderly', label: '老年人管理',
+      icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+      children: [
+        { key: 'elderly-management', label: '老年人管理', url: '老年人管理.html' }
+      ] },
     { type: 'group', key: 'women-child', label: '妇幼管理',
       icon: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/>',
       children: [
-        { key: 'women-management',                 label: '妇女管理' },
-        { key: 'maternal-management',              label: '孕产妇管理' },
-        { key: 'child-management',                 label: '儿童管理' },
-        { key: 'immunization-management',          label: '计免管理' },
-        { key: 'cervical-breast-cancer-screening', label: '两癌筛查' },
+        { key: 'women-management',                 label: '妇女管理', url: '妇女管理.html' },
+        { key: 'maternal-management',              label: '孕产妇管理', url: '孕产妇管理.html' },
+        { key: 'child-management',                 label: '儿童管理', url: '儿童管理.html' },
+        { key: 'immunization-management',          label: '计免管理', url: '计免管理.html' },
+        { key: 'cancer-screening',                 label: '两癌筛查',
+          children: [
+            { key: 'cervical-cancer-screening', label: '宫颈癌筛查', url: '宫颈癌筛查.html' },
+            { key: 'breast-cancer-screening',   label: '乳腺癌筛查', url: '乳腺癌筛查.html' }
+          ] },
         { key: 'pmtct',                            label: '母婴阻断' },
-        { key: 'maternal-health-care',             label: '孕产妇保健' }
+        { key: 'child-health-care',                 label: '儿童保健', url: '儿童保健.html' },
+        { key: 'maternal-health-care',             label: '孕产妇保健', url: '孕产妇保健.html' }
+      ] },
+    { type: 'divider' },
+    { type: 'group', key: 'jianjiao', label: '健教管理',
+      icon: '<path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 010 7.07"/><path d="M19.07 4.93a10 10 0 010 14.14"/>',
+      children: [
+        { key: 'activity-management',       label: '活动管理', url: '活动管理.html' },
+        { key: 'billboard-management',      label: '宣传栏管理', url: '宣传栏管理.html' },
+        { key: 'audiovisual-management',    label: '音像管理', url: '音像管理.html' },
+        { key: 'broadcast-management',      label: '广播管理', url: '广播管理.html' },
+        { key: 'individual-education',      label: '个体教育管理' },
+        { key: 'plan-management',           label: '计划管理', url: '计划管理.html' }
+      ] },
+    { type: 'divider' },
+    { type: 'group', key: 'supervision', label: '卫生监督',
+      icon: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/>',
+      children: [
+        { key: 'location-maintenance', label: '地点维护' },
+        { key: 'inspection-register',  label: '巡查登记' },
+        { key: 'event-report',         label: '事件报告' }
+      ] },
+    { type: 'divider' },
+    { type: 'group', key: 'reportcard', label: '疾病报卡',
+      icon: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+      children: [
+        { key: 'infectious-report', label: '传染病报卡', url: '传染病报卡.html' },
+        { key: 'early-preg-report', label: '早孕报告卡', url: '早孕报告卡.html' },
+        { key: 'chronic-report', label: '慢病报告卡', url: '慢病报告卡.html' }
+      ] },
+    { type: 'divider' },
+    { type: 'group', key: 'bizquery', label: '业务查询',
+      icon: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+      children: [
+        { key: 'health-edu-track-query', label: '健教活动跟踪查询' },
+        { key: 'report-indicator-query', label: '报表指标查询' },
+        { key: 'duplicate-archive-screen', label: '重复档案筛查' },
+        { key: 'personal-archive-query', label: '个人档案查询' },
+        { key: 'chronic-disease-query',  label: '慢病查询' },
+        { key: 'tb-query',               label: '肺结核查询' },
+        { key: 'women-archive-query',    label: '妇女档案查询' }
+      ] },
+    { type: 'divider' },
+    { type: 'group', key: 'syssetting', label: '系统设置',
+      icon: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>',
+      children: [
+        { key: 'jurisdiction-management',  label: '辖区管理' },
+        { key: 'biz-template-management',  label: '业务模板管理' },
+        { key: 'sys-param-management',     label: '系统参数管理' },
+        { key: 'subsidy-management',       label: '补助管理' },
+        { key: 'disease-diagnosis-setting',label: '疾病诊疗设置' },
+        { key: 'basic-param-maintenance',  label: '基本参数维护' },
+        { key: 'grid-management',          label: '网格化管理' },
+        { key: 'grid-permission-mgmt',     label: '网格权限管理' },
+        { key: 'archive-transfer-record',  label: '档案传输记录' },
+        { key: 'operation-log',            label: '操作日志' },
+        { key: 'interface-address-mgmt',   label: '接口地址管理' }
       ] },
     { type: 'divider' },
     { type: 'group', key: 'panorama', label: '全景配置',
@@ -128,7 +193,10 @@
       if (it.type === 'divider') { html += '<div class="menu-divider"></div>'; return; }
       var children = it.children || [];
       var isGroup = it.type === 'group';
-      var expanded = isGroup && children.some(function (c) { return c.key === pageKey; });
+      // 分组展开：pageKey 命中直接子项或三级孙项（如 妇幼管理 → 两癌筛查 → 宫颈癌筛查）
+      var expanded = isGroup && children.some(function (c) {
+        return c.key === pageKey || (c.children || []).some(function (s) { return s.key === pageKey; });
+      });
       html += '<div class="menu-item' + (expanded ? ' expanded' : '') + '" data-key="' + it.key + '" onclick="' +
         (isGroup ? 'toggleMenu(this)' : "navigate('" + it.key + "')") + '">' +
         '<span class="menu-icon"><svg viewBox="0 0 24 24">' + it.icon + '</svg></span>' +
@@ -137,6 +205,19 @@
         '</div>';
       if (isGroup) {
         html += '<div class="menu-sub' + (expanded ? ' open' : '') + '">' + children.map(function (c) {
+          var subs = c.children || [];
+          // 三级子分组（如：妇幼管理 → 两癌筛查 → 宫颈癌筛查）：点击仅展开/收起，不导航
+          if (subs.length) {
+            var subExpanded = expanded || subs.some(function (s) { return s.key === pageKey; });
+            return '<div class="sub-item has-children' + (subExpanded ? ' expanded' : '') + '" data-key="' + c.key + '" onclick="event.stopPropagation();toggleSubMenu(this)">' +
+              '<span class="sub-label">' + c.label + '</span>' +
+              '<svg class="arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>' +
+              '</div>' +
+              '<div class="menu-sub sub2' + (subExpanded ? ' open' : '') + '">' + subs.map(function (s) {
+                var act = s.key === pageKey ? ' active' : '';
+                return '<div class="sub-item sub3' + act + '" data-key="' + s.key + '" onclick="event.stopPropagation();navigate(\'' + s.key + '\')">' + s.label + '</div>';
+              }).join('') + '</div>';
+          }
           var active = c.key === pageKey ? ' active' : '';
           return '<div class="sub-item' + active + '" data-key="' + c.key + '" onclick="event.stopPropagation();navigate(\'' + c.key + '\')">' + c.label + '</div>';
         }).join('') + '</div>';
@@ -177,6 +258,10 @@
       var children = it.children || [];
       for (var j = 0; j < children.length; j++) {
         if (children[j].key === key) return children[j];
+        var subs = children[j].children || [];
+        for (var k = 0; k < subs.length; k++) {
+          if (subs[k].key === key) return subs[k];
+        }
       }
     }
     return null;
@@ -191,15 +276,38 @@
       var children = it.children || [];
       for (var j = 0; j < children.length; j++) {
         if (children[j].key === key) return it.key;
+        var subs = children[j].children || [];
+        for (var k = 0; k < subs.length; k++) {
+          if (subs[k].key === key) return it.key;
+        }
       }
     }
     return null;
   }
 
   window.toggleMenu = function (el) {
+    var willExpand = !el.classList.contains('expanded');
+    // 手风琴：展开某一第一层目录时，其余第一层目录全部收起
+    if (willExpand) {
+      var items = document.querySelectorAll('.menu-item');
+      for (var i = 0; i < items.length; i++) {
+        if (items[i] !== el) {
+          items[i].classList.remove('expanded');
+          var sb = items[i].nextElementSibling;
+          if (sb && sb.classList.contains('menu-sub')) sb.classList.remove('open');
+        }
+      }
+    }
     el.classList.toggle('expanded');
     var sub = el.nextElementSibling;
     if (sub) sub.classList.toggle('open');
+  };
+
+  /* 三级子分组展开/收起（如：两癌筛查） */
+  window.toggleSubMenu = function (el) {
+    el.classList.toggle('expanded');
+    var sub = el.nextElementSibling;
+    if (sub && sub.classList.contains('menu-sub')) sub.classList.toggle('open');
   };
 
   window.navigate = function (key) {
@@ -219,19 +327,45 @@
   window.MENU_CONFIG = MENU;      // 菜单配置（壳子取标签页名称 / url / 所属分组图标）
   window.FRAME_DIR = FRAME_DIR;   // 框架目录（菜单 url 解析基准）
   window.findMenuItem = findMenuItem;
-  // 菜单高亮：壳子切换标签页时同步左侧菜单选中态（并展开所属分组）
+  // 判断菜单节点（含任意层级 children）是否包含指定 key
+  function nodeContainsKey(node, key) {
+    if (!node) return false;
+    if (node.key === key) return true;
+    var ch = node.children || [];
+    for (var i = 0; i < ch.length; i++) {
+      if (nodeContainsKey(ch[i], key)) return true;
+    }
+    return false;
+  }
+
+  // 菜单高亮：壳子切换标签页时同步左侧菜单选中态
+  // 手风琴（accordion）：仅展开「包含当前 key 的分组链路」，其余分组全部收起
   window.setMenuActive = function (key) {
+    // 1) 高亮当前选中项
     var subs = document.querySelectorAll('.menu-sub .sub-item');
     for (var i = 0; i < subs.length; i++) {
       subs[i].classList.toggle('active', subs[i].getAttribute('data-key') === key);
     }
-    var gk = findGroupKeyOf(key);
-    if (gk) {
-      var mi = document.querySelector('.menu-item[data-key="' + gk + '"]');
-      if (mi) {
-        mi.classList.add('expanded');
-        var sub = mi.nextElementSibling;
-        if (sub) sub.classList.add('open');
+    // 2) 一级分组：包含 key 的展开，其余收起
+    var items = document.querySelectorAll('.menu-item');
+    for (var g = 0; g < items.length; g++) {
+      var gi = items[g];
+      var gk = gi.getAttribute('data-key');
+      var gnode = null;
+      for (var m = 0; m < MENU.length; m++) { if (MENU[m].key === gk) { gnode = MENU[m]; break; } }
+      var contains = gnode ? nodeContainsKey(gnode, key) : false;
+      gi.classList.toggle('expanded', contains);
+      var gsub = gi.nextElementSibling;
+      if (gsub && gsub.classList.contains('menu-sub')) gsub.classList.toggle('open', contains);
+    }
+    // 3) 三级子分组（.menu-sub.sub2）：仅保留包含 key 的那个展开
+    var subs2 = document.querySelectorAll('.menu-sub.sub2');
+    for (var j = 0; j < subs2.length; j++) {
+      var owner = subs2[j].previousElementSibling;
+      if (owner && owner.classList.contains('has-children')) {
+        var hasLeaf = !!subs2[j].querySelector('.sub-item[data-key="' + key + '"]');
+        owner.classList.toggle('expanded', hasLeaf);
+        subs2[j].classList.toggle('open', hasLeaf);
       }
     }
   };

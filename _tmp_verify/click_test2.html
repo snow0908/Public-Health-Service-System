@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>shelltest</title>
+<link rel="stylesheet" href="../01-公共卫生服务系统产品文档/V1.0/02.需求设计/原型设计/框架.css">
+<style>
+  body{margin:0;font-family:sans-serif}
+  .content.shell-content{padding:0;overflow:hidden;display:flex;flex-direction:column}
+  .shell-frame{flex:1;width:100%;border:none;display:block;background:var(--bg-page)}
+  .shell-frame.hidden{display:none}
+  .shell-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--bg-page);color:var(--text-tertiary)}
+  .report{position:fixed;right:8px;top:48px;z-index:99;background:#fff;border:1px solid #333;padding:8px;font-size:13px;width:360px;white-space:pre-wrap;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="main-area">
+  <div class="tabbar" id="shellTabbar"></div>
+  <div class="content shell-content" id="shellContent">
+    <div class="shell-empty" id="shellEmpty"><div class="ico">📋</div><div class="txt">请从左侧菜单选择功能模块</div></div>
+  </div>
+</div>
+<div class="report" id="report">running…</div>
+<script>
+window.__errs=[];
+window.onerror=function(m,s,l){window.__errs.push(m+' @'+l);};
+</script>
+<script src="../01-公共卫生服务系统产品文档/V1.0/02.需求设计/原型设计/框架.js" data-shell="true"></script>
+<script>
+/* ===== index.html 壳子逻辑副本（用于复现真实点击链路） ===== */
+(function () {
+  'use strict';
+  var tabs = [];
+  var activeKey = null;
+  var tabbar = document.getElementById('shellTabbar');
+  var content = document.getElementById('shellContent');
+  var emptyState = document.getElementById('shellEmpty');
+  var GROUP_TAB_ICONS = { system: '<path d="M12 2L2 7l10 5 10-5-10-5z"/><polyline points="2 17 12 22 22 17"/>' };
+  function findGroupKeyOf(key) {
+    var cfg = window.MENU_CONFIG || [];
+    for (var i = 0; i < cfg.length; i++) {
+      var g = cfg[i];
+      if (g.type !== 'group') continue;
+      if (g.key === key) return g.key;
+      var ch = g.children || [];
+      for (var j = 0; j < ch.length; j++) {
+        if (ch[j].key === key) return g.key;
+        var sub = ch[j].children || [];
+        for (var k = 0; k < sub.length; k++) {
+          if (sub[k].key === key) return g.key;
+        }
+      }
+    }
+    return null;
+  }
+  function getTab(key) {
+    for (var i = 0; i < tabs.length; i++) { if (tabs[i].key === key) return tabs[i]; }
+    return null;
+  }
+  window.shellOpen = function (key) {
+    var item = window.findMenuItem(key);
+    if (!item) return;
+    if (!getTab(key)) {
+      tabs.push({ key: key, label: item.label, url: item.url ? (window.FRAME_DIR || '') + item.url : null, frame: null });
+    }
+    activate(key);
+  };
+  function activate(key) {
+    var tab = getTab(key);
+    if (!tab) return;
+    activeKey = key;
+    if (!tab.frame) tab.frame = createFrame(tab);
+    for (var i = 0; i < tabs.length; i++) {
+      if (tabs[i].frame) tabs[i].frame.classList.toggle('hidden', tabs[i].key !== key);
+    }
+    emptyState.style.display = 'none';
+    if (window.setMenuActive) window.setMenuActive(key);
+    renderTabbar();
+  }
+  function createFrame(tab) {
+    var f = document.createElement('iframe');
+    f.className = 'shell-frame';
+    if (tab.url) { f.src = tab.url + (tab.url.indexOf('?') > -1 ? '&' : '?') + 'embed=1'; }
+    else { f.srcdoc = '<html><body style="font-family:sans-serif;padding:40px">占位：' + tab.label + '</body></html>'; }
+    content.appendChild(f);
+    return f;
+  }
+  function renderTabbar() {
+    tabbar.innerHTML = '';
+    tabs.forEach(function (t) {
+      var el = document.createElement('div');
+      el.className = 'tab-item' + (t.key === activeKey ? ' active' : '');
+      el.textContent = t.label;
+      tabbar.appendChild(el);
+    });
+  }
+  window.addEventListener('load', function () { /* 不默认打开，专注测试点击链路 */ });
+})();
+
+/* ===== 点击链路测试 ===== */
+function snap(tag){
+  var lines=[tag];
+  document.querySelectorAll('.menu-item').forEach(function(mi){
+    var sub=mi.nextElementSibling;
+    var open=sub&&sub.classList.contains('open');
+    var h=sub?Math.round(sub.getBoundingClientRect().height):'-';
+    lines.push(mi.querySelector('.menu-label').textContent+': exp='+mi.classList.contains('expanded')+' open='+open+' h='+h);
+  });
+  document.querySelectorAll('.sub-item.has-children').forEach(function(hc){
+    var sub=hc.nextElementSibling;
+    var open=sub&&sub.classList.contains('open');
+    var h=sub?Math.round(sub.getBoundingClientRect().height):'-';
+    lines.push('  L '+hc.querySelector('.sub-label').textContent+': exp='+hc.classList.contains('expanded')+' open='+open+' h='+h);
+  });
+  return lines.join('\n');
+}
+function run(){
+  var r=document.getElementById('report');
+  var wm=document.querySelector('.menu-item[data-key="women-child"]');
+  if(wm) wm.click();
+  var cc=document.querySelector('.sub-item.has-children[data-key="cancer-screening"]');
+  if(cc) cc.click();
+  var before=snap('【展开 妇幼/两癌后】');
+  var gj=document.querySelector('.sub-item.sub3[data-key="cervical-cancer-screening"]');
+  if(gj) gj.click();
+  var after=snap('【点击 宫颈癌筛查后】');
+  r.textContent='errs='+(window.__errs.join(' | ')||'无')+'\n\n'+before+'\n\n'+after;
+  document.title='DONE';
+}
+if(document.querySelector('.menu-item')) run();
+else window.addEventListener('load',function(){ setTimeout(run,80); });
+</script>
+</body>
+</html>

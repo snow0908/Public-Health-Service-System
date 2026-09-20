@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>html,body{margin:0;padding:0}iframe{display:block;border:none}</style>
+</head>
+<body>
+<iframe id="f" style="width:1620px;height:1600px"></iframe>
+<div id="diag" style="position:fixed;top:2px;left:2px;background:#fff;border:1px solid #999;font:12px monospace;padding:4px;z-index:9999">pending</div>
+<script>
+var f = document.getElementById('f');
+f.setAttribute('src', '../01-%E5%85%AC%E5%85%B1%E5%8D%AB%E7%94%9F%E6%9C%8D%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%BA%A7%E5%93%81%E6%96%87%E6%A1%A3/V1.0/02.%E9%9C%80%E6%B1%82%E8%AE%BE%E8%AE%A1/%E5%8E%9F%E5%9E%8B%E8%AE%BE%E8%AE%A1/%E6%A1%A3%E6%A1%88%E7%BB%B4%E6%8A%A4.html?view=tb&name=%E6%9D%82%E7%91%9E&archNo=32101210310300001');
+f.onload = function () {
+  var w = f.contentWindow, d = w.document;
+  var log = [];
+  try {
+    /* 1. 首次随访表必填后保存 → 患者随访目录 reveal */
+    d.getElementById('tb1Plan').value = '2HRZE/4HRE';
+    d.getElementById('tb1Doctor').value = '吕督';
+    d.getElementById('tb1Next').value = '2026-10-20';
+    w.saveTbFirst();
+    var fuHidden = d.getElementById('navTbFollowup').classList.contains('nav-followup-hidden');
+    log.push('reveal-stillHidden=' + fuHidden);
+    /* 2. 切到患者随访视图 */
+    w.switchView('tbFollowup');
+    log.push('navActive=' + d.getElementById('navTbFollowup').classList.contains('active'));
+    log.push('tb2Date=' + d.getElementById('tb2Date').value);
+    /* 3. 失访/死亡联动：选死亡 → 原因可填且标签变化 */
+    d.getElementById('tb2Lost').value = '死亡';
+    w.tb2LostChange();
+    log.push('reasonDisabled=' + d.getElementById('tb2LostReason').disabled);
+    log.push('label=' + d.getElementById('tb2LostReasonLabel').textContent);
+    document.getElementById('diag').textContent = log.join(' | ');
+  } catch (e) {
+    document.getElementById('diag').textContent = 'ERR: ' + e.message;
+  }
+};
+</script>
+</body>
+</html>

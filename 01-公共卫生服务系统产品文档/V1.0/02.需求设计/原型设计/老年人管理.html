@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>老年人管理</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  /* ===== 老年人管理页面特有样式（设计变量与公共样式见 框架.css） ===== */
+
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0}
+
+  .page-head .right .btn{height:28px;padding:0 14px;font-size:13px}
+
+  /* ===== 筛选区 ===== */
+  .filter-panel{padding:14px 12px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:14px;align-items:center}
+  .filter-row.extra{display:none}
+  .filter-row.extra.show{display:flex}
+  .filter-item{display:flex;align-items:center;gap:8px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:140px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-select.w-lg{width:180px}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .btn-plain{height:28px;padding:0 8px;font-size:13px;color:var(--primary);border-radius:var(--r-sm)}
+  .btn-plain:hover{background:var(--primary-bg)}
+
+  /* 日期区间 / 比较符 / 数值 */
+  .fi-date-range{display:flex;align-items:center;gap:6px}
+  .fi-date{width:120px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 28px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-size:14px;appearance:none;-webkit-appearance:none}
+  .fi-date:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-sep{color:var(--text-placeholder);font-size:13px}
+  .fi-cmp{width:78px}
+  .fi-num{width:70px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 8px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-num:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-unit{font-size:13px;color:var(--text-secondary)}
+
+  /* ===== 数据表格 ===== */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+
+  /* 横向滚动时前 4 列冻结（序号/管理机构/姓名/证件号） */
+  .list-tbl th:nth-child(-n+4),.list-tbl td:nth-child(-n+4){position:sticky}
+  .list-tbl td:nth-child(-n+4){z-index:2;background:var(--bg-white)}
+  .list-tbl th:nth-child(-n+4){z-index:6}
+  .list-tbl th:nth-child(1),.list-tbl td:nth-child(1){left:0}
+  .list-tbl th:nth-child(2),.list-tbl td:nth-child(2){left:44px}
+  .list-tbl th:nth-child(3),.list-tbl td:nth-child(3){left:194px}
+  .list-tbl th:nth-child(4),.list-tbl td:nth-child(4){left:270px}
+  .list-tbl th:nth-child(4),.list-tbl td:nth-child(4){box-shadow:6px 0 8px -6px rgba(0,0,0,0.2)}
+  /* 横向滚动时操作列（末列）冻结在右侧 */
+  .list-tbl th:last-child,.list-tbl td:last-child{position:sticky;right:0}
+  .list-tbl td:last-child{z-index:2;background:var(--bg-white)}
+  .list-tbl th:last-child{z-index:6}
+  .list-tbl th:last-child,.list-tbl td:last-child{box-shadow:-6px 0 8px -6px rgba(0,0,0,0.2)}
+  .list-tbl tr.empty-row td:last-child{position:static;box-shadow:none}
+  .list-tbl tbody tr:not(.empty-row) td:last-child{overflow:visible}
+  .list-tbl{width:100%;min-width:1900px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:36px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:nth-child(even) td{background:var(--bg-table-even)}
+  .list-tbl tbody tr:nth-child(even) td:nth-child(-n+4){background:var(--bg-table-even)}
+  .list-tbl tbody tr:hover td,.list-tbl tbody tr:hover td:nth-child(-n+4){background:var(--primary-bg)}
+  .list-tbl th.center,.list-tbl td.center{text-align:center}
+  .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* 当前分色标签 */
+  .color-tag{display:inline-block;width:42px;height:22px;line-height:20px;text-align:center;border-radius:4px;font-size:12px;font-weight:var(--font-weight-medium);color:#fff}
+  .color-tag.white{background:#fff;color:#595959;border:1px solid #d9d9d9}
+  .color-tag.yellow{background:#FAAD14;color:#fff;border:1px solid #FAAD14}
+  .color-tag.red{background:#F5222D;color:#fff;border:1px solid #F5222D}
+  .color-tag.green{background:#52C41A;color:#fff;border:1px solid #52C41A}
+
+  /* 重点人群类型标签组 */
+  .pop-tags{display:inline-flex;flex-wrap:wrap;gap:4px;align-items:center}
+  .pop-tag{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 4px;border-radius:4px;font-size:12px;line-height:1;font-weight:var(--font-weight-medium)}
+  .pop-tag.old{background:#E6F4FF;color:#1890FF;border:1px solid #91CAFF}
+  .pop-tag.hyp{background:#FFF1E6;color:#FA8C16;border:1px solid #FFC089}
+  .pop-tag.dia{background:#F6FFED;color:#52C41A;border:1px solid #B7EB8F}
+  .pop-tag.tb{background:#FFF0F6;color:#EB2F96;border:1px solid #FFADD2}
+
+  /* 状态圆点 */
+  .st-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  .st-dot.ok{background:var(--success)}
+  .st-dot.warn{background:#FF9500}
+  .st-dot.info{background:var(--info)}
+  .st-dot.danger{background:var(--danger)}
+
+  /* 操作列 */
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px}
+  .op-link:hover{text-decoration:underline}
+  .op-gap{display:inline-block;width:8px}
+  .op-more{position:relative;display:inline-flex;align-items:center}
+  .op-more .more-btn{display:inline-flex;align-items:center;gap:2px;color:var(--primary);cursor:pointer;font-size:13px}
+  .op-more .more-btn:hover{text-decoration:underline}
+  .op-more .more-btn svg{transition:transform var(--transition-fast)}
+  .op-more.open .more-btn svg{transform:rotate(180deg)}
+  .op-menu{position:absolute;top:calc(100% + 6px);right:-8px;min-width:120px;background:var(--bg-white);border:1px solid var(--color-neutral-200);border-radius:var(--r-sm);box-shadow:var(--shadow-md);padding:4px 0;display:none;z-index:30}
+  .op-more.open .op-menu{display:block}
+  .op-menu .mi{display:block;width:100%;text-align:left;padding:7px 14px;font-size:13px;color:var(--text-secondary);line-height:1.4;cursor:pointer}
+  .op-menu .mi:hover{background:var(--primary-bg);color:var(--primary)}
+  .op-menu .mi.danger{color:var(--danger)}
+  .op-menu .mi.danger:hover{background:#FFECEC;color:var(--danger)}
+
+  /* ===== 分页 ===== */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:52px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 22px 0 8px;font-size:13px;color:var(--text-secondary);background:#fff;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-jump input{width:40px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 6px;font-size:13px;text-align:center;color:var(--text-primary);outline:none}
+  .pg-jump input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+</style>
+</head>
+<body>
+
+<div class="main-area">
+
+  <div class="tabbar">
+    <div class="tab-item active">老年人管理</div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <div class="page-head">
+        <h1>老年人管理</h1>
+        <div class="right">
+          <button class="btn btn-default" onclick="toast('导出成功','success')">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            导出
+          </button>
+          <button class="btn btn-default" onclick="toast('身份证读卡中...','info')">身份证读卡</button>
+        </div>
+      </div>
+
+      <!-- 筛选区 -->
+      <div class="filter-panel">
+        <div class="filter-row">
+          <div class="filter-item"><label>管理机构：</label>
+            <select class="fi-select w-lg"><option value="">请选择</option><option>扬州市江都区仙女社区卫生服务中心</option><option>扬州市江都区浦头镇承仪村卫生室</option><option>扬州市江都区砖桥社区卫生服务中心</option></select>
+          </div>
+          <div class="filter-item"><label>姓名：</label>
+            <input class="fi-ctl" placeholder="请输入" type="text">
+          </div>
+          <div class="filter-item"><label>证件号：</label>
+            <input class="fi-ctl" placeholder="请输入" type="text">
+          </div>
+          <div class="filter-item"><label>管辖行政区：</label>
+            <select class="fi-select"><option value="">请选择</option><option>新都社区</option><option>承仪村</option><option>曹王林园场村</option></select>
+          </div>
+          <div class="filter-item"><label>锁定状态：</label>
+            <select class="fi-select"><option value="未上锁">未上锁</option><option value="已锁定">已锁定</option></select>
+          </div>
+          <div class="filter-item"><label>居民状态：</label>
+            <select class="fi-select"><option value="正常">正常</option><option value="迁出">迁出</option><option value="死亡">死亡</option></select>
+          </div>
+          <div class="filter-btns">
+            <button class="btn btn-default btn-sm" onclick="toast('已重置','info')">重置</button>
+            <button class="btn btn-primary btn-sm" onclick="toast('查询成功','success')">查询</button>
+            <button class="btn-plain" id="expandBtn" onclick="toggleExtra()">展开
+              <svg viewBox="0 0 24 24" style="width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;margin-left:2px"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="filter-row extra" id="extraRow">
+          <div class="filter-item"><label>当前分色：</label>
+            <select class="fi-select"><option value="">请选择</option><option value="white">白色</option><option value="yellow">黄色</option><option value="red">红色</option><option value="green">绿色</option></select>
+          </div>
+          <div class="filter-item"><label>随访日期：</label>
+            <div class="fi-date-range">
+              <input class="fi-date" placeholder="开始日期" type="text">
+              <span class="fi-sep">~</span>
+              <input class="fi-date" placeholder="结束日期" type="text">
+            </div>
+          </div>
+          <div class="filter-item"><label>随访次数：</label>
+            <select class="fi-select fi-cmp"><option value=">=">大于等于</option><option value="=">等于</option><option value="<=">小于等于</option></select>
+            <input class="fi-num" placeholder="" type="text" value="0">
+            <span class="fi-unit">次</span>
+          </div>
+          <div class="filter-item"><label>重点人群类型：</label>
+            <select class="fi-select w-lg"><option value="">请选择</option><option value="old">老年人</option><option value="hyp">高血压</option><option value="dia">糖尿病</option><option value="tb">结核病</option></select>
+          </div>
+          <div class="filter-item"><label>档案类型：</label>
+            <select class="fi-select"><option value="">请选择</option><option value="个人">个人档案</option><option value="家庭">家庭档案</option></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 数据表格 -->
+      <div class="table-wrap">
+        <table class="list-tbl">
+          <thead>
+            <tr>
+              <th style="width:44px">序号</th>
+              <th style="width:150px">管理机构</th>
+              <th style="width:76px">姓名</th>
+              <th style="width:150px">证件号</th>
+              <th style="width:88px">证件类型</th>
+              <th style="width:76px">当前分色</th>
+              <th style="width:76px">随访次数</th>
+              <th style="width:52px">性别</th>
+              <th style="width:52px">年龄</th>
+              <th style="width:88px">出生日期</th>
+              <th style="width:100px">重点人群类型</th>
+              <th style="width:108px">电话号码</th>
+              <th style="width:140px">详细地址</th>
+              <th style="width:120px">档案编号</th>
+              <th style="width:96px">管辖行政区</th>
+              <th style="width:76px">责任医生</th>
+              <th style="width:80px">居民状态</th>
+              <th style="width:80px">锁定状态</th>
+              <th style="width:112px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 分页 -->
+      <div class="page-foot">
+        <div class="pg-total">共 <b id="pgTotal">20</b> 条</div>
+        <div class="pg-size">
+          <select>
+            <option>20 条/页</option>
+            <option>50 条/页</option>
+            <option>100 条/页</option>
+          </select>
+        </div>
+        <div class="pg-pager" id="pgPager">
+          <button class="pg-btn">&lt;</button>
+          <button class="pg-btn active">1</button>
+          <button class="pg-btn">&gt;</button>
+        </div>
+        <div class="pg-jump">跳至 <input type="text" value="1"> 页</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="框架.js" data-page="elderly-management" data-embed="auto"></script>
+<script>
+  /* ============ 模拟数据 ============ */
+  var MOCK_DATA = [
+    { org:'扬州市江都区仙女社区卫生服务中心', name:'杨伟', idNo:'3210********2851', idType:'居民身份证', color:'white', visits:0, gender:'男', age:64, birth:'1961-12-15', popTags:['old'], phone:'135****5365', addr:'友谊花园35-3-...', archiveNo:'32101210010000...', district:'新都社区', doctor:'裴建林', status:'正常', lock:'未上锁' },
+    { org:'扬州市江都区浦头镇承仪村卫生室', name:'万学书', idNo:'3203********2814', idType:'居民身份证', color:'white', visits:0, gender:'男', age:65, birth:'1961-03-22', popTags:['old'], phone:'189****1832', addr:'万东组', archiveNo:'32101212012000...', district:'承仪村', doctor:'孙春霞', status:'正常', lock:'未上锁' },
+    { org:'扬州市江都区砖桥社区卫生服务中心', name:'谭善华', idNo:'3210********5420', idType:'居民身份证', color:'white', visits:0, gender:'男', age:70, birth:'1955-10-08', popTags:['old'], phone:'133****2685', addr:'林园组', archiveNo:'32101210010000...', district:'曹王林园场村', doctor:'庄诗慧', status:'正常', lock:'未上锁' },
+    { org:'扬州市江都区砖桥社区卫生服务中心', name:'谭善华', idNo:'3210********8420', idType:'居民身份证', color:'white', visits:0, gender:'女', age:70, birth:'1955-10-08', popTags:['old'], phone:'189****3443', addr:'曹王', archiveNo:'32101210010000...', district:'曹王林园场', doctor:'赵国祥', status:'正常', lock:'未上锁' },
+    { org:'扬州市江都区伯中心卫生...', name:'刘光凤', idNo:'3210********4865', idType:'居民身份证', color:'white', visits:0, gender:'女', age:79, birth:'1947-09-12', popTags:['old','hyp','dia'], phone:'182****6490', addr:'荷塘月色2-3-...', archiveNo:'32101211400104...', district:'甘棠社区', doctor:'刘淑琴', status:'正常', lock:'未上锁' },
+    { org:'扬州市江都区仙女镇新华...', name:'李会萍', idNo:'3712********0864', idType:'居民身份证', color:'white', visits:0, gender:'女', age:67, birth:'1958-12-14', popTags:['old'], phone:'147****1850', addr:'祁李组', archiveNo:'32101212101103...', district:'新华村', doctor:'顾海燕', status:'正常', lock:'未上锁' },
+    { org:'扬州市江都区丁伙镇乔墅...', name:'王永庆', idNo:'3201********0051', idType:'居民身份证', color:'yellow', visits:0, gender:'男', age:78, birth:'1947-10-03', popTags:['old','hyp'], phone:'187****5026', addr:'嵇庄组', archiveNo:'32101211620603...', district:'乔墅村', doctor:'石有理', status:'正常', lock:'未上锁' },
+    { org:'扬州市江都区大桥镇六河...', name:'范秀清', idNo:'3210********7122', idType:'居民身份证', color:'red', visits:0, gender:'女', age:81, birth:'1944-10-15', popTags:['old','hyp'], phone:'153****4499', addr:'同富组', archiveNo:'32101211821103...', district:'六河村', doctor:'史文宾', status:'正常', lock:'未上锁' },
+    { org:'扬州市江都区仙女镇商贸...', name:'沈友道', idNo:'3210********3231', idType:'居民身份证', color:'green', visits:0, gender:'男', age:68, birth:'1958-08-20', popTags:['old','hyp'], phone:'159****2163', addr:'4区', archiveNo:'32101212100102...', district:'商贸城社区', doctor:'张绍永', status:'正常', lock:'未上锁' },
+    { org:'扬州市江都区丁沟镇乔河...', name:'王家菊', idNo:'3210********3787', idType:'居民身份证', color:'white', visits:0, gender:'女', age:77, birth:'1948-10-05', popTags:['old','dia'], phone:'137****7148', addr:'乔三组', archiveNo:'32101211020606...', district:'乔河村', doctor:'秦建', status:'正常', lock:'未上锁' },
+    { org:'扬州市江都区丁沟镇卫生院', name:'陈扣红', idNo:'3210********7240', idType:'居民身份证', color:'white', visits:0, gender:'女性', age:71, birth:'1955-07-18', popTags:['old'], phone:'189****0355', addr:'丁沟镇丁东村', archiveNo:'32101211020007...', district:'丁东村', doctor:'陈文', status:'正常', lock:'未上锁' },
+    { org:'扬州市江都区吴桥镇高扬...', name:'陈素英', idNo:'3203********0866', idType:'居民身份证', color:'green', visits:0, gender:'女', age:66, birth:'1960-03-12', popTags:['old','hyp'], phone:'189****8274', addr:'高扬焦庄', archiveNo:'32101211920903...', district:'高扬村', doctor:'赵平', status:'正常', lock:'未上锁' },
+    { org:'仙女镇江桥村卫生室', name:'祁桂香', idNo:'3210********6922', idType:'居民身份证', color:'white', visits:0, gender:'女', age:79, birth:'1947-04-25', popTags:['old'], phone:'150****5698', addr:'金湾瑞园西区...', archiveNo:'32101210020305...', district:'江桥村', doctor:'李思静', status:'正常', lock:'未上锁' },
+    { org:'仙女镇乐和社区', name:'尤正玲', idNo:'3202********0620', idType:'居民身份证', color:'yellow', visits:0, gender:'女', age:66, birth:'1960-06-18', popTags:['old','hyp'], phone:'133****7788', addr:'御景花园8-602', archiveNo:'32101210002109...', district:'乐和社区', doctor:'王蕾', status:'正常', lock:'未上锁' },
+    { org:'仙女镇镇北社区', name:'张玉兰', idNo:'3210********312X', idType:'居民身份证', color:'green', visits:0, gender:'女', age:78, birth:'1948-02-10', popTags:['old','hyp'], phone:'803*9017', addr:'锦绣苑17幢1...', archiveNo:'32101210002316...', district:'镇北社区', doctor:'薛海霞', status:'正常', lock:'未上锁' },
+    { org:'扬州市江都区真武中心卫...', name:'李顺银', idNo:'3210********2854', idType:'居民身份证', color:'red', visits:0, gender:'男', age:80, birth:'1946-09-28', popTags:['old','hyp'], phone:'181****0122', addr:'北戴组', archiveNo:'32101210820407...', district:'振兴村', doctor:'吴向阳', status:'正常', lock:'未上锁' },
+    { org:'仙女镇东苑社区', name:'兰秀娥', idNo:'3210********8168', idType:'居民身份证', color:'red', visits:0, gender:'女', age:88, birth:'1938-02-16', popTags:['old','hyp'], phone:'151****7910', addr:'东园新村10幢...', archiveNo:'32101210000113...', district:'东苑社区', doctor:'花时', status:'正常', lock:'未上锁' },
+    { org:'扬州市江都区武坚镇花庄...', name:'杨扣红', idNo:'2110********5547', idType:'居民身份证', color:'green', visits:0, gender:'女', age:65, birth:'1960-11-20', popTags:['old','hyp'], phone:'136****4181', addr:'徐沟组', archiveNo:'32101210320103...', district:'花庄村', doctor:'胡晓芳', status:'正常', lock:'未上锁' },
+    { org:'扬州市江都区仙女镇建乐...', name:'居大定', idNo:'3210********2961', idType:'居民身份证', color:'white', visits:0, gender:'女', age:72, birth:'1954-03-30', popTags:['old','hyp'], phone:'152****9352', addr:'碧桂园', archiveNo:'32101212100509...', district:'建乐社区', doctor:'李志', status:'正常', lock:'未上锁' },
+    { org:'仙女镇南吴村卫生室', name:'王峰', idNo:'3210********600X', idType:'居民身份证', color:'white', visits:0, gender:'女', age:67, birth:'1958-12-05', popTags:['old','hyp'], phone:'132****5516', addr:'金龙小区', archiveNo:'32101210002609...', district:'南吴社区', doctor:'钱智颖', status:'正常', lock:'未上锁' }
+  ];
+
+  /* ============ 渲染表格 ============ */
+  function renderTable() {
+    var tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+    MOCK_DATA.forEach(function (row, i) {
+      var tr = document.createElement('tr');
+
+      // 重点人群标签
+      var tagMap = { old:'老', hyp:'高', dia:'糖', tb:'结' };
+      var tagsHtml = '<div class="pop-tags">';
+      row.popTags.forEach(function (t) {
+        tagsHtml += '<span class="pop-tag ' + t + '">' + tagMap[t] + '</span>';
+      });
+      tagsHtml += '</div>';
+
+      // 居民状态
+      var statusDot = 'ok';
+      if (row.status === '迁出') statusDot = 'info';
+      else if (row.status === '死亡') statusDot = 'danger';
+
+      // 锁定状态
+      var lockDot = 'warn';
+      if (row.lock === '未上锁') lockDot = 'warn';
+
+      tr.innerHTML =
+        '<td>' + (i+1) + '</td>' +
+        '<td title="' + row.org + '"><span class="cell">' + row.org + '</span></td>' +
+        '<td>' + row.name + '</td>' +
+        '<td>' + row.idNo + '</td>' +
+        '<td>' + row.idType + '</td>' +
+        '<td class="center"><span class="color-tag ' + row.color + '">' + colorText(row.color) + '</span></td>' +
+        '<td class="center">' + row.visits + '次</td>' +
+        '<td class="center">' + row.gender + '</td>' +
+        '<td class="center">' + row.age + '</td>' +
+        '<td>' + row.birth + '</td>' +
+        '<td>' + tagsHtml + '</td>' +
+        '<td>' + row.phone + '</td>' +
+        '<td title="' + row.addr + '"><span class="cell">' + row.addr + '</span></td>' +
+        '<td>' + row.archiveNo + '</td>' +
+        '<td>' + row.district + '</td>' +
+        '<td>' + row.doctor + '</td>' +
+        '<td><span class="st-dot ' + statusDot + '"></span>' + row.status + '</td>' +
+        '<td><span class="st-dot ' + lockDot + '"></span>' + row.lock + '</td>' +
+        '<td>' +
+          '<a class="op-link" onclick="toast(\'查看档案\',\'info\')">查看</a>' +
+          '<span class="op-gap"></span>' +
+          '<a class="op-link" onclick="toast(\'编辑档案\',\'info\')">编辑</a>' +
+          '<span class="op-gap"></span>' +
+          '<div class="op-more">' +
+            '<a class="more-btn" onclick="toggleOpMenu(this,event)">更多<svg viewBox="0 0 24 24" style="width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="6 9 12 15 18 9"/></svg></a>' +
+            '<div class="op-menu">' +
+              '<div class="mi" onclick="toast(\'档案迁移\',\'info\')">档案迁移</div>' +
+              '<div class="mi" onclick="toast(\'合并档案\',\'info\')">合并档案</div>' +
+              '<div class="mi" onclick="toast(\'锁定档案\',\'info\')">锁定档案</div>' +
+              '<div class="mi" onclick="toast(\'注销档案\',\'info\')">注销档案</div>' +
+              '<div class="mi danger" onclick="toast(\'删除档案\',\'warning\')">删除档案</div>' +
+            '</div>' +
+          '</div>' +
+        '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  function colorText(c) {
+    return { white:'白色', yellow:'黄色', red:'红色', green:'绿色' }[c] || c;
+  }
+
+  /* ============ 更多下拉菜单 ============ */
+  function toggleOpMenu(btn, e) {
+    e.stopPropagation();
+    var more = btn.closest('.op-more');
+    document.querySelectorAll('.op-more.open').forEach(function (m) {
+      if (m !== more) m.classList.remove('open');
+    });
+    more.classList.toggle('open');
+  }
+  document.addEventListener('click', function () {
+    document.querySelectorAll('.op-more.open').forEach(function (m) { m.classList.remove('open'); });
+  });
+
+  /* ============ 展开/收起筛选区 ============ */
+  var extraOpen = false;
+  function toggleExtra() {
+    extraOpen = !extraOpen;
+    var row = document.getElementById('extraRow');
+    var btn = document.getElementById('expandBtn');
+    if (extraOpen) {
+      row.classList.add('show');
+      btn.innerHTML = '收起<svg viewBox="0 0 24 24" style="width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;margin-left:2px;transform:rotate(180deg)"><polyline points="6 9 12 15 18 9"/></svg>';
+    } else {
+      row.classList.remove('show');
+      btn.innerHTML = '展开<svg viewBox="0 0 24 24" style="width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;margin-left:2px"><polyline points="6 9 12 15 18 9"/></svg>';
+    }
+  }
+
+  renderTable();
+</script>
+</body>
+</html>

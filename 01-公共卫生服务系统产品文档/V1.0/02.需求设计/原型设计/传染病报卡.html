@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>传染病报卡 - 疾病报卡</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0}
+
+  .page-head .right .btn{height:28px;padding:0 14px;font-size:13px}
+
+  .view{display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+  .view.active{display:flex}
+
+  /* 筛选区 */
+  .filter-panel{padding:10px 12px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;gap:10px 14px;margin-bottom:10px;align-items:center}
+  .filter-item{display:flex;align-items:center;gap:8px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:140px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .fi-date-range{display:flex;align-items:center;gap:6px}
+  .fi-date{width:110px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 28px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-size:14px;appearance:none;-webkit-appearance:none}
+  .fi-date:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-sep{color:var(--text-placeholder);font-size:13px}
+  .fi-check{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer;user-select:none}
+  .fi-check input{cursor:pointer}
+
+  /* 数据表格 */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+  .list-tbl{width:100%;min-width:1320px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 10px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:36px;padding:0 10px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:nth-child(even) td{background:var(--bg-table-even)}
+  .list-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* 操作列 */
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px}
+  .op-link:hover{text-decoration:underline}
+  .op-gap{display:inline-block;width:8px}
+  .op-link.danger{color:var(--danger)}
+  .op-link.danger:hover{text-decoration:underline}
+
+  /* 分页 */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:44px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 22px 0 8px;font-size:13px;color:var(--text-secondary);background:#fff;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-jump input{width:40px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 6px;font-size:13px;text-align:center;color:var(--text-primary);outline:none}
+  .pg-jump input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+
+  /* 详情/表单页 */
+  .detail-body{flex:1;overflow:auto;padding:12px 16px;min-height:0}
+  .view-head{display:flex;align-items:center;height:44px;padding:0 16px;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .view-head h1{font-size:18px;font-weight:var(--font-weight-medium);color:var(--text-primary);line-height:25px;margin-right:auto}
+  .view-head .right{display:flex;gap:8px;align-items:center}
+
+  /* 信息表格 - 报卡表单 */
+  .report-tbl{width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--primary-border)}
+  .report-tbl .sec-row th{text-align:center;padding:5px 12px;background:var(--primary-header);color:var(--text-primary);font-weight:var(--font-weight-semibold);border:1px solid var(--primary-border);font-size:13px;height:30px}
+  .report-tbl th{text-align:right;padding:0 10px;height:34px;background:var(--primary-header);color:var(--text-primary);font-weight:var(--font-weight-medium);border:1px solid var(--primary-border);white-space:nowrap;width:150px;vertical-align:middle}
+  .report-tbl td{padding:4px 10px;height:34px;background:var(--bg-white);border:1px solid var(--primary-border);color:var(--text-secondary);vertical-align:middle}
+  .report-tbl tr.textarea-row th,.report-tbl tr.textarea-row td{height:70px;vertical-align:top;padding-top:6px;padding-bottom:6px}
+  .report-tbl .required::before{content:"*";color:var(--danger);margin-right:2px}
+
+  /* 表单控件 */
+  .fm-ctl{width:100%;height:28px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 8px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fm-select{width:100%;height:28px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 24px 0 8px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fm-date{width:100%;height:28px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 8px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-size:14px;appearance:none;-webkit-appearance:none}
+  .fm-ctl:focus,.fm-select:focus,.fm-date:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fm-ctl::placeholder{color:var(--text-placeholder)}
+  .fm-textarea{width:100%;min-height:56px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:6px 8px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);resize:vertical;font-family:inherit;line-height:1.5}
+  .fm-textarea:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fm-textarea::placeholder{color:var(--text-placeholder)}
+  .textarea-wrap{position:relative}
+  .textarea-cnt{position:absolute;right:8px;bottom:4px;font-size:12px;color:var(--text-placeholder);pointer-events:none}
+
+  /* 单选/多选组 */
+  .radio-group{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center}
+  .radio-item{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--text-secondary);cursor:pointer;user-select:none}
+  .radio-item input{cursor:pointer;width:13px;height:13px;accent-color:var(--primary)}
+  .radio-item.disabled{opacity:.5;cursor:not-allowed}
+  .radio-sub{margin-left:14px;padding:6px 12px;background:#F0F6FF;border-radius:var(--r-sm);border:1px solid var(--primary-border-light)}
+  .radio-sub .radio-group{gap:8px 16px}
+
+  /* 年龄输入+单位 */
+  .age-input{display:flex;gap:6px;align-items:center}
+  .age-input .fm-ctl{width:100px}
+  .age-input .fm-select{width:80px}
+
+  /* 现住址级联 */
+  .addr-cascade{display:flex;gap:6px;align-items:center}
+  .addr-cascade .fm-select{flex:1;min-width:0}
+
+  /* 弹窗 */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .modal-overlay.show{opacity:1;pointer-events:auto}
+  .modal{width:420px;max-width:92vw;background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 8px 32px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden;transform:translateY(10px);transition:transform var(--transition-normal)}
+  .modal-overlay.show .modal{transform:translateY(0)}
+  .modal-head{height:48px;display:flex;align-items:center;padding:0 16px;flex-shrink:0;border-bottom:1px solid #E8E8E8}
+  .modal-head h3{font-size:16px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+  .modal-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:18px;line-height:1}
+  .modal-close:hover{background:var(--primary-bg);color:var(--primary)}
+  .modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid #E8E8E8}
+
+  /* 确认弹窗 */
+  .confirm-body{display:flex;align-items:flex-start;gap:12px;padding:24px 20px}
+  .confirm-icon{width:28px;height:28px;border-radius:50%;background:var(--warning-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .confirm-icon svg{width:16px;height:16px;stroke:var(--warning);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .confirm-text{font-size:14px;color:var(--text-primary);line-height:28px}
+
+  /* 只读详情中禁用单选样式 */
+  .view-detail .radio-item{cursor:default}
+  .view-detail .radio-item input{pointer-events:none}
+</style>
+</head>
+<body>
+
+<div class="main-area">
+
+  <div class="tabbar">
+    <div class="tab-item active">传染病报卡</div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <!-- 视图1：列表 -->
+      <div class="view active" id="view-list">
+        <div class="page-head">
+          <h1>传染病报卡</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="toast('导出成功','success')">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              导出
+            </button>
+            <button class="btn btn-default" onclick="toast('身份证读卡中...','info')">身份证读卡</button>
+            <button class="btn btn-primary" onclick="showView('create')">新建</button>
+          </div>
+        </div>
+
+        <div class="filter-panel">
+          <div class="filter-row">
+            <div class="filter-item">
+              <label>报告单位：</label>
+              <select class="fi-select">
+                <option value="">请选择</option>
+                <option>扬州市江都区小纪中心卫生院</option>
+                <option>扬州市江都区砖桥社区卫生服务中心</option>
+                <option>扬州市江都区樊川中心卫生院</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>姓名：</label>
+              <input class="fi-ctl" placeholder="请输入" type="text">
+            </div>
+            <div class="filter-item">
+              <label>传染病种类：</label>
+              <select class="fi-select">
+                <option value="">请选择</option>
+                <option>甲类传染病</option>
+                <option>乙类传染病</option>
+                <option>丙类传染病</option>
+                <option>其他传染病</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>性别：</label>
+              <select class="fi-select">
+                <option value="">请选择</option>
+                <option>男</option>
+                <option>女</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>管辖行政区：</label>
+              <select class="fi-select">
+                <option value="">请选择</option>
+                <option>纪西村</option>
+                <option>砖桥社区</option>
+                <option>友爱村</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>证件号：</label>
+              <input class="fi-ctl" placeholder="请输入" type="text">
+            </div>
+          </div>
+          <div class="filter-row">
+            <div class="filter-item">
+              <label>病历分类：</label>
+              <select class="fi-select">
+                <option value="">请选择</option>
+                <option>疑似病例</option>
+                <option>临床诊断病例</option>
+                <option>实验室诊断病例</option>
+                <option>病原携带者</option>
+                <option>阳性检测</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>出生日期：</label>
+              <div class="fi-date-range">
+                <input class="fi-date" placeholder="开始日期" type="text">
+                <span class="fi-sep">~</span>
+                <input class="fi-date" placeholder="结束日期" type="text">
+              </div>
+            </div>
+            <div class="filter-item">
+              <label>填报时间：</label>
+              <div class="fi-date-range">
+                <input class="fi-date" placeholder="开始日期" type="text">
+                <span class="fi-sep">~</span>
+                <input class="fi-date" placeholder="结束日期" type="text">
+              </div>
+            </div>
+            <div class="filter-item">
+              <label class="fi-check">
+                <input type="checkbox"> 只看个人管理档案
+              </label>
+            </div>
+            <div class="filter-btns">
+              <button class="btn btn-default btn-sm" onclick="toast('已重置','info')">重置</button>
+              <button class="btn btn-primary btn-sm" onclick="toast('查询成功','success')">查询</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="list-tbl">
+            <thead>
+              <tr>
+                <th style="width:44px">序号</th>
+                <th style="width:150px">报告单位</th>
+                <th style="width:60px">姓名</th>
+                <th style="width:72px">证件类型</th>
+                <th style="width:140px">证件号</th>
+                <th style="width:44px">性别</th>
+                <th style="width:52px">年龄</th>
+                <th style="width:88px">出生日期</th>
+                <th style="width:104px">电话号码</th>
+                <th style="width:78px">传染病种类</th>
+                <th style="width:120px">详细地址</th>
+                <th style="width:78px">管辖行政区</th>
+                <th style="width:60px">填报人</th>
+                <th style="width:88px">填报日期</th>
+                <th style="width:108px">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td><span class="cell" title="扬州市江都区小纪中心卫生院">扬州市江都区小纪中心卫生院</span></td>
+                <td>彭锡定</td>
+                <td>居民身份证</td>
+                <td>321088196207200313</td>
+                <td>男</td>
+                <td></td>
+                <td>1962-07-20</td>
+                <td>13160318590</td>
+                <td>乙类传染病</td>
+                <td><span class="cell" title="西苑小区">西苑小区</span></td>
+                <td>纪西村</td>
+                <td>候海健</td>
+                <td>2025-06-04</td>
+                <td>
+                  <a class="op-link" onclick="showView('edit')">编辑</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link" onclick="showView('detail')">查看</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link danger" onclick="openModal('modal-delete')">删除</a>
+                </td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td><span class="cell" title="扬州市江都区砖桥社区卫生服务中心">扬州市江都区砖桥社区卫生服务中心</span></td>
+                <td>张传发</td>
+                <td>居民身份证</td>
+                <td>342822193710011819</td>
+                <td>男</td>
+                <td>87岁</td>
+                <td>1937-10-01</td>
+                <td>15094369033</td>
+                <td>乙类传染病</td>
+                <td><span class="cell" title="西沟组">西沟组</span></td>
+                <td>砖桥社区</td>
+                <td>张学山</td>
+                <td>2024-12-17</td>
+                <td>
+                  <a class="op-link" onclick="showView('edit')">编辑</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link" onclick="showView('detail')">查看</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link danger" onclick="openModal('modal-delete')">删除</a>
+                </td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td><span class="cell" title="扬州市江都区樊川中心卫生院">扬州市江都区樊川中心卫生院</span></td>
+                <td>刘德荣</td>
+                <td>居民身份证</td>
+                <td>32102619500505203X</td>
+                <td>男</td>
+                <td>74岁</td>
+                <td>1950-05-05</td>
+                <td>14752777690</td>
+                <td>乙类传染病</td>
+                <td><span class="cell" title="向家组27号">向家组27号</span></td>
+                <td>友爱村</td>
+                <td>冯颖</td>
+                <td>2024-12-06</td>
+                <td>
+                  <a class="op-link" onclick="showView('edit')">编辑</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link" onclick="showView('detail')">查看</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link danger" onclick="openModal('modal-delete')">删除</a>
+                </td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td><span class="cell" title="321012468944605">321012468944605</span></td>
+                <td>许永祝</td>
+                <td>居民身份证</td>
+                <td>321026197412235916</td>
+                <td>男</td>
+                <td>50</td>
+                <td>1974-12-23</td>
+                <td>18951043093</td>
+                <td>乙类传染病</td>
+                <td><span class="cell" title="无">无</span></td>
+                <td>仁寿社区花园路57号</td>
+                <td>曹力</td>
+                <td>2024-10-02</td>
+                <td>
+                  <a class="op-link" onclick="showView('edit')">编辑</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link" onclick="showView('detail')">查看</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link danger" onclick="openModal('modal-delete')">删除</a>
+                </td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td><span class="cell" title="321012468944605">321012468944605</span></td>
+                <td>张桂青</td>
+                <td>居民身份证</td>
+                <td>321088197107016126</td>
+                <td>女</td>
+                <td>53</td>
+                <td>1971-07-01</td>
+                <td>17558750103</td>
+                <td>乙类传染病</td>
+                <td><span class="cell" title="无">无</span></td>
+                <td>大桥镇三墩村吴庄80号</td>
+                <td>杨玫</td>
+                <td>2024-10-05</td>
+                <td>
+                  <a class="op-link" onclick="showView('edit')">编辑</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link" onclick="showView('detail')">查看</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link danger" onclick="openModal('modal-delete')">删除</a>
+                </td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td><span class="cell" title="扬州市江都区砖桥社区卫生服务中心">扬州市江都区砖桥社区卫生服务中心</span></td>
+                <td>王恒露</td>
+                <td>居民身份证</td>
+                <td>321026195706034491</td>
+                <td>男</td>
+                <td>67岁</td>
+                <td>1957-06-03</td>
+                <td>18261336886</td>
+                <td>乙类传染病</td>
+                <td><span class="cell" title="郭刘组">郭刘组</span></td>
+                <td>同桥村</td>
+                <td>张学山</td>
+                <td>2024-11-04</td>
+                <td>
+                  <a class="op-link" onclick="showView('edit')">编辑</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link" onclick="showView('detail')">查看</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link danger" onclick="openModal('modal-delete')">删除</a>
+                </td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td><span class="cell" title="扬州市江都区城南社区卫生服务中心">扬州市江都区城南社区卫生服务中心</span></td>
+                <td>石必荣</td>
+                <td>居民身份证</td>
+                <td>321088195702057716</td>
+                <td>男</td>
+                <td>67岁</td>
+                <td>1957-02-05</td>
+                <td>19962519507</td>
+                <td>乙类传染病</td>
+                <td><span class="cell" title="春和人家32栋902">春和人家32栋902</span></td>
+                <td>建乐社区</td>
+                <td>郭超</td>
+                <td>2024-11-04</td>
+                <td>
+                  <a class="op-link" onclick="showView('edit')">编辑</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link" onclick="showView('detail')">查看</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link danger" onclick="openModal('modal-delete')">删除</a>
+                </td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td><span class="cell" title="扬州市江都区砖桥社区卫生服务中心">扬州市江都区砖桥社区卫生服务中心</span></td>
+                <td>陈中丙</td>
+                <td>居民身份证</td>
+                <td>422324196811221216</td>
+                <td>男</td>
+                <td>56岁</td>
+                <td>1968-11-22</td>
+                <td>18972837864</td>
+                <td>乙类传染病</td>
+                <td><span class="cell" title="三勤组">三勤组</span></td>
+                <td>三友村</td>
+                <td>张学山</td>
+                <td>2024-10-31</td>
+                <td>
+                  <a class="op-link" onclick="showView('edit')">编辑</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link" onclick="showView('detail')">查看</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link danger" onclick="openModal('modal-delete')">删除</a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="page-foot">
+          <div class="pg-total">共 <b>20</b> 条</div>
+          <div class="pg-size">
+            <select>
+              <option>20 条/页</option>
+              <option>50 条/页</option>
+              <option>100 条/页</option>
+            </select>
+          </div>
+          <div class="pg-pager">
+            <button class="pg-btn">&lt;</button>
+            <button class="pg-btn active">1</button>
+            <button class="pg-btn">2</button>
+            <button class="pg-btn">&gt;</button>
+          </div>
+          <div class="pg-jump">跳至 <input type="text" value="1"> 页</div>
+        </div>
+      </div>
+
+      <!-- 视图2：详情 -->
+      <div class="view view-detail" id="view-detail">
+        <div class="view-head">
+          <h1>查看传染病报卡档案</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="showView('list')">返回</button>
+          </div>
+        </div>
+        <div class="detail-body">
+          <table class="report-tbl">
+            <tr class="sec-row"><th colspan="4">患者信息</th></tr>
+            <tr>
+              <th>报告卡类型</th>
+              <td>初次报告</td>
+              <th></th>
+              <td></td>
+            </tr>
+            <tr>
+              <th>身份证号</th>
+              <td>321088196207200313</td>
+              <th>姓名</th>
+              <td>彭锡定</td>
+            </tr>
+            <tr>
+              <th>性别</th>
+              <td>
+                <div class="radio-group">
+                  <label class="radio-item"><input type="radio" name="detail-gender" checked> 男性</label>
+                  <label class="radio-item"><input type="radio" name="detail-gender"> 女性</label>
+                  <label class="radio-item"><input type="radio" name="detail-gender"> 未知的性别</label>
+                  <label class="radio-item"><input type="radio" name="detail-gender"> 未说明的性别</label>
+                </div>
+              </td>
+              <th></th>
+              <td></td>
+            </tr>
+            <tr>
+              <th>出生日期</th>
+              <td>1962-07-20</td>
+              <th>患儿家长姓名</th>
+              <td></td>
+            </tr>
+            <tr>
+              <th>实足年龄</th>
+              <td></td>
+              <th></th>
+              <td></td>
+            </tr>
+            <tr>
+              <th>联系电话</th>
+              <td>13160318590</td>
+              <th>民族</th>
+              <td>汉族</td>
+            </tr>
+            <tr>
+              <th>工作单位</th>
+              <td></td>
+              <th>病人属于</th>
+              <td>本县区</td>
+            </tr>
+            <tr>
+              <th>患者职业</th>
+              <td>工人</td>
+              <th></th>
+              <td></td>
+            </tr>
+            <tr>
+              <th>现地址</th>
+              <td colspan="3">江苏省扬州市江都区小纪镇纪西村西苑小区</td>
+            </tr>
+            <tr class="sec-row"><th colspan="4">疾病信息</th></tr>
+            <tr>
+              <th>传染病类型</th>
+              <td colspan="3">
+                <div class="radio-group">
+                  <label class="radio-item"><input type="radio" name="detail-type"> 甲类传染病</label>
+                  <label class="radio-item"><input type="radio" name="detail-type" checked> 乙类传染病</label>
+                  <label class="radio-item"><input type="radio" name="detail-type"> 丙类传染病</label>
+                  <label class="radio-item"><input type="radio" name="detail-type"> 其他传染病</label>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th>其他法定管理以及重点监测传染病</th>
+              <td colspan="3"></td>
+            </tr>
+            <tr>
+              <th>密切接触者有无相同症状</th>
+              <td colspan="3">
+                <div class="radio-group">
+                  <label class="radio-item"><input type="radio" name="detail-contact" checked> 无</label>
+                  <label class="radio-item"><input type="radio" name="detail-contact"> 有</label>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th>病例分类</th>
+              <td colspan="3">
+                <div class="radio-group">
+                  <label class="radio-item"><input type="radio" name="detail-cat" checked> 疑似病例</label>
+                  <label class="radio-item"><input type="radio" name="detail-cat"> 临床诊断病例</label>
+                  <label class="radio-item"><input type="radio" name="detail-cat"> 实验室诊断病例</label>
+                  <label class="radio-item"><input type="radio" name="detail-cat"> 病原携带者</label>
+                  <label class="radio-item"><input type="radio" name="detail-cat"> 阳性检测</label>
+                  <label class="radio-item"><input type="radio" name="detail-cat"> 急性</label>
+                  <label class="radio-item"><input type="radio" name="detail-cat"> 慢性(乙型肝炎,丙型肝炎,血吸虫病填写)</label>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th>发病日期</th>
+              <td>2025-06-04</td>
+              <th>诊断日期</th>
+              <td>2025-06-04</td>
+            </tr>
+            <tr>
+              <th>死亡日期</th>
+              <td></td>
+              <th></th>
+              <td></td>
+            </tr>
+            <tr class="sec-row"><th colspan="4">报告信息</th></tr>
+            <tr>
+              <th>报告单位</th>
+              <td>扬州市江都区小纪中心卫生院</td>
+              <th>报告单位联系电话</th>
+              <td></td>
+            </tr>
+            <tr>
+              <th>填卡医生</th>
+              <td>候海健</td>
+              <th>填卡日期</th>
+              <td>2025-06-04</td>
+            </tr>
+            <tr class="textarea-row">
+              <th>备注</th>
+              <td colspan="3"></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- 视图3：新建 -->
+      <div class="view" id="view-create">
+        <div class="view-head">
+          <h1>新建传染病报卡档案</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="showView('list')">返回</button>
+            <button class="btn btn-primary" onclick="toast('保存成功','success');showView('list')">保存</button>
+          </div>
+        </div>
+        <div class="detail-body">
+          <table class="report-tbl">
+            <tr class="sec-row"><th colspan="4">患者信息</th></tr>
+            <tr>
+              <th>报告卡类型</th>
+              <td>初次报告</td>
+              <th></th>
+              <td></td>
+            </tr>
+            <tr>
+              <th class="required">身份证号</th>
+              <td><div style="width:200px"><input class="fm-ctl" placeholder="请输入" type="text"></div></td>
+              <th class="required">姓名</th>
+              <td><div style="width:200px"><input class="fm-ctl" placeholder="请输入" type="text"></div></td>
+            </tr>
+            <tr>
+              <th class="required">性别</th>
+              <td colspan="3">
+                <div class="radio-group">
+                  <label class="radio-item"><input type="radio" name="create-gender"> 男性</label>
+                  <label class="radio-item"><input type="radio" name="create-gender"> 女性</label>
+                  <label class="radio-item"><input type="radio" name="create-gender"> 未知的性别</label>
+                  <label class="radio-item"><input type="radio" name="create-gender"> 未说明的性别</label>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">出生日期</th>
+              <td><div style="width:200px"><input class="fm-date" placeholder="选择日期" type="text"></div></td>
+              <th>患儿家长姓名</th>
+              <td><div style="width:200px"><input class="fm-ctl" placeholder="请输入" type="text"></div></td>
+            </tr>
+            <tr>
+              <th>实足年龄</th>
+              <td>
+                <div class="age-input">
+                  <input class="fm-ctl" placeholder="请输入" type="text">
+                  <select class="fm-select">
+                    <option>岁</option>
+                    <option>月</option>
+                    <option>天</option>
+                  </select>
+                </div>
+              </td>
+              <th></th>
+              <td></td>
+            </tr>
+            <tr>
+              <th class="required">联系电话</th>
+              <td><div style="width:200px"><input class="fm-ctl" placeholder="请输入" type="text"></div></td>
+              <th class="required">民族</th>
+              <td>
+                <div style="width:200px">
+                  <select class="fm-select">
+                    <option value="">请选择</option>
+                    <option>汉族</option>
+                    <option>回族</option>
+                    <option>满族</option>
+                    <option>其他</option>
+                  </select>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th>工作单位</th>
+              <td><div style="width:200px"><input class="fm-ctl" placeholder="请输入" type="text"></div></td>
+              <th class="required">病人属于</th>
+              <td>
+                <div style="width:200px">
+                  <select class="fm-select">
+                    <option value="">请选择</option>
+                    <option>本县区</option>
+                    <option>本市其他县区</option>
+                    <option>本省其他地市</option>
+                    <option>其他省</option>
+                    <option>港澳台</option>
+                    <option>外籍</option>
+                  </select>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">患者职业</th>
+              <td>
+                <div style="width:200px">
+                  <select class="fm-select">
+                    <option value="">请选择</option>
+                    <option>工人</option>
+                    <option>农民</option>
+                    <option>牧民</option>
+                    <option>干部职员</option>
+                    <option>学生</option>
+                    <option>教师</option>
+                    <option>医务人员</option>
+                    <option>其他</option>
+                  </select>
+                </div>
+              </td>
+              <th></th>
+              <td></td>
+            </tr>
+            <tr>
+              <th class="required">现地址</th>
+              <td colspan="3">
+                <div class="addr-cascade">
+                  <select class="fm-select"><option>请选择现住址</option></select>
+                  <select class="fm-select"><option>请选择</option></select>
+                  <select class="fm-select"><option>请选择</option></select>
+                  <input class="fm-ctl" placeholder="请输入详细地址" type="text" style="width:200px">
+                </div>
+              </td>
+            </tr>
+            <tr class="sec-row"><th colspan="4">疾病信息</th></tr>
+            <tr>
+              <th class="required">传染病类型</th>
+              <td colspan="3">
+                <div class="radio-group">
+                  <label class="radio-item"><input type="radio" name="create-type"> 甲类传染病</label>
+                  <label class="radio-item"><input type="radio" name="create-type"> 乙类传染病</label>
+                  <label class="radio-item"><input type="radio" name="create-type"> 丙类传染病</label>
+                  <label class="radio-item"><input type="radio" name="create-type"> 其他传染病</label>
+                </div>
+                <div class="radio-sub" style="margin-top:10px">
+                  <div class="radio-group">
+                    <label class="radio-item"><input type="radio" name="create-subtype"> 鼠疫</label>
+                    <label class="radio-item"><input type="radio" name="create-subtype"> 霍乱</label>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th>其他法定管理以及重点监测传染病</th>
+              <td colspan="3"><div style="width:200px"><input class="fm-ctl" placeholder="请输入" type="text"></div></td>
+            </tr>
+            <tr>
+              <th class="required">密切接触者有无相同症状</th>
+              <td colspan="3">
+                <div class="radio-group">
+                  <label class="radio-item"><input type="radio" name="create-contact"> 无</label>
+                  <label class="radio-item"><input type="radio" name="create-contact"> 有</label>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">病例分类</th>
+              <td colspan="3">
+                <div class="radio-group">
+                  <label class="radio-item"><input type="radio" name="create-cat"> 疑似病例</label>
+                  <label class="radio-item"><input type="radio" name="create-cat"> 临床诊断病例</label>
+                  <label class="radio-item"><input type="radio" name="create-cat"> 实验室诊断病例</label>
+                  <label class="radio-item"><input type="radio" name="create-cat"> 病原携带者</label>
+                  <label class="radio-item"><input type="radio" name="create-cat"> 阳性检测</label>
+                  <label class="radio-item"><input type="radio" name="create-cat"> 急性</label>
+                  <label class="radio-item"><input type="radio" name="create-cat"> 慢性(乙型肝炎,丙型肝炎,血吸虫病填写)</label>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">发病日期</th>
+              <td><div style="width:200px"><input class="fm-date" placeholder="选择日期" type="text"></div></td>
+              <th class="required">诊断日期</th>
+              <td><div style="width:200px"><input class="fm-date" placeholder="选择日期" type="text"></div></td>
+            </tr>
+            <tr>
+              <th>死亡日期</th>
+              <td><div style="width:200px"><input class="fm-date" placeholder="选择日期" type="text"></div></td>
+              <th></th>
+              <td></td>
+            </tr>
+            <tr class="sec-row"><th colspan="4">报告信息</th></tr>
+            <tr>
+              <th class="required">报告单位</th>
+              <td>
+                <div style="width:260px">
+                  <select class="fm-select">
+                    <option>扬州市江都区滨江人民医院</option>
+                    <option>扬州市江都区小纪中心卫生院</option>
+                    <option>山东大学齐鲁医院</option>
+                  </select>
+                </div>
+              </td>
+              <th class="required">报告单位联系电话</th>
+              <td><div style="width:200px"><input class="fm-ctl" placeholder="请输入" type="text"></div></td>
+            </tr>
+            <tr>
+              <th class="required">填卡医生</th>
+              <td>
+                <div style="width:200px">
+                  <select class="fm-select">
+                    <option>薛婷婷</option>
+                    <option>候海健</option>
+                    <option>马思唯</option>
+                  </select>
+                </div>
+              </td>
+              <th class="required">填卡日期</th>
+              <td><div style="width:200px"><input class="fm-date" value="2026-09-20" type="text"></div></td>
+            </tr>
+            <tr class="textarea-row">
+              <th>备注</th>
+              <td colspan="3">
+                <div class="textarea-wrap">
+                  <textarea class="fm-textarea" placeholder="请输入" maxlength="500"></textarea>
+                  <span class="textarea-cnt">0/500</span>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- 视图4：编辑 -->
+      <div class="view" id="view-edit">
+        <div class="view-head">
+          <h1>编辑传染病报卡档案</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="showView('list')">返回</button>
+            <button class="btn btn-primary" onclick="toast('保存成功','success');showView('list')">保存</button>
+          </div>
+        </div>
+        <div class="detail-body">
+          <table class="report-tbl">
+            <tr class="sec-row"><th colspan="4">患者信息</th></tr>
+            <tr>
+              <th>报告卡类型</th>
+              <td>订正报告</td>
+              <th></th>
+              <td></td>
+            </tr>
+            <tr>
+              <th class="required">身份证号</th>
+              <td><div style="width:200px"><input class="fm-ctl" value="321088196207200313" type="text"></div></td>
+              <th class="required">姓名</th>
+              <td><div style="width:200px"><input class="fm-ctl" value="彭锡定" type="text"></div></td>
+            </tr>
+            <tr>
+              <th class="required">性别</th>
+              <td colspan="3">
+                <div class="radio-group">
+                  <label class="radio-item"><input type="radio" name="edit-gender" checked> 男性</label>
+                  <label class="radio-item"><input type="radio" name="edit-gender"> 女性</label>
+                  <label class="radio-item"><input type="radio" name="edit-gender"> 未知的性别</label>
+                  <label class="radio-item"><input type="radio" name="edit-gender"> 未说明的性别</label>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">出生日期</th>
+              <td><div style="width:200px"><input class="fm-date" value="1962-07-20" type="text"></div></td>
+              <th>患儿家长姓名</th>
+              <td><div style="width:200px"><input class="fm-ctl" placeholder="请输入" type="text"></div></td>
+            </tr>
+            <tr>
+              <th>实足年龄</th>
+              <td>
+                <div class="age-input">
+                  <input class="fm-ctl" placeholder="请输入" type="text">
+                  <select class="fm-select">
+                    <option>岁</option>
+                    <option>月</option>
+                    <option>天</option>
+                  </select>
+                </div>
+              </td>
+              <th></th>
+              <td></td>
+            </tr>
+            <tr>
+              <th class="required">联系电话</th>
+              <td><div style="width:200px"><input class="fm-ctl" value="13160318590" type="text"></div></td>
+              <th class="required">民族</th>
+              <td>
+                <div style="width:200px">
+                  <select class="fm-select">
+                    <option>汉族</option>
+                    <option>回族</option>
+                    <option>其他</option>
+                  </select>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th>工作单位</th>
+              <td><div style="width:200px"><input class="fm-ctl" placeholder="请输入" type="text"></div></td>
+              <th class="required">病人属于</th>
+              <td>
+                <div style="width:200px">
+                  <select class="fm-select">
+                    <option>本县区</option>
+                    <option>本市其他县区</option>
+                    <option>其他省</option>
+                  </select>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">患者职业</th>
+              <td>
+                <div style="width:200px">
+                  <select class="fm-select">
+                    <option>工人</option>
+                    <option>农民</option>
+                    <option>其他</option>
+                  </select>
+                </div>
+              </td>
+              <th></th>
+              <td></td>
+            </tr>
+            <tr>
+              <th class="required">现地址</th>
+              <td colspan="3">
+                <div class="addr-cascade">
+                  <select class="fm-select"><option>江苏省 / 扬州市 / 江都区</option></select>
+                  <input class="fm-ctl" value="西苑小区" type="text" style="width:200px">
+                </div>
+              </td>
+            </tr>
+            <tr class="sec-row"><th colspan="4">疾病信息</th></tr>
+            <tr>
+              <th>传染病类型</th>
+              <td colspan="3">
+                <div class="radio-group">
+                  <label class="radio-item"><input type="radio" name="edit-type"> 甲类传染病</label>
+                  <label class="radio-item"><input type="radio" name="edit-type" checked> 乙类传染病</label>
+                  <label class="radio-item"><input type="radio" name="edit-type"> 丙类传染病</label>
+                  <label class="radio-item"><input type="radio" name="edit-type"> 其他传染病</label>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th>其他法定管理以及重点监测传染病</th>
+              <td colspan="3"><div style="width:200px"><input class="fm-ctl" placeholder="请输入" type="text"></div></td>
+            </tr>
+            <tr>
+              <th class="required">密切接触者有无相同症状</th>
+              <td colspan="3">
+                <div class="radio-group">
+                  <label class="radio-item"><input type="radio" name="edit-contact" checked> 无</label>
+                  <label class="radio-item"><input type="radio" name="edit-contact"> 有</label>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">病例分类</th>
+              <td colspan="3">
+                <div class="radio-group">
+                  <label class="radio-item"><input type="radio" name="edit-cat" checked> 疑似病例</label>
+                  <label class="radio-item"><input type="radio" name="edit-cat"> 临床诊断病例</label>
+                  <label class="radio-item"><input type="radio" name="edit-cat"> 实验室诊断病例</label>
+                  <label class="radio-item"><input type="radio" name="edit-cat"> 病原携带者</label>
+                  <label class="radio-item"><input type="radio" name="edit-cat"> 阳性检测</label>
+                  <label class="radio-item"><input type="radio" name="edit-cat"> 急性</label>
+                  <label class="radio-item"><input type="radio" name="edit-cat"> 慢性(乙型肝炎,丙型肝炎,血吸虫病填写)</label>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">发病日期</th>
+              <td><div style="width:200px"><input class="fm-date" value="2025-06-04" type="text"></div></td>
+              <th class="required">诊断日期</th>
+              <td><div style="width:200px"><input class="fm-date" value="2025-06-04" type="text"></div></td>
+            </tr>
+            <tr>
+              <th>死亡日期</th>
+              <td><div style="width:200px"><input class="fm-date" placeholder="选择日期" type="text"></div></td>
+              <th>订正病名</th>
+              <td><div style="width:200px"><input class="fm-ctl" placeholder="请输入" type="text"></div></td>
+            </tr>
+            <tr class="sec-row"><th colspan="4">报告信息</th></tr>
+            <tr>
+              <th class="required">报告单位</th>
+              <td>
+                <div style="width:260px">
+                  <select class="fm-select">
+                    <option>扬州市江都区小纪中心卫生院</option>
+                    <option>扬州市江都区滨江人民医院</option>
+                  </select>
+                </div>
+              </td>
+              <th class="required">报告单位联系电话</th>
+              <td><div style="width:200px"><input class="fm-ctl" placeholder="请输入" type="text"></div></td>
+            </tr>
+            <tr>
+              <th class="required">填卡医生</th>
+              <td>
+                <div style="width:200px">
+                  <select class="fm-select">
+                    <option>候海健</option>
+                    <option>薛婷婷</option>
+                  </select>
+                </div>
+              </td>
+              <th class="required">填卡日期</th>
+              <td><div style="width:200px"><input class="fm-date" value="2025-06-04" type="text"></div></td>
+            </tr>
+            <tr class="textarea-row">
+              <th>备注</th>
+              <td colspan="3">
+                <div class="textarea-wrap">
+                  <textarea class="fm-textarea" placeholder="请输入" maxlength="500"></textarea>
+                  <span class="textarea-cnt">0/500</span>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 弹窗：删除确认 -->
+  <div class="modal-overlay" id="modal-delete">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>提示</h3>
+        <div class="modal-close" onclick="closeModal('modal-delete')">×</div>
+      </div>
+      <div class="confirm-body">
+        <div class="confirm-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="confirm-text">确认删除此条记录？</div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-default" onclick="closeModal('modal-delete')">取消</button>
+        <button class="btn btn-primary" onclick="toast('已删除','success');closeModal('modal-delete')">确定</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="框架.js" data-page="infectious-disease-report" data-embed="auto"></script>
+<script>
+  function showView(name) {
+    document.querySelectorAll('.view').forEach(function (v) { v.classList.remove('active'); });
+    var target = document.getElementById('view-' + name);
+    if (target) target.classList.add('active');
+  }
+  document.querySelectorAll('.fm-textarea').forEach(function (ta) {
+    ta.addEventListener('input', function () {
+      var wrap = ta.closest('.textarea-wrap');
+      var cnt = wrap.querySelector('.textarea-cnt');
+      if (cnt) {
+        var max = ta.getAttribute('maxlength') || 500;
+        cnt.textContent = ta.value.length + '/' + max;
+      }
+    });
+  });
+  function openModal(id) {
+    var m = document.getElementById(id);
+    if (m) m.classList.add('show');
+  }
+  function closeModal(id) {
+    var m = document.getElementById(id);
+    if (m) m.classList.remove('show');
+  }
+  document.querySelectorAll('.modal-overlay').forEach(function (overlay) {
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) overlay.classList.remove('show');
+    });
+  });
+</script>
+</body>
+</html>

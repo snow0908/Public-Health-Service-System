@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>html,body{margin:0;padding:0}iframe{display:block;border:none}</style>
+</head>
+<body>
+<iframe id="f" style="width:1620px;height:1600px"></iframe>
+<div id="diag" style="position:fixed;top:2px;left:2px;background:#fff;border:1px solid #999;font:12px monospace;padding:4px;z-index:9999">pending</div>
+<script>
+var f = document.getElementById('f');
+f.setAttribute('src', '../01-%E5%85%AC%E5%85%B1%E5%8D%AB%E7%94%9F%E6%9C%8D%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%BA%A7%E5%93%81%E6%96%87%E6%A1%A3/V1.0/02.%E9%9C%80%E6%B1%82%E8%AE%BE%E8%AE%A1/%E5%8E%9F%E5%9E%8B%E8%AE%BE%E8%AE%A1/%E6%A1%A3%E6%A1%88%E7%BB%B4%E6%8A%A4.html?view=tb&name=%E5%90%B4%E6%98%8A&archNo=A2026001');
+f.onload = function () {
+  var w = f.contentWindow, d = w.document;
+  var log = [];
+  try {
+    d.getElementById('tb1Plan').value = '2HRZE/4HRE';
+    d.getElementById('tb1Doctor').value = '吕督';
+    d.getElementById('tb1Next').value = '2026-09-27';
+    w.saveTbFirst();
+    var nav = d.getElementById('navTbFollowup');
+    log.push('reveal-stillHidden=' + nav.classList.contains('nav-followup-hidden'));
+    log.push('label=[' + nav.textContent.trim() + ']');
+    w.switchView('tbFollowup');
+    log.push('navActive=' + nav.classList.contains('active'));
+    document.getElementById('diag').textContent = log.join(' | ');
+  } catch (e) {
+    document.getElementById('diag').textContent = 'ERR: ' + e.message;
+  }
+};
+</script>
+</body>
+</html>

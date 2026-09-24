@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>计划提醒 - 随访不佳提醒</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0;border:none;border-top:none}
+
+  /* 状态 TAB 标签栏 */
+  .status-tabs{display:flex;align-items:center;gap:2px;height:44px;padding:0 16px;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .status-tab{display:flex;align-items:center;gap:6px;padding:0 16px;height:42px;font-size:14px;color:var(--text-secondary);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+  .status-tab:hover{color:var(--primary)}
+  .status-tab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:var(--font-weight-medium)}
+  .status-tab .cnt{margin-left:2px;font-size:11px;color:var(--text-tertiary)}
+  .status-tab.active .cnt{color:var(--primary)}
+
+  .filter-panel{padding:12px 16px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:12px;align-items:center}
+  .filter-item{display:flex;align-items:center;gap:8px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:160px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+  /* ===== 数据表格（与 居民档案列表.html 一致） ===== */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+
+  /* 横向滚动时前 4 列冻结（序号/管理机构/姓名/证件号） */
+  .list-tbl th:nth-child(-n+4),.list-tbl td:nth-child(-n+4){position:sticky}
+  .list-tbl td:nth-child(-n+4){z-index:2;background:var(--bg-white)}
+  .list-tbl th:nth-child(-n+4){z-index:6}
+  .list-tbl th:nth-child(1),.list-tbl td:nth-child(1){left:0}
+  .list-tbl th:nth-child(2),.list-tbl td:nth-child(2){left:44px}
+  .list-tbl th:nth-child(3),.list-tbl td:nth-child(3){left:194px}
+  .list-tbl th:nth-child(4),.list-tbl td:nth-child(4){left:270px}
+  .list-tbl th:nth-child(4),.list-tbl td:nth-child(4){box-shadow:6px 0 8px -6px rgba(0,0,0,0.2)}
+  /* 横向滚动时操作列（末列）冻结在右侧 */
+  .list-tbl th:last-child,.list-tbl td:last-child{position:sticky;right:0}
+  .list-tbl td:last-child{z-index:2;background:var(--bg-white)}
+  .list-tbl th:last-child{z-index:6}
+  .list-tbl th:last-child,.list-tbl td:last-child{box-shadow:-6px 0 8px -6px rgba(0,0,0,0.2)}
+  .list-tbl tr.empty-row td:last-child{position:static;box-shadow:none}
+  /* 操作列允许溢出 */
+  .list-tbl tbody tr:not(.empty-row) td:last-child{overflow:visible}
+  .list-tbl{width:100%;min-width:1540px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:36px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .list-tbl th.center,.list-tbl td.center{text-align:center}
+  .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  .tag{display:inline-block;padding:1px 8px;border-radius:3px;font-size:12px;line-height:18px;white-space:nowrap}
+  .tag.red{background:#FEF0F0;color:var(--danger);border:1px solid #FBC4C4}
+  .tag.orange{background:#FDF6EC;color:#E6A23C;border:1px solid #F5DAB1}
+  .tag.green{background:#F0F9EB;color:var(--success);border:1px solid #C2E7B0}
+  .tag.gray{background:#F4F4F5;color:#909399;border:1px solid #D3D4D6}
+  .tag.blue{background:var(--primary-bg);color:var(--primary);border:1px solid var(--primary-border)}
+
+  /* 操作按钮 */
+  .op-btn{display:inline-block;padding:2px 12px;font-size:12px;border-radius:var(--r-sm);cursor:pointer;border:1px solid transparent}
+  .op-btn.primary{background:var(--primary);color:#fff}
+  .op-btn.primary:hover{opacity:.9}
+  .op-btn.link{background:none;color:var(--primary);border:none;padding:2px 4px}
+  .op-btn.link:hover{text-decoration:underline}
+  .op-gap{display:inline-block;width:6px}
+  .op-wrap{display:inline-flex;align-items:center;gap:6px}
+
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:52px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 22px 0 8px;font-size:13px;color:var(--text-secondary);background:#fff;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-ellipsis{display:inline-block;padding:0 4px;line-height:26px;color:var(--text-tertiary)}
+  .pg-jump input{width:40px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 6px;font-size:13px;text-align:center;color:var(--text-primary);outline:none}
+  .pg-jump input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+
+  /* 弹窗 */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:var(--z-overlay);display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 16px}
+  .modal-overlay.show{display:flex}
+  .modal-wrap{background:#fff;border-radius:8px;width:640px;max-width:96vw;box-shadow:0 4px 24px rgba(0,0,0,.2)}
+  .modal-head{height:50px;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid #E8E8E8;font-size:16px;font-weight:var(--font-weight-medium);color:var(--text-primary)}
+  .modal-head .x{margin-left:auto;cursor:pointer;color:var(--text-tertiary);font-size:20px;font-weight:400;line-height:1}
+  .modal-body{padding:18px 20px;max-height:64vh;overflow:auto}
+  .modal-foot{padding:12px 20px;border-top:1px solid #E8E8E8;display:flex;justify-content:flex-end;gap:8px}
+  fieldset{border:1px solid var(--primary-border);border-radius:6px;padding:12px 14px;margin-bottom:14px}
+  legend{padding:0 6px;font-size:13px;color:var(--primary);font-weight:var(--font-weight-medium)}
+  .info-tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .info-tbl th{text-align:right;padding:0 12px;height:36px;background:var(--primary-header);color:var(--text-primary);font-weight:var(--font-weight-medium);border:1px solid var(--primary-border);white-space:nowrap;width:120px;vertical-align:middle}
+  .info-tbl td{padding:0 12px;height:36px;background:var(--bg-white);border:1px solid var(--primary-border);color:var(--text-secondary);vertical-align:middle}
+</style>
+</head>
+<body>
+
+<div class="main-area">
+
+  <div class="tabbar">
+    <div class="tab-item active">随访不佳提醒</div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <!-- 状态 TAB 标签栏（切换「处理情况」过滤同一张列表） -->
+      <div class="status-tabs">
+        <div class="status-tab active" data-status="待处理" onclick="switchTab(this)">待处理<span class="cnt" id="cnt-待处理">0</span></div>
+        <div class="status-tab" data-status="已转诊" onclick="switchTab(this)">已转诊<span class="cnt" id="cnt-已转诊">0</span></div>
+        <div class="status-tab" data-status="已忽略" onclick="switchTab(this)">已忽略<span class="cnt" id="cnt-已忽略">0</span></div>
+        <div class="status-tab" data-status="已指导" onclick="switchTab(this)">已指导<span class="cnt" id="cnt-已指导">0</span></div>
+      </div>
+
+      <!-- 筛选区 -->
+      <div class="filter-panel">
+        <div class="filter-row">
+          <div class="filter-item">
+            <label>随访类型：</label>
+            <select id="fService" class="fi-select">
+              <option value="">全部</option>
+              <option value="高血压随访">高血压随访</option>
+              <option value="糖尿病随访">糖尿病随访</option>
+              <option value="重精随访">重精随访</option>
+              <option value="结核随访">结核随访</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>不佳类型：</label>
+            <select id="fPoorType" class="fi-select">
+              <option value="">全部</option>
+              <option value="控制未达标">控制未达标</option>
+              <option value="未按时随访">未按时随访</option>
+              <option value="失访">失访</option>
+              <option value="指标异常">指标异常</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>随访医生：</label>
+            <select id="fDoc" class="fi-select">
+              <option value="">全部</option>
+              <option value="徐东升">徐东升</option>
+              <option value="李蕾">李蕾</option>
+              <option value="朱劲松">朱劲松</option>
+              <option value="王盛">王盛</option>
+              <option value="陆柳琳">陆柳琳</option>
+              <option value="敖鹏天">敖鹏天</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>村居/社区：</label>
+            <select id="fVillage" class="fi-select">
+              <option value="">全部</option>
+              <option value="解放路社区">解放路社区</option>
+              <option value="西河村">西河村</option>
+              <option value="殷巷村">殷巷村</option>
+              <option value="龙山村">龙山村</option>
+              <option value="舜玉社区">舜玉社区</option>
+              <option value="甸柳社区">甸柳社区</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>姓名/档案号：</label>
+            <input id="fKeyword" class="fi-ctl" placeholder="请输入姓名或档案编号">
+          </div>
+          <div class="filter-btns">
+            <button class="btn btn-default btn-sm" onclick="resetFilter()">重置</button>
+            <button class="btn btn-primary btn-sm" onclick="applyFilter()">查询</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 数据表格（单表，按状态 TAB + 筛选条件过滤） -->
+      <div class="table-wrap">
+        <table class="list-tbl">
+          <colgroup>
+            <col style="width:44px"><col style="width:150px"><col style="width:76px"><col style="width:148px"><col style="width:82px"><col style="width:110px"><col style="width:100px"><col style="width:100px"><col style="width:44px"><col style="width:44px"><col style="width:76px"><col style="width:96px"><col style="width:160px"><col style="width:90px"><col style="width:90px"><col style="width:130px">
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="center">序号</th>
+              <th>管理机构</th>
+              <th>姓名</th>
+              <th>证件号</th>
+              <th>证件类型</th>
+              <th>联系电话</th>
+              <th>随访类型</th>
+              <th>此次随访分类</th>
+              <th class="center">性别</th>
+              <th class="center">年龄</th>
+              <th>随访医生</th>
+              <th>随访日期</th>
+              <th>详细住址</th>
+              <th class="center">处理情况</th>
+              <th class="center">就诊情况</th>
+              <th class="center">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tbBody"></tbody>
+        </table>
+      </div>
+
+      <!-- 分页 -->
+      <div class="page-foot">
+        <span class="pg-total">共 <b id="pgTotal">0</b> 条</span>
+        <span class="pg-size">
+          <select onchange="toast('原型演示：每页条数固定 20 条','info')">
+            <option selected>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+        </span>
+        <span class="pg-pager" id="pgPager"></span>
+        <span class="pg-jump">前往 <input id="pgJump" value="1" onkeydown="if(event.key==='Enter'){jumpPage()}"> 页</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- 转诊处理弹窗 -->
+<div class="modal-overlay" id="refer-modal"><div class="modal-wrap">
+  <div class="modal-head">确认转诊<span class="x" onclick="closeRefer()">×</span></div>
+  <div class="modal-body">
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">请确认以下随访不佳居民转诊至上级医疗机构：</p>
+    <fieldset><legend>被转诊居民</legend>
+      <table class="info-tbl">
+        <tr><th style="width:120px">姓名</th><td id="ref-name">—</td><th style="width:120px">档案编号</th><td id="ref-archno">—</td></tr>
+        <tr><th>随访类型</th><td id="ref-service">—</td><th>不佳类型</th><td id="ref-poortype">—</td></tr>
+      </table>
+    </fieldset>
+    <fieldset><legend>转诊信息</legend>
+      <table class="info-tbl">
+        <tr><th style="width:120px">转诊机构</th><td><select class="fi-select" style="width:280px"><option>江都区人民医院</option><option>苏北人民医院</option><option>扬州市人民医院</option><option>扬州市第三人民医院</option></select></td></tr>
+        <tr><th>转诊科室</th><td><select class="fi-select" style="width:280px"><option>心血管内科</option><option>内分泌科</option><option>全科</option></select></td></tr>
+        <tr><th>转诊日期</th><td><input class="fi-ctl" value="2026-09-23"></td></tr>
+        <tr><th>转诊原因</th><td><textarea class="fi-ctl" style="height:60px;width:100%">随访不佳，指标控制未达标，建议转上级医院进一步诊治。</textarea></td></tr>
+      </table>
+    </fieldset>
+  </div>
+  <div class="modal-foot"><button class="btn btn-default" onclick="closeRefer()">取消</button><button class="btn btn-primary" onclick="closeRefer();toast('已提交转诊','success')">确认转诊</button></div>
+</div></div>
+
+<!-- 随访不佳详情 -->
+<div class="modal-overlay" id="view-modal"><div class="modal-wrap">
+  <div class="modal-head">随访不佳记录详情<span class="x" onclick="closeView()">×</span></div>
+  <div class="modal-body">
+    <fieldset><legend>居民信息</legend>
+      <table class="info-tbl">
+        <tr><th style="width:120px">姓名</th><td id="vw-name">—</td><th style="width:120px">档案编号</th><td id="vw-archno">—</td></tr>
+        <tr><th>证件号</th><td id="vw-idcard" colspan="3">—</td></tr>
+      </table>
+    </fieldset>
+    <fieldset><legend>随访不佳详情</legend>
+      <table class="info-tbl">
+        <tr><th style="width:120px">随访类型</th><td id="vw-service">—</td><th>此次随访分类</th><td id="vw-class">—</td></tr>
+        <tr><th>随访日期</th><td id="vw-date">—</td><th>随访医生</th><td id="vw-doc">—</td></tr>
+        <tr><th>不佳类型</th><td id="vw-poortype" colspan="3">—</td></tr>
+        <tr><th>当前状态</th><td id="vw-status" colspan="3"><span class="tag orange">待处理</span></td></tr>
+      </table>
+    </fieldset>
+  </div>
+  <div class="modal-foot"><button class="btn btn-primary" onclick="closeView()">关闭</button></div>
+</div></div>
+
+<script src="框架.js" data-page="follow-poor-reminder" data-embed="auto"></script>
+<script>
+  /* ================= 模拟数据（姓名/证件号/出生日期/性别/年龄与 居民档案列表.html 同一批居民对应） ================= */
+  var remindData = [
+    { org:'山东大学齐鲁医院', name:'李建国', idcard:'370102195807224612', idType:'居民身份证', phone:'13853118274', gender:'男', age:68, fuType:'高血压随访', fuClass:'二季度随访', fuDoc:'徐东升', fuDate:'2026-09-20', address:'济南市历下区文化东路44号', status:'待处理', visit:'未就诊', poorType:'控制未达标', village:'解放路社区', archNo:'370102JM26002' },
+    { org:'山东大学齐鲁医院', name:'刘德海', idcard:'37010219551130863X', idType:'居民身份证', phone:'13605401937', gender:'男', age:70, fuType:'糖尿病随访', fuClass:'三季度随访', fuDoc:'李蕾',   fuDate:'2026-09-18', address:'济南市历下区和平路36号',     status:'待处理', visit:'未就诊', poorType:'控制未达标', village:'解放路社区', archNo:'370102JM26004' },
+    { org:'山东大学齐鲁医院', name:'王秀英', idcard:'370102195403152847', idType:'居民身份证', phone:'13905312361', gender:'女', age:72, fuType:'高血压随访', fuClass:'一季度随访', fuDoc:'徐东升', fuDate:'2026-09-12', address:'济南市历下区解放路105号',   status:'待处理', visit:'未就诊', poorType:'失访',       village:'解放路社区', archNo:'370102JM26001' },
+    { org:'山东大学齐鲁医院', name:'杨春梅', idcard:'370102198109082543', idType:'居民身份证', phone:'18764165283', gender:'女', age:45, fuType:'重精随访',   fuClass:'基础随访',   fuDoc:'陆柳琳', fuDate:'2026-09-10', address:'济南市历下区山大南路27号',   status:'待处理', visit:'未就诊', poorType:'未按时随访', village:'西河村',     archNo:'370102JM26006' },
+    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'董梅香', idcard:'370102196705244824', idType:'居民身份证', phone:'15863770125', gender:'女', age:59, fuType:'糖尿病随访', fuClass:'四季度随访', fuDoc:'陆柳琳', fuDate:'2026-09-08', address:'济南市历下区甸柳新村七区3号楼', status:'待处理', visit:'已就诊', poorType:'指标异常',   village:'甸柳社区',   archNo:'370102JM26023' },
+    { org:'山东大学齐鲁医院', name:'石景山', idcard:'370102196104162619', idType:'居民身份证', phone:'13176659204', gender:'男', age:65, fuType:'高血压随访', fuClass:'四季度随访', fuDoc:'徐东升', fuDate:'2026-09-15', address:'济南市历下区窑头路15号',     status:'已转诊', visit:'已转诊', poorType:'控制未达标', village:'殷巷村',     archNo:'370102JM26020' },
+    { org:'济南市市中区舜玉路社区卫生服务中心', name:'张桂兰', idcard:'370103196005103226', idType:'居民身份证', phone:'13793126485', gender:'女', age:66, fuType:'糖尿病随访', fuClass:'二季度随访', fuDoc:'敖鹏天', fuDate:'2026-09-10', address:'济南市市中区舜玉路56号',     status:'已转诊', visit:'已住院', poorType:'控制未达标', village:'舜玉社区',   archNo:'370103JM26003' },
+    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'曹志明', idcard:'370102196801093337', idType:'居民身份证', phone:'15905317826', gender:'男', age:58, fuType:'高血压随访', fuClass:'三季度随访', fuDoc:'王盛',   fuDate:'2026-09-12', address:'济南市历下区甸柳新村一区6号楼', status:'已忽略', visit:'未就诊', poorType:'未按时随访', village:'甸柳社区',   archNo:'370102JM26018' },
+    { org:'山东大学齐鲁医院', name:'冯立军', idcard:'370102197706285516', idType:'居民身份证', phone:'13791046538', gender:'男', age:49, fuType:'结核随访',   fuClass:'首次入户随访', fuDoc:'朱劲松', fuDate:'2026-09-05', address:'济南市历城区华信路3号',      status:'已忽略', visit:'未就诊', poorType:'失访',       village:'龙山村',     archNo:'370112JM26016' },
+    { org:'济南市天桥区工人新村社区卫生服务中心', name:'潘金凤', idcard:'370102196202144226', idType:'居民身份证', phone:'15098763214', gender:'女', age:64, fuType:'高血压随访', fuClass:'二季度随访', fuDoc:'朱劲松', fuDate:'2026-09-18', address:'济南市天桥区堤口路92号',     status:'已指导', visit:'已就诊', poorType:'控制未达标', village:'西河村',     archNo:'370105JM26025' },
+    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'罗建萍', idcard:'370102196303184426', idType:'居民身份证', phone:'15806604013', gender:'女', age:63, fuType:'糖尿病随访', fuClass:'三季度随访', fuDoc:'陆柳琳', fuDate:'2026-09-16', address:'济南市历下区甸柳新村二区4号楼', status:'已指导', visit:'已就诊', poorType:'控制未达标', village:'甸柳社区',   archNo:'370102JM26031' },
+    { org:'济南市历下区千佛山社区卫生服务中心', name:'蒋春林', idcard:'370102195707065518', idType:'居民身份证', phone:'13793167482', gender:'男', age:69, fuType:'高血压随访', fuClass:'一季度随访', fuDoc:'王盛',   fuDate:'2026-09-14', address:'济南市历下区科院路19号',     status:'已指导', visit:'未就诊', poorType:'失访',       village:'殷巷村',     archNo:'370102JM26032' }
+  ];
+
+  /* ================= 工具函数 ================= */
+  function esc(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function $(id) { return document.getElementById(id); }
+
+  /* ================= 分页状态 ================= */
+  var PAGE_SIZE = 20;
+  var curPage = 1;
+  var curStatus = '待处理';   /* 当前状态 TAB */
+  var lastList = [];
+
+  var STATUS_CLS = { '待处理': 'orange', '已转诊': 'blue', '已忽略': 'gray', '已指导': 'green' };
+  var VISIT_CLS  = { '未就诊': 'red', '已就诊': 'green', '已转诊': 'blue', '已住院': 'orange' };
+  var POOR_CLS   = { '控制未达标': 'red', '失访': 'orange', '未按时随访': 'gray', '指标异常': 'red' };
+
+  /* ================= 表格渲染（按状态 TAB + 筛选条件过滤 + 分页） ================= */
+  function renderTable() {
+    var service = $('fService').value, poorType = $('fPoorType').value;
+    var doc = $('fDoc').value, village = $('fVillage').value;
+    var keyword = $('fKeyword').value.trim();
+
+    lastList = remindData.filter(function (r) {
+      if (curStatus && r.status !== curStatus) return false;
+      if (service && r.fuType !== service) return false;
+      if (poorType && r.poorType !== poorType) return false;
+      if (doc && r.fuDoc !== doc) return false;
+      if (village && r.village !== village) return false;
+      if (keyword && r.name.indexOf(keyword) === -1 && r.archNo.indexOf(keyword) === -1) return false;
+      return true;
+    });
+
+    var total = Math.max(1, Math.ceil(lastList.length / PAGE_SIZE));
+    if (curPage > total) curPage = total;
+    var start = (curPage - 1) * PAGE_SIZE;
+    var slice = lastList.slice(start, start + PAGE_SIZE);
+
+    var html = '';
+    if (slice.length === 0) {
+      html = '<tr class="empty-row"><td colspan="16"><div class="ico">📭</div>暂无符合条件的随访不佳记录</td></tr>';
+    } else {
+      slice.forEach(function (r, i) {
+        var opHtml = '<a class="op-btn link" onclick="openView(\'' + esc(r.name) + '\',\'' + esc(r.archNo) + '\')">查看</a>';
+        if (r.status === '待处理') {
+          opHtml = '<a class="op-btn link" onclick="openRefer(\'' + esc(r.name) + '\',\'' + esc(r.archNo) + '\')">转诊</a>'
+            + '<span class="op-gap"></span>' + opHtml;
+        }
+        html += '<tr>'
+          + '<td class="center">' + (start + i + 1) + '</td>'
+          + '<td title="' + esc(r.org) + '"><span class="cell">' + esc(r.org) + '</span></td>'
+          + '<td><a class="op-btn link" onclick="openView(\'' + esc(r.name) + '\',\'' + esc(r.archNo) + '\')">' + esc(r.name) + '</a></td>'
+          + '<td title="' + esc(r.idcard) + '"><span class="cell">' + esc(r.idcard) + '</span></td>'
+          + '<td>' + esc(r.idType) + '</td>'
+          + '<td title="' + esc(r.phone) + '"><span class="cell">' + esc(r.phone) + '</span></td>'
+          + '<td><span class="tag blue">' + esc(r.fuType.replace('随访', '')) + '</span>随访</td>'
+          + '<td>' + esc(r.fuClass) + '</td>'
+          + '<td class="center">' + esc(r.gender) + '</td>'
+          + '<td class="center">' + r.age + '</td>'
+          + '<td>' + esc(r.fuDoc) + '</td>'
+          + '<td>' + esc(r.fuDate) + '</td>'
+          + '<td title="' + esc(r.address) + '"><span class="cell">' + esc(r.address) + '</span></td>'
+          + '<td class="center"><span class="tag ' + STATUS_CLS[r.status] + '">' + esc(r.status) + '</span></td>'
+          + '<td class="center"><span class="tag ' + VISIT_CLS[r.visit] + '">' + esc(r.visit) + '</span></td>'
+          + '<td class="center"><div class="op-wrap">' + opHtml + '</div></td>'
+          + '</tr>';
+      });
+    }
+    $('tbBody').innerHTML = html;
+    $('pgTotal').textContent = lastList.length;
+    renderPager(total);
+    $('pgJump').value = curPage;
+  }
+
+  /* ================= 分页器 ================= */
+  function renderPager(total) {
+    var nums = [];
+    if (total <= 7) {
+      for (var i = 1; i <= total; i++) nums.push(i);
+    } else {
+      nums.push(1);
+      if (curPage > 3) nums.push('…');
+      for (var j = Math.max(2, curPage - 1); j <= Math.min(total - 1, curPage + 1); j++) nums.push(j);
+      if (curPage < total - 2) nums.push('…');
+      nums.push(total);
+    }
+    var h = '<button class="pg-btn" onclick="gotoPage(' + (curPage - 1) + ')">‹</button>';
+    nums.forEach(function (n) {
+      h += n === '…'
+        ? '<span class="pg-ellipsis">…</span>'
+        : '<button class="pg-btn' + (n === curPage ? ' active' : '') + '" onclick="gotoPage(' + n + ')">' + n + '</button>';
+    });
+    h += '<button class="pg-btn" onclick="gotoPage(' + (curPage + 1) + ')">›</button>';
+    $('pgPager').innerHTML = h;
+  }
+
+  function gotoPage(p) {
+    var total = Math.max(1, Math.ceil(lastList.length / PAGE_SIZE));
+    if (p < 1) { toast('已是第一页', 'info'); return; }
+    if (p > total) { toast('已是最后一页', 'info'); return; }
+    if (p === curPage) { toast('已在第 ' + p + ' 页', 'info'); return; }
+    curPage = p;
+    renderTable();
+  }
+
+  function jumpPage() {
+    var v = parseInt($('pgJump').value, 10);
+    if (isNaN(v)) { toast('请输入页码', 'warning'); return; }
+    gotoPage(v);
+  }
+
+  /* ================= 状态 TAB ================= */
+  function switchTab(el) {
+    document.querySelectorAll('.status-tab').forEach(function (t) { t.classList.remove('active'); });
+    el.classList.add('active');
+    curStatus = el.getAttribute('data-status');
+    curPage = 1;
+    renderTable();
+  }
+
+  /* TAB 计数（按各处理情况统计） */
+  function renderTabCnt() {
+    ['待处理', '已转诊', '已忽略', '已指导'].forEach(function (s) {
+      var cnt = remindData.filter(function (r) { return r.status === s; }).length;
+      var el = $('cnt-' + s);
+      if (el) el.textContent = cnt;
+    });
+  }
+
+  /* ================= 交互 ================= */
+  function resetFilter() {
+    ['fService', 'fPoorType', 'fDoc', 'fVillage'].forEach(function (id) { $(id).value = ''; });
+    $('fKeyword').value = '';
+    curPage = 1;
+    renderTable();
+    toast('筛选条件已重置', 'success');
+  }
+
+  function applyFilter() {
+    curPage = 1;
+    renderTable();
+    toast('查询完成，共 ' + $('pgTotal').textContent + ' 条记录', 'success');
+  }
+
+  /* 筛选控件输入即实时过滤（并回到第一页） */
+  ['fService', 'fPoorType', 'fDoc', 'fVillage'].forEach(function (id) {
+    $(id).addEventListener('change', function () { curPage = 1; renderTable(); });
+  });
+  $('fKeyword').addEventListener('input', function () { curPage = 1; renderTable(); });
+
+  /* ================= 转诊 / 详情弹窗 ================= */
+  function openRefer(name, archNo) {
+    var r = findRow(name, archNo);
+    $('ref-name').textContent = name;
+    $('ref-archno').textContent = archNo;
+    if (r) {
+      $('ref-service').textContent = r.fuType;
+      $('ref-poortype').innerHTML = '<span class="tag ' + (POOR_CLS[r.poorType] || 'gray') + '">' + esc(r.poorType) + '</span>';
+    }
+    $('refer-modal').classList.add('show');
+  }
+  function closeRefer() { $('refer-modal').classList.remove('show'); }
+
+  function openView(name, archNo) {
+    var r = findRow(name, archNo);
+    $('vw-name').textContent = name;
+    $('vw-archno').textContent = archNo;
+    if (r) {
+      $('vw-idcard').textContent = r.idcard;
+      $('vw-service').textContent = r.fuType;
+      $('vw-class').textContent = r.fuClass;
+      $('vw-date').textContent = r.fuDate;
+      $('vw-doc').textContent = r.fuDoc;
+      $('vw-poortype').innerHTML = '<span class="tag ' + (POOR_CLS[r.poorType] || 'gray') + '">' + esc(r.poorType) + '</span>';
+      $('vw-status').innerHTML = '<span class="tag ' + STATUS_CLS[r.status] + '">' + esc(r.status) + '</span>';
+    }
+    $('view-modal').classList.add('show');
+  }
+  function closeView() { $('view-modal').classList.remove('show'); }
+
+  function findRow(name, archNo) {
+    for (var i = 0; i < remindData.length; i++) {
+      if (remindData[i].name === name && remindData[i].archNo === archNo) return remindData[i];
+    }
+    return null;
+  }
+
+  document.querySelectorAll('.modal-overlay').forEach(function (o) {
+    o.addEventListener('click', function (e) { if (e.target === o) o.classList.remove('show'); });
+  });
+
+  /* 初始渲染 */
+  renderTabCnt();
+  renderTable();
+</script>
+</body>
+</html>

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>可视化表单设计引擎 · 功能需求文档</title>
+<style>
+  :root{
+    --primary:#007AFF; --primary-hover:#0062D9; --primary-active:#004C9E;
+    --primary-light:#F0F7FF; --primary-bg:#F0F7FF; --primary-header:#E0EFFF; --primary-border:#BFDEFF;
+    --c-100:#f5f5f5; --c-200:#e8e8e8; --c-300:#d9d9d9; --c-500:#8c8c8c; --c-700:#595959; --c-900:#262626;
+    --text-primary:#262626; --text-secondary:#595959; --text-tertiary:#8c8c8c; --text-link:#007AFF;
+    --success:#52C31B; --danger:#FF3B30; --warning:#FA8C16;
+    --success-bg:#f6ffed; --danger-bg:#fff2f0; --warning-bg:#fffbe6; --danger-border:#ffccc7;
+    --font:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.04),0 2px 8px rgba(0,0,0,.04);
+    --shadow-md:0 6px 16px rgba(0,0,0,.06),0 2px 6px rgba(0,0,0,.04);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:var(--font);color:var(--text-primary);background:#F0F0F0;line-height:1.7;font-size:14px;-webkit-font-smoothing:antialiased}
+  .doc{max-width:1020px;margin:0 auto;padding:0 28px 80px}
+  header.hero{background:linear-gradient(135deg,#004C9E 0%,#007AFF 70%,#4DA3FF 100%);color:#fff;border-radius:0 0 18px 18px;padding:56px 48px 44px;margin-bottom:36px;position:relative;overflow:hidden}
+  header.hero::after{content:"";position:absolute;right:-40px;top:-40px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.08)}
+  header.hero h1{font-size:30px;letter-spacing:2px;font-weight:600;margin-bottom:6px}
+  header.hero .sub{font-size:15px;opacity:.92;letter-spacing:.5px}
+  header.hero .meta{margin-top:22px;display:flex;flex-wrap:wrap;gap:10px 18px;font-size:13px;opacity:.9}
+  header.hero .meta b{font-weight:600}
+  h2{font-size:20px;font-weight:600;color:var(--primary-active);margin:46px 0 8px;padding-left:12px;border-left:4px solid var(--primary);line-height:1.4}
+  h3{font-size:16px;font-weight:600;color:var(--text-primary);margin:26px 0 8px}
+  h3 .tag{font-size:12px;font-weight:500;color:#fff;background:var(--primary);border-radius:3px;padding:1px 7px;margin-left:8px;vertical-align:2px}
+  .lead{color:var(--text-secondary);font-size:14.5px;margin-bottom:14px}
+  .card{background:#fff;border-radius:12px;box-shadow:var(--shadow-sm);padding:22px 26px;margin:18px 0}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .kpi{background:#fff;border:1px solid #EEF1F5;border-top:3px solid var(--primary);border-radius:8px;padding:16px 18px}
+  .kpi b{display:block;font-size:24px;color:var(--primary);font-weight:600}
+  .kpi span{font-size:12.5px;color:var(--text-tertiary)}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;background:#fff;border-radius:8px;overflow:hidden;box-shadow:var(--shadow-sm);margin:12px 0}
+  th,td{padding:10px 12px;border:1px solid #EEF0F3;text-align:left;vertical-align:top}
+  th{background:#F7F9FB;color:var(--text-primary);font-weight:600;white-space:nowrap}
+  td{color:var(--text-secondary)}
+  tr:hover td{background:#FAFBFF}
+  .badge{display:inline-block;padding:1px 9px;border-radius:10px;font-size:12px;line-height:1.7;white-space:nowrap}
+  .b-required{background:#fff2f0;color:#C9553C}
+  .b-plain{background:var(--primary-light);color:var(--primary)}
+  .b-core{background:var(--primary);color:#fff}
+  .b-ok{background:var(--success-bg);color:#5E9147}
+  .b-warn{background:var(--warning-bg);color:#B25E0B}
+  .num{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-weight:600;font-size:12.5px;margin-right:8px}
+  .pri-{color:#8c8c8c}.pri-h{color:#C9553C;font-weight:600}.pri-m{color:#007FFF;font-weight:600}.pri-l{color:#8c8c8c}
+  .flow{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:14px 4px}
+  .flow .step{background:#fff;border:1px solid var(--primary-border);color:var(--primary);border-radius:20px;padding:5px 16px;font-size:13px;font-weight:500;box-shadow:var(--shadow-sm)}
+  .flow .arrow{color:var(--c-500);font-weight:600}
+  .note{background:var(--info-bg,#F0F7FF);border-left:3px solid var(--primary);padding:11px 15px;border-radius:0 6px 6px 0;font-size:13.5px;color:var(--text-secondary);margin:12px 0}
+  .note.warn{background:var(--warning-bg);border-left-color:var(--warning)}
+  .note.danger{background:var(--danger-bg);border-left-color:var(--danger)}
+  ul,ol{margin:8px 0 8px 22px}
+  li{margin:5px 0;color:var(--text-secondary)}
+  li b{color:var(--text-primary)}
+  code{background:#F2F4F7;border:1px solid #E5E8EE;border-radius:4px;padding:1px 6px;font-size:12.5px;font-family:Consolas,monospace;color:#004C9E}
+  .toc{background:#fff;border:1px solid #EEF0F3;border-radius:10px;padding:18px 24px;box-shadow:var(--shadow-sm)}
+  .toc a{display:inline-block;color:var(--text-secondary);text-decoration:none;margin:3px 14px 3px 0;font-size:13.5px}
+  .toc a:hover{color:var(--primary)}
+  .toc a::before{content:"§ ";color:var(--primary)}
+  .role{display:flex;gap:10px;align-items:flex-start;border:1px solid #EEF0F3;border-radius:10px;padding:14px 16px;background:#fff}
+  .role .ic{width:34px;height:34px;border-radius:8px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+  .role b{display:block;color:var(--text-primary)}
+  .role p{font-size:12.5px;color:var(--text-tertiary);margin-top:2px}
+  .img-ph{background:linear-gradient(180deg,#F7F9FB,#EEF1F5);border:1px dashed #CBD2DB;border-radius:8px;height:110px;display:flex;align-items:center;justify-content:center;color:var(--text-tertiary);font-size:13px;margin:10px 0}
+  footer{text-align:center;color:var(--text-tertiary);font-size:12.5px;margin-top:40px;padding-top:18px;border-top:1px solid #E7E9EE}
+  @media(max-width:760px){.grid2,.grid3{grid-template-columns:1fr}.doc{padding:0 14px 60px}header.hero{padding:36px 22px}}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<header class="hero">
+  <h1>可视化表单设计引擎 · 功能需求文档</h1>
+  <div class="sub">面向公共卫生服务领域 · 业务人员无需编程即可完成表单的设计、校验与发布</div>
+  <div class="meta">
+    <span>文档版本：V1.0 草案</span>
+    <span>编制单位：公共卫生服务系统产品团队</span>
+    <span>关联原型：<b>表单设置.html</b> / 表单维护.html / 档案维护.html</span>
+  </div>
+</header>
+
+<div class="toc">
+  目录：
+  <a href="#bg">1 背景与问题</a><a href="#goal">2 目标</a><a href="#user">3 用户与角色</a>
+  <a href="#terms">4 术语</a><a href="#scope">5 范围</a><a href="#func">6 功能需求</a>
+  <a href="#data">7 数据模型</a><a href="#nfr">8 非功能需求</a><a href="#ui">9 界面规范</a>
+  <a href="#case">10 典型场景</a><a href="#accept">11 验收标准</a><a href="#mile">12 里程碑</a>
+</div>
+
+<h2 id="bg">1 项目背景与问题</h2>
+<div class="card">
+  <p class="lead">公共卫生服务系统以<strong>表单数据填报与存储</strong>为核心业务形态，覆盖居民健康档案管理、健康教育、预防接种、0-6 岁儿童健康管理、孕产妇健康管理、老年人健康管理、慢性病患者健康管理等 12 类服务项目。国家基本公共卫生服务规范已发布至第三版，各地在此基础上叠加地方性政策要求，导致表单内容频繁调整。</p>
+  <div class="note danger"><b>现状痛点：</b>传统硬编码表单开发模式下，每次政策调整都需要研发介入，开发—测试—上线周期长、成本高，且各地表单配置差异大、逻辑校验不清，易产生数据不一致问题，已成为基层公卫工作的突出痛点。</div>
+  <p>2026 年，四部门联合印发《关于做好 2026 年基本公共卫生服务工作的通知》（国卫基层发〔2026〕19 号），对服务方式、服务范围和质量要求提出新要求，进一步凸显了表单动态配置能力的必要性。</p>
+</div>
+
+<h2 id="goal">2 建设目标</h2>
+<div class="card">
+  <div class="grid3">
+    <div class="kpi"><b>0 代码</b><span>业务人员自主创建、修改、发布表单</span></div>
+    <div class="kpi"><b>小时级</b><span>政策调整后表单变更响应用时</span></div>
+    <div class="kpi"><b>100%</b><span>历史数据安全保留、新旧版本平滑过渡</span></div>
+  </div>
+  <h3>四项目标</h3>
+  <ul>
+    <li><b>G1 业务人员自主设计：</b>让公卫业务管理人员无需编程即可完成表单的创建、修改与发布，降低对研发的依赖。</li>
+    <li><b>G2 政策快速响应：</b>国家或地方政策调整时，可在小时级完成表单变更并上线。</li>
+    <li><b>G3 数据标准对齐：</b>表单字段与卫生信息数据元目录（WS 363）等国家标准对齐，保障数据互操作性。</li>
+    <li><b>G4 历史数据安全：</b>表单版本变更后，历史数据完整保留，新旧版本平滑过渡。</li>
+  </ul>
+</div>
+
+<h2 id="user">3 用户与角色</h2>
+<div class="card grid2">
+  <div class="role"><div class="ic">业</div><div><b>公卫业务管理人员（表单设计者）</b><p>各县区/机构业务骨干，具备业务与政策知识、无编程能力。主要诉求：拖拽式快速改表、引用已有范式、预览校验。</p></div></div>
+  <div class="role"><div class="ic">审</div><div><b>主管部门/审核人</b><p>审批待发布表单版本，把关数据标准符合性，决定发布/回退。</p></div></div>
+  <div class="role"><div class="ic">录</div><div><b>基层填报人员</b><p>在表单设计引擎发布后的业务页面上填报数据，是历史数据的主要生产者。</p></div></div>
+  <div class="role"><div class="ic">维</div><div><b>系统管理员</b><p>维护 WS 363 数据元目录、权限、操作日志与系统级参数。</p></div></div>
+  <div class="role"><div class="ic">研</div><div><b>研发人员</b><p>维护表单引擎本身与渲染运行时，原则上不再直接改单一业务表单。</p></div></div>
+  <div class="role"><div class="ic">数</div><div><b>数据/上报人员</b><p>导出、上报按标准对齐后的结构化数据，校验字段名与码值。</p></div></div>
+</div>
+
+<h2 id="terms">4 术语定义</h2>
+<table>
+  <tr><th style="width:150px">术语</th><th>定义</th></tr>
+  <tr><td><b>表单（Form）</b></td><td>面向某一业务场景的一组字段集合，如「个人基本信息表」，是版本管理的最小单元。</td></tr>
+  <tr><td><b>区块（Section/分组）</b></td><td>表单内的逻辑分组，对应档案维护中的 <code>fv-group</code> 与完整度统计分区，如「既往史」「个人健康标识」。</td></tr>
+  <tr><td><b>字段（Field）</b></td><td>表单中的最小数据采集单元，具备类型、是否必填、数据元标识等属性。</td></tr>
+  <tr><td><b>数据元（Data Element）</b></td><td>卫生信息数据元目录（WS 363）中定义的标准数据项，含标识符、名称、值域、数据类型等。</td></tr>
+  <tr><td><b>校验规则（Rule）</b></td><td>字段级校验（必填、格式、范围、枚举）与表达式级联动（条件显隐、值联动）的统称。</td></tr>
+  <tr><td><b>草稿 / 待审 / 已发布</b></td><td>表单版本的生命周期状态：编辑中的草稿、提交审核、审核通过并生效。</td></tr>
+  <tr><td><b>版本快照</b></td><td>表单某一次发布时保存的完整结构快照，用于回滚与历史数据映射。</td></tr>
+  <tr><td><b>值域目录</b></td><td>可复用的选项字典（如 ABO 血型、文化程度），供多个字段引用，保证码值一致。</td></tr>
+</table>
+
+<h2 id="scope">5 范围界定</h2>
+<div class="card note"><b>本引擎负责：</b>表单结构定义、字段可视化编排、校验规则配置、WS363 数据元对齐、版本管理与发布、历史数据映射。</div>
+<div class="card note warn" style="margin-top:0"><b>不在本引擎范围：</b>具体业务数据的填报执行（由发布后的业务页面承担）、业务系统底层存储、国标数据元目录维护工具本身（仅提供引用与搜索）。</div>
+
+<h2 id="func">6 功能需求</h2>
+
+<h3>FR-01 表单全生命周期管理 <span class="tag">核心 · 必做</span></h3>
+<div class="card">
+  <p>表单从创建到退役的完整管理，支持新建、复制、归档、删除（逻辑删除）。</p>
+  <table>
+    <tr><th>功能点</th><th>说明</th><th style="width:90px">优先级</th></tr>
+    <tr><td>新建表单</td><td>支持从空白开始，或从系统范式模板（个人基本信息表、随访表等）复制创建。</td><td><b class="pri-h">高</b></td></tr>
+    <tr><td>表单属性</td><td>表单名称、业务标签（所属 12 类服务项目）、图标、适用机构范围、是否启用。</td><td><b class="pri-h">高</b></td></tr>
+    <tr><td>复制表单</td><td>以某一版本为基底克隆出草稿，便于地方性微调，减少重复搭建。</td><td><b class="pri-m">中</b></td></tr>
+    <tr><td>归档/删除</td><td>停用并归档历史表单；有历史数据的表单不允许物理删除。</td><td><b class="pri-m">中</b></td></tr>
+    <tr><td>菜单联动</td><td>发布后自动注册/更新系统菜单项（参考框架.js 的 <code>form-maintenance</code> 模式）。</td><td><b class="pri-h">高</b></td></tr>
+  </table>
+</div>
+
+<h3>FR-02 可视化设计画布（所见即所得） <span class="tag">核心 · 必做</span></h3>
+<div class="card">
+  <p>画布即渲染器：以贴近`档案维护.html`的 <code>fv-card / fv-group / hp-row / hp-cell</code> 范式实时渲染表单结构，业务人员所见即所得。</p>
+  <table>
+    <tr><th>功能点</th><th>说明</th><th style="width:90px">优先级</th></tr>
+    <tr><td>三栏布局</td><td>左侧组件/结构面板 + 中间设计画布 + 右侧属性面板（见 §9 界面规范）。</td><td><b class="pri-h">高</b></td></tr>
+    <tr><td>字段拖拽</td><td>从字段组件库拖拽字段入画布分区；画布内可拖动排序、跨分区移动。</td><td><b class="pri-h">高</b></td></tr>
+    <tr><td>区块管理</td><td>新增/重命名/删除分区；分区可配置是否计入完整度（对应表单维护.html 的完整度分区）。</td><td><b class="pri-h">高</b></td></tr>
+    <tr><td>排列模式</td><td>单列整行（hp-row）、双列（hp-row two-col / hp-cell）、多行联动字段（.ig 内联组）、明细表格（mini-tbl）。</td><td><b class="pri-h">高</b></td></tr>
+    <tr><td>选中与属性</td><td>点击画布字段高亮并联动右侧属性面板；删除按钮、复制字段。</td><td><b class="pri-h">高</b></td></tr>
+    <tr><td>实时预览</td><td>「预览」以只读态打开渲染效果，并模拟基层填报视图。</td><td><b class="pri-m">中</b></td></tr>
+  </table>
+</div>
+
+<h3>FR-03 字段组件库与字段属性 <span class="tag">核心 · 必做</span></h3>
+<div class="card">
+  <p>提供与档案维护表单一致的控件类型，作为可复用组件。</p>
+  <table>
+    <tr><th>组件类型</th><th>渲染控件</th><th>典型字段</th></tr>
+    <tr><td>单行文本</td><td><code>.ctl input</code></td><td>姓名、证件号、联系电话</td></tr>
+    <tr><td>多行文本</td><td>textarea</td><td>地址、备注</td></tr>
+    <tr><td>数字</td><td>number/带单位</td><td>身高、体重、BMI、血糖值</td></tr>
+    <tr><td>日期 / 时间</td><td><code>type="date/time"</code></td><td>出生日期、随访日期、签发时间</td></tr>
+    <tr><td>下拉单选</td><td><code>select.ctl</code></td><td>证件类型、民族、管理单位</td></tr>
+    <tr><td>单选组</td><td><code>.opts .rad</code></td><td>性别、体重情况、婚姻状况</td></tr>
+    <tr><td>复选组</td><td><code>.opts .chk</code></td><td>慢病/重点疾病、医疗费用支付方式</td></tr>
+    <tr><td>级联地址</td><td><code>.cascader</code>（多列面板）</td><td>籍贯、出生地、常住地址</td></tr>
+    <tr><td>联选择（其他+输入）</td><td>复选组 + 条件输入框</td><td>药物过敏史「其他」、家族史</td></tr>
+    <tr><td>明细表格</td><td><code>.mini-tbl</code>，行增删</td><td>个人健康凭证、手术/外伤明细</td></tr>
+    <tr><td>分区/分割</td><td><code>fv-group</code> 标题</td><td>按区块组织字段</td></tr>
+  </table>
+  <p style="margin-top:12px"><b>字段通用属性：</b>字段标识(key)、字段名称(label)、控件类型、是否必填（红色星号 <code>i</code>）、默认值、占位提示、数据长度/精度、所属分区、排序。</p>
+</div>
+
+<h3>FR-04 校验规则配置 <span class="tag">核心 · 必做</span></h3>
+<div class="card">
+  <table>
+    <tr><th>规则类别</th><th>说明</th><th style="width:90px">优先级</th></tr>
+    <tr><td>必填校验</td><td>标识必填并联动表单维护.html 的「必填项」配置，参与完整度计算。</td><td><b class="pri-h">高</b></td></tr>
+    <tr><td>格式校验</td><td>身份证 18 位、手机号 11 位、日期范围、数字区间、正则表达式。</td><td><b class="pri-h">高</b></td></tr>
+    <tr><td>枚举/值域校验</td><td>校验值属于值域目录或字段选项范围。</td><td><b class="pri-h">高</b></td></tr>
+    <tr><td>条件显隐</td><td>字段/明细仅在特定条件下展开，如「手术史=有」才显露明细表、暴露史独立成行。</td><td><b class="pri-h">高</b></td></tr>
+    <tr><td>统计联动</td><td>如糖尿病分级自动判定（空腹血糖 7.0/10.0 档），手动仍可覆盖。</td><td><b class="pri-m">中</b></td></tr>
+    <tr><td>完整度分区</td><td>配置参与完整度计算的区块与权重（参与区块权重和=100%）。</td><td><b class="pri-h">高</b></td></tr>
+  </table>
+</div>
+
+<h3>FR-05 数据标准对齐（WS 363） <span class="tag">核心 · 必做</span></h3>
+<div class="card">
+  <table>
+    <tr><th>功能点</th><th>说明</th><th style="width:90px">优先级</th></tr>
+    <tr><td>数据元搜索引用</td><td>字段编辑时可检索 WS363 数据元目录，绑定标准标识符、名称、值域。</td><td><b class="pri-h">高</b></td></tr>
+    <tr><td>对齐度评估</td><td>统计已绑定/未绑定标准数据元的字段比例，生成可导出的符合性清单。</td><td><b class="pri-h">高</b></td></tr>
+    <tr><td>值域码表复用</td><td>字段选项从值域目录引用，发布时输出标准码值，保障跨系统互操作。</td><td><b class="pri-m">中</b></td></tr>
+    <tr><td>上报映射</td><td>发布时生成字段 key ↔ 数据元标识 的映射元数据，供上报接口消费。</td><td><b class="pri-m">中</b></td></tr>
+  </table>
+  <div class="note">持久原则：引擎产物是<strong>表单结构与标准的映射元数据</strong>，而非可执行的硬代码，从而让「改表=改配置」成为现实。</div>
+</div>
+
+<h3>FR-06 版本管理与发布 <span class="tag">核心 · 必做</span></h3>
+<div class="card">
+  <div class="flow">
+    <span class="step">编辑草稿</span><span class="arrow">→</span>
+    <span class="step">保存草稿</span><span class="arrow">→</span>
+    <span class="step">提交审核</span><span class="arrow">→</span>
+    <span class="step">审核通过</span><span class="arrow">→</span>
+    <span class="step">发布新版本</span><span class="arrow">→</span>
+    <span class="step">历史数据平滑迁移</span>
+  </div>
+  <table>
+    <tr><th>功能点</th><th>说明</th><th style="width:90px">优先级</th></tr>
+    <tr><td>草稿保存</td><td>未发布前可随时保存，不对外可见。</td><td><b class="pri-h">高</b></td></tr>
+    <tr><td>版本号</td><td>每次发布递增主版本（如 V1 → V2）；重大变更可提升主版本。</td><td><b class="pri-h">高</b></td></tr>
+    <tr><td>版本快照</td><td>发布即固化完整结构快照，记录发布人、发布时间、变更说明。</td><td><b class="pri-h">高</b></td></tr>
+    <tr><td>回滚</td><td>可回退到历史任一已发布版本，回滚同样产生新版本并保留审计。</td><td><b class="pri-m">中</b></td></tr>
+    <tr><td>发布检查</td><td>发布前强制校验：字段标识唯一、必填完整性、数据元可解析、版本差异预览。</td><td><b class="pri-h">高</b></td></tr>
+  </table>
+</div>
+
+<h3>FR-07 历史数据安全与平滑过渡 <span class="tag">重点保障</span></h3>
+<div class="card">
+  <table>
+    <tr><th>能力</th><th>说明</th><th style="width:90px">优先级</th></tr>
+    <tr><td>历史版本数据只读保留</td><td>已归档版本的历史填报数据完整保留、可查询，绝不被新字段删除连带清除。</td><td><b class="pri-h">高</b></td></tr>
+    <tr><td>字段新增</td><td>新增字段对历史数据无影响，历史记录该字段标记为空/默认值。</td><td><b class="pri-h">高</b></td></tr>
+    <tr><td>字段删除/停用</td><td>仅停用展示，历史存储字段保留；数据迁移按字段 key 映射。</td><td><b class="pri-h">高</b></td></tr>
+    <tr><td>语义映射</td><td>字段更名/数据类型兼容变更时提供映射配置，发布后历史值自动过渡。</td><td><b class="pri-m">中</b></td></tr>
+    <tr><td>审计日志</td><td>记录每次设计变更，谁在什么时间改了哪些字段，全链路可追溯。</td><td><b class="pri-m">中</b></td></tr>
+  </table>
+</div>
+
+<h2 id="data">7 数据模型</h2>
+<div class="card">
+  <p>表单设计引擎的运行时数据模型，与现有 `表单维护` 的 <code>sections/complete</code> 模型兼容扩展。</p>
+  <h3>Form（表单元数据）</h3>
+  <table>
+    <tr><th>属性</th><th>说明</th></tr>
+    <tr><td>key / name / module</td><td>表单标识、名称、所属业务模块（如 个人档案）</td></tr>
+    <tr><td>enabled</td><td>是否启用（联动 表单维护）</td></tr>
+    <tr><td>currentVersion</td><td>当前生效版本号</td></tr>
+    <tr><td>sections[]</td><td>区块数组，每个区块含 g 分组名、字段、是否参与完整度、权重</td></tr>
+  </table>
+  <h3>Field（字段）</h3>
+  <table>
+    <tr><th>属性</th><th>说明</th></tr>
+    <tr><td>k / n / r</td><td>字段标识 / 名称 / 是否必填（沿用 表单维护 data-set）</td></tr>
+    <tr><td>type</td><td>控件类型（text/number/date/select/radio/checkbox/cascader/table/group…）</td></tr>
+    <tr><td>layout</td><td>排列方式（single / two-col / ig / table）</td></tr>
+    <tr><td>deId / deName / deDomain</td><td>绑定 WS363 数据元标识 / 名称 / 值域码表</td></tr>
+    <tr><td>options[]</td><td>单选/复选/下拉的选项</td></tr>
+    <tr><td>rules[]</td><td>必填、格式、区间、正则、条件显隐等校验规则</td></tr>
+    <tr><td>defaultValue / placeholder / maxLength</td><td>外观与默认行为属性</td></tr>
+  </table>
+  <h3>Version（版本）</h3>
+  <table>
+    <tr><th>属性</th><th>说明</th></tr>
+    <tr><td>id / versionNo</td><td>版本号（V1、V2…）</td></tr>
+    <tr><td>snapshot</td><td>发布时的完整结构快照（sections+fields+rules）</td></tr>
+    <tr><td>publisher / publishTime / changeLog</td><td>发布人、时间、变更说明</td></tr>
+    <tr><td>status</td><td>草稿 / 待审 / 已发布 / 已回退</td></tr>
+    <tr><td>fieldMapping</td><td>新旧版本字段映射表，支撑历史数据平滑过渡</td></tr>
+  </table>
+</div>
+
+<h2 id="nfr">8 非功能需求</h2>
+<div class="card grid2">
+  <div class="kpi"><b>秒级</b><span>画布保存与预览响应</span></div>
+  <div class="kpi"><b>兼容性</b><span>沿用框架.css 设计令牌，支持 iframe 嵌入</span></div>
+  <div class="kpi"><b>权限</b><span>仅有权机构可发布，操作留痕</span></div>
+</div>
+<table>
+  <tr><th>类别</th><th>要求</th></tr>
+  <tr><td>易用性</td><td>全程可视化、零代码；关键操作有提示与撤销/重做；字段标示必填红色星号。</td></tr>
+  <tr><td>兼容性</td><td>复用 <code>框架.css</code> 设计令牌与 <code>框架.js</code> 导航/嵌入模式；发布职责内正常渲染既有 h 表单。</td></tr>
+  <tr><td>安全与权限</td><td>设计/审核/发布职责分离；发布等敏感操作需授权与审计；操作日志可查。</td></tr>
+  <tr><td>数据一致性</td><td>字段标识唯一性校验；数据元绑定校验；回滚不破坏历史数据。</td></tr>
+  <tr><td>性能</td><td>含数百字段的表单渲染无明显卡顿，画布操作即时反馈。</td></tr>
+  <tr><td>可扩展</td><td>字段组件、校验规则、数据元目录均插件式可扩展，支持地方性扩展字段。</td></tr>
+</table>
+
+<h2 id="ui">9 界面规范（对应 表单设置.html）</h2>
+<div class="card">
+  <p>表单设置页为三栏式表单设计工作台，整体沿用系统「克制的企业级配置台」风格与 <code>框架.css</code> 设计令牌。</p>
+  <table>
+    <tr><th style="width:120px">区域</th><th>内容</th></tr>
+    <tr><td>顶部页头</td><td>表单名称、版本号、状态徽标（草稿/待审/已发布）、操作按钮：保存草稿 / 预览 / 提交审核 / 发布。</td></tr>
+    <tr><td>左栏 A · 结构/组件</td><td>表单分区树（Tab）与字段组件库：单行文本、数字、日期、下拉、单选、复选、级联地址、明细表格、分区。</td></tr>
+    <tr><td>中栏 B · 设计画布</td><td>以 fv-card/fv-group/hp-row/hp-cell 范式实时渲染；字段可点击选中、拖拽排序；点击字段联动右侧属性面板。</td></tr>
+    <tr><td>右栏 C · 属性面板</td><td>展示选中字段属性：名称、标识、控件类型、是否必填、默认值、校验规则、WS363 数据元绑定；区块属性：分区名、完整度参与与权重。</td></tr>
+    <tr><td>页签区</td><td>字段设计 / 校验规则 / 数据标准 / 版本历史 四个页签。</td></tr>
+  </table>
+  <div class="img-ph">原型示意：见《表单设置.html》设计画布</div>
+</div>
+
+<h2 id="case">10 典型应用场景</h2>
+<div class="card">
+  <h3>场景 A：政策调整快速上线（小时级）</h3>
+  <p>国卫基层发〔2026〕19 号落地，要求随访表新增「服务方式」字段并在特定区间增加必填校验。业务人员在 <b>表单设置</b> 打开随访表 → 拖入单选框「服务方式」（选项：门诊/家庭/远程）→ 绑定 WS363 数据元 → 标记必填 → 保存草稿 → 预览核对 → 提交审核 → 发布 V2。整个过程无需研发介入。</p>
+  <h3>场景 B：地方性表单差异化</h3>
+  <p>某地需在儿童管理表单上叠加地方筛查字段。业务人员「复制表单」为地方版本，在画布新增字段，发布为地方独立版本，不影响国家级统一版本。</p>
+  <h3>场景 C：历史数据平滑过渡</h3>
+  <p>字段「过敏史」由自由文本改为枚举选择。发布时配置字段映射（自由文本 → 枚举「其他」兜底），历史数据完整保留并与新版结构共存。</p>
+</div>
+
+<h2 id="accept">11 验收标准</h2>
+<div class="card">
+  <table>
+    <tr><th style="width:34px">#</th><th>验收项</th></tr>
+    <tr><td><b class="num">1</b></td><td>业务人员（无代码能力）能在 10 分钟内完成一个含分组、必填、校验的字段表单搭建并预览。</td></tr>
+    <tr><td><b class="num">2</b></td><td>表单发布后，档案维护对应页面按新结构正常渲染与填报，未发布前不影响现行版本。</td></tr>
+    <tr><td><b class="num">3</b></td><td>字段绑定 WS363 数据元后可输出符合性清单与上报映射。</td></tr>
+    <tr><td><b class="num">4</b></td><td>版本变更后历史数据完整可查，新版本字段变更不影响历史记录。</td></tr>
+    <tr><td><b class="num">5</b></td><td>发布全流程留痕，支持回滚与审计。</td></tr>
+    <tr><td><b class="num">6</b></td><td>与表单维护.html 的必填项 / 完整度配置双向联动。</td></tr>
+  </table>
+</div>
+
+<h2 id="mile">12 里程碑建议</h2>
+<div class="card">
+  <table>
+    <tr><th>阶段</th><th>内容</th><th style="width:100px">交付</th></tr>
+    <tr><td>M1 基座</td><td>表单/区块/字段/版本数据模型、画布渲染、字段组件库拖拽</td><td>表单设置.html 原型</td></tr>
+    <tr><td>M2 校验与标准</td><td>校验规则配置、WS363 数据元引用与对齐度评估</td><td>可配置校验</td></tr>
+    <tr><td>M3 版本与发布</td><td>草稿/审核/发布、回滚、字段映射、历史数据过渡</td><td>走向生产</td></tr>
+    <tr><td>M4 集成</td><td>与表单维护/档案维护联动、菜单注册、上报映射</td><td>全链路闭环</td></tr>
+  </table>
+</div>
+
+<footer>可视化表单设计引擎 · 功能需求文档 · V1.0 草案 · 2026</footer>
+</div>
+</body>
+</html>

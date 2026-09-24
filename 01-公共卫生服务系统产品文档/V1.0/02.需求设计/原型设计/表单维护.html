@@ -1,0 +1,2041 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>表单维护 - 系统设置</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  /* ===== 表单维护页面特有样式（设计变量与公共样式见 框架.css） =====
+     风格：克制的企业级配置台。单一主色 + 中性灰承载界面，颜色只用于把关强调。 */
+
+  /* 嵌入模式（被 index.html 壳子内嵌时生效） */
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  /* 布局：content 改为 flex，配置工作台撑满高度并内部滚动 */
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-width:0;display:flex;flex-direction:column;min-height:0}
+
+  /* ===== 页头 ===== */
+  .page-head .right{font-size:13px;color:var(--text-tertiary);gap:6px}
+  .page-head .right svg{width:14px;height:14px;stroke:var(--text-tertiary);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+  /* ===== 配置工作台：左侧表单树 + 右侧配置区 ===== */
+  .config-wrap{flex:1;min-height:0;display:flex}
+
+  /* ---- 左侧：业务表单列表 ---- */
+  .tree-pane{width:248px;flex-shrink:0;border-right:1px solid #ECEFF2;display:flex;flex-direction:column;background:var(--bg-white)}
+  .tree-search{padding:10px 12px;border-bottom:1px solid #ECEFF2;flex-shrink:0}
+  .tree-scroll{flex:1;overflow:auto;min-height:0;padding:6px 0 16px}
+  .tree-group-label{display:flex;align-items:center;padding:12px 12px 4px;font-size:12px;font-weight:500;color:var(--text-tertiary)}
+  .tree-item{position:relative;display:flex;align-items:center;gap:6px;height:34px;padding:0 12px;margin:1px 8px;cursor:pointer;border-radius:6px;transition:background var(--transition-fast)}
+  .tree-item:hover{background:#F5F6F8}
+  .tree-item.active{background:#EEF3FA}
+  .tree-item .tree-name{flex:1;min-width:0;font-size:13px;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tree-item.active .tree-name{color:var(--primary);font-weight:500}
+  .tree-item .tree-meta{font-size:11px;color:var(--text-tertiary);white-space:nowrap;flex-shrink:0}
+  .tree-item .tree-off{font-size:11px;color:#A94A35;flex-shrink:0}
+  .tree-item.off{opacity:.5}
+  .tree-empty{padding:40px 20px;text-align:center;color:var(--text-tertiary);font-size:13px}
+
+  /* ---- 右侧：配置区 ---- */
+  .cfg-pane{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg-white)}
+  .cfg-head{display:flex;align-items:center;gap:10px;padding:7px 16px;border-bottom:1px solid #ECEFF2;flex-shrink:0;flex-wrap:wrap}
+  .cfg-head .cfg-title h2{font-size:15px;font-weight:500;color:var(--text-primary);line-height:1.3}
+  .cfg-head .cfg-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
+  .cfg-head .cfg-enable{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary)}
+
+  /* ---- 指标条（单行紧凑） ---- */
+  .stat-strip{display:flex;align-items:center;gap:18px;padding:6px 16px;border-bottom:1px solid #ECEFF2;flex-shrink:0;flex-wrap:wrap}
+  .ss-item{display:flex;align-items:baseline;gap:6px;white-space:nowrap}
+  .ss-item label{font-size:12px;color:var(--text-tertiary)}
+  .ss-item b{font-size:14px;font-weight:500;color:var(--text-primary)}
+  .ss-item .ss-dim{font-size:12px;color:var(--text-tertiary)}
+  .ss-sep{width:1px;height:13px;background:#E5E7EB;flex-shrink:0}
+  .ss-val{display:flex;align-items:center;gap:8px;margin-left:auto;white-space:nowrap}
+  .ss-val b{font-size:14px;font-weight:500;color:var(--text-primary)}
+  .ss-val b.ok{color:#6C9F4F}
+  .ss-val b.no{color:#C0553C}
+  .ss-chip{height:18px;line-height:18px;padding:0 8px;border-radius:9px;font-size:12px}
+  .ss-chip.ok{background:#EDF6E6;color:#5E9147}
+  .ss-chip.no{background:#F8EDEB;color:#A94A35}
+
+  /* ---- 页签 ---- */
+  .cfg-tabs{display:flex;align-items:center;gap:2px;padding:0 16px;border-bottom:1px solid #ECEFF2;flex-shrink:0}
+  .cfg-tab{position:relative;height:42px;padding:0 16px;font-size:14px;color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;gap:6px}
+  .cfg-tab:hover{color:var(--primary)}
+  .cfg-tab.active{color:var(--primary);font-weight:500}
+  .cfg-tab.active::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--primary);border-radius:2px}
+  .cfg-tab .tab-cnt{min-width:18px;height:16px;line-height:16px;padding:0 5px;border-radius:8px;font-size:11px;color:var(--text-tertiary);background:#F2F3F5}
+  .cfg-tab .tab-cnt.warn{color:#C0553C;background:#F8EDEB}
+  .cfg-tab .tab-cnt.ok{color:#6C9F4F;background:#EDF6E6}
+
+  /* ---- 必填项配置（扁平无框：留白分层，不加线框） ---- */
+  .tab-body{flex:1;min-height:0;overflow:auto;padding:14px 16px 24px}
+  .req-group{margin-bottom:2px}
+  .req-group .req-ghead{display:flex;align-items:center;gap:6px;padding:12px 4px 6px;cursor:pointer;user-select:none;font-size:13px;font-weight:500;color:var(--text-primary)}
+  .req-group .grp-arrow{width:14px;height:14px;flex-shrink:0;transition:transform var(--transition-fast)}
+  .req-group .grp-arrow polyline{stroke:#9AA0A8;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .req-group.collapsed .grp-arrow{transform:rotate(-90deg)}
+  .req-group.collapsed .req-group-body{display:none}
+  .req-group .req-ghead .gcnt{font-size:12px;font-weight:400;color:var(--text-tertiary)}
+  .req-group .req-ghead .grp-btns{margin-left:auto;display:flex;gap:2px}
+  .grp-all{height:22px;line-height:22px;padding:0 6px;border-radius:4px;font-size:12px;color:var(--text-tertiary);cursor:pointer;transition:color var(--transition-fast)}
+  .grp-all:hover{color:var(--primary)}
+  .grp-all.clean:hover{color:var(--text-secondary)}
+  .req-group-body{padding:0 0 4px}
+  .req-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:2px}
+  .req-cell{display:flex;align-items:center;gap:6px;height:32px;padding:0 8px;border-radius:6px;transition:background var(--transition-fast);justify-content:flex-end}
+  .req-cell:hover{background:#F4F6F8}
+  .req-cell .req-label{min-width:0;font-size:13px;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;text-align:right}
+  .req-cell.req-true .req-label{font-weight:500}
+  .req-cell label.req-switch{flex:none}
+  .req-flag{font-size:13px;line-height:1;color:transparent;margin-right:1px}
+  .req-cell.req-true .req-flag{color:#C0553C}
+  .req-switch{flex-shrink:0}
+
+  /* ---- 随访分类配置 ---- */
+  .fctx-head{display:flex;align-items:center;justify-content:space-between;padding:2px 2px 16px;flex-wrap:wrap;gap:8px}
+  .fctx-hint{font-size:12px;color:var(--text-tertiary);max-width:560px;line-height:1.6}
+  .fctx-tools{display:flex;align-items:center;gap:8px}
+  .fctx-sum{display:flex;align-items:center;gap:8px}
+  .fctx-sum .lbl{font-size:13px;color:var(--text-secondary)}
+  .fctx-sum .sum-val{font-size:16px;font-weight:500;color:var(--primary)}
+  .fctx-cards{display:flex;flex-direction:column;gap:14px}
+  .fctx-card{border:1px solid #E8EBEF;border-radius:var(--r-md);overflow:hidden;background:#fff}
+  .fctx-card-head{display:flex;align-items:center;gap:8px;padding:10px 16px;background:#F8F9FA;border-bottom:1px solid #ECEEF1}
+  .fctx-age-ico{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:12px;font-weight:600}
+  .fctx-age-ico.eld{background:#E6A23C}
+  .fctx-age-ico.nyg{background:var(--primary)}
+  .fctx-age-name{font-size:13px;font-weight:500;color:var(--text-primary)}
+  .fctx-age-rule{font-size:12px;color:var(--text-tertiary);background:#F0F2F5;border:1px solid #E8EBEF;border-radius:4px;padding:1px 8px}
+  .fctx-card-body{display:grid;grid-template-columns:1fr 1fr}
+  .fctx-col{padding:14px 16px}
+  .fctx-col+.fctx-col{border-left:1px solid #ECEEF1}
+  .fctx-col-head{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:12px;white-space:nowrap}
+  .fctx-col-head .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .fctx-col.ok-col .fctx-col-head .dot{background:#6C9F4F}
+  .fctx-col.no-col .fctx-col-head .dot{background:#C0553C}
+  .fctx-cond{display:flex;align-items:center;gap:8px;min-height:34px;padding:3px 0}
+  .fctx-cond+.fctx-cond{border-top:1px dashed #F0F2F5}
+  .fctx-metric{width:56px;font-size:13px;color:var(--text-secondary);flex-shrink:0}
+  .fctx-op{width:64px;height:30px;border:1px solid #E1E4E8;border-radius:var(--r-sm);padding:0 4px 0 8px;font-size:13px;color:var(--text-primary);background:#fff;outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none}
+  .fctx-val{width:88px;height:30px;border:1px solid #E1E4E8;border-radius:var(--r-sm);padding:0 8px;font-size:13px;color:var(--text-primary);text-align:right;background:#fff;outline:none;transition:all var(--transition-fast)}
+  .fctx-op:focus,.fctx-val:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.12)}
+  .fctx-unit{color:var(--text-tertiary);font-size:12px;white-space:nowrap}
+  .fctx-none{padding:30px 20px;text-align:center;color:var(--text-tertiary);font-size:13px;border:1px dashed #D8DCE3;border-radius:var(--r-md)}
+
+  /* 随访不佳设置 */
+  .pf-card{border:1px solid #E8EBEF;border-radius:var(--r-md);background:#fff;overflow:hidden}
+  .pf-card-head{padding:10px 16px;background:#F8F9FA;border-bottom:1px solid #ECEEF1;font-size:13px;font-weight:500;color:var(--text-primary)}
+  .pf-row{display:flex;align-items:center;gap:12px;min-height:52px;padding:12px 16px}
+  .pf-row+.pf-row{border-top:1px dashed #F0F2F5}
+  .pf-label{width:110px;font-size:13px;color:var(--text-secondary);flex-shrink:0;text-align:right}
+  .pf-label i{color:var(--danger);font-style:normal;margin-right:2px}
+  .pf-select{width:220px;height:30px;border:1px solid #E1E4E8;border-radius:var(--r-sm);padding:0 8px;font-size:13px;color:var(--text-primary);background:#fff;outline:none;transition:all var(--transition-fast)}
+  .pf-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.12)}
+  .pf-checks{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+  .pf-check{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-primary);cursor:pointer}
+  .pf-check input{width:14px;height:14px;accent-color:var(--primary);cursor:pointer}
+  .pf-tip{margin-top:12px;padding:8px 14px;font-size:12px;line-height:1.6;color:#8A6D1A;background:#FDF6E3;border:1px solid #F3E3B6;border-radius:var(--r-sm)}
+
+  /* ---- 完整度配置 ---- */
+  .comp-toolbar{display:flex;align-items:center;gap:12px;padding:0 2px 14px;flex-wrap:wrap}
+  .comp-toolbar .hint{font-size:12px;color:var(--text-tertiary)}
+  .comp-sum{display:flex;align-items:center;gap:8px}
+  .comp-sum .lbl{font-size:13px;color:var(--text-secondary)}
+  .comp-sum .sum-val{font-size:18px;font-weight:500;color:var(--text-primary)}
+  .comp-sum .sum-val.ok{color:#6C9F4F}
+  .comp-sum .sum-val.no{color:#C0553C}
+  .comp-tools{margin-left:auto;display:flex;align-items:center;gap:8px}
+  .btn.btn-xs{height:26px;line-height:24px;padding:0 10px;font-size:12px;border-radius:4px}
+  .btn.btn-default.btn-xs:hover{color:var(--primary);border-color:var(--primary-border);background:#F2F6FB}
+
+  /* 完整度字段级：必填锁定徽章 */
+  .comp-lock{display:inline-block;margin-left:4px;padding:0 5px;font-size:11px;line-height:16px;border-radius:3px;color:#B26B00;background:#FFF3DC;border:1px solid #F3DFB8;vertical-align:1px;white-space:nowrap}
+  .switch input:disabled + .track{opacity:.45;cursor:not-allowed}
+  .switch input:disabled ~ span{cursor:not-allowed}
+
+  /* 底部保存条 */
+  .cfg-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:12px 16px;border-top:1px solid #ECEFF2;flex-shrink:0;background:var(--bg-white)}
+  .cfg-foot .foot-msg{margin-right:auto;font-size:12px;color:var(--text-tertiary)}
+</style>
+</head>
+<body>
+
+<!-- ===== 主内容区（顶部导航栏与左侧菜单栏由 框架.js 注入） ===== -->
+<div class="main-area">
+
+  <!-- 页面标签条（嵌入模式下隐藏，由壳子统一管理） -->
+  <div class="tabbar">
+    <div class="tab-item dashboard active" onclick="toast('当前已在「表单维护」页','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><line x1="8" y1="16" x2="16" y2="16"/><line x1="8" y1="12" x2="12" y2="12"/></svg>
+      表单维护
+    </div>
+    <div class="tab-item" onclick="toast('「必填与完整度规则」功能建设中','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+      配置日志
+      <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <!-- 页头 -->
+      <div class="page-head">
+        <h1>表单维护</h1>
+      </div>
+
+      <!-- 配置工作台 -->
+      <div class="config-wrap">
+
+        <!-- 左侧：业务表单列表 -->
+        <div class="tree-pane">
+          <div class="tree-search">
+            <div class="search-input">
+              <input id="formSearch" type="text" placeholder="搜索表单名称 / 模块" oninput="renderTree(this.value)">
+            </div>
+          </div>
+          <div class="tree-scroll" id="treeScroll"></div>
+        </div>
+
+        <!-- 右侧：配置区 -->
+        <div class="cfg-pane" id="cfgPane"></div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 统一框架：顶部导航栏 + 左侧菜单栏（菜单配置见 框架.js） =====
+     data-page    = 左侧菜单高亮项（独立打开时生效）
+     data-embed   = "auto" 被壳子 iframe 内嵌时自动进入嵌入模式 -->
+<script src="框架.js" data-page="form-maintenance" data-embed="auto"></script>
+
+<script>
+  /* ================= 业务表单配置模型（模拟数据，无后端） =================
+   * 目录结构 1:1 对齐「档案维护」左侧档案目录：module = 档案维护分组名（空串 = 无分组的单列项），
+   * 同一 module 内的表单顺序 = 档案维护目录中的顺序；字段（sections）从档案维护对应表单抽取。
+   * props: key | name | module | enabled | sections[{g, fields[{k,n,r}]}] | fctx? | pf?
+   *  - sections  = 表单字段分组，r = 该字段是否必填（抽取自档案维护端带 <i>*</i> 的标签）
+   *  - fctx / pf = 随访分类 / 随访不佳设置（仅随访类表单具备，可选项）
+   *  - 完整度按字段级统计：完整率 = 已填报字段 ÷ 完整度参与字段 × 100% */
+
+  var DM = [
+    {
+      key: 'cover', name: '封面', module: '个人档案',
+      enabled: true,
+      sections: [
+        { g: '档案标识', fields: [
+          { k: 'f1', n: '档案编号', r: true }, { k: 'f2', n: '档案条码' }
+        ] },
+        { g: '居民基本信息', fields: [
+          { k: 'f3', n: '姓名', r: true }, { k: 'f4', n: '性别', r: true }, { k: 'f5', n: '出生日期', r: true }, { k: 'f6', n: '身份证号', r: true },
+          { k: 'f7', n: '民族' }, { k: 'f8', n: '联系电话', r: true }, { k: 'f9', n: '户籍地址' }, { k: 'f10', n: '现住址', r: true }
+        ] },
+        { g: '建档信息', fields: [
+          { k: 'f11', n: '建档机构', r: true }, { k: 'f12', n: '建档日期', r: true }, { k: 'f13', n: '责任医生', r: true }, { k: 'f14', n: '建档医生' }
+        ] }
+      ]
+    },
+    {
+      key: 'basic', name: '个人基本信息', module: '个人档案',
+      enabled: true,
+      sections: [
+        { g: '个人健康标识', fields: [
+          { k: 'f1', n: '人群标识' }, { k: 'f2', n: '慢病/重点疾病' }, { k: 'f3', n: '法定传染病' }, { k: 'f4', n: '体重情况' },
+          { k: 'f5', n: 'ABO血型' }, { k: 'f6', n: 'RH血型' }, { k: 'f7', n: '姓名', r: true }, { k: 'f8', n: '性别', r: true },
+          { k: 'f9', n: '证件类型', r: true }, { k: 'f10', n: '证件号', r: true }, { k: 'f11', n: '出生日期', r: true }, { k: 'f12', n: '工作单位/学校' },
+          { k: 'f13', n: '籍贯', r: true }, { k: 'f14', n: '出生地', r: true }, { k: 'f15', n: '民族' }, { k: 'f16', n: '管理机构', r: true },
+          { k: 'f17', n: '档案管理机构电话' }, { k: 'f18', n: '家庭医生是否签约' }, { k: 'f19', n: '家庭医生姓名' }, { k: 'f20', n: '家庭医生电话' },
+          { k: 'f21', n: '本人电话', r: true }
+        ] },
+        { g: '紧急联系人', fields: [
+          { k: 'f22', n: '联系人1', r: true }, { k: 'f23', n: '联系人2' }, { k: 'f24', n: '常住类型' }, { k: 'f25', n: '常住地址' },
+          { k: 'f26', n: '文化程度', r: true }, { k: 'f27', n: '职业', r: true }, { k: 'f28', n: '婚姻状况', r: true }, { k: 'f29', n: '医疗费用支付方式', r: true },
+          { k: 'f30', n: '个人健康凭证' }, { k: 'f31', n: '药物过敏史' }, { k: 'f32', n: '暴露史', r: true }
+        ] },
+        { g: '既往史', fields: [
+          { k: 'f33', n: '疾病', r: true }, { k: 'f34', n: '手术' }, { k: 'f35', n: '外伤' }, { k: 'f36', n: '输血' },
+          { k: 'f37', n: '预防接种史' }
+        ] },
+        { g: '家族史', fields: [
+          { k: 'f38', n: '遗传病史' }, { k: 'f39', n: '残疾情况', r: true }, { k: 'f40', n: '村委会', r: true }, { k: 'f41', n: '人群性质' },
+          { k: 'f42', n: '责任医生', r: true }, { k: 'f43', n: '建档单位' }, { k: 'f44', n: '建档人', r: true }, { k: 'f45', n: '建档日期', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'healthCard', name: '健康信息卡', module: '个人档案',
+      enabled: true,
+      sections: [
+        { g: '正面', fields: [
+          { k: 'f1', n: '姓名' }, { k: 'f2', n: '性别' }, { k: 'f3', n: '出生日期' }, { k: 'f4', n: '健康档案编号' },
+          { k: 'f5', n: 'ABO血型' }, { k: 'f6', n: 'RH血型' }, { k: 'f7', n: '慢性患病情况' }, { k: 'f8', n: '过敏史' }
+        ] },
+        { g: '反面', fields: [
+          { k: 'f9', n: '家庭住址' }, { k: 'f10', n: '家庭电话', r: true }, { k: 'f11', n: '紧急情况联系人' }, { k: 'f12', n: '联系人电话' },
+          { k: 'f13', n: '建档机构名称' }, { k: 'f14', n: '责任医生或护士' }, { k: 'f15', n: '其他说明' }
+        ] }
+      ]
+    },
+    {
+      key: 'death', name: '死亡登记表', module: '个人档案',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '地址' }, { k: 'f2', n: '姓名' }, { k: 'f3', n: '性别' }, { k: 'f4', n: '国家或地区' },
+          { k: 'f5', n: '民族' }, { k: 'f6', n: '有效证件' }, { k: 'f7', n: '证件号码' }, { k: 'f8', n: '年龄' },
+          { k: 'f9', n: '出生日期' }, { k: 'f10', n: '文化程度' }, { k: 'f11', n: '婚姻状况' }, { k: 'f12', n: '个人身份', r: true },
+          { k: 'f13', n: '死亡日期', r: true }, { k: 'f14', n: '死亡地点' }, { k: 'f15', n: '死亡时是否处于妊娠期或妊娠终止后42天内' }, { k: 'f16', n: '生前工作单位' },
+          { k: 'f17', n: '户籍地址' }, { k: 'f18', n: '常住地址' }, { k: 'f19', n: '可联系的家属姓名' }, { k: 'f20', n: '联系电话' },
+          { k: 'f21', n: '家属住址或工作单位' }, { k: 'f22', n: '生前主要疾病最高诊断单位' }, { k: 'f23', n: '生前主要疾病最高诊断依据' }, { k: 'f24', n: '根本死亡原因' },
+          { k: 'f25', n: 'ICD编码' }, { k: 'f26', n: '医师' }, { k: 'f27', n: '医疗卫生机构' }, { k: 'f28', n: '填表日期' }
+        ] },
+        { g: '死亡调查记录', fields: [
+          { k: 'f29', n: '死者生前病史及症状特征', r: true }, { k: 'f30', n: '被调查者姓名', r: true }, { k: 'f31', n: '联系电话', r: true }, { k: 'f32', n: '与死者关系', r: true },
+          { k: 'f33', n: '联系地址或工作单位', r: true }, { k: 'f34', n: '死因推断', r: true }, { k: 'f35', n: '被调查者签名', r: true }, { k: 'f36', n: '调查时间' }
+        ] }
+      ]
+    },
+    {
+      key: 'serviceAct', name: '卫生健康服务活动', module: '个人档案',
+      enabled: true,
+      sections: [
+        { g: '卫生健康服务活动记录', fields: [
+          { k: 'f1', n: '服务时间' }, { k: 'f2', n: '服务机构' }, { k: 'f3', n: '服务类型' }, { k: 'f4', n: '主要健康和疾病问题' },
+          { k: 'f5', n: '医学报告' }, { k: 'f6', n: '服务费用' }
+        ] }
+      ]
+    },
+    {
+      key: 'childArchive', name: '儿童档案', module: '儿童管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '姓名', r: true }, { k: 'f2', n: '性别', r: true }, { k: 'f3', n: '民族', r: true }, { k: 'f4', n: '身份证号码', r: true },
+          { k: 'f5', n: '出生日期', r: true }, { k: 'f6', n: '门牌号', r: true }, { k: 'f7', n: '户籍地址', r: true }, { k: 'f8', n: '现住址', r: true },
+          { k: 'f9', n: '身份证号' }
+        ] },
+        { g: '母亲', fields: [
+          { k: 'f10', n: '姓名' }, { k: 'f11', n: '身份证号' }, { k: 'f12', n: '出生日期' }, { k: 'f13', n: '联系电话' },
+          { k: 'f14', n: '职业' }
+        ] },
+        { g: '父亲', fields: [
+          { k: 'f15', n: '姓名' }, { k: 'f16', n: '身份证号' }, { k: 'f17', n: '出生日期' }, { k: 'f18', n: '联系电话' },
+          { k: 'f19', n: '职业' }
+        ] },
+        { g: '监护人', fields: [
+          { k: 'f20', n: '姓名', r: true }, { k: 'f21', n: '身份证号', r: true }, { k: 'f22', n: '出生日期', r: true }, { k: 'f23', n: '联系电话', r: true },
+          { k: 'f24', n: '职业', r: true }, { k: 'f25', n: '胎数' }, { k: 'f26', n: '出生孕周' }, { k: 'f27', n: '第几胎' },
+          { k: 'f28', n: '第几产' }, { k: 'f29', n: '出生情况' }, { k: 'f30', n: '产前高危' }, { k: 'f31', n: '产中高危' },
+          { k: 'f32', n: '产后高危' }, { k: 'f33', n: '是否畸形' }, { k: 'f34', n: '体重' }, { k: 'f35', n: '身长' },
+          { k: 'f36', n: '头围' }, { k: 'f37', n: '胸围' }, { k: 'f38', n: '管理机构' }, { k: 'f39', n: '责任医生' },
+          { k: 'f40', n: '建档机构' }, { k: 'f41', n: '建档日期' }
+        ] }
+      ]
+    },
+    {
+      key: 'childBirthCert', name: '出生医学证明', module: '儿童管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '新生儿姓名' }, { k: 'f2', n: '性别', r: true }, { k: 'f3', n: '出生日期', r: true }, { k: 'f4', n: '出生孕周', r: true },
+          { k: 'f5', n: '出生体重' }, { k: 'f6', n: '出生身长', r: true }, { k: 'f7', n: '出生地点', r: true }, { k: 'f8', n: '医疗机构名称' },
+          { k: 'f9', n: '母亲姓名', r: true }, { k: 'f10', n: '证件类型', r: true }, { k: 'f11', n: '证件号', r: true }, { k: 'f12', n: '年龄', r: true },
+          { k: 'f13', n: '国籍' }, { k: 'f14', n: '民族', r: true }, { k: 'f15', n: '住址', r: true }, { k: 'f16', n: '父亲姓名' },
+          { k: 'f17', n: '编号', r: true }, { k: 'f18', n: '签发机构', r: true }, { k: 'f19', n: '签发日期', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'childNewbornVisit', name: '新生儿访视', module: '儿童管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '姓名' }, { k: 'f2', n: '出生日期' }, { k: 'f3', n: '性别' }, { k: 'f4', n: '家庭住址' },
+          { k: 'f5', n: '证件号' }, { k: 'f6', n: '门牌号' }, { k: 'f7', n: '父亲姓名' }, { k: 'f8', n: '父亲职业' },
+          { k: 'f9', n: '父亲联系电话' }, { k: 'f10', n: '父亲出生日期' }, { k: 'f11', n: '母亲姓名' }, { k: 'f12', n: '母亲职业' },
+          { k: 'f13', n: '母亲联系电话' }, { k: 'f14', n: '母亲出生日期' }, { k: 'f15', n: '出生孕周', r: true }, { k: 'f16', n: '助产机构名称' },
+          { k: 'f17', n: '母亲妊娠期患病情况' }, { k: 'f18', n: '出生情况' }, { k: 'f19', n: '新生儿窒息' }, { k: 'f20', n: '畸形', r: true },
+          { k: 'f21', n: '新生儿听力筛查' }, { k: 'f22', n: '新生儿疾病筛查' }, { k: 'f23', n: '新生儿出生体重' }, { k: 'f24', n: '目前体重' },
+          { k: 'f25', n: '出生身长' }, { k: 'f26', n: '喂养方式' }, { k: 'f27', n: '吃奶量' }, { k: 'f28', n: '吃奶次数' },
+          { k: 'f29', n: '呕吐' }, { k: 'f30', n: '大便' }, { k: 'f31', n: '大便次数' }, { k: 'f32', n: '体温' },
+          { k: 'f33', n: '心率' }, { k: 'f34', n: '呼吸频率' }, { k: 'f35', n: '面色' }, { k: 'f36', n: '黄疸部位' },
+          { k: 'f37', n: '前囟' }
+        ] },
+        { g: '体格检查', fields: [
+          { k: 'f38', n: '眼睛' }, { k: 'f39', n: '四肢活动度' }, { k: 'f40', n: '耳外观' }, { k: 'f41', n: '颈部包块' },
+          { k: 'f42', n: '鼻' }, { k: 'f43', n: '口腔' }, { k: 'f44', n: '肛门' }, { k: 'f45', n: '心肺听诊' },
+          { k: 'f46', n: '胸部' }, { k: 'f47', n: '腹部触诊' }, { k: 'f48', n: '脊柱' }, { k: 'f49', n: '外生殖器' },
+          { k: 'f50', n: '皮肤' }, { k: 'f51', n: '脐带' }, { k: 'f52', n: '转诊建议' }, { k: 'f53', n: '指导' },
+          { k: 'f54', n: '本次随访日期', r: true }, { k: 'f55', n: '下次随访地点' }, { k: 'f56', n: '下次随访日期', r: true }, { k: 'f57', n: '随访医生签名', r: true },
+          { k: 'f58', n: '随访状态', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'childHealth18m', name: '1-8月龄儿童健康检查', module: '儿童管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '月龄', r: true }, { k: 'f2', n: '随访日期', r: true }, { k: 'f3', n: '体重', r: true }, { k: 'f4', n: '身长', r: true },
+          { k: 'f5', n: '头围', r: true }
+        ] },
+        { g: '体格检查', fields: [
+          { k: 'f6', n: '面色' }, { k: 'f7', n: '皮肤', r: true }, { k: 'f8', n: '前囟' }, { k: 'f9', n: '颈部包块' },
+          { k: 'f10', n: '眼睛' }, { k: 'f11', n: '耳外观' }, { k: 'f12', n: '听力' }, { k: 'f13', n: '口腔' },
+          { k: 'f14', n: '胸部' }, { k: 'f15', n: '腹部' }, { k: 'f16', n: '四肢' }, { k: 'f17', n: '肛门/外生殖器' },
+          { k: 'f18', n: '血红蛋白值', r: true }, { k: 'f19', n: '脐部' }, { k: 'f20', n: '可疑佝偻病症状', r: true }, { k: 'f21', n: '可疑佝偻病体征', r: true },
+          { k: 'f22', n: '户外活动' }, { k: 'f23', n: '服用维生素D' }, { k: 'f24', n: '发育评估' }, { k: 'f25', n: '两次随访间患病情况' },
+          { k: 'f26', n: '转诊建议' }, { k: 'f27', n: '指导', r: true }, { k: 'f28', n: '下次随访日期', r: true }, { k: 'f29', n: '随访医生签名', r: true },
+          { k: 'f30', n: '随访状态', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'childHealth1230m', name: '12-30月龄儿童健康检查', module: '儿童管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '月龄', r: true }, { k: 'f2', n: '随访日期', r: true }, { k: 'f3', n: '体重', r: true }, { k: 'f4', n: '身长', r: true }
+        ] },
+        { g: '体格检查', fields: [
+          { k: 'f5', n: '面色', r: true }, { k: 'f6', n: '皮肤', r: true }, { k: 'f7', n: '前囟' }, { k: 'f8', n: '耳外观', r: true },
+          { k: 'f9', n: '眼睛' }, { k: 'f10', n: '听力' }, { k: 'f11', n: '口腔' }, { k: 'f12', n: '胸部' },
+          { k: 'f13', n: '腹部', r: true }, { k: 'f14', n: '四肢' }, { k: 'f15', n: '步态' }, { k: 'f16', n: '血红蛋白值' },
+          { k: 'f17', n: '可疑佝偻病体征' }, { k: 'f18', n: '户外活动', r: true }, { k: 'f19', n: '服用维生素D', r: true }, { k: 'f20', n: '发育评估' },
+          { k: 'f21', n: '两次随访间患病情况', r: true }, { k: 'f22', n: '转诊建议', r: true }, { k: 'f23', n: '指导', r: true }, { k: 'f24', n: '中医健康管理服务', r: true },
+          { k: 'f25', n: '下次随访日期', r: true }, { k: 'f26', n: '随访医生签名', r: true }, { k: 'f27', n: '随访状态', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'childHealth36y', name: '3岁-6岁儿童健康检查', module: '儿童管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '年龄', r: true }, { k: 'f2', n: '随访日期', r: true }, { k: 'f3', n: '体重', r: true }, { k: 'f4', n: '身长', r: true },
+          { k: 'f5', n: '体重/身高', r: true }, { k: 'f6', n: '体格发育评价', r: true }
+        ] },
+        { g: '体格检查', fields: [
+          { k: 'f7', n: '视力', r: true }, { k: 'f8', n: '听力' }, { k: 'f9', n: '口腔', r: true }, { k: 'f10', n: '胸部' },
+          { k: 'f11', n: '腹部' }, { k: 'f12', n: '血红蛋白值' }, { k: 'f13', n: '其他' }, { k: 'f14', n: '发育评估' },
+          { k: 'f15', n: '两次随访间患病情况', r: true }, { k: 'f16', n: '转诊建议' }, { k: 'f17', n: '指导', r: true }, { k: 'f18', n: '下次随访日期', r: true },
+          { k: 'f19', n: '随访医生签名', r: true }, { k: 'f20', n: '随访状态', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'childVisionNb', name: '新生儿视力筛查', module: '儿童管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '性别' }, { k: 'f2', n: '出生日期' }, { k: 'f3', n: '家长姓名' }, { k: 'f4', n: '联系电话' },
+          { k: 'f5', n: '住院号' }, { k: 'f6', n: '门诊号' }, { k: 'f7', n: '床号' }, { k: 'f8', n: '分娩方式', r: true },
+          { k: 'f9', n: '新生儿情况', r: true }, { k: 'f10', n: '筛查方法', r: true }, { k: 'f11', n: '左眼筛查', r: true }, { k: 'f12', n: '右眼筛查', r: true },
+          { k: 'f13', n: '筛查意见', r: true }, { k: 'f14', n: '检查机构', r: true }, { k: 'f15', n: '检查医生', r: true }, { k: 'f16', n: '检查日期', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'childHearingNb', name: '新生儿听力筛查', module: '儿童管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '性别' }, { k: 'f2', n: '出生日期' }, { k: 'f3', n: '家长姓名' }, { k: 'f4', n: '联系电话' },
+          { k: 'f5', n: '住院号' }, { k: 'f6', n: '门诊号' }, { k: 'f7', n: '床号' }, { k: 'f8', n: '分娩方式', r: true },
+          { k: 'f9', n: '新生儿情况', r: true }, { k: 'f10', n: '筛查方法', r: true }, { k: 'f11', n: '左耳筛查' }, { k: 'f12', n: '右耳筛查' },
+          { k: 'f13', n: '筛查意见', r: true }, { k: 'f14', n: '检查机构', r: true }, { k: 'f15', n: '检查医生', r: true }, { k: 'f16', n: '检查日期', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'childDiseaseNb', name: '新生儿疾病筛查', module: '儿童管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '性别' }, { k: 'f2', n: '出生日期' }, { k: 'f3', n: '母亲姓名' }, { k: 'f4', n: '证件号' },
+          { k: 'f5', n: '联系电话' }, { k: 'f6', n: '现住址' }, { k: 'f7', n: '筛查编号', r: true }, { k: 'f8', n: '筛查日期', r: true },
+          { k: 'f9', n: '筛查项目', r: true }, { k: 'f10', n: '筛查方法', r: true }, { k: 'f11', n: '筛查结果', r: true }, { k: 'f12', n: '筛查单位' },
+          { k: 'f13', n: '检查医生' }
+        ] }
+      ]
+    },
+    {
+      key: 'childEyeNb', name: '新生儿期眼保健及视力检查', module: '儿童管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '项目' }, { k: 'f2', n: '总体情况', r: true }, { k: 'f3', n: '眼睑' }, { k: 'f4', n: '左眼' },
+          { k: 'f5', n: '右眼' }, { k: 'f6', n: '结膜' }, { k: 'f7', n: '眼球' }, { k: 'f8', n: '角膜' },
+          { k: 'f9', n: '瞳孔' }, { k: 'f10', n: '巩膜' }, { k: 'f11', n: '出生时早产或低出生体重' }, { k: 'f12', n: '曾入住新生儿重症监护病房' },
+          { k: 'f13', n: '遗传性眼病家族史' }, { k: 'f14', n: '母亲孕期宫内感染' }, { k: 'f15', n: '颅面及颜面畸形' }, { k: 'f16', n: '眼部情况' },
+          { k: 'f17', n: '普遍性指导' }, { k: 'f18', n: '针对性指导' }, { k: 'f19', n: '转诊建议' }, { k: 'f20', n: '检查机构', r: true },
+          { k: 'f21', n: '检查医生', r: true }, { k: 'f22', n: '检查日期', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'childEyeInfant', name: '婴儿期眼保健及视力检查', module: '儿童管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '月龄' }, { k: 'f2', n: '总体情况', r: true }, { k: 'f3', n: '结膜' }, { k: 'f4', n: '左眼' },
+          { k: 'f5', n: '右眼' }, { k: 'f6', n: '眼球' }, { k: 'f7', n: '角膜' }, { k: 'f8', n: '瞳孔' },
+          { k: 'f9', n: '视物行为观察' }, { k: 'f10', n: '普遍性指导' }, { k: 'f11', n: '针对性指导' }, { k: 'f12', n: '转诊建议' },
+          { k: 'f13', n: '检查机构', r: true }, { k: 'f14', n: '检查医生', r: true }, { k: 'f15', n: '检查日期', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'childEyeToddler', name: '幼儿期眼保健及视力检查', module: '儿童管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '月龄' }, { k: 'f2', n: '总体情况', r: true }, { k: 'f3', n: '眼睑' }, { k: 'f4', n: '左眼' },
+          { k: 'f5', n: '右眼' }, { k: 'f6', n: '结膜' }, { k: 'f7', n: '眼球' }, { k: 'f8', n: '角膜' },
+          { k: 'f9', n: '瞳孔' }, { k: 'f10', n: '视物行为观察' }, { k: 'f11', n: '普遍性指导' }, { k: 'f12', n: '针对性指导' },
+          { k: 'f13', n: '转诊建议' }, { k: 'f14', n: '检查机构', r: true }, { k: 'f15', n: '检查医生', r: true }, { k: 'f16', n: '检查日期', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'childEyePre', name: '学龄前期眼保健及视力检查', module: '儿童管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '年龄' }, { k: 'f2', n: '总体情况', r: true }, { k: 'f3', n: '眼睑' }, { k: 'f4', n: '左眼' },
+          { k: 'f5', n: '右眼' }, { k: 'f6', n: '结膜' }, { k: 'f7', n: '眼球' }, { k: 'f8', n: '角膜' },
+          { k: 'f9', n: '瞳孔' }, { k: 'f10', n: '视力检查' }, { k: 'f11', n: '屈光筛查' }, { k: 'f12', n: '眼位检查' },
+          { k: 'f13', n: '视物行为观察' }, { k: 'f14', n: '普遍性指导' }, { k: 'f15', n: '针对性指导' }, { k: 'f16', n: '转诊建议' },
+          { k: 'f17', n: '检查机构', r: true }, { k: 'f18', n: '检查医生', r: true }, { k: 'f19', n: '检查日期', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'childGrowth', name: '生长发育监测图', module: '儿童管理',
+      enabled: true,
+      sections: [
+        { g: '监测信息', fields: [
+          { k: 'f1', n: '监测月龄', r: true }, { k: 'f2', n: '体重(kg)', r: true }, { k: 'f3', n: '身高(cm)', r: true }, { k: 'f4', n: '头围(cm)' },
+          { k: 'f5', n: '测量日期', r: true }, { k: 'f6', n: '测量机构' }, { k: 'f7', n: '测量医生' }
+        ] }
+      ]
+    },
+    {
+      key: 'childDeath5', name: '5岁以下死亡登记', module: '儿童管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '姓名' }, { k: 'f2', n: '性别' }, { k: 'f3', n: '出生日期' }, { k: 'f4', n: '出生地点' },
+          { k: 'f5', n: '出生孕周/出生孕天' }, { k: 'f6', n: '出生体重' }, { k: 'f7', n: '体重来源方式', r: true }, { k: 'f8', n: '母亲姓名' },
+          { k: 'f9', n: '父亲姓名' }, { k: 'f10', n: '监护人姓名' }, { k: 'f11', n: '现地址' }, { k: 'f12', n: '户籍类型', r: true },
+          { k: 'f13', n: '死亡日期', r: true }, { k: 'f14', n: '死亡分类' }, { k: 'f15', n: '死亡年龄', r: true }, { k: 'f16', n: '死亡推断', r: true },
+          { k: 'f17', n: '诊断级别' }, { k: 'f18', n: '诊断依据', r: true }, { k: 'f19', n: '死亡地点' }, { k: 'f20', n: '死前治疗' },
+          { k: 'f21', n: '未治疗或未就医主要原因' }, { k: 'f22', n: '填卡单位', r: true }, { k: 'f23', n: '填卡日期' }
+        ] }
+      ]
+    },
+    {
+      key: 'vaccineInfo', name: '预防接种基本信息', module: '预防接种',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '性别' }, { k: 'f2', n: '出生日期' }, { k: 'f3', n: '出生医院' }, { k: 'f4', n: '出生体重' },
+          { k: 'f5', n: '监护人姓名', r: true }, { k: 'f6', n: '与儿童关系', r: true }, { k: 'f7', n: '联系电话', r: true }, { k: 'f8', n: '家庭现地址' },
+          { k: 'f9', n: '户籍地址' }, { k: 'f10', n: '疫苗异常反应史' }, { k: 'f11', n: '接种禁忌' }, { k: 'f12', n: '传染病史' },
+          { k: 'f13', n: '备注' }, { k: 'f14', n: '建卡日期', r: true }, { k: 'f15', n: '建卡单位联系电话', r: true }, { k: 'f16', n: '建卡机构', r: true },
+          { k: 'f17', n: '建卡人', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'vaccineRecord', name: '预防接种记录', module: '预防接种',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '疫苗名称', r: true }, { k: 'f2', n: '针次', r: true }, { k: 'f3', n: '接种日期', r: true }, { k: 'f4', n: '接种部位' },
+          { k: 'f5', n: '接种单位', r: true }, { k: 'f6', n: '接种医生', r: true }, { k: 'f7', n: '生产厂家' }, { k: 'f8', n: '疫苗批号' },
+          { k: 'f9', n: '有效期' }, { k: 'f10', n: '免疫类型' }, { k: 'f11', n: '备注' }, { k: 'f12', n: '登记机构', r: true },
+          { k: 'f13', n: '登记人', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'womanArchive', name: '妇女档案', module: '妇女管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '姓名', r: true }, { k: 'f2', n: '性别', r: true }, { k: 'f3', n: '证件类型', r: true }, { k: 'f4', n: '证件号码', r: true },
+          { k: 'f5', n: '出生日期', r: true }, { k: 'f6', n: '民族' }, { k: 'f7', n: '联系电话', r: true }, { k: 'f8', n: '婚姻状况' },
+          { k: 'f9', n: '学历' }, { k: 'f10', n: '职业' }, { k: 'f11', n: '户籍地址', r: true }, { k: 'f12', n: '门牌号', r: true },
+          { k: 'f13', n: '现住址', r: true }, { k: 'f14', n: '医疗费用支付方式' }, { k: 'f15', n: '居民类型', r: true }, { k: 'f16', n: '常住类型', r: true },
+          { k: 'f17', n: '配偶姓名' }, { k: 'f18', n: '配偶证件号' }, { k: 'f19', n: '配偶联系电话' }, { k: 'f20', n: '初潮年龄' },
+          { k: 'f21', n: '经期' }, { k: 'f22', n: '周期' }, { k: 'f23', n: '痛经' }, { k: 'f24', n: '身高' },
+          { k: 'f25', n: '体重' }, { k: 'f26', n: '血压' }, { k: 'f27', n: '管理机构', r: true }, { k: 'f28', n: '责任医生', r: true },
+          { k: 'f29', n: '建档机构', r: true }, { k: 'f30', n: '建档日期', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'preMarital', name: '婚前医学检查', module: '妇女管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '性别' }, { k: 'f2', n: '证件号' }, { k: 'f3', n: '年龄' }, { k: 'f4', n: '民族' },
+          { k: 'f5', n: '联系电话' }, { k: 'f6', n: '职业' }, { k: 'f7', n: '户籍地址' }, { k: 'f8', n: '现住址' },
+          { k: 'f9', n: '夫妻号', r: true }
+        ] },
+        { g: '三病检测', fields: [
+          { k: 'f10', n: '是否咨询', r: true }, { k: 'f11', n: '乙肝表面抗原检测' }, { k: 'f12', n: 'HIV检测' }, { k: 'f13', n: '梅毒检测' },
+          { k: 'f14', n: '血样编号' }, { k: 'f15', n: '是否怀孕' }
+        ] },
+        { g: '地贫筛查', fields: [
+          { k: 'f16', n: '血常规检测' }, { k: 'f17', n: '血红蛋白电泳检测' }, { k: 'f18', n: '地贫家族史' }
+        ] },
+        { g: '基因诊断', fields: [
+          { k: 'f19', n: '初筛阳性' }, { k: 'f20', n: '阳性分裂α' }, { k: 'f21', n: '阳性分裂β' }, { k: 'f22', n: '阳性分裂复合' },
+          { k: 'f23', n: '检测日期' }, { k: 'f24', n: '产前诊断' }, { k: 'f25', n: '疾病诊断' }, { k: 'f26', n: '异常情况' },
+          { k: 'f27', n: '婚前医学检测证明编号' }, { k: 'f28', n: '医学指导意见' }, { k: 'f29', n: '婚前卫生指导' }, { k: 'f30', n: '婚前卫生咨询' },
+          { k: 'f31', n: '备注' }, { k: 'f32', n: '检查单位', r: true }, { k: 'f33', n: '检查医生', r: true }, { k: 'f34', n: '检查日期', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'folicAcid', name: '叶酸登记', module: '妇女管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '身高', r: true }, { k: 'f2', n: '体重', r: true }, { k: 'f3', n: '体质指数(BMI)' }, { k: 'f4', n: '高危情况', r: true },
+          { k: 'f5', n: '发放数量', r: true }, { k: 'f6', n: '叶酸用法', r: true }, { k: 'f7', n: '叶酸用量', r: true }, { k: 'f8', n: '备注' },
+          { k: 'f9', n: '发放单位', r: true }, { k: 'f10', n: '发放医生', r: true }, { k: 'f11', n: '发放日期', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'prePregnancy', name: '孕前医学检查', module: '妇女管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '编号' }, { k: 'f2', n: '检查日期' }, { k: 'f3', n: '男方姓名' }, { k: 'f4', n: '男方编号' },
+          { k: 'f5', n: '证件号' }, { k: 'f6', n: '年龄' }, { k: 'f7', n: '性别' }, { k: 'f8', n: '民族' },
+          { k: 'f9', n: '身高' }, { k: 'f10', n: '体重' }, { k: 'f11', n: '联系电话' }, { k: 'f12', n: '职业' },
+          { k: 'f13', n: '文化程度' }, { k: 'f14', n: '工作单位' }, { k: 'f15', n: '户籍地址' }, { k: 'f16', n: '现住址' }
+        ] },
+        { g: '既往史', fields: [
+          { k: 'f17', n: '疾病', r: true }, { k: 'f18', n: '手术史', r: true }
+        ] },
+        { g: '现病史', fields: [
+          { k: 'f19', n: '疾病', r: true }
+        ] },
+        { g: '生活方式', fields: [
+          { k: 'f20', n: '吸烟', r: true }, { k: 'f21', n: '被动吸烟', r: true }, { k: 'f22', n: '饮酒' }
+        ] },
+        { g: '月经', fields: [
+          { k: 'f23', n: '初潮年龄', r: true }, { k: 'f24', n: '月经周期', r: true }, { k: 'f25', n: '月经持续时间', r: true }, { k: 'f26', n: '量', r: true },
+          { k: 'f27', n: '痛经', r: true }, { k: 'f28', n: '末次月经时间', r: true }, { k: 'f29', n: '孕育史', r: true }
+        ] },
+        { g: '遗传病史', fields: [
+          { k: 'f30', n: '疾病', r: true }, { k: 'f31', n: '与患者本人关系' }, { k: 'f32', n: '是否近亲结婚', r: true }, { k: 'f33', n: '家族近亲婚配', r: true },
+          { k: 'f34', n: '预防接种', r: true }, { k: 'f35', n: '有害环境因素暴露', r: true }
+        ] },
+        { g: '饮食营养', fields: [
+          { k: 'f36', n: '偏食、挑剔' }, { k: 'f37', n: '食用新鲜蔬菜' }, { k: 'f38', n: '食用新鲜水果' }, { k: 'f39', n: '食用肉类' },
+          { k: 'f40', n: '正在服用药物' }, { k: 'f41', n: '增补叶酸/含叶酸的维生素', r: true }
+        ] },
+        { g: '运动劳动情况', fields: [
+          { k: 'f42', n: '喜好何种运动' }, { k: 'f43', n: '运动/劳动状况' }, { k: 'f44', n: '运动/劳动强度' }, { k: 'f45', n: '每天运动/劳动时间' }
+        ] },
+        { g: '社会心理因素', fields: [
+          { k: 'f46', n: '与同事的关系' }, { k: 'f47', n: '与家庭成员的关系' }, { k: 'f48', n: '与朋友的关系' }, { k: 'f49', n: '是否做好怀孕准备' },
+          { k: 'f50', n: '工作压力' }
+        ] },
+        { g: '体格检查', fields: [
+          { k: 'f51', n: '血压' }, { k: 'f52', n: '精神状态' }, { k: 'f53', n: '智力' }, { k: 'f54', n: '五官' },
+          { k: 'f55', n: '特殊体态' }, { k: 'f56', n: '特殊面容' }, { k: 'f57', n: '皮肤毛发' }, { k: 'f58', n: '甲状腺' }
+        ] },
+        { g: '心脏', fields: [
+          { k: 'f59', n: '心率' }, { k: 'f60', n: '心律' }, { k: 'f61', n: '杂音' }, { k: 'f62', n: '肺' },
+          { k: 'f63', n: '肝' }, { k: 'f64', n: '四肢脊柱' }, { k: 'f65', n: '其他' }, { k: 'f66', n: '检查医生签名' }
+        ] },
+        { g: '第二性征', fields: [
+          { k: 'f67', n: '阴毛' }, { k: 'f68', n: '乳房' }
+        ] },
+        { g: '生殖器', fields: [
+          { k: 'f69', n: '外阴' }, { k: 'f70', n: '分泌物' }, { k: 'f71', n: '子宫' }, { k: 'f72', n: '附件' }
+        ] },
+        { g: '阴道检查', fields: [
+          { k: 'f73', n: '外阴' }, { k: 'f74', n: '阴道' }, { k: 'f75', n: '宫颈' }, { k: 'f76', n: '子宫' },
+          { k: 'f77', n: '附件' }, { k: 'f78', n: '本人签名' }, { k: 'f79', n: '检查医生签名' }, { k: 'f80', n: '其他' },
+          { k: 'f81', n: '辅助检查主要结果' }, { k: 'f82', n: '专项检查主要结果' }, { k: 'f83', n: '健康指导主要内容' }, { k: 'f84', n: '是否需要再次检查', r: true },
+          { k: 'f85', n: '医师签名' }
+        ] }
+      ]
+    },
+    {
+      key: 'womanDisease', name: '常见妇女病检查', module: '妇女管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '证件号' }, { k: 'f2', n: '年龄' }, { k: 'f3', n: '性别' }, { k: 'f4', n: '民族' },
+          { k: 'f5', n: '联系电话' }, { k: 'f6', n: '职业' }, { k: 'f7', n: '现住址' }
+        ] },
+        { g: '婚育史', fields: [
+          { k: 'f8', n: '结婚' }, { k: 'f9', n: '足月产' }, { k: 'f10', n: '早产' }, { k: 'f11', n: '孕引产' },
+          { k: 'f12', n: '未产' }, { k: 'f13', n: '自然/人工/药物流产' }, { k: 'f14', n: '未育' }, { k: 'f15', n: '初潮' },
+          { k: 'f16', n: '周期' }
+        ] },
+        { g: '月经情况', fields: [
+          { k: 'f17', n: '经期' }, { k: 'f18', n: '痛经' }, { k: 'f19', n: '绝经年龄' }, { k: 'f20', n: '末次月经' },
+          { k: 'f21', n: '避孕情况', r: true }
+        ] },
+        { g: '病史', fields: [
+          { k: 'f22', n: '白带血丝' }, { k: 'f23', n: '接触性出血' }, { k: 'f24', n: '阴道不规则出血' }, { k: 'f25', n: '子宫肌瘤' },
+          { k: 'f26', n: '卵巢癌' }, { k: 'f27', n: '尿失禁' }, { k: 'f28', n: '其他' }
+        ] },
+        { g: '手术史', fields: [
+          { k: 'f29', n: '子宫切除' }, { k: 'f30', n: '附件切除' }, { k: 'f31', n: '乳腺手术' }
+        ] },
+        { g: '家族史', fields: [
+          { k: 'f32', n: '宫颈癌' }, { k: 'f33', n: '卵巢癌' }, { k: 'f34', n: '乳腺癌' }, { k: 'f35', n: '其他' },
+          { k: 'f36', n: '日期' }, { k: 'f37', n: '普查号' }
+        ] },
+        { g: '妇科检查', fields: [
+          { k: 'f38', n: '外阴', r: true }, { k: 'f39', n: '阴道' }, { k: 'f40', n: '宫颈' }, { k: 'f41', n: '宫颈糜烂' },
+          { k: 'f42', n: '子宫脱垂Ⅱ度以上' }, { k: 'f43', n: '宫体' }, { k: 'f44', n: '附件' }, { k: 'f45', n: '白带常规' },
+          { k: 'f46', n: '阴道炎治疗' }, { k: 'f47', n: '妇科B超检查' }, { k: 'f48', n: '检查医生签名' }
+        ] },
+        { g: '宫颈细胞学检查', fields: [
+          { k: 'f49', n: '巴氏分类' }, { k: 'f50', n: 'TBS分类' }, { k: 'f51', n: '检查医生签名' }
+        ] },
+        { g: '阴道镜检查', fields: [
+          { k: 'f52', n: '检查结果' }, { k: 'f53', n: '检查医生' }, { k: 'f54', n: '检查单位' }
+        ] },
+        { g: '宫颈组织病理诊断', fields: [
+          { k: 'f55', n: '病理学诊断' }, { k: 'f56', n: '检查医生' }, { k: 'f57', n: '检查单位' }
+        ] },
+        { g: '宫颈异常处理建议', fields: [
+          { k: 'f58', n: '治疗' }, { k: 'f59', n: '转诊' }, { k: 'f60', n: '转诊建议' }, { k: 'f61', n: '转诊机构' }
+        ] },
+        { g: '乳房临床检查', fields: [
+          { k: 'f62', n: '左乳' }, { k: 'f63', n: '右乳' }, { k: 'f64', n: '检查医生' }
+        ] },
+        { g: '乳腺彩超检查', fields: [
+          { k: 'f65', n: '左乳' }, { k: 'f66', n: '右乳' }, { k: 'f67', n: '检查单位' }, { k: 'f68', n: '检查医生' }
+        ] },
+        { g: '乳腺钼靶检查', fields: [
+          { k: 'f69', n: '左乳' }, { k: 'f70', n: '右乳' }, { k: 'f71', n: '检查单位' }, { k: 'f72', n: '检查医生' }
+        ] },
+        { g: '病理学检查', fields: [
+          { k: 'f73', n: '左乳' }, { k: 'f74', n: '右乳' }, { k: 'f75', n: '检查单位' }, { k: 'f76', n: '检查医生' }
+        ] },
+        { g: '乳腺异常处理建议', fields: [
+          { k: 'f77', n: '治疗' }, { k: 'f78', n: '转诊' }, { k: 'f79', n: '转诊机构' }, { k: 'f80', n: '检查结果' },
+          { k: 'f81', n: '填表机构', r: true }, { k: 'f82', n: '填表医生', r: true }, { k: 'f83', n: '填表日期', r: true }
+        ] }
+      ]
+    },
+{
+      key: 'cervical', name: '宫颈癌筛查表', module: '妇女管理',
+      ico: '<path d="M12 2l8 4v6c0 5-3.4 9.3-8 10-4.6-.7-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/>',
+      desc: '两癌筛查之宫颈癌筛查表单；筛查日期、筛查结果、筛查机构为必填，完整度按筛查信息与结果处理分区统计。',
+      enabled: true,
+      sections: [
+        { g: '筛查信息', fields: [
+          { k: 'screenDate', n: '筛查日期', r: true },
+          { k: 'screenOrg', n: '筛查机构', r: true },
+          { k: 'screenDoctor', n: '筛查医生', r: true }
+        ] },
+        { g: '筛查结果', fields: [
+          { k: 'tct', n: 'TCT 结果', r: true },
+          { k: 'hpv', n: 'HPV 结果', r: false },
+          { k: 'followUp', n: '随访建议', r: false }
+        ] }
+      ],
+      complete: [
+        { n: '基本信息', k: 'ccBase2', w: 25, on: true },
+        { n: '筛查信息', k: 'ccScreen', w: 40, on: true },
+        { n: '结果处理', k: 'ccResult', w: 35, on: true }
+      ]
+    },
+{
+      key: 'breast', name: '乳腺癌筛查表', module: '妇女管理',
+      ico: '<path d="M9 20a1 1 0 01-1-1V9a1 1 0 011-1h1v8h8"/><path d="M14 20a1 1 0 01-1-1V5a1 1 0 011-1h1v12h8"/>',
+      desc: '两癌筛查之乳腺癌筛查表单；筛查日期、影像检查结果、筛查机构为必填，完整度按筛查信息与结果处理分区统计。',
+      enabled: true,
+      sections: [
+        { g: '筛查信息', fields: [
+          { k: 'screenDate', n: '筛查日期', r: true },
+          { k: 'screenOrg', n: '筛查机构', r: true },
+          { k: 'screenDoctor', n: '筛查医生', r: true }
+        ] },
+        { g: '检查结果', fields: [
+          { k: 'mammo', n: '钼靶/超声结果', r: true },
+          { k: 'birads', n: 'BI-RADS 分级', r: false },
+          { k: 'followUp', n: '随访建议', r: false }
+        ] }
+      ],
+      complete: [
+        { n: '基本信息', k: 'bcBase', w: 25, on: true },
+        { n: '筛查信息', k: 'bcScreen', w: 40, on: true },
+        { n: '结果处理', k: 'bcResult', w: 35, on: true }
+      ]
+    },
+    {
+      key: 'msArchive', name: '孕产妇档案', module: '孕产妇管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '性别' }, { k: 'f2', n: '证件号' }, { k: 'f3', n: '年龄' }, { k: 'f4', n: '民族' },
+          { k: 'f5', n: '联系电话' }, { k: 'f6', n: '职业' }, { k: 'f7', n: '文化程度' }, { k: 'f8', n: '工作单位' },
+          { k: 'f9', n: '现住址' }, { k: 'f10', n: '孕次', r: true }, { k: 'f11', n: '产次', r: true }, { k: 'f12', n: '现有子女数', r: true },
+          { k: 'f13', n: '末次月经时间', r: true }, { k: 'f14', n: '预产期' }, { k: 'f15', n: '孕周' }, { k: 'f16', n: '身高' },
+          { k: 'f17', n: '基础体重' }, { k: 'f18', n: '体质指数(BMI)' }, { k: 'f19', n: '血糖' }, { k: 'f20', n: '配偶姓名' },
+          { k: 'f21', n: '配偶证件号' }, { k: 'f22', n: '配偶联系电话' }, { k: 'f23', n: '个人史' }, { k: 'f24', n: '既往史' },
+          { k: 'f25', n: '孕产史' }, { k: 'f26', n: '家族史' }, { k: 'f27', n: '妇科手术史' }, { k: 'f28', n: '管理机构', r: true },
+          { k: 'f29', n: '责任医生', r: true }, { k: 'f30', n: '建档机构', r: true }, { k: 'f31', n: '建档日期', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'msPrenatal1', name: '第一次产前检查', module: '孕产妇管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '填表日期', r: true }, { k: 'f2', n: '孕周' }, { k: 'f3', n: '年龄' }, { k: 'f4', n: '丈夫姓名' },
+          { k: 'f5', n: '丈夫年龄', r: true }, { k: 'f6', n: '丈夫联系电话', r: true }, { k: 'f7', n: '孕次', r: true }, { k: 'f8', n: '产次' },
+          { k: 'f9', n: '末次月经', r: true }, { k: 'f10', n: '预产期' }, { k: 'f11', n: '既往史' }, { k: 'f12', n: '家族史' },
+          { k: 'f13', n: '个人史' }, { k: 'f14', n: '孕产史' }, { k: 'f15', n: '妇科手术史' }, { k: 'f16', n: '身高' },
+          { k: 'f17', n: '基础体重' }, { k: 'f18', n: '体质指数(BMI)' }, { k: 'f19', n: '血压' }, { k: 'f20', n: '听诊' },
+          { k: 'f21', n: '心脏' }, { k: 'f22', n: '肺部' }, { k: 'f23', n: '妇科检查' }, { k: 'f24', n: '外阴' },
+          { k: 'f25', n: '阴道' }, { k: 'f26', n: '宫颈' }, { k: 'f27', n: '子宫' }, { k: 'f28', n: '附件' },
+          { k: 'f29', n: '血常规' }, { k: 'f30', n: '血红蛋白值' }, { k: 'f31', n: '白细胞计数值' }, { k: 'f32', n: '血小板计数值' },
+          { k: 'f33', n: '其他' }, { k: 'f34', n: '尿常规' }, { k: 'f35', n: '尿蛋白' }, { k: 'f36', n: '尿糖' },
+          { k: 'f37', n: '尿酮体' }, { k: 'f38', n: '尿潜血' }, { k: 'f39', n: '血型' }, { k: 'f40', n: 'ABO血型' },
+          { k: 'f41', n: 'RH血型' }, { k: 'f42', n: '血糖' }, { k: 'f43', n: '辅助检查' }, { k: 'f44', n: '肝常规' },
+          { k: 'f45', n: '白蛋白' }, { k: 'f46', n: '血清谷丙转氨酶' }, { k: 'f47', n: '总胆红素' }, { k: 'f48', n: '血清谷草转氨酶' },
+          { k: 'f49', n: '结合胆红素' }, { k: 'f50', n: '肾常规' }, { k: 'f51', n: '血清肌酐' }, { k: 'f52', n: '血尿素' },
+          { k: 'f53', n: '阴道分泌物' }, { k: 'f54', n: '阴道清洁度' }, { k: 'f55', n: '乙型肝炎' }, { k: 'f56', n: '表面抗原' },
+          { k: 'f57', n: '表面抗体' }, { k: 'f58', n: 'e抗原' }, { k: 'f59', n: 'e抗体' }, { k: 'f60', n: '核心抗体' },
+          { k: 'f61', n: '梅毒血清学实验' }, { k: 'f62', n: 'HIV抗体检测' }, { k: 'f63', n: 'B超' }, { k: 'f64', n: '总体评估' },
+          { k: 'f65', n: '保健指导' }, { k: 'f66', n: '转诊建议' }, { k: 'f67', n: '随访状态' }, { k: 'f68', n: '失访日期/死亡日期' },
+          { k: 'f69', n: '失访原因/死亡原因' }, { k: 'f70', n: '下次随访日期', r: true }, { k: 'f71', n: '随访医生签名' }
+        ] }
+      ]
+    },
+    {
+      key: 'msPrenatalVisit', name: '产前访视', module: '孕产妇管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '随访次数', r: true }, { k: 'f2', n: '随访/督促日期', r: true }, { k: 'f3', n: '孕周', r: true }, { k: 'f4', n: '基础体重', r: true },
+          { k: 'f5', n: '主诉', r: true }, { k: 'f6', n: '产前检查' }, { k: 'f7', n: '宫底高度', r: true }, { k: 'f8', n: '腹围', r: true },
+          { k: 'f9', n: '胎位', r: true }, { k: 'f10', n: '胎心率', r: true }, { k: 'f11', n: '血压', r: true }, { k: 'f12', n: '血红蛋白', r: true },
+          { k: 'f13', n: '尿蛋白', r: true }, { k: 'f14', n: '其他辅助检查' }, { k: 'f15', n: '分类', r: true }, { k: 'f16', n: '保健指导', r: true },
+          { k: 'f17', n: '转诊建议' }, { k: 'f18', n: '随访状态' }, { k: 'f19', n: '失访日期/死亡日期' }, { k: 'f20', n: '失访原因/死亡原因' },
+          { k: 'f21', n: '下次随访日期', r: true }, { k: 'f22', n: '随访医生签名', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'msDelivery', name: '分娩记录', module: '孕产妇管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '母亲名字' }, { k: 'f2', n: '母亲身份证号码' }, { k: 'f3', n: '父亲名字' }, { k: 'f4', n: '父亲身份证号码' },
+          { k: 'f5', n: '家庭住址' }, { k: 'f6', n: '住院日期' }, { k: 'f7', n: '分娩时间', r: true }, { k: 'f8', n: '分娩孕周' },
+          { k: 'f9', n: '胎位' }, { k: 'f10', n: '总产程' }, { k: 'f11', n: '产后血压' }, { k: 'f12', n: '分娩方式' },
+          { k: 'f13', n: '产科操作' }, { k: 'f14', n: '产科并发症' }, { k: 'f15', n: '会阴情况' }, { k: 'f16', n: '胎儿' }
+        ] },
+        { g: '胎儿1', fields: [
+          { k: 'f17', n: '出院日期' }, { k: 'f18', n: '产后修养地址' }, { k: 'f19', n: '接生单位' }, { k: 'f20', n: '接生人员' }
+        ] }
+      ]
+    },
+    {
+      key: 'msPostVisit', name: '产后访视', module: '孕产妇管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '随访日期', r: true }, { k: 'f2', n: '分娩日期', r: true }, { k: 'f3', n: '出院日期', r: true }, { k: 'f4', n: '体温', r: true },
+          { k: 'f5', n: '一般健康情况', r: true }, { k: 'f6', n: '一般心理情况', r: true }, { k: 'f7', n: '血压', r: true }, { k: 'f8', n: '乳房', r: true },
+          { k: 'f9', n: '恶露', r: true }, { k: 'f10', n: '子宫', r: true }, { k: 'f11', n: '伤口', r: true }, { k: 'f12', n: '分类', r: true },
+          { k: 'f13', n: '其他' }, { k: 'f14', n: '指导', r: true }, { k: 'f15', n: '转诊建议' }, { k: 'f16', n: '随访状态' },
+          { k: 'f17', n: '失访日期/死亡日期' }, { k: 'f18', n: '失访原因/死亡原因' }, { k: 'f19', n: '下次随访日期', r: true }, { k: 'f20', n: '随访医生签名', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'msPost42', name: '产后42天', module: '孕产妇管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '随访日期', r: true }, { k: 'f2', n: '分娩日期', r: true }, { k: 'f3', n: '出院日期', r: true }, { k: 'f4', n: '一般健康情况', r: true },
+          { k: 'f5', n: '一般心理情况', r: true }, { k: 'f6', n: '血压', r: true }, { k: 'f7', n: '乳房', r: true }, { k: 'f8', n: '恶露', r: true },
+          { k: 'f9', n: '子宫', r: true }, { k: 'f10', n: '伤口', r: true }, { k: 'f11', n: '分类', r: true }, { k: 'f12', n: '其他' },
+          { k: 'f13', n: '指导', r: true }, { k: 'f14', n: '处理' }, { k: 'f15', n: '转诊原因', r: true }, { k: 'f16', n: '转诊机构', r: true },
+          { k: 'f17', n: '转诊科室', r: true }, { k: 'f18', n: '随访状态' }, { k: 'f19', n: '失访日期/死亡日期' }, { k: 'f20', n: '失访原因/死亡原因' },
+          { k: 'f21', n: '随访医生签名', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'msRiskScreen', name: '妊娠风险筛查', module: '孕产妇管理',
+      enabled: true,
+      sections: [
+        { g: '基本情况', fields: [
+          { k: 'f1', n: '1.1周岁≥35或者≤18' }, { k: 'f2', n: '1.2身高≤145cm，或对生育可能有影响…' }, { k: 'f3', n: '1.3体重指数>25或<18' }, { k: 'f4', n: '1.4RH血型阴性' }
+        ] },
+        { g: '异常妊娠及分娩史', fields: [
+          { k: 'f5', n: '2.1生育间隔5年' }, { k: 'f6', n: '2.2剖宫产史' }, { k: 'f7', n: '2.3不孕史' }, { k: 'f8', n: '2.4不良孕产史（各类流产≥3次，早产史，…' },
+          { k: 'f9', n: '2.5本次妊娠异常情况（如多胎妊娠，辅助生…' }
+        ] },
+        { g: '妇产科疾病及手术史', fields: [
+          { k: 'f10', n: '3.1生殖道畸形' }, { k: 'f11', n: '3.2子宫肌瘤或卵巢囊肿≥5cm' }, { k: 'f12', n: '3.3阴道及宫颈锥切手术史' }, { k: 'f13', n: '3.4宫/腹腔镜手术史' },
+          { k: 'f14', n: '3.5瘢痕子宫（如子宫肌瘤挖除术后，子宫肌…' }, { k: 'f15', n: '3.6附件恶性肿瘤手术史' }
+        ] },
+        { g: '家族史', fields: [
+          { k: 'f16', n: '4.1高血压家族史且孕妇目前血压≥140/…' }, { k: 'f17', n: '4.2糖尿病（直系亲属）' }, { k: 'f18', n: '4.3凝血因子缺乏' }, { k: 'f19', n: '4.4严重的遗传性疾病（如遗传性高脂血症，…' }
+        ] },
+        { g: '既往疾病及手术史', fields: [
+          { k: 'f20', n: '5.1各种重要脏器疾病史' }, { k: 'f21', n: '5.2恶性肿瘤病史' }, { k: 'f22', n: '5.3其他特殊、重大手术史，药物过敏史' }
+        ] },
+        { g: '辅助检查', fields: [
+          { k: 'f23', n: '6.1血红蛋白<110g/L' }, { k: 'f24', n: '6.2血小板计数≤100×109/L' }, { k: 'f25', n: '6.3梅毒筛查阳性' }, { k: 'f26', n: '6.4HIV筛查阳性' },
+          { k: 'f27', n: '6.5清洁中段尿常规异常（如蛋白、管型、红…' }, { k: 'f28', n: '6.6尿糖阳性且空腹血糖异常（妊娠24周前…' }, { k: 'f29', n: '6.7血清铁蛋白<20g/L' }
+        ] },
+        { g: '需要关注的表现特征及病史', fields: [
+          { k: 'f30', n: '7.1.1心悸、胸闷、胸痛或背部牵涉痛、气…' }, { k: 'f31', n: '7.1.2哮喘及哮喘史、咳嗽、咳血等' }, { k: 'f32', n: '7.1.3长期低热、消瘦、盗汗' }, { k: 'f33', n: '7.1.4心肺听诊异常' },
+          { k: 'f34', n: '7.1.5高血压BP≥140/90mmHg' }, { k: 'f35', n: '7.1.6心脏病史、心衰史、心脏手术史' }, { k: 'f36', n: '7.1.7胸廓畸形' }, { k: 'f37', n: '7.2.1严重纳差、乏力、剧吐' },
+          { k: 'f38', n: '7.2.2上腹疼痛，肝脾肿大' }, { k: 'f39', n: '7.2.3皮肤巩膜黄染' }, { k: 'f40', n: '7.2.4便血' }, { k: 'f41', n: '7.3.1眼睑浮肿、少尿、蛋白尿、血尿、管…' },
+          { k: 'f42', n: '7.3.2慢性肾炎' }, { k: 'f43', n: '7.4.1牙龈出血、鼻衄' }, { k: 'f44', n: '7.4.2出血不凝、全身多处瘀点瘀斑' }, { k: 'f45', n: '7.4.3血小板减少、再障等血液病史' },
+          { k: 'f46', n: '7.5.1多饮、多尿、多食' }, { k: 'f47', n: '7.5.2烦渴、心悸、烦躁、多汗' }, { k: 'f48', n: '7.5.3明显关节酸痛、脸部蝶形或盘形红斑…' }, { k: 'f49', n: '7.5.4口干（无唾液）、眼干（眼内有摩擦…' },
+          { k: 'f50', n: '7.6.1外生殖器溃疡、赘生物或水泡' }, { k: 'f51', n: '7.6.2阴道或尿道流脓' }, { k: 'f52', n: '7.6.3性病史' }, { k: 'f53', n: '7.7.1言语交流困难、智力障碍、精神抑郁…' },
+          { k: 'f54', n: '7.7.2反复出现头痛、恶心、呕吐' }, { k: 'f55', n: '7.7.3癫痫史' }, { k: 'f56', n: '7.7.4不明原因晕厥史' }, { k: 'f57', n: '7.8.1吸毒史' }
+        ] }
+      ]
+    },
+    {
+      key: 'msRiskAssess', name: '妊娠风险评估', module: '孕产妇管理',
+      enabled: true,
+      sections: [
+        { g: '绿色（低风险）', fields: [
+          { k: 'f1', n: '1孕妇基本情况良好，未发现妊娠合并症、并发…' }
+        ] },
+        { g: '黄色（一般风险）', fields: [
+          { k: 'f2', n: '1.1年龄≥35岁或≤18岁' }, { k: 'f3', n: '1.2BMI>25或<18.5' }, { k: 'f4', n: '1.3生殖道畸形' }, { k: 'f5', n: '1.4骨盆狭小' },
+          { k: 'f6', n: '1.5不良孕产史（各类流产≥3次、早产、围…' }, { k: 'f7', n: '1.6瘢痕子宫' }, { k: 'f8', n: '1.7子宫肌瘤或卵巢囊肿≥5cm' }, { k: 'f9', n: '1.8盆腔手术史' },
+          { k: 'f10', n: '1.9辅助生殖妊娠' }, { k: 'f11', n: '2.1心脏病（经心内科诊治无需药物治疗、心…' }, { k: 'f12', n: '2.1.1先天性心脏病（不伴有肺动脉高压的…' }, { k: 'f13', n: '2.1.2心肌炎后遗症' },
+          { k: 'f14', n: '2.1.3心律失常' }, { k: 'f15', n: '2.1.4无合并症的轻度的肺动脉狭窄和二尖…' }, { k: 'f16', n: '2.2呼吸系统疾病：经呼吸内科诊治无需药物…' }, { k: 'f17', n: '2.3消化系统疾病：肝炎病毒携带（表面抗原…' },
+          { k: 'f18', n: '2.4泌尿系统疾病：肾脏疾病（目前病情稳定…' }, { k: 'f19', n: '2.5内分泌系统疾病：无需药物治疗的糖尿病…' }, { k: 'f20', n: '2.6血液系统疾病：' }, { k: 'f21', n: '2.6.1妊娠合并血小板减少（PLT50-…' },
+          { k: 'f22', n: '2.6.2妊娠合并贫血（Hb60-110g…' }, { k: 'f23', n: '2.7神经系统疾病：癫痫（单纯部分性发作和…' }, { k: 'f24', n: '2.8免疫系统疾病：无需药物治疗（如系统性…' }, { k: 'f25', n: '2.9尖锐湿疣、淋病等性传播疾病' },
+          { k: 'f26', n: '2.10吸毒史' }, { k: 'f27', n: '2.11其他' }, { k: 'f28', n: '3.1双胎妊娠' }, { k: 'f29', n: '3.2先兆早产' },
+          { k: 'f30', n: '3.3胎儿宫内生长受限' }, { k: 'f31', n: '3.4巨大儿' }, { k: 'f32', n: '3.5妊娠期高血压疾病（除外红、橙色）' }, { k: 'f33', n: '3.6妊娠期肝内胆汁淤积症' },
+          { k: 'f34', n: '3.7胎膜早破' }, { k: 'f35', n: '3.8羊水过少' }, { k: 'f36', n: '3.9羊水过多' }, { k: 'f37', n: '3.10≥36周胎位不正' },
+          { k: 'f38', n: '3.11低置胎盘' }, { k: 'f39', n: '3.12妊娠剧吐' }
+        ] },
+        { g: '橙色（较高风险）', fields: [
+          { k: 'f40', n: '1.1年龄≥40岁' }, { k: 'f41', n: '1.2BMI≥28' }, { k: 'f42', n: '2.1较严重心血管系统疾病：' }, { k: 'f43', n: '2.1.1心功能II级，轻度左心功能障碍或…' },
+          { k: 'f44', n: '2.1.2需药物治疗的心肌炎后遗症、心律失…' }, { k: 'f45', n: '2.1.3瓣膜性心脏病（轻度二尖瓣狭窄瓣口…' }, { k: 'f46', n: '2.1.4主动脉疾病（主动脉直径<45mm…' }, { k: 'f47', n: '2.1.5经治疗后稳定的心肌病' },
+          { k: 'f48', n: '2.1.6各种原因的轻度肺动脉高压（<50…' }, { k: 'f49', n: '2.1.7其他' }, { k: 'f50', n: '2.2呼吸系统疾病：' }, { k: 'f51', n: '2.2.1哮喘' },
+          { k: 'f52', n: '2.2.2脊柱侧弯' }, { k: 'f53', n: '2.2.3胸廓畸形等伴轻度肺功能不全' }, { k: 'f54', n: '2.3消化系统疾病：' }, { k: 'f55', n: '2.3.1原因不明的肝功能异常' },
+          { k: 'f56', n: '2.3.2仅需要药物治疗的肝硬化、肠梗阻、…' }, { k: 'f57', n: '2.4泌尿系统疾病：慢性肾脏疾病伴肾功能不…' }, { k: 'f58', n: '2.5内分泌系统疾病：' }, { k: 'f59', n: '2.5.1需药物治疗的糖尿病、甲状腺疾病、…' },
+          { k: 'f60', n: '2.5.2肾性尿崩症（尿量超过4000ml…' }, { k: 'f61', n: '2.6血液系统疾病：' }, { k: 'f62', n: '2.6.1血小板减少（PLT30-50×1…' }, { k: 'f63', n: '2.6.2重度贫血（Hb40-60g/L）' },
+          { k: 'f64', n: '2.6.3凝血功能障碍无出血倾向' }, { k: 'f65', n: '2.6.4易栓症（如抗凝血酶缺陷症、蛋白C…' }, { k: 'f66', n: '2.7免疫系统疾病：应用小剂量激素（如强的…' }, { k: 'f67', n: '2.8恶性肿瘤治疗后无转移无复发' },
+          { k: 'f68', n: '2.9智力障碍' }, { k: 'f69', n: '2.10精神病缓解期' }, { k: 'f70', n: '2.11神经系统疾病：癫痫（失神发作）、重…' }, { k: 'f71', n: '2.12其他' },
+          { k: 'f72', n: '3.1三胎及以上妊娠' }, { k: 'f73', n: '3.2Rh血型不合' }, { k: 'f74', n: '3.3疤痕子宫（距末次子宫手术间隔<18月）' }, { k: 'f75', n: '3.4疤痕子宫伴中央性前置胎盘或伴有可疑胎…' },
+          { k: 'f76', n: '3.5各类子宫手术史（如剖宫产、宫角妊娠、…' }, { k: 'f77', n: '3.6双胎、羊水过多伴发心肺功能减退' }, { k: 'f78', n: '3.7重度子痫前期、慢性高血压合并子痫前期' }, { k: 'f79', n: '3.8原因不明的发热' },
+          { k: 'f80', n: '3.9产后抑郁症、产褥期中暑、产褥感染等' }
+        ] },
+        { g: '红色（高风险）', fields: [
+          { k: 'f81', n: '1.1严重心血管系统疾病：' }, { k: 'f82', n: '1.1.1各种原因引起的肺动脉高压（≥50…' }, { k: 'f83', n: '1.1.2复杂先心（法洛氏四联症、艾森曼格…' }, { k: 'f84', n: '1.1.3心脏瓣膜病：瓣膜置换术后，中重度…' },
+          { k: 'f85', n: '1.1.4各类心肌病' }, { k: 'f86', n: '1.1.5感染性心内膜炎' }, { k: 'f87', n: '1.1.6急性心肌炎' }, { k: 'f88', n: '1.1.7风心病风湿活动期' },
+          { k: 'f89', n: '1.1.8妊娠期高血压性心脏病' }, { k: 'f90', n: '1.1.9其他' }, { k: 'f91', n: '1.2呼吸系统疾病：哮喘反复发作、肺纤维化…' }, { k: 'f92', n: '1.3消化系统疾病：重型肝炎、肝硬化失代偿…' },
+          { k: 'f93', n: '1.4泌尿系统疾病：急、慢性肾脏疾病伴高血…' }, { k: 'f94', n: '1.5内分泌系统疾病：' }, { k: 'f95', n: '1.5.1糖尿病并发肾病V级、严重心血管病…' }, { k: 'f96', n: '1.5.2甲状腺功能亢进并发心脏病、感染、…' },
+          { k: 'f97', n: '1.5.3甲状腺功能减退引起相应系统功能障…' }, { k: 'f98', n: '1.5.4垂体泌乳素瘤出现视力减退、视野缺…' }, { k: 'f99', n: '1.5.5尿崩症：中枢性尿崩症伴有明显的多…' }, { k: 'f100', n: '1.5.6嗜铬细胞瘤等' },
+          { k: 'f101', n: '1.6血液系统疾病：' }, { k: 'f102', n: '1.6.1再生障碍性贫血' }, { k: 'f103', n: '1.6.2血小板减少（<30×109/L）…' }, { k: 'f104', n: '1.6.3重度贫血（Hb≤40g/L）' },
+          { k: 'f105', n: '1.6.4白血病' }, { k: 'f106', n: '1.6.5凝血功能障碍伴有出血倾向（如先天…' }, { k: 'f107', n: '1.6.6血栓栓塞性疾病（如下肢深静脉血栓…' }, { k: 'f108', n: '1.7免疫系统疾病活动期，如系统性红斑狼疮…' },
+          { k: 'f109', n: '1.8精神病急性期' }, { k: 'f110', n: '1.9恶性肿瘤：' }, { k: 'f111', n: '1.9.1妊娠期间发现的恶性肿瘤' }, { k: 'f112', n: '1.9.2治疗后复发或发生远处转移' },
+          { k: 'f113', n: '1.10神经系统疾病：' }, { k: 'f114', n: '1.10.1脑血管畸形及手术史' }, { k: 'f115', n: '1.10.2癫痫全身发作' }, { k: 'f116', n: '1.10.3重症肌无力（病变发展至延脑肌、…' },
+          { k: 'f117', n: '1.11吸毒' }, { k: 'f118', n: '1.12其他严重内、外科疾病等' }, { k: 'f119', n: '2.1三胎及以上妊娠伴发心肺功能减退' }, { k: 'f120', n: '2.2凶险性前置胎盘，胎盘早剥' },
+          { k: 'f121', n: '2.3红色预警范畴疾病产后尚未稳定' }
+        ] },
+        { g: '紫色（孕妇患有传染性疾病）', fields: [
+          { k: 'f122', n: '1所有妊娠合并传染性疾病——如病毒性肝炎、…' }
+        ] }
+      ]
+    },
+    {
+      key: 'referral', name: '转诊跟踪', module: '孕产妇管理',
+      enabled: true,
+      sections: [
+        { g: '转诊信息', fields: [
+          { k: 'f1', n: '转诊日期', r: true }, { k: 'f2', n: '转诊原因', r: true }, { k: 'f3', n: '转诊机构', r: true }, { k: 'f4', n: '转诊科室' },
+          { k: 'f5', n: '转出医生' }
+        ] },
+        { g: '跟踪与结果', fields: [
+          { k: 'f6', n: '接收机构' }, { k: 'f7', n: '接收医生' }, { k: 'f8', n: '转诊结果', r: true }, { k: 'f9', n: '随访情况' },
+          { k: 'f10', n: '随访日期' }
+        ] }
+      ]
+    },
+{
+      key: 'maternalDeath', name: '孕产妇死亡报告卡', module: '孕产妇管理',
+      ico: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><line x1="16" y1="13" x2="8" y2="13"/>',
+      desc: '三网监测报卡；死亡时间、死亡诊断依据、根本死因为核心必填，完整度按死亡诊断与逐级审核结果分区。',
+      enabled: true,
+      sections: [
+        { g: '孕产妇基本信息', fields: [
+          { k: 'name', n: '姓名', r: true },
+          { k: 'age', n: '年龄', r: true },
+          { k: 'phone', n: '联系电话', r: true },
+          { k: 'hukou', n: '户籍', r: true }
+        ] },
+        { g: '死亡诊断', fields: [
+          { k: 'deathTime', n: '死亡时间', r: true },
+          { k: 'delivery', n: '分娩方式', r: true },
+          { k: 'diagBasis', n: '死亡诊断依据', r: true },
+          { k: 'rootCause', n: '根本死因', r: true }
+        ] }
+      ],
+      complete: [
+        { n: '基本信息', k: 'mdBase', w: 25, on: true },
+        { n: '死亡诊断', k: 'mdDiag', w: 40, on: true },
+        { n: '审核结果', k: 'mdReview', w: 25, on: true },
+        { n: '报告信息', k: 'mdReport', w: 10, on: true }
+      ]
+    },
+    {
+      key: 'healthCheckup', name: '健康体检', module: '',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '体检机构', r: true }, { k: 'f2', n: '体检医生', r: true }, { k: 'f3', n: '体检日期', r: true }, { k: 'f4', n: '责任医生', r: true },
+          { k: 'f5', n: '症状', r: true }
+        ] },
+        { g: '一般情况', fields: [
+          { k: 'f6', n: '体温', r: true }, { k: 'f7', n: '脉率', r: true }, { k: 'f8', n: '呼吸频率', r: true }, { k: 'f9', n: '身高', r: true },
+          { k: 'f10', n: '体重', r: true }, { k: 'f11', n: '腰围', r: true }, { k: 'f12', n: '体质指数(BMI)', r: true }
+        ] },
+        { g: '血压', fields: [
+          { k: 'f13', n: '左侧', r: true }, { k: 'f14', n: '右侧', r: true }
+        ] },
+        { g: '体育锻炼', fields: [
+          { k: 'f15', n: '锻炼频率', r: true }, { k: 'f16', n: '每次锻炼时间' }, { k: 'f17', n: '坚持锻炼时间' }, { k: 'f18', n: '锻炼方式' },
+          { k: 'f19', n: '饮食习惯', r: true }
+        ] },
+        { g: '吸烟情况', fields: [
+          { k: 'f20', n: '吸烟状况', r: true }, { k: 'f21', n: '日吸烟量' }, { k: 'f22', n: '开始吸烟年龄' }, { k: 'f23', n: '戒烟年龄' }
+        ] },
+        { g: '饮酒情况', fields: [
+          { k: 'f24', n: '饮酒频率', r: true }, { k: 'f25', n: '日饮酒量' }, { k: 'f26', n: '开始饮酒年龄' }, { k: 'f27', n: '近一年是否醉酒' },
+          { k: 'f28', n: '是否戒酒' }, { k: 'f29', n: '饮酒种类' }
+        ] },
+        { g: '职业病危害因素接触史', fields: [
+          { k: 'f30', n: '有无接触史' }, { k: 'f31', n: '工种' }, { k: 'f32', n: '从业时间' }
+        ] },
+        { g: '毒物种类', fields: [
+          { k: 'f33', n: '粉尘' }, { k: 'f34', n: '防护措施' }, { k: 'f35', n: '放射物质' }, { k: 'f36', n: '物理因素' },
+          { k: 'f37', n: '化学物质' }, { k: 'f38', n: '其他' }
+        ] },
+        { g: '口腔', fields: [
+          { k: 'f39', n: '口唇', r: true }, { k: 'f40', n: '齿列', r: true }, { k: 'f41', n: '咽部', r: true }
+        ] },
+        { g: '脏器功能', fields: [
+          { k: 'f42', n: '视力', r: true }, { k: 'f43', n: '矫正视力' }, { k: 'f44', n: '听力', r: true }, { k: 'f45', n: '运动功能', r: true }
+        ] },
+        { g: '查体', fields: [
+          { k: 'f46', n: '眼底' }, { k: 'f47', n: '皮肤', r: true }, { k: 'f48', n: '巩膜', r: true }, { k: 'f49', n: '淋巴结', r: true }
+        ] },
+        { g: '肺', fields: [
+          { k: 'f50', n: '桶状胸', r: true }, { k: 'f51', n: '呼吸音', r: true }, { k: 'f52', n: '罗音', r: true }
+        ] },
+        { g: '心脏', fields: [
+          { k: 'f53', n: '心率', r: true }, { k: 'f54', n: '心律', r: true }, { k: 'f55', n: '杂音', r: true }
+        ] },
+        { g: '腹部', fields: [
+          { k: 'f56', n: '压痛', r: true }, { k: 'f57', n: '包块', r: true }, { k: 'f58', n: '肝大', r: true }, { k: 'f59', n: '脾大', r: true },
+          { k: 'f60', n: '移动性浊音', r: true }, { k: 'f61', n: '下肢水肿', r: true }, { k: 'f62', n: '足背动脉搏动' }, { k: 'f63', n: '肛门指诊' },
+          { k: 'f64', n: '乳腺' }, { k: 'f65', n: '其他' }
+        ] },
+        { g: '血常规', fields: [
+          { k: 'f66', n: '血红蛋白' }, { k: 'f67', n: '白细胞' }, { k: 'f68', n: '血小板' }, { k: 'f69', n: '其他' }
+        ] },
+        { g: '尿常规', fields: [
+          { k: 'f70', n: '尿蛋白' }, { k: 'f71', n: '尿糖' }, { k: 'f72', n: '尿酮体' }, { k: 'f73', n: '尿潜血' },
+          { k: 'f74', n: '其他' }, { k: 'f75', n: '空腹血糖' }, { k: 'f76', n: '心电图' }, { k: 'f77', n: '尿微量白蛋白' },
+          { k: 'f78', n: '大便潜血' }, { k: 'f79', n: '糖化血红蛋白' }, { k: 'f80', n: '乙型肝炎表面抗原' }
+        ] },
+        { g: '肝功能', fields: [
+          { k: 'f81', n: '总胆红素' }, { k: 'f82', n: '血清谷丙转氨酶' }, { k: 'f83', n: '白蛋白' }, { k: 'f84', n: '血清谷草转氨酶' },
+          { k: 'f85', n: '结合胆红素' }
+        ] },
+        { g: '肾功能', fields: [
+          { k: 'f86', n: '血清肌酐' }, { k: 'f87', n: '血尿素' }, { k: 'f88', n: '血钾浓度' }, { k: 'f89', n: '血钠浓度' }
+        ] },
+        { g: '血脂', fields: [
+          { k: 'f90', n: '总胆固醇' }, { k: 'f91', n: '血清低密度脂蛋白胆固醇' }, { k: 'f92', n: '甘油三酯' }, { k: 'f93', n: '血清高密度脂蛋白胆固醇' },
+          { k: 'f94', n: '胸部X线片' }
+        ] },
+        { g: 'B超', fields: [
+          { k: 'f95', n: '腹部B超' }, { k: 'f96', n: '其他' }
+        ] },
+        { g: '现存主要健康问题', fields: [
+          { k: 'f97', n: '脑血管疾病' }, { k: 'f98', n: '肾脏疾病', r: true }, { k: 'f99', n: '心脏疾病', r: true }, { k: 'f100', n: '血管疾病', r: true },
+          { k: 'f101', n: '眼部疾病', r: true }, { k: 'f102', n: '神经系统疾病', r: true }, { k: 'f103', n: '其他系统疾病', r: true }, { k: 'f104', n: '住院情况' },
+          { k: 'f105', n: '主要药物情况' }, { k: 'f106', n: '接种情况' }, { k: 'f107', n: '居民概况' }, { k: 'f108', n: '健康评价', r: true },
+          { k: 'f109', n: '健康指导' }, { k: 'f110', n: '危险因素控制' }, { k: 'f111', n: '下次体检日期' }, { k: 'f112', n: '\'+role+\'', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'healthEdu', name: '健康教育', module: '',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '日期', r: true }, { k: 'f2', n: '干预方式', r: true }, { k: 'f3', n: '干预地点', r: true }, { k: 'f4', n: '干预医生' },
+          { k: 'f5', n: '所在机构', r: true }, { k: 'f6', n: '健康教育处方' }, { k: 'f7', n: '健康指导意见' }, { k: 'f8', n: '备注' }
+        ] }
+      ]
+    },
+    {
+      key: 'disability', name: '残疾人管理', module: '',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '是否领取低保', r: true }, { k: 'f2', n: '病因', r: true }, { k: 'f3', n: '签名' }
+        ] },
+        { g: '登记信息', fields: [
+          { k: 'f4', n: '是否需要康复' }, { k: 'f5', n: '建档机构', r: true }, { k: 'f6', n: '责任医生', r: true }, { k: 'f7', n: '建档日期' },
+          { k: 'f8', n: '建档医生', r: true }, { k: 'f9', n: '备注' }
+        ] }
+      ]
+    },
+    {
+      key: 'hypertension', name: '高血压专项', module: '高血压管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '姓名' }, { k: 'f2', n: '身高', r: true }, { k: 'f3', n: '体重', r: true }, { k: 'f4', n: '体质指数(BMI)', r: true },
+          { k: 'f5', n: '血压', r: true }, { k: 'f6', n: '高血压分级' }, { k: 'f7', n: '高血压类型' }, { k: 'f8', n: '病例来源' },
+          { k: 'f9', n: '并发症' }, { k: 'f10', n: '服药依从性' }, { k: 'f11', n: '确诊机构' }, { k: 'f12', n: '确诊日期', r: true },
+          { k: 'f13', n: '建档机构', r: true }, { k: 'f14', n: '建档医生', r: true }, { k: 'f15', n: '建档日期', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'followup', name: '高血压随访', module: '高血压管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '姓名' }, { k: 'f2', n: '随访日期', r: true }, { k: 'f3', n: '随访方式', r: true }, { k: 'f4', n: '症状', r: true }
+        ] },
+        { g: '体征', fields: [
+          { k: 'f5', n: '血压', r: true }, { k: 'f6', n: '体重' }, { k: 'f7', n: '身高' }, { k: 'f8', n: '体质指数(BMI)' },
+          { k: 'f9', n: '心率' }, { k: 'f10', n: '其他' }
+        ] },
+        { g: '生活方式指导', fields: [
+          { k: 'f11', n: '吸烟' }, { k: 'f12', n: '饮酒' }, { k: 'f13', n: '运动' }, { k: 'f14', n: '摄盐情况(咸淡)' },
+          { k: 'f15', n: '心理调整' }, { k: 'f16', n: '遵医行为' }, { k: 'f17', n: '辅助检查' }, { k: 'f18', n: '服药依从性' },
+          { k: 'f19', n: '药物不良反应' }, { k: 'f20', n: '此次随访分类', r: true }, { k: 'f21', n: '高血压分级' }, { k: 'f22', n: '用药情况' }
+        ] },
+        { g: '转诊', fields: [
+          { k: 'f23', n: '转诊情况' }, { k: 'f24', n: '转诊原因' }, { k: 'f25', n: '转诊机构' }, { k: 'f26', n: '转诊科室' },
+          { k: 'f27', n: '下次随访日期', r: true }, { k: 'f28', n: '随访医生签名', r: true }, { k: 'f29', n: '随访状态', r: true }, { k: 'f30', n: '失访原因/死亡原因' },
+          { k: 'f31', n: '随访类别' }, { k: 'f32', n: '随访季度', r: true }
+        ] }
+      ],
+      fctx: { field: 'sf', enabled: true, groups: {
+        elderly: { label: '老年人', threshold: 65, ok: { sbp: { op: '<=', val: 140 }, dbp: { op: '<=', val: 90 } }, no: { sbp: { op: '>', val: 140 }, dbp: { op: '>', val: 90 } } },
+        young:   { label: '非老年人', threshold: 65, ok: { sbp: { op: '<=', val: 130 }, dbp: { op: '<=', val: 80 } }, no: { sbp: { op: '>', val: 130 }, dbp: { op: '>', val: 80 } } }
+      } },
+      pf: { field: 'sf', enabled: true, opts: ['控制不满意'] }
+    },
+    {
+      key: 'assessment', name: '高血压评估', module: '高血压管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '姓名' }, { k: 'f2', n: '血压', r: true }, { k: 'f3', n: '心血管病危险因素' }, { k: 'f4', n: '靶器官损害' },
+          { k: 'f5', n: '是否糖尿病' }, { k: 'f6', n: '血糖情况①' }, { k: 'f7', n: '脑血管病' }, { k: 'f8', n: '心脏病' },
+          { k: 'f9', n: '肾脏病' }, { k: 'f10', n: '周围血管病' }, { k: 'f11', n: '视网膜病变' }, { k: 'f12', n: '其他' },
+          { k: 'f13', n: '血压分级结果' }, { k: 'f14', n: '危险分层结果' }, { k: 'f15', n: '分层管理结果' }, { k: 'f16', n: '降压结果' },
+          { k: 'f17', n: '总体评价', r: true }, { k: 'f18', n: '评价医生', r: true }, { k: 'f19', n: '评价日期', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'diabetes', name: '糖尿病专项', module: '糖尿病管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '糖尿病类型' }, { k: 'f2', n: '分级' }, { k: 'f3', n: '确诊机构' }, { k: 'f4', n: '确诊日期', r: true },
+          { k: 'f5', n: '病例来源' }, { k: 'f6', n: '身高' }, { k: 'f7', n: '体重' }, { k: 'f8', n: '体质指数(BMI)' },
+          { k: 'f9', n: '空腹血糖', r: true }, { k: 'f10', n: '空腹血糖测量方式' }, { k: 'f11', n: '随机血糖' }, { k: 'f12', n: '随机血糖测量方式' },
+          { k: 'f13', n: '餐后两小时血糖' }, { k: 'f14', n: '餐后两小时血糖测量方式' }, { k: 'f15', n: '是否口服降糖药物' }, { k: 'f16', n: '是否注射胰岛素' },
+          { k: 'f17', n: '注射胰岛素剂型' }, { k: 'f18', n: '并发症' }, { k: 'f19', n: '建档机构', r: true }, { k: 'f20', n: '建档医生', r: true },
+          { k: 'f21', n: '建档日期', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'dmFollowup', name: '糖尿病随访', module: '糖尿病管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '姓名' }, { k: 'f2', n: '随访日期', r: true }, { k: 'f3', n: '随访方式', r: true }, { k: 'f4', n: '症状', r: true }
+        ] },
+        { g: '体征', fields: [
+          { k: 'f5', n: '血压', r: true }, { k: 'f6', n: '体重' }, { k: 'f7', n: '身高' }, { k: 'f8', n: '体质指数(BMI)' },
+          { k: 'f9', n: '足背动脉搏动' }, { k: 'f10', n: '其他' }
+        ] },
+        { g: '生活方式指导', fields: [
+          { k: 'f11', n: '吸烟' }, { k: 'f12', n: '饮酒' }, { k: 'f13', n: '运动' }, { k: 'f14', n: '主食' },
+          { k: 'f15', n: '心理调整' }, { k: 'f16', n: '遵医行为' }
+        ] },
+        { g: '辅助检查', fields: [
+          { k: 'f17', n: '空腹血糖' }, { k: 'f18', n: '糖化血红蛋白' }, { k: 'f19', n: '检查日期' }, { k: 'f20', n: '检查结果' },
+          { k: 'f21', n: '服药依从性' }, { k: 'f22', n: '药物不良反应' }, { k: 'f23', n: '此次随访分类', r: true }, { k: 'f24', n: '分级' },
+          { k: 'f25', n: '用药情况' }
+        ] },
+        { g: '转诊', fields: [
+          { k: 'f26', n: '转诊情况' }, { k: 'f27', n: '转诊原因' }, { k: 'f28', n: '转诊机构' }, { k: 'f29', n: '转诊科室' },
+          { k: 'f30', n: '下次随访日期', r: true }, { k: 'f31', n: '随访医生签名', r: true }, { k: 'f32', n: '随访状态', r: true }, { k: 'f33', n: '失访原因/死亡原因' },
+          { k: 'f34', n: '随访类别' }, { k: 'f35', n: '随访季度', r: true }
+        ] }
+      ],
+      fctx: { field: 'sb', enabled: true, valKey: 'fbg', groups: {
+        elderly: { label: '老年人', threshold: 65, ok: { fbg: { op: '<', val: 8.3 } }, no: { fbg: { op: '>=', val: 8.3 } } },
+        young:   { label: '非老年人', threshold: 65, ok: { fbg: { op: '<', val: 7.0 } }, no: { fbg: { op: '>=', val: 7.0 } } }
+      } },
+      pf: { field: 'sf', enabled: true, opts: [] }
+    },
+    {
+      key: 'dmAssessment', name: '糖尿病评估', module: '糖尿病管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '空腹血糖' }, { k: 'f2', n: '餐后血糖' }, { k: 'f3', n: '糖化血红蛋白' }, { k: 'f4', n: '血压评价' },
+          { k: 'f5', n: 'BMI评价' }, { k: 'f6', n: '总胆固醇' }, { k: 'f7', n: '高密度胆固醇编码' }, { k: 'f8', n: '低密度胆固醇' },
+          { k: 'f9', n: '吸烟' }, { k: 'f10', n: '饮酒' }, { k: 'f11', n: '体育锻炼' }, { k: 'f12', n: '食盐摄入量编码' },
+          { k: 'f13', n: '遵医行为' }, { k: 'f14', n: '饮食' }, { k: 'f15', n: '心理状态' }, { k: 'f16', n: '管理程度', r: true },
+          { k: 'f17', n: '降糖效果' }, { k: 'f18', n: '总体评估' }, { k: 'f19', n: '评估医生', r: true }, { k: 'f20', n: '评估日期', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'hyperlipidemia', name: '高血脂专项', module: '高血脂管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '身高' }, { k: 'f2', n: '体重' }, { k: 'f3', n: '体质指数(BMI)' }, { k: 'f4', n: 'TG值', r: true },
+          { k: 'f5', n: 'TC值', r: true }, { k: 'f6', n: 'HDL-C值', r: true }, { k: 'f7', n: 'LDL-C值', r: true }, { k: 'f8', n: '高血脂分类', r: true },
+          { k: 'f9', n: '高血脂分级', r: true }, { k: 'f10', n: '是否服用降脂药' }, { k: 'f11', n: '每月用于降脂药物费用' }, { k: 'f12', n: '是否接受高血脂健康教育' },
+          { k: 'f13', n: '饮食控制情况' }, { k: 'f14', n: '饮食控制不良的原因' }, { k: 'f15', n: '并发症', r: true }, { k: 'f16', n: '建档机构', r: true },
+          { k: 'f17', n: '建档医生', r: true }, { k: 'f18', n: '建档日期', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'hlpFollowup', name: '高血脂随访', module: '高血脂管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '随访日期', r: true }, { k: 'f2', n: '随访方式', r: true }, { k: 'f3', n: '症状', r: true }
+        ] },
+        { g: '体征', fields: [
+          { k: 'f4', n: '血压', r: true }, { k: 'f5', n: '体重' }, { k: 'f6', n: '身高' }, { k: 'f7', n: '腰围' },
+          { k: 'f8', n: '臀围' }, { k: 'f9', n: '体质指数(BMI)' }, { k: 'f10', n: '心率' }, { k: 'f11', n: '足背动脉搏动' },
+          { k: 'f12', n: '其他' }
+        ] },
+        { g: '生活方式指导', fields: [
+          { k: 'f13', n: '日吸烟量' }, { k: 'f14', n: '日饮酒量' }, { k: 'f15', n: '运动' }, { k: 'f16', n: '主食' },
+          { k: 'f17', n: '摄盐情况(咸淡)' }, { k: 'f18', n: '心理调整' }, { k: 'f19', n: '遵医行为' }
+        ] },
+        { g: '辅助检查', fields: [
+          { k: 'f20', n: 'TG值' }, { k: 'f21', n: 'TC值' }, { k: 'f22', n: 'HDL-C值' }, { k: 'f23', n: 'LDL-C值' },
+          { k: 'f24', n: '检查日期' }, { k: 'f25', n: '检查结果' }, { k: 'f26', n: '服药依从性' }, { k: 'f27', n: '药物不良反应' },
+          { k: 'f28', n: '此次随访分类' }, { k: 'f29', n: '用药情况' }
+        ] },
+        { g: '转诊', fields: [
+          { k: 'f30', n: '转诊原因' }, { k: 'f31', n: '转诊机构' }, { k: 'f32', n: '转诊科室' }, { k: 'f33', n: '下次随访日期', r: true },
+          { k: 'f34', n: '随访医生签名', r: true }, { k: 'f35', n: '管理评价', r: true }, { k: 'f36', n: '失访日期' }, { k: 'f37', n: '失访原因' }
+        ] }
+      ]
+    },
+    {
+      key: 'elderlySelfCare', name: '自理能力评估', module: '老年人管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '评估事项与内容' }, { k: 'f2', n: '程度等级' }, { k: 'f3', n: '可自理' }, { k: 'f4', n: '轻度依赖' },
+          { k: 'f5', n: '中度依赖' }, { k: 'f6', n: '不可自理' }, { k: 'f7', n: '判断评分' }
+        ] }
+      ]
+    },
+    {
+      key: 'tcmPhysique', name: '中医体质辨识', module: '中医管理',
+      enabled: true,
+      sections: [
+        { g: '辨识信息', fields: [
+          { k: 'f1', n: '辨识日期', r: true }, { k: 'f2', n: '辨识医生', r: true }
+        ] },
+        { g: '体质类型得分', fields: [
+          { k: 'f3', n: '平和质', r: true }, { k: 'f4', n: '气虚质', r: true }, { k: 'f5', n: '阳虚质', r: true }, { k: 'f6', n: '阴虚质', r: true },
+          { k: 'f7', n: '痰湿质', r: true }, { k: 'f8', n: '湿热质', r: true }, { k: 'f9', n: '血瘀质', r: true }, { k: 'f10', n: '气郁质', r: true },
+          { k: 'f11', n: '特禀质', r: true }
+        ] }
+      ]
+    },
+{
+      key: 'tcmElderly', name: '老年人中医管理测评表', module: '中医管理',
+      ico: '<path d="M11 20A7 7 0 019.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/>',
+      desc: '老年人体质辨识表单；测评日期、辨识结果、测评机构与医生为必填，完整度按测评信息与体质辨识分区统计。',
+      enabled: true,
+      sections: [
+        { g: '测评信息', fields: [
+          { k: 'evalDate', n: '测评日期', r: true },
+          { k: 'evalOrg', n: '测评机构', r: true },
+          { k: 'evalDoctor', n: '测评医生', r: true },
+          { k: 'constitution', n: '体质辨识结果', r: true }
+        ] },
+        { g: '健康指导', fields: [
+          { k: 'emotion', n: '情志调摄建议', r: false },
+          { k: 'diet', n: '饮食调养建议', r: false }
+        ] }
+      ],
+      complete: [
+        { n: '测评信息', k: 'tcmEval', w: 40, on: true },
+        { n: '九种体质辨识', k: 'tcmConstitution', w: 40, on: true },
+        { n: '健康指导', k: 'tcmGuide', w: 20, on: true }
+      ]
+    },
+{
+      key: 'tcmChild', name: '儿童中医管理服务表', module: '中医管理',
+      ico: '<path d="M9 12h6"/><path d="M3 5l2-2M21 5l-2-2"/>',
+      desc: '0-3 岁儿童中医健康管理；服务月龄、服务项目与服务日期为必填，完整度覆盖备案信息与服务记录。',
+      enabled: true,
+      sections: [
+        { g: '儿童基本信息', fields: [
+          { k: 'age', n: '服务月龄', r: true },
+          { k: 'name', n: '儿童姓名', r: true },
+          { k: 'birth', n: '出生日期', r: true }
+        ] },
+        { g: '中医服务记录', fields: [
+          { k: 'serveDate', n: '服务日期', r: true },
+          { k: 'serveProj', n: '服务项目', r: true },
+          { k: 'serveDoctor', n: '服务医生', r: true },
+          { k: 'guidance', n: '中医饮食起居指导', r: false }
+        ] }
+      ],
+      complete: [
+        { n: '备案信息', k: 'tcmChildBase', w: 40, on: true },
+        { n: '服务记录', k: 'tcmChildServe', w: 60, on: true }
+      ]
+    },
+    {
+      key: 'tb', name: '第一次入户随访', module: '结核病管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '姓名' }, { k: 'f2', n: '随访时间', r: true }, { k: 'f3', n: '随访方式', r: true }, { k: 'f4', n: '治愈类型', r: true },
+          { k: 'f5', n: '戒烟情况', r: true }, { k: 'f6', n: '症状及体征', r: true }
+        ] },
+        { g: '用药', fields: [
+          { k: 'f7', n: '化疗方案', r: true }, { k: 'f8', n: '用法' }, { k: 'f9', n: '药品类型' }, { k: 'f10', n: '督导人员' }
+        ] },
+        { g: '居住环境', fields: [
+          { k: 'f11', n: '单独的卧室' }, { k: 'f12', n: '通风情况' }
+        ] },
+        { g: '生活方式', fields: [
+          { k: 'f13', n: '吸烟' }, { k: 'f14', n: '饮酒' }, { k: 'f15', n: '药物不良反应' }, { k: 'f16', n: '取药地点' }
+        ] },
+        { g: '健康教育及培训', fields: [
+          { k: 'f17', n: '服药记录的填写' }, { k: 'f18', n: '肺结核治疗药品存放' }, { k: 'f19', n: '规律服药和疗效' }, { k: 'f20', n: '外出期间如何坚持服药' },
+          { k: 'f21', n: '不规律服药危害' }, { k: 'f22', n: '生活习惯及注意事项' }, { k: 'f23', n: '定期复查' }, { k: 'f24', n: '密切接触者检查' },
+          { k: 'f25', n: '下次随访时间', r: true }, { k: 'f26', n: '随访医生签名', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'tbFollowup', name: '肺结核随访', module: '结核病管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '姓名' }, { k: 'f2', n: '随访时间' }, { k: 'f3', n: '治疗月序', r: true }, { k: 'f4', n: '随访方式' },
+          { k: 'f5', n: '督导人员', r: true }, { k: 'f6', n: '症状及体征', r: true }
+        ] },
+        { g: '用药', fields: [
+          { k: 'f7', n: '化疗方案' }, { k: 'f8', n: '用法' }, { k: 'f9', n: '服药次数' }, { k: 'f10', n: '药品类型' }
+        ] },
+        { g: '生活方式', fields: [
+          { k: 'f11', n: '吸烟' }, { k: 'f12', n: '饮酒' }, { k: 'f13', n: '药物不良反应' }, { k: 'f14', n: '并发症或合并症' }
+        ] },
+        { g: '转诊', fields: [
+          { k: 'f15', n: '科别' }, { k: 'f16', n: '原因' }, { k: 'f17', n: '2周内的抗结核效果' }, { k: 'f18', n: '处置意见' },
+          { k: 'f19', n: '下次随访时间', r: true }, { k: 'f20', n: '随访医生签名', r: true }
+        ] },
+        { g: '停止治疗', fields: [
+          { k: 'f21', n: '停止治疗时间' }, { k: 'f22', n: '停止治疗原因' }
+        ] },
+        { g: '全程管理情况', fields: [
+          { k: 'f23', n: '应服药次数' }, { k: 'f24', n: '实际服药次数' }, { k: 'f25', n: '服中药' }, { k: 'f26', n: '治疗过程中总停药次数' },
+          { k: 'f27', n: '断药率' }, { k: 'f28', n: '评估医生签名' }
+        ] },
+        { g: '失访/死亡', fields: [
+          { k: 'f29', n: '失访/死亡' }
+        ] }
+      ]
+    },
+    {
+      key: 'psi', name: '个人信息补充表', module: '重精管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '姓名' }, { k: 'f2', n: '监护人姓名' }, { k: 'f3', n: '与患者关系' }, { k: 'f4', n: '监护人住址' },
+          { k: 'f5', n: '监护人电话' }, { k: 'f6', n: '填报信息（联系）联系人' }, { k: 'f7', n: '联系电话' }, { k: 'f8', n: '就业情况' },
+          { k: 'f9', n: '户别', r: true }, { k: 'f10', n: '知情同意' }, { k: 'f11', n: '签字', r: true }, { k: 'f12', n: '签字日期', r: true },
+          { k: 'f13', n: '初次发病日期' }, { k: 'f14', n: '既往主要症状' }, { k: 'f15', n: '既往关键情况' }
+        ] },
+        { g: '目前治疗情况', fields: [
+          { k: 'f16', n: '门诊' }, { k: 'f17', n: '首次抗精神病治疗时间' }, { k: 'f18', n: '住院' }, { k: 'f19', n: '目前诊断情况' },
+          { k: 'f20', n: '确诊医院' }, { k: 'f21', n: '最近诊断日期' }, { k: 'f22', n: '危险行为效果' }, { k: 'f23', n: '危险行为' },
+          { k: 'f24', n: '经济状况' }, { k: 'f25', n: '专科医生意见' }, { k: 'f26', n: '医生签名', r: true }, { k: 'f27', n: '填表日期', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'psiFollowup', name: '重精随访', module: '重精管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '姓名' }, { k: 'f2', n: '随访日期', r: true }, { k: 'f3', n: '随访方式', r: true }, { k: 'f4', n: '失访原因' }
+        ] },
+        { g: '死亡', fields: [
+          { k: 'f5', n: '死亡日期' }, { k: 'f6', n: '死亡原因' }, { k: 'f7', n: '危险性评估' }, { k: 'f8', n: '症状' },
+          { k: 'f9', n: '自知力' }, { k: 'f10', n: '睡眠情况' }, { k: 'f11', n: '饮食情况' }
+        ] },
+        { g: '社会功能情况', fields: [
+          { k: 'f12', n: '个人生活料理' }, { k: 'f13', n: '家务劳动' }, { k: 'f14', n: '学习能力' }, { k: 'f15', n: '生产劳动及工作' },
+          { k: 'f16', n: '社会人际交往' }, { k: 'f17', n: '危险行为' }, { k: 'f18', n: '两次随访期间关锁情况' }, { k: 'f19', n: '两次随访期间住院情况' },
+          { k: 'f20', n: '末次出院时间' }, { k: 'f21', n: '实验室检查' }, { k: 'f22', n: '用药依从性' }, { k: 'f23', n: '药物不良反应' },
+          { k: 'f24', n: '治疗效果' }, { k: 'f25', n: '是否转诊' }, { k: 'f26', n: '转诊原因' }, { k: 'f27', n: '转诊机构' },
+          { k: 'f28', n: '转诊科室' }
+        ] },
+        { g: '用药指导', fields: [
+          { k: 'f29', n: '康复措施' }, { k: 'f30', n: '本次随访分类', r: true }, { k: 'f31', n: '随访医生', r: true }, { k: 'f32', n: '下次随访日期', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'tumor', name: '肿瘤专项', module: '肿瘤管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '姓名' }, { k: 'f2', n: 'ICD-0-3形态学编码', r: true }, { k: 'f3', n: 'ICD-0-3形态学名称', r: true }, { k: 'f4', n: 'ICD-0-3解剖学编码', r: true },
+          { k: 'f5', n: 'ICD-0-3解剖学名称', r: true }, { k: 'f6', n: 'ICD-10编码', r: true }, { k: 'f7', n: '肿瘤诊断名称', r: true }, { k: 'f8', n: '报告卡编号' },
+          { k: 'f9', n: '病程已告知病人' }, { k: 'f10', n: '联系人', r: true }, { k: 'f11', n: '联系人电话', r: true }, { k: 'f12', n: '门诊号' },
+          { k: 'f13', n: '住院号' }, { k: 'f14', n: '病理号' }, { k: 'f15', n: '吸烟史', r: true }, { k: 'f16', n: '开始吸烟或烟年龄' },
+          { k: 'f17', n: '戒烟年龄' }, { k: 'f18', n: '合计吸烟时间' }, { k: 'f19', n: '日吸香烟支数' }, { k: 'f20', n: '肿瘤TNM分期' },
+          { k: 'f21', n: 'TNM分期明细' }, { k: 'f22', n: '肿瘤临床分期', r: true }, { k: 'f23', n: '分级(Grad)①', r: true }, { k: 'f24', n: '肿瘤诊断依据', r: true },
+          { k: 'f25', n: '首次出现症状日期' }, { k: 'f26', n: '首次诊断日期', r: true }, { k: 'f27', n: '确诊日期', r: true }, { k: 'f28', n: '首次治疗情况', r: true },
+          { k: 'f29', n: '手术医院' }, { k: 'f30', n: '化疗医院' }, { k: 'f31', n: '放疗医院' }, { k: 'f32', n: '首次手术医院' },
+          { k: 'f33', n: '首次手术日期' }, { k: 'f34', n: '首次手术性质' }, { k: 'f35', n: '社区管理医师' }, { k: 'f36', n: '化疗次数' },
+          { k: 'f37', n: '目前情况类别' }, { k: 'f38', n: '曾经治疗情况' }, { k: 'f39', n: '肿瘤家族史标志' }, { k: 'f40', n: '卡氏评分', r: true },
+          { k: 'f41', n: '肿瘤部位转移' }, { k: 'f42', n: '报告机构', r: true }, { k: 'f43', n: '报告医师', r: true }, { k: 'f44', n: '报告日期', r: true },
+          { k: 'f45', n: '建档机构', r: true }, { k: 'f46', n: '建档医师', r: true }, { k: 'f47', n: '建档日期', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'tumorFollowup', name: '肿瘤随访', module: '肿瘤管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '姓名' }, { k: 'f2', n: '随访日期', r: true }, { k: 'f3', n: '随访方式', r: true }, { k: 'f4', n: '身高' },
+          { k: 'f5', n: '体重' }, { k: 'f6', n: '体质指数' }
+        ] },
+        { g: '生活方式指导', fields: [
+          { k: 'f7', n: '吸烟' }, { k: 'f8', n: '饮酒' }, { k: 'f9', n: '运动' }, { k: 'f10', n: '饮食情况' },
+          { k: 'f11', n: '遵医行为' }, { k: 'f12', n: '心理调整' }
+        ] },
+        { g: '肿瘤四项检查', fields: [
+          { k: 'f13', n: '甲胎蛋白(AFP)' }, { k: 'f14', n: '癌胚抗原(CEA)' }, { k: 'f15', n: '糖类抗原125(CA125)' }, { k: 'f16', n: '组织多肽抗原(TPA)' },
+          { k: 'f17', n: '目前情况', r: true }, { k: 'f18', n: '指导内容', r: true }, { k: 'f19', n: '转诊分析', r: true }, { k: 'f20', n: '随访医生', r: true },
+          { k: 'f21', n: '检查医师', r: true }, { k: 'f22', n: '随访状态', r: true }, { k: 'f23', n: '下次随访时间', r: true }, { k: 'f24', n: '卡氏斯基(kamofsky)评分' }
+        ] }
+      ]
+    },
+    {
+      key: 'copd', name: '慢阻肺专项', module: '慢阻肺管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '姓名' }, { k: 'f2', n: '身高' }, { k: 'f3', n: '体重' }, { k: 'f4', n: '血压' },
+          { k: 'f5', n: '分级' }, { k: 'f6', n: '危险因素' }, { k: 'f7', n: '确诊依据' }, { k: 'f8', n: '确诊机构' },
+          { k: 'f9', n: '建档机构', r: true }, { k: 'f10', n: '确诊日期', r: true }, { k: 'f11', n: '建档日期', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'copdFollowup', name: '慢阻肺随访', module: '慢阻肺管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '姓名' }
+        ] },
+        { g: '随访类型', fields: [
+          { k: 'f2', n: '随访类型', r: true }, { k: 'f3', n: '随访日期', r: true }, { k: 'f4', n: '随访方式', r: true }, { k: 'f5', n: '随访状态', r: true }
+        ] },
+        { g: '症状', fields: [
+          { k: 'f6', n: '咳嗽咳痰', r: true }, { k: 'f7', n: 'CAT评估', r: true }, { k: 'f8', n: 'mMRC结论', r: true }
+        ] },
+        { g: '体征', fields: [
+          { k: 'f9', n: '口唇紫绀' }, { k: 'f10', n: '外周水肿', r: true }, { k: 'f11', n: '心率', r: true }, { k: 'f12', n: '身高', r: true },
+          { k: 'f13', n: '体重', r: true }, { k: 'f14', n: '体质指数(BMI)' }, { k: 'f15', n: '其他' }, { k: 'f16', n: '合并症', r: true }
+        ] },
+        { g: '生活方式指导', fields: [
+          { k: 'f17', n: '平均每日吸烟' }, { k: 'f18', n: '平均每周运动量' }, { k: 'f19', n: '疫苗接种' }
+        ] },
+        { g: '辅助检查', fields: [
+          { k: 'f20', n: 'FEV1' }, { k: 'f21', n: 'FVC' }, { k: 'f22', n: 'FEV1/FVC' }, { k: 'f23', n: 'FEV1占预计值' },
+          { k: 'f24', n: '服药依赖性', r: true }, { k: 'f25', n: '呼吸疾病用药的不良反应' }
+        ] },
+        { g: '用药情况', fields: [
+          { k: 'f26', n: '慢阻肺药物' }, { k: 'f27', n: '其他药物' }, { k: 'f28', n: '慢阻肺药物变更时间' }, { k: 'f29', n: '慢阻肺药物变更原因' }
+        ] },
+        { g: '其他治疗', fields: [
+          { k: 'f30', n: '家庭氧疗', r: true }, { k: 'f31', n: '无创呼吸机使用', r: true }, { k: 'f32', n: '此次随访分类', r: true }, { k: 'f33', n: '分级', r: true }
+        ] },
+        { g: '转诊', fields: [
+          { k: 'f34', n: '转诊情况' }, { k: 'f35', n: '转诊原因' }, { k: 'f36', n: '转诊机构' }, { k: 'f37', n: '转诊科室' },
+          { k: 'f38', n: '因急性加重住院' }, { k: 'f39', n: '下次随访日期', r: true }, { k: 'f40', n: '随访医生签名' }
+        ] }
+      ]
+    },
+    {
+      key: 'cardio', name: '心脑血管评估', module: '心脑血管管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '姓名' }
+        ] },
+        { g: '体征', fields: [
+          { k: 'f2', n: '身高' }, { k: 'f3', n: '体重', r: true }, { k: 'f4', n: '体质指数' }, { k: 'f5', n: '在医院测血压', r: true },
+          { k: 'f6', n: '在家自测血压', r: true }, { k: 'f7', n: '总胆固醇' }, { k: 'f8', n: '甘油三酯', r: true }, { k: 'f9', n: '低密度脂蛋白胆固醇', r: true },
+          { k: 'f10', n: '高密度脂蛋白胆固醇', r: true }, { k: 'f11', n: '高血压病', r: true }, { k: 'f12', n: '血糖异常', r: true }, { k: 'f13', n: '吸烟情况', r: true },
+          { k: 'f14', n: '脑卒中病史', r: true }, { k: 'f15', n: '糖尿病', r: true }, { k: 'f16', n: '明显超重或肥胖①', r: true }, { k: 'f17', n: '运动锻炼情况①', r: true },
+          { k: 'f18', n: '心房颤动/房颤性心脏病', r: true }, { k: 'f19', n: 'LDL≥4.14mmol/L' }, { k: 'f20', n: 'HDL&lt;0.78mmol/L' }, { k: 'f21', n: '心肌梗死病史' },
+          { k: 'f22', n: '接受经皮冠状动脉介入治疗', r: true }, { k: 'f23', n: '接受冠状动脉搭桥手术', r: true }, { k: 'f24', n: '10年心脑血管患病风险≥20%①', r: true }, { k: 'f25', n: '脑中风风险评估结论', r: true },
+          { k: 'f26', n: '心脑血管患病风险评估结论', r: true }, { k: 'f27', n: '评估日期', r: true }, { k: 'f28', n: '评估机构', r: true }, { k: 'f29', n: '是否转诊', r: true },
+          { k: 'f30', n: '转诊日期' }, { k: 'f31', n: '转诊机构' }, { k: 'f32', n: '转诊科目' }, { k: 'f33', n: '转诊结论' }
+        ] }
+      ]
+    },
+    {
+      key: 'cardioFollowup', name: '心脑血管随访', module: '心脑血管管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '姓名' }, { k: 'f2', n: '随访日期', r: true }, { k: 'f3', n: '随访方式', r: true }
+        ] },
+        { g: '主要危险因素', fields: [
+          { k: 'f4', n: '危险因素' }
+        ] },
+        { g: '体征', fields: [
+          { k: 'f5', n: '血压' }, { k: 'f6', n: '体重' }, { k: 'f7', n: '目标体重' }, { k: 'f8', n: '身高' },
+          { k: 'f9', n: '体质指数（BMI）' }, { k: 'f10', n: '目标体质指数' }, { k: 'f11', n: '足量运动或体力活动' }, { k: 'f12', n: '其他症状' }
+        ] },
+        { g: '生活方式指导', fields: [
+          { k: 'f13', n: '吸烟' }, { k: 'f14', n: '目标日吸烟量' }, { k: 'f15', n: '饮酒' }, { k: 'f16', n: '目标日饮酒量' },
+          { k: 'f17', n: '运动' }, { k: 'f18', n: '目标次数' }, { k: 'f19', n: '主食' }, { k: 'f20', n: '目标日主食量' },
+          { k: 'f21', n: '心理调整' }, { k: 'f22', n: '遵医行为' }, { k: 'f23', n: '心血管' }, { k: 'f24', n: '脑血管' },
+          { k: 'f25', n: '高血压' }, { k: 'f26', n: '糖尿病' }, { k: 'f27', n: '脑卒中' }, { k: 'f28', n: '血脂异常' },
+          { k: 'f29', n: '心绞痛' }, { k: 'f30', n: '其他' }, { k: 'f31', n: '危险因素控制及治疗建议', r: true }, { k: 'f32', n: '指导干预意见', r: true },
+          { k: 'f33', n: '随访医生签名', r: true }, { k: 'f34', n: '下次随访日期', r: true }, { k: 'f35', n: '随访状态', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'hr', name: '高危专项', module: '高危管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '姓名' }, { k: 'f2', n: '性别' }, { k: 'f3', n: '出生日期' }, { k: 'f4', n: '身高', r: true },
+          { k: 'f5', n: '体质指数' }, { k: 'f6', n: '体重', r: true }, { k: 'f7', n: '腰围', r: true }, { k: 'f8', n: '血糖', r: true },
+          { k: 'f9', n: '血压' }, { k: 'f10', n: '高危类型' }, { k: 'f11', n: '高血压高危异常指标' }, { k: 'f12', n: '糖尿病高危异常指标' },
+          { k: 'f13', n: '数据来源' }, { k: 'f14', n: '随访机构', r: true }, { k: 'f15', n: '检查类型', r: true }, { k: 'f16', n: '随访日期', r: true }
+        ] }
+      ]
+    },
+    {
+      key: 'hrFollowup', name: '高危随访', module: '高危管理',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'f1', n: '姓名' }, { k: 'f2', n: '随访日期', r: true }, { k: 'f3', n: '随访方式', r: true }
+        ] },
+        { g: '症状', fields: [
+          { k: 'f4', n: '症状' }
+        ] },
+        { g: '体征', fields: [
+          { k: 'f5', n: '血压' }, { k: 'f6', n: '体质' }, { k: 'f7', n: '身高' }, { k: 'f8', n: '体质指数(BMI)' },
+          { k: 'f9', n: '腰围' }, { k: 'f10', n: '心率' }, { k: 'f11', n: '血糖' }, { k: 'f12', n: '其他' }
+        ] },
+        { g: '生化检查', fields: [
+          { k: 'f13', n: '总胆固醇' }, { k: 'f14', n: '甘油三酯' }, { k: 'f15', n: '低密度脂蛋白' }, { k: 'f16', n: '其他' }
+        ] },
+        { g: '生活方式指导', fields: [
+          { k: 'f17', n: '吸烟' }, { k: 'f18', n: '饮酒' }, { k: 'f19', n: '运动' }, { k: 'f20', n: '随访情况' },
+          { k: 'f21', n: '心理调整' }, { k: 'f22', n: '遵医行为' }, { k: 'f23', n: '随访结果', r: true }, { k: 'f24', n: '是否转诊', r: true },
+          { k: 'f25', n: '结转管理原因' }, { k: 'f26', n: '转诊医生', r: true }, { k: 'f27', n: '下次随访日期', r: true }, { k: 'f28', n: '随访状态' }
+        ] }
+      ]
+    },
+{
+      key: 'infectReport', name: '传染病报卡', module: '疾病报卡',
+      ico: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+      desc: '法定传染病报告卡；报告病种、发病日期、医生为必填，完整度按基本信息、发病诊断与报告信息分区统计。',
+      enabled: true,
+      sections: [
+        { g: '基本信息', fields: [
+          { k: 'name', n: '姓名', r: true },
+          { k: 'idNo', n: '证件号码', r: true },
+          { k: 'address', n: '现住址', r: false }
+        ] },
+        { g: '发病与诊断', fields: [
+          { k: 'disease', n: '报告病种', r: true },
+          { k: 'onsetDate', n: '发病日期', r: true },
+          { k: 'diagDate', n: '诊断日期', r: true },
+          { k: 'caseType', n: '病例分类', r: true }
+        ] },
+        { g: '报告信息', fields: [
+          { k: 'reportDoctor', n: '填报医生', r: true },
+          { k: 'reportTime', n: '填报时间', r: true }
+        ] }
+      ],
+      complete: [
+        { n: '基本信息', k: 'infBase', w: 30, on: true },
+        { n: '发病诊断', k: 'infDiag', w: 45, on: true },
+        { n: '报告信息', k: 'infReport', w: 25, on: true }
+      ]
+    }
+  ];
+
+  /* ================= 运行态：每次渲染从 DM 派生，改完写入 CFG，用于保存/重置 ================= */
+  var CFG = {};          // key -> { enabled, req:{k:bool}, comp:{k:bool} }
+  var COLLAPSE = {};     // formKey|groupName -> bool(已折叠)
+  var ACTIVE = 'basic';  // 当前选中表单 key
+  var TAB = 'required';  // 'required' | 'complete' | 'fctx' | 'pf'
+
+  function initCfg(form) {
+    var c = CFG[form.key] || (CFG[form.key] = {
+      enabled: form.enabled,
+      req: {}
+    });
+    // 字段必填态
+    form.sections.forEach(function (sec) {
+      (sec.fields || []).forEach(function (f) { if (c.req[f.k] === undefined) c.req[f.k] = !!f.r; });
+    });
+    // 完整度配置（字段级）：默认全部字段参与，必填字段强制参与
+    if (c.comp === undefined) {
+      c.comp = {};
+      form.sections.forEach(function (sec) {
+        (sec.fields || [{ k: sec.k, n: sec.n, r: sec.r }]).forEach(function (f) {
+          c.comp[f.k] = true;
+        });
+      });
+    }
+    // 随访分类配置
+    if (form.fctx && c.fctx === undefined) {
+      c.fctx = { enabled: !!form.fctx.enabled, groups: {} };
+      var gc = c.fctx.groups;
+      Object.keys(form.fctx.groups).forEach(function (gk) {
+        var g = form.fctx.groups[gk];
+        gc[gk] = { label: g.label, threshold: g.threshold, ok: {}, no: {} };
+        ['ok', 'no'].forEach(function (st) {
+          Object.keys(g[st]).forEach(function (ik) {
+            gc[gk][st][ik] = { op: g[st][ik].op, val: g[st][ik].val };
+          });
+        });
+      });
+    }
+    // 随访不佳配置
+    if (form.pf && c.pf === undefined) {
+      c.pf = { enabled: !!form.pf.enabled, sel: (form.pf.opts || []).slice() };
+    }
+    return c;
+  }
+
+  function getForm(key) { for (var i = 0; i < DM.length; i++) if (DM[i].key === key) return DM[i]; return null; }
+
+  /* ---- 工具：统计 ---- */
+  function countFlat(form) { return form.sections.reduce(function (a, s) { return a + (s.fields ? s.fields.length : 1); }, 0); }
+  function countReq(form, c) {
+    return form.sections.reduce(function (a, s) {
+      var list = s.fields || [{ k: s.k, n: s.n, r: s.r }];
+      return a + list.filter(function (f) { return c.req[f.k]; }).length;
+    }, 0);
+  }
+  function countSecOn(form, c) { return flatList(form).reduce(function (a, g) { return a + g.fields.filter(function (f) { return c.comp[f.k] || c.req[f.k]; }).length; }, 0); }
+  function compPctOf(form, c) { return Math.round(countSecOn(form, c) / Math.max(1, countFlat(form)) * 100); }
+
+  function flatList(form) {
+    var out = [];
+    form.sections.forEach(function (s) {
+      var list = s.fields && s.fields.length ? s.fields : [{ k: s.k, n: s.n, r: s.r }];
+      out.push({ g: s.g, fields: list });
+    });
+    return out;
+  }
+
+  /* ================= 左侧表单树 ================= */
+  function renderTree(q) {
+    q = (q || '').trim();
+    var groups = {}, order = [];
+    DM.forEach(function (f) {
+      if (q && f.name.indexOf(q) < 0 && (f.module || '').indexOf(q) < 0 && f.key.indexOf(q) < 0) return;
+      if (!groups[f.module]) { groups[f.module] = []; order.push(f.module); }
+      groups[f.module].push(f);
+    });
+    var html = '';
+    if (!order.length) { html = '<div class="tree-empty">未找到匹配的业务表单</div>'; }
+    order.forEach(function (mod) {
+      var list = groups[mod];
+      if (mod) html += '<div class="tree-group-label">' + mod + '</div>';
+      list.forEach(function (f) {
+        var c = initCfg(f);
+        var compCnt = countSecOn(f, c), reqCnt = countReq(f, c);
+        html += '<div class="tree-item' + (f.key === ACTIVE ? ' active' : '') + (c.enabled ? '' : ' off') + '" data-key="' + f.key + '" onclick="selectForm(\'' + f.key + '\')" title="' + f.name + '">' +
+          '<span class="tree-name">' + f.name + '</span>' +
+          '<span class="tree-meta">' + compCnt + '完整度 ' + reqCnt + '必填</span>' +
+          (c.enabled ? '' : '<span class="tree-off">停用</span>') +
+        '</div>';
+      });
+    });
+    document.getElementById('treeScroll').innerHTML = html;
+  }
+
+  /* ================= 右侧配置区 ================= */
+  function selectForm(key) { ACTIVE = key; renderTree(document.getElementById('formSearch').value); renderCfg(); }
+
+  function renderCfg() {
+    var f = getForm(ACTIVE), c = initCfg(f);
+    var total = countFlat(f), req = countReq(f, c), compOn = countSecOn(f, c), compPct = compPctOf(f, c);
+    var pct = Math.round(req / total * 100);
+
+    document.getElementById('cfgPane').innerHTML =
+      /* 头部 */
+      '<div class="cfg-head">' +
+        '<div class="cfg-title"><h2>' + f.name + (f.module ? '【' + f.module + '】' : '') + '</h2></div>' +
+        '<div class="cfg-actions">' +
+          '<label class="switch cfg-enable"><input type="checkbox" ' + (c.enabled ? 'checked' : '') + ' onchange="toggleEnabled(this.checked)"><span class="track"></span>启用</label>' +
+        '</div>' +
+      '</div>' +
+      /* 单行指标条 */
+      '<div class="stat-strip">' +
+        '<span class="ss-item"><label>字段总数</label><b>' + total + '</b></span>' +
+        '<span class="ss-sep"></span>' +
+        '<span class="ss-item"><label>已设必填</label><b>' + req + '</b><span class="ss-dim">/ ' + total + ' · ' + pct + '%</span></span>' +
+        '<span class="ss-sep"></span>' +
+        '<span class="ss-item"><label>完整度字段</label><b>' + compOn + ' / ' + total + '</b><span class="ss-dim">参与完整度</span></span>' +
+        '<span class="ss-val">' +
+          '<span class="ss-item"><label>参与占比</label><b class="' + (compPct ? 'ok' : 'no') + '">' + compPct + '%</b></span>' +
+          '<span class="ss-chip ' + (compPct ? 'ok' : 'no') + '">' + (compPct ? '字段级统计' : '未配置参与字段') + '</span>' +
+        '</span>' +
+      '</div>' +
+      /* 页签 */
+      '<div class="cfg-tabs">' +
+        '<div class="cfg-tab' + (TAB === 'required' ? ' active' : '') + '" onclick="switchTab(\'required\')">必填项配置<span class="tab-cnt ' + (req ? 'ok' : '') + '">' + req + '</span></div>' +
+        '<div class="cfg-tab' + (TAB === 'complete' ? ' active' : '') + '" onclick="switchTab(\'complete\')">完整度配置<span class="tab-cnt ' + (compPct ? 'ok' : '') + '">' + compPct + '%</span></div>' +
+        (f.fctx ? '<div class="cfg-tab' + (TAB === 'fctx' ? ' active' : '') + '" onclick="switchTab(\'fctx\')">随访分类设置' + (c.fctx && c.fctx.enabled ? '<span class="tab-cnt ok">已启用</span>' : '<span class="tab-cnt warn">未启用</span>') + '</div>' : '') +
+        (f.pf ? '<div class="cfg-tab' + (TAB === 'pf' ? ' active' : '') + '" onclick="switchTab(\'pf\')">随访不佳设置' + (c.pf && c.pf.sel && c.pf.sel.length ? '<span class="tab-cnt ok">' + c.pf.sel.length + '项</span>' : '<span class="tab-cnt warn">未设置</span>') + '</div>' : '') +
+      '</div>' +
+      '<div class="tab-body" id="tabBody"></div>' +
+      /* 底部 */
+      '<div class="cfg-foot">' +
+        '<span class="foot-msg">配置保存后立即生效，将同步作用于「档案维护」中的建档与随访校验</span>' +
+        '<button class="btn btn-default" onclick="resetConfig()">重置</button>' +
+        '<button class="btn btn-primary" onclick="saveConfig()">保存配置</button>' +
+      '</div>';
+
+    renderTab();
+  }
+
+  function renderTab() {
+    var f = getForm(ACTIVE), c = initCfg(f);
+    var body = document.getElementById('tabBody');
+    if (TAB === 'complete') { renderCompleteTab(f, c); }
+    else if (TAB === 'fctx') { renderFctxTab(f, c); }
+    else if (TAB === 'pf') { renderPfTab(f, c); }
+    else { renderRequiredTab(f, c); }
+  }
+
+  /* ---- 必填项页签 ---- */
+  function renderRequiredTab(f, c) {
+    var groups = flatList(f);
+    var html = '';
+    groups.forEach(function (g, gi) {
+      var on = g.fields.filter(function (a) { return c.req[a.k]; }).length;
+      var collapsed = !!COLLAPSE[f.key + '|' + g.g];
+      html += '<div class="req-group' + (collapsed ? ' collapsed' : '') + '">' +
+        '<div class="req-ghead" onclick="toggleGroup(\'' + g.g + '\')">' +
+        '<svg class="grp-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>' +
+        '<span>' + g.g + '</span>' +
+        '<span class="gcnt">' + on + '/' + g.fields.length + ' 必填</span>' +
+        '<span class="grp-btns">' +
+          '<button class="grp-all" onclick="event.stopPropagation();checkAllGroup(\'' + g.g + '\', true)">全选</button>' +
+          '<button class="grp-all clean" onclick="event.stopPropagation();checkAllGroup(\'' + g.g + '\', false)">清空</button>' +
+        '</span></div>';
+      html += '<div class="req-group-body"><div class="req-grid">';
+      g.fields.forEach(function (fd) {
+        var isReq = !!c.req[fd.k];
+        html += '<div class="req-cell' + (isReq ? ' req-true' : '') + '">' +
+          '<label class="req-label" title="' + fd.n + '"><span class="req-flag">*</span>' + fd.n + '</label>' +
+          '<label class="switch req-switch"><input type="checkbox" ' + (isReq ? 'checked' : '') + ' onchange="toggleReq(\'' + fd.k + '\', this.checked)"><span class="track"></span></label>' +
+          '</div>';
+      });
+      html += '</div></div></div>';
+    });
+    document.getElementById('tabBody').innerHTML = html;
+  }
+
+  function toggleGroup(g) {
+    var k = ACTIVE + '|' + g;
+    COLLAPSE[k] = !COLLAPSE[k];
+    renderTab();
+  }
+
+  function checkAllGroup(g, val) {
+    var f = getForm(ACTIVE), c = initCfg(f);
+    flatList(f).forEach(function (gr) {
+      if (gr.g === g) gr.fields.forEach(function (fd) { c.req[fd.k] = val; if (val) c.comp[fd.k] = true; });
+    });
+    renderCfg();
+  }
+
+  function toggleReq(fk, val) {
+    var c = initCfg(getForm(ACTIVE));
+    c.req[fk] = val;
+    if (val) c.comp[fk] = true;
+    renderCfg();
+  }
+
+  /* ---- 完整度页签（字段级） ---- */
+  function renderCompleteTab(f, c) {
+    var total = countFlat(f), compOn = countSecOn(f, c);
+    var groups = flatList(f);
+    var html = '';
+    groups.forEach(function (g) {
+      var on = g.fields.filter(function (a) { return c.comp[a.k]; }).length;
+      var collapsed = !!COLLAPSE[f.key + '|' + g.g];
+      html += '<div class="req-group' + (collapsed ? ' collapsed' : '') + '">' +
+        '<div class="req-ghead" onclick="toggleGroup(\'' + g.g + '\')">' +
+        '<svg class="grp-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>' +
+        '<span>' + g.g + '</span>' +
+        '<span class="gcnt">' + on + '/' + g.fields.length + ' 参与</span>' +
+        '</div>';
+      html += '<div class="req-group-body"><div class="req-grid">';
+      g.fields.forEach(function (fd) {
+        var locked = !!c.req[fd.k];
+        var isComp = !!c.comp[fd.k] || locked;
+        html += '<div class="req-cell' + (isComp ? ' req-true' : '') + '">' +
+          '<label class="req-label" title="' + fd.n + (locked ? '（必填字段，强制参与完整度）' : '') + '">' +
+            '<span class="req-flag">' + (locked ? '锁' : '') + '</span>' + fd.n +
+            (locked ? '<span class="comp-lock">必填</span>' : '') +
+          '</label>' +
+          '<label class="switch req-switch"><input type="checkbox" ' + (isComp ? 'checked' : '') + (locked ? ' disabled' : '') + ' onchange="toggleComp(\'' + fd.k + '\', this.checked)"><span class="track"></span></label>' +
+          '</div>';
+      });
+      html += '</div></div></div>';
+    });
+
+    document.getElementById('tabBody').innerHTML =
+      '<div class="comp-toolbar">' +
+        '<span class="hint">完整率 = 已填报字段 ÷ 完整度配置字段 × 100%。必填字段强制参与完整度（锁定，不可取消）；非必填字段可自由勾选是否参与。</span>' +
+        '<span class="comp-tools">' +
+          '<span class="comp-sum"><span class="lbl">参与字段</span>' +
+          '<span class="sum-val ' + (compOn ? 'ok' : 'no') + '">' + compOn + ' / ' + total + '</span>' +
+          '</span>' +
+          '<button class="btn btn-default btn-xs" onclick="restoreComp()" title="恢复为该表单的默认完整度参与字段（全部参与）">恢复默认</button>' +
+        '</span>' +
+      '</div>' + html;
+  }
+
+  function toggleComp(fk, val) {
+    var c = initCfg(getForm(ACTIVE));
+    c.comp[fk] = val;
+    renderCfg();
+  }
+  function restoreComp() {
+    var f = getForm(ACTIVE), c = initCfg(f);
+    c.comp = undefined; initCfg(f);
+    renderCompleteTab(f, c);
+    toast('已恢复「' + f.name + '」的默认完整度字段（全部字段参与）', 'info');
+  }
+
+  /* ---- 随访分类页签 ---- */
+  function renderFctxTab(f, c) {
+    if (!f.fctx) { document.getElementById('tabBody').innerHTML = '<div class="fctx-none">该表单项不适用随防分类自动判定配置</div>'; return; }
+    var fc = c.fctx;
+    // 判定口径由数据决定（收缩压/舒张压 → 血压；空腹血糖 → 血糖）
+    var isHtn = !!(fc.groups.elderly && fc.groups.elderly.ok && fc.groups.elderly.ok.sbp);
+    var hint = isHtn
+      ? '录入随访表收缩压/舒张压后，系统按居民年龄（65 岁为界）与下方判定条件自动回填「此次随访分类」。'
+      : '录入随访表空腹血糖后，系统按居民年龄（65 岁为界）与下方判定条件自动回填「此次随访分类」。';
+    function condRows(gk, g, stat) {
+      var rows = '';
+      var add = function (ik, metric, unit) {
+        var cond = g[stat][ik];
+        rows += '<div class="fctx-cond">' +
+          '<span class="fctx-metric">' + metric + '</span>' +
+          '<select class="fctx-op" data-op="' + gk + '_' + stat + '_' + ik + '" onchange="setFctxOp(this)">' +
+            '<option value="&lt;"' + (cond.op === '<' ? ' selected' : '') + '>&lt;</option>' +
+            '<option value="&lt;="' + (cond.op === '<=' ? ' selected' : '') + '>≤</option>' +
+            '<option value="&gt;"' + (cond.op === '>' ? ' selected' : '') + '>&gt;</option>' +
+            '<option value="&gt;="' + (cond.op === '>=' ? ' selected' : '') + '>≥</option>' +
+          '</select>' +
+          '<input class="fctx-val" type="number" value="' + cond.val + '" oninput="setFctxVal(\'' + gk + '\',\'' + stat + '\',\'' + ik + '\',this.value)">' +
+          '<span class="fctx-unit">' + unit + '</span>' +
+        '</div>';
+      };
+      if (isHtn) { add('sbp', '收缩压', 'mmHg'); add('dbp', '舒张压', 'mmHg'); }
+      else { add('fbg', '空腹血糖', 'mmol/L'); }
+      return rows;
+    }
+
+    var cards = '';
+    ['elderly', 'young'].forEach(function (gk) {
+      var g = fc.groups[gk];
+      var r = gk === 'elderly';
+      cards += '<div class="fctx-card">' +
+        '<div class="fctx-card-head">' +
+          '<span class="fctx-age-ico ' + (r ? 'eld' : 'nyg') + '">' + (r ? '老' : '成') + '</span>' +
+          '<span class="fctx-age-name">' + g.label + '</span>' +
+          '<span class="fctx-age-rule">' + (r ? '≥' + g.threshold + ' 岁' : '< ' + g.threshold + ' 岁') + '</span>' +
+        '</div>' +
+        '<div class="fctx-card-body">' +
+          '<div class="fctx-col ok-col">' +
+            '<div class="fctx-col-head"><span class="dot"></span>控制满意 · 自动判定条件</div>' +
+            condRows(gk, g, 'ok') +
+          '</div>' +
+          '<div class="fctx-col no-col">' +
+            '<div class="fctx-col-head"><span class="dot"></span>控制不满意 · 自动判定条件</div>' +
+            condRows(gk, g, 'no') +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    });
+
+    document.getElementById('tabBody').innerHTML =
+      '<div class="fctx-head">' +
+        '<span class="fctx-hint">' + hint + '</span>' +
+        '<span class="fctx-tools">' +
+          '<span class="fctx-sum"><span class="lbl">判定依据</span><span class="sum-val">' + (isHtn ? '收缩压 / 舒张压' : '空腹血糖') + '</span></span>' +
+          '<button class="btn btn-default btn-xs" onclick="restoreFctx()" title="恢复为该表单的默认随防分类阈值">恢复默认阈值</button>' +
+        '</span>' +
+      '</div>' +
+      '<div class="fctx-cards">' + cards + '</div>';
+  }
+
+  function setFctxOp(el) {
+    var parts = el.getAttribute('data-op').split('_'); // gk, stat, key
+    var gk = parts[0], stat = parts[1] === 'ok' ? 'ok' : 'no', key = parts[2];
+    var v = el.value;
+    var c = initCfg(getForm(ACTIVE)).fctx;
+    c.groups[gk][stat][key].op = v;
+  }
+  function setFctxVal(gk, stat, key, raw) {
+    var v = Number(raw); if (isNaN(v)) v = 0;
+    var c = initCfg(getForm(ACTIVE)).fctx;
+    c.groups[gk][stat][key].val = v;
+  }
+  function restoreFctx() {
+    var f = getForm(ACTIVE), c = initCfg(f);
+    c.fctx = undefined; initCfg(f);
+    renderFctxTab(f, c);
+    toast('已恢复「' + f.name + '」的默认随防分类阈值', 'info');
+  }
+
+  /* ---- 随访不佳页签 ---- */
+  var PF_OPTS = ['控制满意', '控制不满意', '不良反应', '并发症'];
+  function renderPfTab(f, c) {
+    if (!f.pf) { document.getElementById('tabBody').innerHTML = '<div class="fctx-none">该表单项不适用随访不佳设置</div>'; return; }
+    var p = c.pf;
+    var checks = '';
+    PF_OPTS.forEach(function (o) {
+      checks += '<label class="pf-check"><input type="checkbox" value="' + o + '"' + (p.sel.indexOf(o) > -1 ? ' checked' : '') + ' onchange="setPfSel(this)">' + o + '</label>';
+    });
+    var tip = p.sel.length
+      ? '当前判定：随访表中「此次随访分类」为「' + p.sel.join('、') + '」的记录将被标记为随访不佳，进入「计划提醒-随访不佳提醒」待处理列表。'
+      : '未勾选任何分类：随访不佳提醒不会生成（按系统默认口径，仅提示口径未配置）。';
+
+    document.getElementById('tabBody').innerHTML =
+      '<div class="fctx-head">' +
+        '<span class="fctx-hint">勾选「此次随访分类」中的分类作为随访不佳判定依据。随访记录匹配所选分类时，自动生成随访不佳提醒，供医生在「计划提醒-随访不佳提醒」中处置。</span>' +
+        '<span class="fctx-tools">' +
+          '<span class="fctx-sum"><span class="lbl">当前设置</span><span class="sum-val">' + (p.sel.length ? p.sel.length + ' 项' : '未设置') + '</span></span>' +
+          '<button class="btn btn-default btn-xs" onclick="restorePf()" title="恢复为该表单的默认随访不佳分类">恢复默认</button>' +
+        '</span>' +
+      '</div>' +
+      '<div class="pf-card">' +
+        '<div class="pf-card-head">随访不佳判定配置</div>' +
+        '<div class="pf-row">' +
+          '<label class="pf-label">随访类型名称：</label>' +
+          '<select class="pf-select" onchange="switchPfType(this)">' +
+            '<option value="followup"' + (ACTIVE === 'followup' ? ' selected' : '') + '>高血压</option>' +
+            '<option value="dmFollowup"' + (ACTIVE === 'dmFollowup' ? ' selected' : '') + '>糖尿病</option>' +
+          '</select>' +
+        '</div>' +
+        '<div class="pf-row">' +
+          '<label class="pf-label"><i>*</i>此次随访分类：</label>' +
+          '<div class="pf-checks">' + checks + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="pf-tip">' + tip + '</div>';
+  }
+  function setPfSel(el) {
+    var p = initCfg(getForm(ACTIVE)).pf;
+    var v = el.value;
+    if (el.checked) { if (p.sel.indexOf(v) < 0) p.sel.push(v); }
+    else { var i = p.sel.indexOf(v); if (i > -1) p.sel.splice(i, 1); }
+  }
+  function switchPfType(el) { if (el.value && el.value !== ACTIVE) selectForm(el.value); }
+  function restorePf() {
+    var f = getForm(ACTIVE), c = initCfg(f);
+    c.pf = undefined; initCfg(f);
+    renderPfTab(f, c);
+    toast('已恢复「' + f.name + '」的默认随访不佳分类', 'info');
+  }
+
+  /* ---- 页签切换 / 表单操作 ---- */
+  function switchTab(t) { TAB = t; renderCfg(); }
+  function toggleEnabled(val) {
+    initCfg(getForm(ACTIVE)).enabled = val;
+    toast(val ? '该表单已启用' : '该表单已停用，业务端将隐藏/只读', val ? 'success' : 'warning');
+  }
+
+  function saveConfig() {
+    var f = getForm(ACTIVE), c = initCfg(f);
+    var req = countReq(f, c), comp = countSecOn(f, c), total = countFlat(f);
+    if (!c.enabled) { toast('该表单已停用，无法保存配置', 'warning'); return; }
+    toast('配置已保存：「' + f.name + '」共 ' + req + ' 个必填项、' + comp + '/' + total + ' 个完整度参与字段（完整率 = 已填报字段 ÷ 参与字段 × 100%）', 'success');
+  }
+
+  function resetConfig() {
+    CFG[ACTIVE] = undefined;
+    renderCfg();
+    toast('已重置「' + getForm(ACTIVE).name + '」为系统默认配置', 'info');
+  }
+
+  /* ================= 初始渲染 ================= */
+  renderTree('');
+  renderCfg();
+</script>
+
+</body>
+</html>

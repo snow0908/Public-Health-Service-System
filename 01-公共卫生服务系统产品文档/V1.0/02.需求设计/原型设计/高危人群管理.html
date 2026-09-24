@@ -676,7 +676,7 @@
         html += '<tr>'
           + '<td class="center">' + (start + i + 1) + '</td>'
           + '<td title="' + esc(r.org) + '"><span class="cell">' + esc(r.org) + '</span></td>'
-          + '<td><a class="op-link" onclick="toast(\'查看高危人群专项档案：' + esc(r.name) + '\',\'info\')">' + esc(r.name) + '</a></td>'
+          + '<td><a class="op-link" onclick="goArchive(\'' + esc(r.archNo) + '\')" title="查看高危人群专项档案">' + esc(r.name) + '</a></td>'
           + '<td>' + esc(r.idType) + '</td>'
           + '<td title="' + esc(r.idcard) + '"><span class="cell">' + esc(r.idcard) + '</span></td>'
           + '<td class="center">' + esc(r.gender) + '</td>'
@@ -688,7 +688,7 @@
           + '<td title="' + esc(r.address) + '"><span class="cell">' + esc(r.address) + '</span></td>'
           + '<td title="' + esc(r.archNo) + '"><span class="cell">' + esc(r.archNo) + '</span></td>'
           + '<td class="center">'
-          +   '<a class="op-link" onclick="toast(\'编辑高危人群专项档案：' + esc(r.name) + '\',\'info\')">编辑</a>'
+          +   '<a class="op-link" onclick="goArchive(\'' + esc(r.archNo) + '\')">编辑</a>'
           +   '<span class="op-gap"></span>'
           +   '<a class="op-link" onclick="toast(\'新建随访：' + esc(r.name) + '（功能建设中）\',\'info\')">新建随访</a>'
           +   '<span class="op-gap"></span>'
@@ -945,6 +945,30 @@
   }
 
   /* 选择档案后点击"新建专项"：跳转至档案维护页，切换到高危人群专项表填报界面 */
+  /* 列表操作列「查看/编辑」：跳转档案维护页并定位到高危人群专项表（自动模拟内容） */
+  function goArchive(archNo) {
+    var r = null;
+    for (var i = 0; i < highriskData.length; i++) {
+      if (highriskData[i].archNo === archNo) { r = highriskData[i]; break; }
+    }
+    if (!r) return;
+    var params = [
+      'view=hr',
+      'name=' + encodeURIComponent(r.name),
+      'gender=' + encodeURIComponent(r.gender === '男' ? '男性' : '女性'),
+      'idcard=' + encodeURIComponent(r.idcard),
+      'idType=' + encodeURIComponent(r.idType || '居民身份证'),
+      'archNo=' + encodeURIComponent(r.archNo),
+      'addr=' + encodeURIComponent(r.address || '')
+    ];
+    if (r.birth) params.push('birth=' + encodeURIComponent(r.birth));
+    if (r.phone) params.push('phone=' + encodeURIComponent(r.phone));
+    if (r.hrType) params.push('hrType=' + encodeURIComponent(r.hrType));
+    if (r.org) params.push('specOrg=' + encodeURIComponent(r.org));
+    params.push('edit=1');
+    location.href = '档案维护.html?' + params.join('&');
+  }
+
   function selectArchive(archNo) {
     var r = null;
     for (var i = 0; i < selectArchiveData.length; i++) {
@@ -953,7 +977,7 @@
     if (!r) return;
     closeSelectModal();
     var params = [
-      'view=highrisk',
+      'view=hr',
       'name=' + encodeURIComponent(r.name),
       'gender=' + encodeURIComponent(r.gender === '男' ? '男性' : '女性'),
       'idcard=' + encodeURIComponent(r.idcard),

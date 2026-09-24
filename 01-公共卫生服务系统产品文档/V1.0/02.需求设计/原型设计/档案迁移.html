@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>档案迁移 - 档案管理</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  /* ===== 档案迁移页面特有样式（设计变量与公共样式见 框架.css） ===== */
+
+  /* ===== 嵌入模式（被 index.html 壳子以 iframe 内嵌时，框架.js 自动加 html.embed-mode） ===== */
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  /* ===== 布局 / 双视图切换 ===== */
+  #listView{display:flex;flex-direction:column;flex:1;min-height:0}
+  #applyView{display:none;flex-direction:column;flex:1;min-height:0;overflow:auto;background:var(--bg-white);position:relative}
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0}
+
+  /* ===== 页头按钮 ===== */
+  .page-head .right .btn{height:30px;padding:0 14px;font-size:13px}
+
+  /* ===== 筛选区 ===== */
+  .filter-panel{padding:14px 12px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:14px;align-items:center}
+  .filter-item{display:flex;align-items:center;gap:8px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .filter-toggle{cursor:pointer;color:var(--primary);font-size:13px;user-select:none}
+  .filter-toggle:hover{text-decoration:underline}
+  .filter-toggle .tg-ico{display:inline-block;transition:transform var(--transition-fast);font-size:10px;margin-left:2px}
+
+  /* 日期范围 */
+  .date-range{display:flex;align-items:center;gap:6px}
+  .date-range .fi-ctl{width:132px;padding:0 26px 0 10px;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 7px center}
+  .date-range .sep{color:var(--text-tertiary);font-size:13px}
+
+  /* ===== 数据表格 ===== */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+  .list-tbl{width:100%;min-width:1580px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:38px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:38px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .list-tbl th.center,.list-tbl td.center{text-align:center}
+  .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* 重点人群类型徽标 */
+  .pop-tag{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 4px;border-radius:4px;font-size:12px;font-weight:var(--font-weight-medium)}
+  .pop-tag.hi{background:#FFECEC;color:#F5222D;border:1px solid #FFA39E}
+  .pop-tag.old{background:#F0F9EB;color:#52C41A;border:1px solid #95DE64}
+  .pop-tag.cd{background:#E6F7FF;color:#1890FF;border:1px solid #91D5FF}
+
+  /* 操作列 */
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px}
+  .op-link:hover{text-decoration:underline}
+  .op-link.danger{color:var(--danger)}
+  .op-gap{display:inline-block;width:8px}
+
+  /* ===== 分页 ===== */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:52px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 22px 0 8px;font-size:13px;color:var(--text-secondary);background:#fff;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-more{color:var(--text-tertiary);padding:0 2px}
+  .pg-jump input{width:40px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 6px;font-size:13px;text-align:center;color:var(--text-primary);outline:none}
+  .pg-jump input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+
+  /* ===== 申请档案迁移表单 ===== */
+  .apply-body{padding:14px 18px 4px}
+  .apply-sec{font-size:14px;font-weight:var(--font-weight-semibold);color:var(--text-primary);padding-left:8px;border-left:3px solid var(--primary);margin:2px 0 10px}
+  .af-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 26px;margin-bottom:12px}
+  .af-row{display:flex;align-items:center;gap:8px;min-height:38px;border-bottom:1px dashed #EEF0F4}
+  .af-row label{width:96px;text-align:right;font-size:13px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
+  .af-row label i{color:var(--danger);font-style:normal;margin-right:2px}
+  .af-row .val{flex:1;min-width:0;font-size:13px;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .af-row .val.readonly{color:var(--text-secondary)}
+  /* 弹框/表单共用控件 */
+  .fm-ctl{width:100%;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);box-sizing:border-box}
+  .fm-select{width:100%;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;box-sizing:border-box}
+  .fm-ctl:focus,.fm-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fm-ctl::placeholder{color:var(--text-placeholder)}
+  .fm-radio{display:inline-flex;align-items:center;gap:5px;margin:0 18px 0 0;cursor:pointer;user-select:none;white-space:nowrap;font-size:13px;color:var(--text-secondary)}
+  .fm-radio input{accent-color:var(--primary);width:14px;height:14px;margin:0;cursor:pointer}
+
+  .apply-foot{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px 18px;flex-shrink:0}
+  .apply-foot .btn{height:30px;padding:0 20px}
+
+  /* 待审核黄色印章（保存提交后显示于表单左上角） */
+  .pending-seal{position:absolute;top:12px;left:16px;width:96px;height:96px;border-radius:50%;background:radial-gradient(circle,rgba(255,236,179,.65) 0%,rgba(255,214,120,.45) 55%,rgba(255,193,7,.22) 100%);border:3px double rgba(224,158,46,.95);box-shadow:0 0 0 4px rgba(255,193,7,.16),0 0 14px rgba(224,158,46,.35);color:#D48806;font-family:"楷体","STKaiti","FangSong","SimSun",serif;font-size:23px;font-weight:700;letter-spacing:2px;display:none;align-items:center;justify-content:center;transform:rotate(-18deg);pointer-events:none;z-index:9}
+  .pending-seal::after{content:"";position:absolute;inset:6px;border:1px dashed rgba(224,158,46,.55);border-radius:50%}
+  .pending-seal span{position:relative;z-index:1;text-shadow:0 1px 4px rgba(255,255,255,.7)}
+
+  /* ===== 通用弹框 ===== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .modal-overlay.show{opacity:1;pointer-events:auto}
+  .modal{background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 8px 32px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden;transform:translateY(10px);transition:transform var(--transition-normal)}
+  .modal-overlay.show .modal{transform:translateY(0)}
+  .modal-head{height:48px;display:flex;align-items:center;padding:0 16px;flex-shrink:0}
+  .modal-head h3{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+  .modal-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:16px}
+  .modal-close:hover{background:var(--primary-bg);color:var(--primary)}
+  .modal-body{padding:14px 16px 4px;overflow:auto}
+  .modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:16px 20px 18px}
+
+  /* 居民查询弹框 */
+  .q-row{display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:12px;align-items:center}
+  .q-item{display:flex;align-items:center;gap:8px}
+  .q-item label{font-size:13px;color:var(--text-secondary);white-space:nowrap}
+  .q-input{width:170px;height:30px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);box-sizing:border-box}
+  .q-select{width:200px;height:30px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 24px 0 10px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 7px center;box-sizing:border-box}
+  .q-input:focus,.q-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .q-btns{margin-left:auto;display:flex;gap:8px}
+  .q-hint{font-size:12px;color:var(--text-tertiary);margin-bottom:8px}
+  .q-tbl-wrap{max-height:300px;overflow:auto;border:1px solid #E4E7ED}
+  .q-tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .q-tbl th{position:sticky;top:0;height:34px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .q-tbl td{height:34px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);white-space:nowrap}
+  .q-tbl tbody tr{cursor:pointer;transition:background var(--transition-fast)}
+  .q-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .q-tbl td.center,.q-tbl th.center{text-align:center}
+  .q-empty{padding:26px 0;text-align:center;color:var(--text-tertiary);font-size:13px}
+
+  /* 弹框内分页栏 */
+  .q-pagefoot{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:12px 0 2px;font-size:13px;color:var(--text-secondary)}
+
+  /* 导入迁移申请：步骤条 */
+  .steps{display:flex;align-items:center;justify-content:center;gap:14px;padding:4px 0 14px}
+  .step{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-tertiary)}
+  .step .num{width:22px;height:22px;border-radius:50%;border:1px solid #D9D9D9;display:flex;align-items:center;justify-content:center;font-size:12px;background:#fff}
+  .step.active{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .step.active .num{background:var(--primary);border-color:var(--primary);color:#fff}
+  .step-line{width:56px;height:1px;background:#E4E7ED}
+  .upload-zone{margin:6px auto 12px;width:100%;max-width:520px;height:170px;border:1.5px dashed #D9D9D9;border-radius:var(--r-md);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;color:var(--text-tertiary);transition:border-color var(--transition-fast),background var(--transition-fast)}
+  .upload-zone:hover{border-color:var(--primary);background:var(--primary-bg)}
+  .upload-zone .up-ico{width:40px;height:40px;border-radius:50%;background:var(--primary-bg);display:flex;align-items:center;justify-content:center;color:var(--primary)}
+  .upload-zone .up-ico svg{width:20px;height:20px}
+  .upload-zone .up-main{font-size:14px;color:var(--text-primary)}
+  .upload-zone .up-sub{font-size:12px;color:var(--text-tertiary)}
+  .upload-zone.have-file{border-color:var(--primary);background:#F6FFED}
+  .upload-zone.have-file .up-main{color:var(--primary)}
+  .upload-tip{display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;color:var(--text-secondary);margin-bottom:14px}
+  .upload-tip .warn{color:#FAAD14;font-size:14px}
+  .upload-tip .dl-link{color:var(--primary);cursor:pointer}
+  .upload-tip .dl-link:hover{text-decoration:underline}
+  .step-foot{display:flex;justify-content:flex-end;gap:8px;padding:14px 2px 4px}
+  .imp-tbl{width:100%;min-width:820px;border-collapse:collapse;font-size:13px}
+  .imp-tbl th{height:34px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .imp-tbl td{height:34px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);white-space:nowrap}
+  .imp-tbl td.center,.imp-tbl th.center{text-align:center}
+  .imp-tbl-wrap{max-height:270px;overflow:auto;border:1px solid #E4E7ED}
+</style>
+</head>
+<body>
+
+<!-- ===== 主内容区（顶部导航栏与左侧菜单栏由 框架.js 注入） ===== -->
+<div class="main-area">
+
+  <!-- 页面标签条（嵌入模式下隐藏，由壳子统一管理） -->
+  <div class="tabbar">
+    <div class="tab-item dashboard active" onclick="toast('当前已在「档案迁移」页','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+      档案迁移
+    </div>
+    <div class="tab-item" onclick="toast('「迁入审核」功能建设中','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M21 8v5.5a3.5 3.5 0 01-7 0V5"/></svg>
+      迁入审核
+      <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+    </div>
+    <div class="tab-item" onclick="toast('「迁出审核」功能建设中','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
+      迁出审核
+      <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <!-- ========== 视图1：迁移申请列表 ========== -->
+      <div id="listView">
+
+        <!-- 页头 -->
+        <div class="page-head">
+          <h1>档案迁移</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="toast('导出功能建设中','info')">导出</button>
+            <button class="btn btn-primary" onclick="openApplyModal('person')">申请个档迁移</button>
+            <button class="btn btn-default" onclick="openApplyModal('child')">申请儿童迁移</button>
+            <button class="btn btn-default" onclick="openImportWizard()">导入迁移申请</button>
+          </div>
+        </div>
+
+        <!-- 筛选区 -->
+        <div class="filter-panel">
+          <div class="filter-row">
+            <div class="filter-item"><label>姓名</label><input id="fName" class="fi-ctl" placeholder="请输入"></div>
+            <div class="filter-item"><label>证件号</label><input id="fIdcard" class="fi-ctl" placeholder="请输入"></div>
+            <div class="filter-item"><label>状态</label>
+              <select id="fStatus" class="fi-select">
+                <option value="" selected>请选择</option>
+                <option value="待审核">待审核</option>
+                <option value="已通过">已通过</option>
+                <option value="已拒绝">已拒绝</option>
+              </select>
+            </div>
+            <div class="filter-item"><label>居民状态</label>
+              <select id="fResident" class="fi-select">
+                <option value="" selected>请选择</option>
+                <option value="在档">在档</option>
+                <option value="迁出">迁出</option>
+                <option value="迁入">迁入</option>
+              </select>
+            </div>
+            <div class="filter-item"><label>电话号码</label><input id="fPhone" class="fi-ctl" placeholder="请输入"></div>
+          </div>
+          <div class="filter-row" id="advRow">
+            <div class="filter-item"><label>管辖行政区</label>
+              <select id="fDistrict" class="fi-select">
+                <option value="" selected>请选择</option>
+                <option value="仙女镇">仙女镇</option>
+                <option value="小纪镇">小纪镇</option>
+                <option value="大桥镇">大桥镇</option>
+                <option value="郭村镇">郭村镇</option>
+              </select>
+            </div>
+            <div class="filter-item"><label>申请人</label><input id="fApplicant" class="fi-ctl" placeholder="请输入"></div>
+            <div class="filter-item"><label>申请日期</label>
+              <div class="date-range">
+                <input id="fDateStart" class="fi-ctl" type="text" placeholder="开始日期"
+                       onfocus="this.type='date';try{this.showPicker()}catch(e){}"
+                       onblur="if(!this.value){this.type='text'}">
+                <span class="sep">~</span>
+                <input id="fDateEnd" class="fi-ctl" type="text" placeholder="结束日期"
+                       onfocus="this.type='date';try{this.showPicker()}catch(e){}"
+                       onblur="if(!this.value){this.type='text'}">
+              </div>
+            </div>
+            <div class="filter-item"><label>迁入/迁出机构</label>
+              <select id="fOrg" class="fi-select">
+                <option value="" selected>请选择</option>
+                <option value="扬州市江都区仙女社区卫生服务中心">仙女社区卫生服务中心</option>
+                <option value="扬州市江都区小纪中心卫生院">小纪中心卫生院</option>
+                <option value="扬州市江都区郭村镇卫生院">郭村镇卫生院</option>
+              </select>
+            </div>
+            <div class="filter-btns">
+              <button class="btn btn-default" onclick="resetFilter()">重置</button>
+              <button class="btn btn-primary" onclick="applyFilter()">查询</button>
+              <span class="filter-toggle" onclick="toggleAdv(this)">收起<span class="tg-ico">▲</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 数据表格 -->
+        <div class="table-wrap">
+          <table class="list-tbl">
+            <colgroup>
+              <col style="width:50px"><col style="width:80px"><col style="width:150px"><col style="width:90px"><col style="width:46px"><col style="width:46px"><col style="width:100px"><col style="width:100px"><col style="width:100px"><col style="width:170px"><col style="width:80px"><col style="width:170px"><col style="width:70px"><col style="width:70px"><col style="width:110px">
+            </colgroup>
+            <thead>
+              <tr>
+                <th class="center">序号</th>
+                <th>姓名</th>
+                <th>证件号</th>
+                <th>证件类型</th>
+                <th class="center">性别</th>
+                <th class="center">年龄</th>
+                <th>出生日期</th>
+                <th>电话</th>
+                <th class="center">重点人群类型</th>
+                <th>详细地址</th>
+                <th>申请人</th>
+                <th>申请机构</th>
+                <th>申请原因</th>
+                <th>申请年</th>
+                <th class="center">操作</th>
+              </tr>
+            </thead>
+            <tbody id="tbBody"></tbody>
+          </table>
+        </div>
+
+        <!-- 分页 -->
+        <div class="page-foot">
+          <span class="pg-total">共 <b id="pgTotal">0</b> 条</span>
+          <span class="pg-size">
+            <select onchange="toast('原型演示：每页条数固定 20 条','info')">
+              <option selected>20条/页</option>
+              <option>50条/页</option>
+              <option>100条/页</option>
+            </select>
+          </span>
+          <span class="pg-pager" id="pagerBox"></span>
+          <span class="pg-jump">跳至第 <input id="pgJump" value="1" onkeydown="if(event.key==='Enter'){toast('原型演示：仅演示第 1 页','info')}"> 页</span>
+        </div>
+      </div><!-- /listView -->
+
+      <!-- ========== 视图2：申请档案迁移（表单页） ========== -->
+      <div id="applyView">
+        <div class="pending-seal" id="pendingSeal"><span>待审核</span></div>
+        <div class="page-head">
+          <h1 id="applyTitle">申请档案迁移</h1>
+          <div class="right"><button class="btn btn-default" onclick="backApply()">返回</button></div>
+        </div>
+
+        <div class="apply-body">
+          <!-- 居民基本信息（只读） -->
+          <div class="apply-sec">居民基本信息</div>
+          <div class="af-grid">
+            <div class="af-row"><label>姓名：</label><span class="val"><b id="afName"></b></span></div>
+            <div class="af-row"><label>证件类型：</label><span class="val" id="afIdType"></span></div>
+            <div class="af-row"><label>性别：</label><span class="val" id="afGender"></span></div>
+            <div class="af-row"><label>证件号：</label><span class="val" id="afIdcard"></span></div>
+            <div class="af-row"><label>出生日期：</label><span class="val" id="afBirth"></span></div>
+            <div class="af-row"><label>联系电话：</label><span class="val" id="afPhone"></span></div>
+            <div class="af-row"><label>户籍地址：</label><span class="val" id="afRegAddr"></span></div>
+            <div class="af-row"><label>详细住址：</label><span class="val" id="afCurDetail"></span></div>
+            <div class="af-row"><label>现住址：</label><span class="val" id="afCurAddr"></span></div>
+            <div class="af-row"><label>建档人：</label><span class="val" id="afCreator"></span></div>
+            <div class="af-row"><label>建档机构：</label><span class="val" id="afCreateOrg"></span></div>
+            <div class="af-row"><label>管理机构：</label><span class="val" id="afMgmtOrg"></span></div>
+            <div class="af-row"><label>建档日期：</label><span class="val" id="afCreateDate"></span></div>
+            <div class="af-row"><label>迁移类型：</label>
+              <span class="val" style="white-space:nowrap">
+                <label class="fm-radio"><input type="radio" name="afType" value="机构间迁移" checked>机构间迁移</label>
+                <label class="fm-radio"><input type="radio" name="afType" value="机构内迁移">机构内迁移</label>
+              </span>
+            </div>
+          </div>
+
+          <!-- 迁移信息（可编辑） -->
+          <div class="apply-sec">迁移信息</div>
+          <div class="af-grid">
+            <div class="af-row"><label>迁移原因：</label>
+              <span>
+                <label class="fm-radio"><input type="radio" name="afReason" value="搬家" checked>搬家</label>
+                <label class="fm-radio"><input type="radio" name="afReason" value="就学">就学</label>
+                <label class="fm-radio"><input type="radio" name="afReason" value="就业">就业</label>
+                <label class="fm-radio"><input type="radio" name="afReason" value="婚姻">婚姻</label>
+                <label class="fm-radio"><input type="radio" name="afReason" value="其他">其他</label>
+              </span>
+            </div>
+            <div class="af-row"><label><i>*</i>迁往住址：</label>
+              <select id="afToAddr" class="fm-select" style="flex:1">
+                <option value="" selected>请选择</option>
+                <option value="江苏省扬州市江都区仙女镇仙女社区">仙女镇仙女社区</option>
+                <option value="江苏省扬州市江都区仙女镇东苑社区">仙女镇东苑社区</option>
+                <option value="江苏省扬州市江都区大桥镇昌西村">大桥镇昌西村</option>
+                <option value="江苏省扬州市江都区郭村镇儿林村">郭村镇儿林村</option>
+                <option value="江苏省扬州市江都区小纪镇中心社区">小纪镇中心社区</option>
+              </select>
+            </div>
+            <div class="af-row"><label><i>*</i>详细住址：</label><input id="afDetail" class="fm-ctl" placeholder="请输入迁移后详细住址"></div>
+            <div class="af-row"><label><i>*</i>管理网格：</label>
+              <select id="afGrid" class="fm-select">
+                <option value="" selected>请选择管理网格</option>
+                <option value="新北组">新北组</option>
+                <option value="南苑社区">南苑社区</option>
+                <option value="东苑社区">东苑社区</option>
+                <option value="三和薛庄">三和薛庄</option>
+              </select>
+            </div>
+            <div class="af-row"><label>迁移时间：</label><input id="afTime" class="fm-ctl" type="text" onfocus="this.type='date'" onblur="if(!this.value){this.type='text'}"></div>
+            <div class="af-row"><label>迁出机构：</label><span class="val readonly" id="afOutOrg"></span></div>
+            <div class="af-row"><label><i>*</i>迁入机构：</label>
+              <select id="afInOrg" class="fm-select" onchange="syncAfManager()">
+                <option value="" selected>请选择机构</option>
+                <option value="扬州市江都区仙女镇新华村卫生室" data-mgr="顾海燕">仙女镇新华村卫生室</option>
+                <option value="扬州市江都区郭村镇儿林村卫生室" data-mgr="徐桂芳">郭村镇儿林村卫生室</option>
+                <option value="扬州市江都区大桥镇昌西村卫生室" data-mgr="童飞">大桥镇昌西村卫生室</option>
+                <option value="扬州市江都区小纪中心卫生院" data-mgr="田川">小纪中心卫生院</option>
+              </select>
+            </div>
+            <div class="af-row"><label><i>*</i>迁入档案负责人：</label>
+              <select id="afManager" class="fm-select">
+                <option value="" selected>请选择负责人</option>
+                <option value="顾海燕">顾海燕</option>
+                <option value="徐桂芳">徐桂芳</option>
+                <option value="童飞">童飞</option>
+                <option value="田川">田川</option>
+              </select>
+            </div>
+            <div class="af-row"><label>申请人：</label><span class="val readonly">胖胖哒</span></div>
+            <div class="af-row"><label>申请时间：</label><span class="val readonly" id="afApplyTime"></span></div>
+          </div>
+        </div>
+
+        <div class="apply-foot">
+          <button class="btn btn-default" onclick="backApply()">返回</button>
+          <button class="btn btn-primary" onclick="submitApply()">保存</button>
+        </div>
+      </div><!-- /applyView -->
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== 申请迁移：查询居民弹框 ===== -->
+<div class="modal-overlay" id="applyModal">
+  <div class="modal" style="width:900px;max-width:94vw">
+    <div class="modal-head">
+      <h3 id="applyModalTitle">申请个档迁移</h3>
+      <span class="modal-close" onclick="closeApplyModal()">×</span>
+    </div>
+    <div class="modal-body">
+      <div class="q-row">
+        <div class="q-item"><label>姓名：</label><input id="qName" class="q-input" placeholder="请输入"></div>
+        <div class="q-item"><label>身份证号：</label><input id="qIdcard" class="q-input" placeholder="请输入"></div>
+        <div class="q-item"><label>管理机构：</label>
+          <select id="qOrg" class="q-select">
+            <option value="" selected>请选择</option>
+            <option value="扬州市江都区仙女社区卫生服务中心">扬州市江都区仙女社区卫生服务中心</option>
+            <option value="扬州市江都区小纪中心卫生院">扬州市江都区小纪中心卫生院</option>
+            <option value="扬州市江都区郭村镇卫生院">扬州市江都区郭村镇卫生院</option>
+            <option value="扬州市江都区大桥镇卫生院">扬州市江都区大桥镇卫生院</option>
+          </select>
+        </div>
+        <div class="q-item"><label>档案编号：</label><input id="qNo" class="q-input" placeholder="请输入"></div>
+        <div class="q-btns">
+          <button class="btn btn-default" onclick="resetQuery()">重置</button>
+          <button class="btn btn-primary" onclick="doQuery()">查询</button>
+        </div>
+      </div>
+      <div class="q-hint" id="qHint">请查询并选择需迁移的居民，点击行进入申请档案迁移表单</div>
+      <div class="q-tbl-wrap">
+        <table class="q-tbl">
+          <thead>
+            <tr>
+              <th style="width:46px" class="center">序号</th>
+              <th style="width:150px">档案编号</th>
+              <th style="width:170px">管理机构</th>
+              <th style="width:80px">姓名</th>
+              <th style="width:160px">身份证号</th>
+              <th style="width:50px" class="center">性别</th>
+              <th style="width:50px" class="center">年龄</th>
+              <th style="width:100px">村(居)委会</th>
+              <th style="width:110px">现住址</th>
+              <th style="width:70px" class="center">操作</th>
+            </tr>
+          </thead>
+          <tbody id="qTbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-foot q-pagefoot">
+      <span class="pg-total">共 <b id="qTotal">0</b> 条</span>
+      <span class="pg-size">
+        <select>
+          <option selected>20条/页</option>
+          <option>50条/页</option>
+        </select>
+      </span>
+      <span class="pg-pager" id="qPagerBox"></span>
+      <span class="pg-jump">跳至第 <input id="qJump" value="1" onkeydown="if(event.key==='Enter'){toast('原型演示：仅演示第 1 页','info')}"> 页</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 导入迁移申请：两步向导弹框 ===== -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal" style="width:760px;max-width:94vw">
+    <div class="modal-head">
+      <h3>导入迁移申请</h3>
+      <span class="modal-close" onclick="closeImport()">×</span>
+    </div>
+    <div class="modal-body">
+      <!-- 步骤条 -->
+      <div class="steps">
+        <div class="step active" id="step1"><span class="num">1</span>导入</div>
+        <div class="step-line"></div>
+        <div class="step" id="step2"><span class="num">2</span>迁移</div>
+      </div>
+
+      <!-- 步骤1：上传 -->
+      <div id="importStep1">
+        <div class="upload-zone" id="uploadZone" onclick="pickFile()">
+          <span class="up-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </span>
+          <span class="up-main" id="uploadMain">点击或拖动文件上传</span>
+          <span class="up-sub" id="uploadSub">支持文件格式：xlsx，xls，且单个文件不能超过100MB</span>
+        </div>
+        <div class="upload-tip">
+          <span class="warn">⚠</span>
+          下载导入模板，根据模板提示完善内容
+          <span class="dl-link" onclick="toast('正在下载导入模板（示例）','info')">下载导入模板</span>
+        </div>
+      </div>
+
+      <!-- 步骤2：确认迁移 -->
+      <div id="importStep2" style="display:none">
+        <div class="q-hint">共解析出 <b id="impCount">3</b> 条迁移申请，请核对后提交</div>
+        <div class="imp-tbl-wrap">
+          <table class="imp-tbl">
+            <thead>
+              <tr>
+                <th style="width:46px" class="center">序号</th>
+                <th style="width:90px">姓名</th>
+                <th style="width:150px">身份证号</th>
+                <th style="width:130px">现管理机构</th>
+                <th style="width:130px">目标机构</th>
+                <th style="width:70px">申请原因</th>
+                <th style="width:150px">申请时间</th>
+              </tr>
+            </thead>
+            <tbody id="impTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="step-foot">
+        <button class="btn btn-default" id="prevBtn" style="display:none" onclick="importPrev()">上一步</button>
+        <button class="btn btn-default" onclick="closeImport()">取消</button>
+        <button class="btn btn-primary" id="nextBtn" onclick="importNext()">下一步</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 统一框架：顶部导航栏 + 左侧菜单栏（菜单配置见 框架.js） =====
+     data-page    = 左侧菜单高亮项（独立打开时生效）
+     data-embed   = "auto" 被壳子 iframe 内嵌时自动进入嵌入模式 -->
+<script src="框架.js" data-page="archive-migration" data-embed="auto"></script>
+
+<script>
+  /* ================= 模拟数据 ================= */
+  var migData = [
+    { name:'马威威', idcard:'320381198310012424', idType:'居民身份证', gender:'女', birth:'1983-10-01', phone:'15015112599', group:'高', addr:'东兴组', village:'黄思社区', archiveNo:'32101210310300004', applicant:'柏红霞', org:'扬州市江都区仙女社区卫生服务中心', reason:'其他', year:'2021' },
+    { name:'蒋士祥', idcard:'32108819601026791X', idType:'身份证号', gender:'男', birth:'1960-10-26', phone:'13852749965', group:'老', addr:'三和薛庄', village:'五舍村', archiveNo:'32101210310300003', applicant:'尤林青', org:'扬州市江都区仙女社区卫生服务中心', reason:'-', year:'2021' },
+    { name:'朱玉兰', idcard:'321088195303167125', idType:'身份证号', gender:'女', birth:'1953-03-16', phone:'15852718792', group:'老', addr:'5组', village:'周西社区', archiveNo:'32101210310300002', applicant:'童飞', org:'扬州市江都区大桥镇昌西村卫生室', reason:'搬家', year:'2021' },
+    { name:'唐永年', idcard:'321088195908290855', idType:'身份证号', gender:'男', birth:'1959-08-29', phone:'18052714095', group:'老', addr:'江堤组', village:'善玉村', archiveNo:'32101210310300001', applicant:'田川', org:'扬州市江都区小纪中心卫生院', reason:'搬家', year:'2021' },
+    { name:'张凤山', idcard:'321088195407120858', idType:'身份证号', gender:'男', birth:'1954-07-12', phone:'13152713093', group:'老', addr:'江堤组', village:'东苑社区', archiveNo:'32101211811812487', applicant:'田川', org:'扬州市江都区小纪中心卫生院', reason:'搬家', year:'2021' },
+    { name:'陈锦泽', idcard:'32108120230826005x', idType:'居民身份证', gender:'男', birth:'2023-08-26', phone:'18203215535', group:'儿', addr:'吉港村一组', village:'吉港村', archiveNo:'32101210010000322', applicant:'徐桂芳', org:'扬州市江都区郭村镇吉港村卫生室', reason:'就学', year:'2021' },
+    { name:'刘文静', idcard:'321088199505221628', idType:'居民身份证', gender:'女', birth:'1995-05-22', phone:'13952716620', group:'高', addr:'三合村', village:'三合村', archiveNo:'32101210010000321', applicant:'周程', org:'扬州市江都区小纪中心卫生院', reason:'就业', year:'2021' },
+    { name:'王小刚', idcard:'321088198812030014', idType:'居民身份证', gender:'男', birth:'1988-12-03', phone:'18652719873', group:'慢', addr:'新桥村', village:'新桥村', archiveNo:'32101210010000320', applicant:'周程', org:'扬州市江都区小纪中心卫生院', reason:'搬家', year:'2021' },
+    { name:'何桂芳', idcard:'321088194402110026', idType:'身份证号', gender:'女', birth:'1944-02-11', phone:'13752710462', group:'老', addr:'立柱村', village:'立柱村', archiveNo:'32101210010000319', applicant:'田川', org:'扬州市江都区小纪中心卫生院', reason:'其他', year:'2021' },
+    { name:'袁永强', idcard:'321088197706091213', idType:'居民身份证', gender:'男', birth:'1977-06-09', phone:'15252718815', group:'高', addr:'新华村新北组', village:'新华村', archiveNo:'32101210010000318', applicant:'顾海燕', org:'扬州市江都区仙女社区卫生服务中心', reason:'搬家', year:'2021'  },
+    { name:'张晓晓', idcard:'321088202105150022', idType:'出生医学证明', gender:'女', birth:'2021-05-15', phone:'13952716620', group:'儿', addr:'五舍村3组', village:'五舍村', archiveNo:'32101210010000317', applicant:'刘文静', org:'扬州市江都区仙女社区卫生服务中心', reason:'搬家', year:'2021' },
+    { name:'李小明', idcard:'321088201903200011', idType:'居民身份证', gender:'男', birth:'2019-03-20', phone:'18652719873', group:'儿', addr:'东苑社区8栋2单元', village:'东苑社区', archiveNo:'32101210010000316', applicant:'王小刚', org:'扬州市江都区小纪中心卫生院', reason:'就学', year:'2021' },
+    { name:'王小红', idcard:'321088201811080044', idType:'居民身份证', gender:'女', birth:'2018-11-08', phone:'15852718792', group:'儿', addr:'周西社区12号', village:'周西社区', archiveNo:'32101210010000315', applicant:'朱玉兰', org:'扬州市江都区大桥镇昌西村卫生室', reason:'搬家', year:'2021' },
+    { name:'赵小宝', idcard:'321088202009120013', idType:'出生医学证明', gender:'男', birth:'2020-09-12', phone:'18052714095', group:'儿', addr:'善玉村二组', village:'善玉村', archiveNo:'32101210010000314', applicant:'唐永年', org:'扬州市江都区小纪中心卫生院', reason:'搬家', year:'2021' }
+  ];
+
+  var mgmtOrgs = ['扬州市江都区仙女社区卫生服务中心','扬州市江都区小纪中心卫生院','扬州市江都区郭村镇卫生院','扬州市江都区大桥镇卫生院'];
+
+  /* ================= 工具函数 ================= */
+  function $(id) { return document.getElementById(id); }
+  function esc(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function ageOf(birth) {
+    var b = new Date(birth); var n = new Date();
+    var age = n.getFullYear() - b.getFullYear();
+    if (n.getMonth() < b.getMonth() || (n.getMonth() === b.getMonth() && n.getDate() < b.getDate())) age--;
+    return age;
+  }
+  function maskId(id) {
+    id = String(id);
+    if (id.length <= 8) return id;
+    return id.slice(0, 4) + '**********' + id.slice(id.length - 4);
+  }
+  function maskPhone(p) {
+    p = String(p);
+    if (p.length < 7) return p;
+    return p.slice(0, 3) + '****' + p.slice(p.length - 4);
+  }
+  var groupClasses = { '高':'hi', '老':'old', '儿':'cd', '慢':'cd' };
+
+  /* ================= 主表渲染 ================= */
+  function renderTable() {
+    var name = $('fName').value.trim(), idcard = $('fIdcard').value.trim();
+    var status = $('fStatus').value, resident = $('fResident').value, phone = $('fPhone').value.trim();
+    var district = $('fDistrict').value, applicant = $('fApplicant').value.trim();
+    var ds = $('fDateStart').value, de = $('fDateEnd').value, org = $('fOrg').value;
+
+    var list = migData.filter(function (r) {
+      if (name && r.name.indexOf(name) === -1) return false;
+      if (idcard && r.idcard.indexOf(idcard) === -1) return false;
+      if (phone && r.phone.indexOf(phone) === -1) return false;
+      if (applicant && r.applicant.indexOf(applicant) === -1) return false;
+      if (district && r.org.indexOf(district) === -1) return false;
+      if (org && r.org !== org) return false;
+      if (status && r.status && r.status !== status) return false;
+      return true;
+    });
+
+    var html = '';
+    if (list.length === 0) {
+      html = '<tr class="empty-row"><td colspan="15"><div class="ico" style="font-size:32px;margin-bottom:8px">📭</div>暂无符合条件的迁移申请</td></tr>';
+    } else {
+      list.forEach(function (r, i) {
+        html += '<tr>'
+          + '<td class="center">' + (i + 1) + '</td>'
+          + '<td><a class="op-link" onclick="openApplyView(' + i + ')">' + esc(r.name) + '</a></td>'
+          + '<td title="' + esc(r.idcard) + '"><span class="cell">' + maskId(r.idcard) + '</span></td>'
+          + '<td>' + esc(r.idType) + '</td>'
+          + '<td class="center">' + esc(r.gender) + '</td>'
+          + '<td class="center">' + ageOf(r.birth) + '</td>'
+          + '<td>' + esc(r.birth) + '</td>'
+          + '<td>' + maskPhone(r.phone) + '</td>'
+          + '<td class="center"><span class="pop-tag ' + (groupClasses[r.group] || 'hi') + '">' + esc(r.group) + '</span></td>'
+          + '<td title="' + esc(r.addr) + '"><span class="cell">' + esc(r.addr) + '</span></td>'
+          + '<td>' + esc(r.applicant) + '</td>'
+          + '<td title="' + esc(r.org) + '"><span class="cell">' + esc(r.org) + '</span></td>'
+          + '<td>' + esc(r.reason) + '</td>'
+          + '<td>' + esc(r.year) + '</td>'
+          + '<td class="center"><a class="op-link" onclick="openApplyView(' + i + ')">档案迁移</a></td>'
+          + '</tr>';
+      });
+    }
+    $('tbBody').innerHTML = html;
+    $('pgTotal').textContent = list.length;
+    renderPager();
+  }
+
+  /* 分页（原型演示第 1 页） */
+  function renderPager() {
+    var box = $('pagerBox'), html = '';
+    html += '<button class="pg-btn" onclick="toast(\'已是第一页\',\'info\')">‹</button>';
+    html += '<button class="pg-btn active">1</button>';
+    html += '<button class="pg-btn" onclick="toast(\'原型演示：仅 1 页\',\'info\')">2</button>';
+    html += '<button class="pg-btn" onclick="toast(\'原型演示：仅 1 页\',\'info\')">3</button>';
+    html += '<span class="pg-more">…</span>';
+    html += '<button class="pg-btn" onclick="toast(\'原型演示：仅 1 页\',\'info\')">926</button>';
+    html += '<button class="pg-btn" onclick="toast(\'原型演示：仅 1 页\',\'info\')">›</button>';
+    box.innerHTML = html;
+  }
+
+  /* ================= 筛选交互 ================= */
+  function toggleAdv(el) {
+    var row = $('advRow');
+    var hidden = row.style.display === 'none';
+    row.style.display = hidden ? 'flex' : 'none';
+    el.querySelector('.tg-ico').textContent = hidden ? '▲' : '▼';
+    el.childNodes[0].textContent = hidden ? '收起' : '展开';
+  }
+  function resetFilter() {
+    ['fName','fIdcard','fStatus','fResident','fPhone','fDistrict','fApplicant','fDateStart','fDateEnd','fOrg'].forEach(function (id) {
+      $(id).value = '';
+    });
+    renderTable();
+    toast('筛选条件已重置', 'success');
+  }
+  function applyFilter() {
+    renderTable();
+    toast('查询完成，共 ' + $('pgTotal').textContent + ' 条记录', 'success');
+  }
+  ['fName','fIdcard','fPhone','fApplicant'].forEach(function (id) {
+    $(id).addEventListener('input', renderTable);
+  });
+  ['fStatus','fResident','fDistrict','fDateStart','fDateEnd','fOrg'].forEach(function (id) {
+    $(id).addEventListener('change', renderTable);
+  });
+
+  /* ================= 申请档案迁移表单视图 ================= */
+  var currentApplyIdx = -1;
+  function nowStr(onlyDate) {
+    var d = new Date();
+    var p = function (n) { return n < 10 ? '0' + n : n; };
+    var s = d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+    return onlyDate ? s : s + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+  }
+
+  function openApplyView(idx) {
+    var r = migData[idx];
+    currentApplyIdx = idx;
+    $('listView').style.display = 'none';
+    $('applyView').style.display = 'flex';
+    $('applyTitle').textContent = '申请档案迁移';
+    $('pendingSeal').style.display = 'none';
+    $('afName').textContent = r.name;
+    $('afIdType').textContent = r.idType;
+    $('afGender').textContent = r.gender;
+    $('afIdcard').textContent = r.idcard;
+    $('afBirth').textContent = r.birth;
+    $('afPhone').textContent = r.phone;
+    $('afCurAddr').textContent = r.org.indexOf('仙女') > -1 ? '江苏省扬州市江都区仙女镇' : '江苏省扬州市江都区郭村镇';
+    $('afCurDetail').textContent = r.addr;
+    var town = r.org.indexOf('郭村') > -1 ? '郭村镇' : r.org.indexOf('大桥') > -1 ? '大桥镇' : r.org.indexOf('小纪') > -1 ? '小纪镇' : '仙女镇';
+    $('afRegAddr').textContent = '江苏省扬州市江都区' + town + r.village + r.addr;
+    $('afCreateOrg').textContent = r.org;
+    $('afCreator').textContent = idx % 2 === 0 ? '沈卉' : '尤林香';
+    $('afCreateDate').textContent = '2026-09-01';
+    $('afMgmtOrg').textContent = r.org;
+    $('afOutOrg').textContent = r.org;
+
+    /* 重置迁移字段 */
+    var type = document.querySelector('input[name="afType"][value="机构间迁移"]');
+    if (type) type.checked = true;
+    document.querySelectorAll('input[name="afReason"]')[0].checked = true;
+    $('afTime').value = nowStr(true);
+    $('afToAddr').value = '';
+    $('afDetail').value = '';
+    $('afGrid').value = '';
+    $('afInOrg').value = '';
+    $('afManager').value = '';
+    $('afApplyTime').textContent = nowStr(true);
+  }
+
+  function backApply() {
+    $('applyView').style.display = 'none';
+    $('listView').style.display = 'flex';
+  }
+
+  function syncAfManager() {
+    var sel = $('afInOrg');
+    var opt = sel.options[sel.selectedIndex];
+    var mgr = opt ? opt.getAttribute('data-mgr') : '';
+    if (mgr) $('afManager').value = mgr;
+  }
+
+  function submitApply() {
+    var missing = [];
+    if (!$('afToAddr').value) missing.push('迁往住址');
+    if (!$('afDetail').value.trim()) missing.push('详细住址');
+    if (!$('afGrid').value) missing.push('管理网格');
+    if (!$('afInOrg').value) missing.push('迁入机构');
+    if (!$('afManager').value) missing.push('迁入档案负责人');
+    if (missing.length) { toast('请完善必填项：' + missing.join('、'), 'warning'); return; }
+    $('pendingSeal').style.display = 'flex';
+    toast('档案迁移申请已提交（原型演示），进入待审核', 'success');
+  }
+
+  /* ================= 居民查询弹框 ================= */
+  var applyModalMode = 'person'; /* person / child */
+  function openApplyModal(mode) {
+    applyModalMode = mode;
+    $('applyModalTitle').textContent = mode === 'child' ? '申请儿童迁移' : '申请个档迁移';
+    $('qHint').textContent = mode === 'child'
+      ? '请查询并选择需迁移的儿童居民，点击「档案迁移」进入申请档案迁移表单'
+      : '请查询并选择需迁移的居民，点击「档案迁移」进入申请档案迁移表单';
+    $('qName').value = ''; $('qIdcard').value = ''; $('qOrg').value = ''; $('qNo').value = '';
+    $('applyModal').classList.add('show');
+    doQuery();
+  }
+  function closeApplyModal() { $('applyModal').classList.remove('show'); }
+
+  function resetQuery() {
+    $('qName').value = ''; $('qIdcard').value = ''; $('qOrg').value = ''; $('qNo').value = '';
+    doQuery();
+    toast('查询条件已重置', 'success');
+  }
+
+  /* 弹框查询条件过滤（doQuery 与 pickResident 共用，保证索引一致） */
+  function queryResidents() {
+    var name = $('qName').value.trim(), idcard = $('qIdcard').value.trim();
+    var org = $('qOrg').value, no = $('qNo').value.trim();
+    return migData.filter(function (r) {
+      if (name && r.name.indexOf(name) === -1) return false;
+      if (idcard && r.idcard.indexOf(idcard) === -1) return false;
+      if (org && r.org !== org) return false;
+      if (no && r.archiveNo.indexOf(no) === -1) return false;
+      if (applyModalMode === 'child' && ageOf(r.birth) >= 18) return false;
+      return true;
+    });
+  }
+
+  function doQuery() {
+    var list = queryResidents();
+    if (list.length === 0) {
+      $('qTbody').innerHTML = '<tr><td colspan="10" class="q-empty">未查询到符合条件的居民</td></tr>';
+      $('qTotal').textContent = '0';
+      $('qPagerBox').innerHTML = '';
+      return;
+    }
+    var html = '';
+    list.forEach(function (r, i) {
+      html += '<tr>'
+        + '<td class="center">' + (i + 1) + '</td>'
+        + '<td>' + esc(r.archiveNo) + '</td>'
+        + '<td title="' + esc(r.org) + '"><span class="cell">' + esc(r.org) + '</span></td>'
+        + '<td>' + esc(r.name) + '</td>'
+        + '<td>' + esc(r.idcard) + '</td>'
+        + '<td class="center">' + esc(r.gender) + '</td>'
+        + '<td class="center">' + ageOf(r.birth) + '</td>'
+        + '<td>' + esc(r.village) + '</td>'
+        + '<td title="' + esc(r.addr) + '"><span class="cell">' + esc(r.addr) + '</span></td>'
+        + '<td class="center"><a class="op-link" onclick="pickResident(' + i + ')">档案迁移</a></td>'
+        + '</tr>';
+    });
+    $('qTbody').innerHTML = html;
+    $('qTotal').textContent = list.length;
+    renderQueryPager();
+  }
+
+  function renderQueryPager() {
+    var box = $('qPagerBox'), html = '';
+    html += '<button class="pg-btn" onclick="toast(\'已是第一页\',\'info\')">‹</button>';
+    html += '<button class="pg-btn active">1</button>';
+    html += '<button class="pg-btn" onclick="toast(\'原型演示：仅 1 页\',\'info\')">2</button>';
+    html += '<button class="pg-btn" onclick="toast(\'原型演示：仅 1 页\',\'info\')">3</button>';
+    html += '<span class="pg-more">…</span>';
+    html += '<button class="pg-btn" onclick="toast(\'原型演示：仅 1 页\',\'info\')">21</button>';
+    html += '<button class="pg-btn" onclick="toast(\'原型演示：仅 1 页\',\'info\')">›</button>';
+    box.innerHTML = html;
+  }
+
+  function pickResident(idx) {
+    var list = queryResidents();
+    var real = list[idx];
+    if (!real) { toast('未找到该居民', 'warning'); return; }
+    closeApplyModal();
+    var realIdx = migData.indexOf(real);
+    openApplyView(realIdx);
+  }
+
+  /* ================= 导入迁移申请：两步向导 ================= */
+  var importStep = 1;
+  var importFileName = '';
+  function openImportWizard() { importStep = 1; resetImport(); $('importModal').classList.add('show'); }
+  function closeImport() { $('importModal').classList.remove('show'); }
+
+  function resetImport() {
+    importFileName = '';
+    $('step1').classList.add('active'); $('step2').classList.remove('active');
+    $('importStep1').style.display = ''; $('importStep2').style.display = 'none';
+    $('prevBtn').style.display = 'none';
+    $('nextBtn').textContent = '下一步';
+    $('nextBtn').classList.add('btn-primary'); $('nextBtn').classList.remove('btn-default');
+    $('nextBtn').setAttribute('onclick', 'importNext()');
+    $('uploadZone').classList.remove('have-file');
+    $('uploadMain').textContent = '点击或拖动文件上传';
+    $('uploadSub').textContent = '支持文件格式：xlsx，xls，且单个文件不能超过100MB';
+  }
+
+  function pickFile() {
+    importFileName = '居民档案迁移导入_20260922.xlsx';
+    $('uploadZone').classList.add('have-file');
+    $('uploadMain').textContent = importFileName;
+    $('uploadSub').textContent = '文件已就绪（原型演示，点击可重新选择）';
+    toast('已选择导入文件：' + importFileName, 'success');
+  }
+
+  function importNext() {
+    if (importStep === 1) {
+      if (!importFileName) { toast('请先选择导入文件', 'warning'); return; }
+      importStep = 2;
+      $('step1').classList.remove('active'); $('step2').classList.add('active');
+      $('importStep1').style.display = 'none'; $('importStep2').style.display = '';
+      $('prevBtn').style.display = '';
+      $('nextBtn').textContent = '完成';
+      $('nextBtn').setAttribute('onclick', 'importSubmit()');
+      renderImp();
+    }
+  }
+  function importPrev() {
+    importStep = 1;
+    $('step2').classList.remove('active'); $('step1').classList.add('active');
+    $('importStep2').style.display = 'none'; $('importStep1').style.display = '';
+    $('prevBtn').style.display = 'none';
+    $('nextBtn').textContent = '下一步';
+    $('nextBtn').setAttribute('onclick', 'importNext()');
+  }
+
+  function renderImp() {
+    var rows = migData.slice(0, 3);
+    $('impCount').textContent = '3';
+    var html = '';
+    rows.forEach(function (r, i) {
+      html += '<tr>'
+        + '<td class="center">' + (i + 1) + '</td>'
+        + '<td>' + esc(r.name) + '</td>'
+        + '<td>' + maskId(r.idcard) + '</td>'
+        + '<td title="' + esc(r.org) + '"><span class="cell">' + esc(r.org) + '</span></td>'
+        + '<td>' + (i === 0 ? '扬州市江都区仙女镇新华村卫生室' : i === 1 ? '扬州市江都区郭村镇儿林村卫生室' : '扬州市江都区大桥镇昌西村卫生室') + '</td>'
+        + '<td>' + esc(r.reason) + '</td>'
+        + '<td>' + nowStr(true) + '</td>'
+        + '</tr>';
+    });
+    $('impTbody').innerHTML = html;
+  }
+
+  function importSubmit() {
+    toast('已导入 3 条迁移申请（原型演示）', 'success');
+    closeImport();
+  }
+
+  /* ================= 初始渲染 ================= */
+  renderTable();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>辖区管理 - 系统设置</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0}
+
+  /* ===== 筛选区 ===== */
+  .filter-panel{padding:14px 12px;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px}
+  .filter-item{display:flex;align-items:center;gap:4px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .fi-select.is-placeholder{color:var(--text-placeholder)}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+  /* ===== 数据表格（列多，横向滚动） ===== */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+  .list-tbl th:last-child,.list-tbl td:last-child{position:sticky;right:0}
+  .list-tbl td:last-child{z-index:2;background-color:var(--bg-white)}
+  .list-tbl th:last-child{z-index:6}
+  .list-tbl{width:100%;min-width:1960px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl th .th-txt{overflow:hidden;text-overflow:ellipsis}
+  .list-tbl td{height:36px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:nth-child(even) td{background:var(--bg-table-even)}
+  .list-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .table-wrap.hs-scrolled .list-tbl thead th:last-child,
+  .table-wrap.hs-scrolled .list-tbl tbody tr td:last-child{
+    background-image:linear-gradient(to right,rgba(0,0,0,0.10),rgba(0,0,0,0));
+    background-repeat:no-repeat;background-size:9px 100%;background-position:left center;
+  }
+  .list-tbl .center{text-align:center}
+  .num{font-family:Consolas,'Microsoft YaHei',monospace}
+  .dash{color:var(--text-placeholder)}
+  .lvl-tag{display:inline-block;padding:0 8px;height:18px;line-height:18px;border-radius:9px;font-size:12px;background:#EDF1F7;color:#5B6C85}
+  .lvl-tag.dist{background:#FDF3E7;color:#B2741E}
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px}
+  .op-link:hover{text-decoration:underline}
+  .op-gap{display:inline-block;width:8px}
+
+  /* ===== 分页 ===== */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:44px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 22px 0 8px;font-size:13px;color:var(--text-secondary);background:#fff;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-btn.disabled{color:var(--text-disabled);cursor:not-allowed;border-color:#EBEBEB}
+  .pg-jump input{width:40px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 6px;font-size:13px;text-align:center;color:var(--text-primary);outline:none}
+
+  /* ===== 居中弹窗（行政区划信息维护） ===== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .modal-overlay.show{opacity:1;pointer-events:auto}
+  .modal{position:fixed;left:50%;top:50%;width:820px;max-width:94vw;max-height:92vh;background:var(--bg-white);border-radius:8px;box-shadow:0 12px 40px rgba(0,0,0,0.2);display:flex;flex-direction:column;transform:translate(-50%,-50%) scale(.96);opacity:0;pointer-events:none;transition:all var(--transition-normal);z-index:calc(var(--z-modal) + 1)}
+  .modal-overlay.show .modal{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+  .modal-head{height:44px;display:flex;align-items:center;padding:0 16px;flex-shrink:0;border-bottom:1px solid #E8E8E8}
+  .modal-head h3{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+  .modal-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:18px;line-height:1}
+  .modal-close:hover{background:var(--primary-bg);color:var(--primary)}
+  .modal-body{flex:1;min-height:0;overflow:auto;padding:14px 20px 18px}
+  .modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:12px 20px;border-top:1px solid #E8E8E8;flex-shrink:0}
+
+  /* ---- 分区 ---- */
+  .sec-title{display:flex;align-items:center;gap:6px;margin:6px 0 12px;font-size:14px;font-weight:var(--font-weight-semibold);color:var(--text-primary)}
+  .sec-title::before{content:"";width:3px;height:14px;border-radius:2px;background:var(--primary)}
+  .sec-title + .fm-grid{margin-bottom:20px}
+
+  /* ---- 两列表单 ---- */
+  .fm-grid{display:grid;grid-template-columns:1fr 1fr;column-gap:24px;row-gap:14px}
+  .fm-item{display:flex;align-items:center;gap:6px;min-width:0}
+  .fm-item>label{flex:none;width:150px;font-size:13px;color:var(--text-secondary);text-align:right;white-space:nowrap}
+  .fm-item>label.required::before{content:"*";color:var(--danger);margin-right:2px}
+  .fm-ctl{flex:1;min-width:0;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fm-select{flex:1;min-width:0;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fm-ctl:focus,.fm-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fm-ctl::placeholder,.fm-select.is-placeholder{color:var(--text-placeholder)}
+  .fm-ctl[readonly]{background:#F5F5F5;color:var(--text-secondary);cursor:default}
+  .fm-ctl:disabled,.fm-select:disabled{background:#F5F5F5;color:var(--text-secondary);cursor:not-allowed}
+
+  /* ---- 行政区名称（级联触发） ---- */
+  .fname-wrap{position:relative;flex:1;min-width:0}
+  .fname-box{display:flex;align-items:center;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;cursor:pointer;background:var(--bg-white);transition:border-color var(--transition-fast);gap:6px}
+  .fname-box:hover{border-color:var(--primary)}
+  .fname-box input{border:none;outline:none;flex:1;min-width:0;font-size:13px;color:var(--text-primary);background:transparent;cursor:pointer}
+  .fname-box input::placeholder{color:var(--text-placeholder)}
+  .fname-arrow{flex:none;width:14px;height:14px;display:flex;align-items:center;justify-content:center;color:var(--text-tertiary)}
+  .fname-arrow svg{width:10px;height:6px;transition:transform var(--transition-fast)}
+  .fname-box.open{border-color:var(--primary)}
+  .fname-box.open .fname-arrow svg{transform:rotate(180deg)}
+
+  /* ---- 四级级联面板 ---- */
+  .cascade{position:absolute;top:36px;left:0;width:600px;max-width:calc(100vw - 40px);background:var(--bg-white);border:1px solid #E4E7ED;border-radius:6px;box-shadow:0 8px 28px rgba(0,0,0,0.16);display:none;z-index:calc(var(--z-modal) + 2);overflow:hidden}
+  .cascade.open{display:flex}
+  .casc-col{flex:1;min-width:0;max-height:260px;overflow:auto;padding:4px 0}
+  .casc-col + .casc-col{border-left:1px solid #F0F2F5}
+  .casc-col-title{padding:6px 12px;font-size:12px;color:var(--text-tertiary);border-bottom:1px solid #F0F2F5}
+  .casc-item{display:flex;align-items:center;gap:6px;height:30px;padding:0 12px;font-size:13px;color:var(--text-secondary);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .casc-item:hover{background:#F5F7FA}
+  .casc-item .dot{flex:none;width:12px;height:12px;border:1px solid #C9CFD8;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all var(--transition-fast)}
+  .casc-item .dot i{width:6px;height:6px;border-radius:50%;background:#fff;display:none}
+  .casc-item.sel{background:var(--primary-bg);color:var(--primary);font-weight:var(--font-weight-medium)}
+  .casc-item.sel .dot{border-color:var(--primary);background:var(--primary)}
+  .casc-item.sel .dot i{display:block}
+  .casc-empty{padding:14px 12px;font-size:13px;color:var(--text-placeholder)}
+
+  /* ===== 页头 ===== */
+  .page-head .right{font-size:13px;color:var(--text-tertiary);gap:6px}
+  .page-head .right svg{width:14px;height:14px;stroke:var(--text-tertiary);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</head>
+<body>
+
+<div class="main-area">
+
+  <div class="tabbar">
+    <div class="tab-item active">辖区管理</div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <div class="page-head">
+        <h1>辖区管理</h1>
+      </div>
+
+      <div class="filter-panel">
+        <div class="filter-row">
+          <div class="filter-item">
+            <label>管理行政区：</label>
+            <select class="fi-select is-placeholder" id="qDistrict" onchange="markSelect(this)">
+              <option value="">请选择</option>
+              <option>仙女镇</option>
+              <option>樊川镇</option>
+              <option>大桥镇</option>
+              <option>丁伙镇</option>
+              <option>郭村镇</option>
+              <option>邵伯镇</option>
+              <option>小纪镇</option>
+              <option>真武镇</option>
+              <option>宜陵镇</option>
+              <option>浦头镇</option>
+              <option>吴桥镇</option>
+              <option>漕运镇</option>
+              <option>广陵区</option>
+              <option>江都区</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>年度：</label>
+            <select class="fi-select" id="qYear" onchange="renderTable()">
+              <option>2021</option>
+              <option>2022</option>
+              <option>2023</option>
+              <option>2024</option>
+              <option selected>2025</option>
+            </select>
+          </div>
+          <div class="filter-btns">
+            <button class="btn btn-default" onclick="toast('导出成功','success')">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              导出
+            </button>
+            <button class="btn btn-primary" onclick="openForm('create')">新建</button>
+            <button class="btn btn-default" onclick="resetFilter()">重置</button>
+            <button class="btn btn-primary" onclick="applyFilter()">查询</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="list-tbl">
+          <colgroup>
+            <col style="width:52px">
+            <col style="width:130px">
+            <col style="width:70px">
+            <col style="width:70px">
+            <col style="width:110px">
+            <col style="width:110px">
+            <col style="width:110px">
+            <col style="width:110px">
+            <col style="width:110px">
+            <col style="width:110px">
+            <col style="width:110px">
+            <col style="width:110px">
+            <col style="width:110px">
+            <col style="width:120px">
+            <col style="width:130px">
+            <col style="width:110px">
+            <col style="width:120px">
+            <col style="width:110px">
+            <col style="width:110px">
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="center">序号</th>
+              <th><span class="th-txt">行政区划名称</span></th>
+              <th><span class="th-txt">级别</span></th>
+              <th><span class="th-txt">年度</span></th>
+              <th><span class="th-txt" title="辖区人口数">辖区人口数（人）</span></th>
+              <th><span class="th-txt" title="常住人口数">常住人口数（人）</span></th>
+              <th><span class="th-txt" title="流动人口数">流动人口数（人）</span></th>
+              <th><span class="th-txt" title="0-6岁儿童数">0-6岁儿童数（人）</span></th>
+              <th><span class="th-txt" title="孕产妇人口数">孕产妇人口数（人）</span></th>
+              <th><span class="th-txt" title="老年人口数">老年人口数（人）</span></th>
+              <th><span class="th-txt" title="高血压人数">高血压人数（人）</span></th>
+              <th><span class="th-txt" title="糖尿病人数">糖尿病人数（人）</span></th>
+              <th><span class="th-txt" title="残疾人数">残疾人数（人）</span></th>
+              <th><span class="th-txt" title="严重精神障碍人数">严重精神障碍（人）</span></th>
+              <th><span class="th-txt" title="计生特殊家庭人数">计生特殊家庭人数（人）</span></th>
+              <th><span class="th-txt" title="贫困人口数">贫困人口数（人）</span></th>
+              <th><span class="th-txt" title="0-36月龄儿童数">0-36月龄儿童数（人）</span></th>
+              <th><span class="th-txt" title="慢阻肺人数">慢阻肺人数（人）</span></th>
+              <th class="center">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="page-foot">
+        <div class="pg-total">共 <b id="total">0</b> 条</div>
+        <div class="pg-size">
+          <select>
+            <option>20 条/页</option>
+            <option>50 条/页</option>
+            <option>100 条/页</option>
+          </select>
+        </div>
+        <div class="pg-pager">
+          <button class="pg-btn disabled">&lt;</button>
+          <button class="pg-btn active">1</button>
+          <button class="pg-btn disabled">&gt;</button>
+        </div>
+        <div class="pg-jump">跳至 <input type="text" value="1"> 页</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 行政区划信息维护（居中弹窗） -->
+  <div class="modal-overlay" id="mOverlay">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="formTitle">行政区划信息维护</h3>
+        <div class="modal-close" onclick="closeForm()">×</div>
+      </div>
+      <div class="modal-body">
+
+        <div class="sec-title">行政区划信息</div>
+        <div class="fm-grid">
+          <div class="fm-item">
+            <label class="required">行政区名称:</label>
+            <div class="fname-wrap">
+              <div class="fname-box" id="fnameBox" onclick="toggleCascade()">
+                <input id="fName" placeholder="请选择" readonly>
+                <span class="fname-arrow"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              </div>
+              <div class="cascade" id="cascade">
+                <div class="casc-col">
+                  <div class="casc-col-title">省份</div>
+                  <div id="colProv"></div>
+                </div>
+                <div class="casc-col">
+                  <div class="casc-col-title">地市</div>
+                  <div id="colCity"></div>
+                </div>
+                <div class="casc-col">
+                  <div class="casc-col-title">区县</div>
+                  <div id="colDist"></div>
+                </div>
+                <div class="casc-col">
+                  <div class="casc-col-title">乡镇/街道</div>
+                  <div id="colStreet"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="fm-item">
+            <label>行政区编码:</label>
+            <input class="fm-ctl" id="fCode" readonly>
+          </div>
+          <div class="fm-item">
+            <label>级别:</label>
+            <input class="fm-ctl" id="fLevel" readonly>
+          </div>
+          <div class="fm-item">
+            <label>隶属:</label>
+            <input class="fm-ctl" id="fBelong" readonly>
+          </div>
+          <div class="fm-item">
+            <label>面积:</label>
+            <input class="fm-ctl" id="fArea" readonly>
+          </div>
+          <div class="fm-item"><label></label><span></span></div>
+        </div>
+
+        <div class="sec-title">维护信息</div>
+        <div class="fm-grid">
+          <div class="fm-item">
+            <label class="required">年度:</label>
+            <select class="fm-select is-placeholder" id="fYear" onchange="markSelect(this)">
+              <option value="">请选择</option>
+              <option>2021</option>
+              <option>2022</option>
+              <option>2023</option>
+              <option>2024</option>
+              <option>2025</option>
+            </select>
+          </div>
+          <div class="fm-item">
+            <label class="required">辖区人口数（人）:</label>
+            <input class="fm-ctl" id="fTotal" placeholder="请输入" type="text">
+          </div>
+          <div class="fm-item">
+            <label>常住人口数（人）:</label>
+            <input class="fm-ctl" id="fResident" placeholder="请输入" type="text">
+          </div>
+          <div class="fm-item">
+            <label>流动人口数（人）:</label>
+            <input class="fm-ctl" id="fFloating" placeholder="请输入" type="text">
+          </div>
+          <div class="fm-item">
+            <label>男性人口数（人）:</label>
+            <input class="fm-ctl" id="fMale" placeholder="请输入" type="text">
+          </div>
+          <div class="fm-item">
+            <label>女性人口数（人）:</label>
+            <input class="fm-ctl" id="fFemale" placeholder="请输入" type="text">
+          </div>
+          <div class="fm-item">
+            <label>妇女人口数（人）:</label>
+            <input class="fm-ctl" id="fWomen" placeholder="请输入" type="text">
+          </div>
+          <div class="fm-item">
+            <label>0-6岁儿童人口数（人）:</label>
+            <input class="fm-ctl" id="fC06" placeholder="请输入" type="text">
+          </div>
+          <div class="fm-item">
+            <label>孕产妇人口数（人）:</label>
+            <input class="fm-ctl" id="fMaternal" placeholder="请输入" type="text">
+          </div>
+          <div class="fm-item">
+            <label>老年人口数（人）:</label>
+            <input class="fm-ctl" id="fElder" placeholder="请输入" type="text">
+          </div>
+          <div class="fm-item">
+            <label>高血压人口数（人）:</label>
+            <input class="fm-ctl" id="fHyp" placeholder="请输入" type="text">
+          </div>
+          <div class="fm-item">
+            <label>糖尿病人口数（人）:</label>
+            <input class="fm-ctl" id="fDia" placeholder="请输入" type="text">
+          </div>
+          <div class="fm-item">
+            <label>残疾人口数（人）:</label>
+            <input class="fm-ctl" id="fDisab" placeholder="请输入" type="text">
+          </div>
+          <div class="fm-item">
+            <label>严重精神障碍者人口数（人）:</label>
+            <input class="fm-ctl" id="fSmi" placeholder="请输入" type="text">
+          </div>
+          <div class="fm-item">
+            <label>计生特殊家庭人口数（人）:</label>
+            <input class="fm-ctl" id="fFpf" placeholder="请输入" type="text">
+          </div>
+          <div class="fm-item">
+            <label>贫困人口数（人）:</label>
+            <input class="fm-ctl" id="fPoor" placeholder="请输入" type="text">
+          </div>
+          <div class="fm-item">
+            <label>肺结核人口数（人）:</label>
+            <input class="fm-ctl" id="fTb" placeholder="请输入" type="text">
+          </div>
+          <div class="fm-item">
+            <label>0-36月龄儿童数（人）:</label>
+            <input class="fm-ctl" id="fM036" placeholder="请输入" type="text">
+          </div>
+          <div class="fm-item">
+            <label>慢阻肺人口数（人）:</label>
+            <input class="fm-ctl" id="fCopd" placeholder="请输入" type="text">
+          </div>
+          <div class="fm-item"><label></label><span></span></div>
+        </div>
+
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-primary" id="btnConfirm" onclick="saveForm()">确定</button>
+        <button class="btn btn-default" id="btnCancel" onclick="closeForm()">取消</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="框架.js" data-page="jurisdiction-management" data-embed="auto"></script>
+<script>
+  /* ================= 工具 ================= */
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function markSelect(el) { el.classList.toggle('is-placeholder', el.value === ''); }
+
+  /* ================= 数据 ================= */
+  /* 字段：name 名称 level 级别 year 年度 total 辖区 totalR 常住 floating 流动
+     male 男 female 女 women 妇女 c06 0-6岁 maternal 孕产妇 elder 老年 hyp 高血压
+     dia 糖尿病 disab 残疾 smi 严重精神障碍 fpf 计生特殊 poor 贫困 m036 0-36月龄
+     tb 肺结核 copd 慢阻肺（floating 为 null 时列表显示 “-”） */
+  var data = [
+    { name:'仙女镇', level:'乡镇', year:2025, total:162364, resident:162364, floating:null, male:81200, female:81164, women:40235, c06:6421, maternal:405, elder:23496, hyp:10081, dia:3499, disab:582, smi:468, fpf:173, poor:28, m036:1990, tb:23, copd:184 },
+    { name:'樊川镇', level:'乡镇', year:2025, total:105341, resident:105341, floating:null, male:52700, female:52641, women:26180, c06:397,  maternal:14,  elder:10354, hyp:4679,  dia:1713, disab:687, smi:275, fpf:174, poor:884, m036:97,  tb:15, copd:108 },
+    { name:'大桥镇', level:'乡镇', year:2025, total:124589, resident:124589, floating:null, male:62300, female:62289, women:31040, c06:898,  maternal:63,  elder:23692, hyp:13352, dia:4359, disab:1152, smi:400, fpf:358, poor:1377, m036:270, tb:31, copd:138 },
+    { name:'丁伙镇', level:'乡镇', year:2025, total:46832, resident:46832, floating:null, male:23420, female:23412, women:11650, c06:312,  maternal:21,  elder:8934,  hyp:3892,  dia:1431, disab:301, smi:122, fpf:86, poor:341, m036:98,  tb:11, copd:76 },
+    { name:'郭村镇', level:'乡镇', year:2025, total:55321, resident:55321, floating:null, male:27660, female:27661, women:13780, c06:389,  maternal:18,  elder:10234, hyp:4532,  dia:1687, disab:356, smi:148, fpf:92, poor:402, m036:112, tb:13, copd:85 },
+    { name:'邵伯镇', level:'乡镇', year:2025, total:61204, resident:61204, floating:null, male:30600, female:30604, women:15240, c06:421,  maternal:25,  elder:11458, hyp:5103,  dia:1876, disab:378, smi:161, fpf:104, poor:455, m036:128, tb:14, copd:92 },
+    { name:'小纪镇', level:'乡镇', year:2025, total:58763, resident:58763, floating:null, male:29380, female:29383, women:14630, c06:402,  maternal:19,  elder:10987, hyp:4893,  dia:1754, disab:365, smi:152, fpf:97, poor:432, m036:121, tb:12, copd:88 },
+    { name:'真武镇', level:'乡镇', year:2025, total:41208, resident:41208, floating:null, male:20600, female:20608, women:10260, c06:287,  maternal:15,  elder:7862,  hyp:3418,  dia:1257, disab:275, smi:113, fpf:74, poor:305, m036:89,  tb:9, copd:63 },
+    { name:'宜陵镇', level:'乡镇', year:2025, total:49651, resident:49651, floating:null, male:24820, female:24831, women:12360, c06:335,  maternal:17,  elder:9312,  hyp:4128,  dia:1512, disab:312, smi:129, fpf:81, poor:358, m036:102, tb:10, copd:71 },
+    { name:'浦头镇', level:'乡镇', year:2025, total:37429, resident:37429, floating:null, male:18710, female:18719, women:9320,  c06:258,  maternal:12,  elder:7023,  hyp:3056,  dia:1124, disab:246, smi:101, fpf:65, poor:278, m036:78,  tb:8, copd:58 },
+    { name:'吴桥镇', level:'乡镇', year:2025, total:39874, resident:39874, floating:null, male:19930, female:19944, women:9930,  c06:273,  maternal:13,  elder:7489,  hyp:3261,  dia:1198, disab:261, smi:108, fpf:69, poor:291, m036:83,  tb:8, copd:61 },
+    { name:'漕运镇', level:'乡镇', year:2025, total:45218, resident:45218, floating:null, male:22600, female:22618, women:11260, c06:305,  maternal:16,  elder:8562,  hyp:3728,  dia:1368, disab:289, smi:118, fpf:77, poor:322, m036:94,  tb:10, copd:66 },
+    { name:'广陵区', level:'区县', year:2025, total:421350, resident:398762, floating:22588, male:210670, female:210680, women:104800, c06:15234, maternal:986, elder:78654, hyp:34521, dia:12034, disab:1567, smi:934, fpf:512, poor:1287, m036:4321, tb:89, copd:486 },
+    { name:'江都区', level:'区县', year:2025, total:929600, resident:814618, floating:114982, male:465000, female:464600, women:231500, c06:38012, maternal:2435, elder:156890, hyp:68742, dia:24031, disab:3918, smi:2410, fpf:1298, poor:3564, m036:11256, tb:156, copd:1042 }
+  ];
+
+  var editIndex = -1;
+  var formMode  = 'create';
+  var readonlyMode = false;
+
+  /* ================= 列表 ================= */
+  function visibleRows() {
+    var d = $('qDistrict').value;
+    var y = $('qYear').value;
+    return data.filter(function (r) {
+      if (d && r.name !== d) return false;
+      if (y && String(r.year) !== y) return false;
+      return true;
+    });
+  }
+
+  function fmt(v) {
+    return (v === null || v === undefined || v === '') ? '<span class="dash">-</span>' : esc(v);
+  }
+
+  function renderTable() {
+    var rows = visibleRows();
+    $('tbody').innerHTML = rows.map(function (r, i) {
+      return '<tr>'
+        + '<td class="center">' + (i + 1) + '</td>'
+        + '<td><span class="cell" title="' + esc(r.name) + '">' + esc(r.name) + '</span></td>'
+        + '<td><span class="lvl-tag' + (r.level === '区县' ? ' dist' : '') + '">' + esc(r.level) + '</span></td>'
+        + '<td>' + r.year + '</td>'
+        + '<td class="num">' + fmt(r.total) + '</td>'
+        + '<td class="num">' + fmt(r.resident) + '</td>'
+        + '<td class="num">' + fmt(r.floating) + '</td>'
+        + '<td class="num">' + fmt(r.c06) + '</td>'
+        + '<td class="num">' + fmt(r.maternal) + '</td>'
+        + '<td class="num">' + fmt(r.elder) + '</td>'
+        + '<td class="num">' + fmt(r.hyp) + '</td>'
+        + '<td class="num">' + fmt(r.dia) + '</td>'
+        + '<td class="num">' + fmt(r.disab) + '</td>'
+        + '<td class="num">' + fmt(r.smi) + '</td>'
+        + '<td class="num">' + fmt(r.fpf) + '</td>'
+        + '<td class="num">' + fmt(r.poor) + '</td>'
+        + '<td class="num">' + fmt(r.m036) + '</td>'
+        + '<td class="num">' + fmt(r.copd) + '</td>'
+        + '<td class="center"><a class="op-link" onclick="openForm(\'edit\',' + data.indexOf(r) + ')">编辑</a>'
+        + '<span class="op-gap"></span>'
+        + '<a class="op-link" onclick="openForm(\'view\',' + data.indexOf(r) + ')">查看</a></td>'
+        + '</tr>';
+    }).join('');
+    $('total').textContent = rows.length;
+  }
+
+  /* ================= 筛选 ================= */
+  function resetFilter() {
+    $('qDistrict').value = '';
+    markSelect($('qDistrict'));
+    renderTable();
+    toast('已重置', 'info');
+  }
+  function applyFilter() {
+    renderTable();
+    toast('查询完成，共 ' + $('total').textContent + ' 条记录', 'success');
+  }
+
+  /* ================= 四级级联（行政区划选择） ================= */
+  var CITY_CODE = { '南京市':'01','扬州市':'10','淮安市':'08','盐城市':'09','镇江市':'11','泰州市':'12','宿迁市':'13' };
+  var AREAS = {
+    '江苏省': {
+      '南京市': {
+        '玄武区': ['梅园新村街道','新街口街道','玄武门街道','锁金村街道','红山街道','孝陵卫街道'],
+        '秦淮区': ['五老村街道','洪武路街道','大光路街道','瑞金路街道','夫子庙街道','中华门街道'],
+        '建邺区': ['莫愁湖街道','兴隆街道','南苑街道','沙洲街道','双闸街道','江心洲街道'],
+        '鼓楼区': ['宁海路街道','华侨路街道','湖南路街道','中央门街道','挹江门街道','江东街道'],
+        '浦口区': ['泰山街道','顶山街道','沿江街道','江浦街道','桥林街道','星甸街道'],
+        '栖霞区': ['尧化街道','马群街道','迈皋桥街道','燕子矶街道','栖霞街道','仙林街道']
+      },
+      '扬州市': {
+        '江都区': ['仙女镇','大桥镇','丁伙镇','郭村镇','邵伯镇','小纪镇','真武镇','宜陵镇','浦头镇','吴桥镇'],
+        '广陵区': ['曲江街道','文峰街道','东关街道','汶河街道','湾头镇','汤汪街道']
+      },
+      '淮安市': {
+        '淮安区': ['淮城街道','河下街道','漕运镇','车桥镇'],
+        '清江浦区': ['府前街道','长东街道','浦楼街道']
+      },
+      '盐城市': {
+        '亭湖区': ['五星街道','大洋街道','毓龙街道'],
+        '盐都区': ['盐渎街道','潘黄街道']
+      },
+      '镇江市': {
+        '京口区': ['大市口街道','四牌楼街道'],
+        '润州区': ['宝塔路街道','七里甸街道']
+      },
+      '泰州市': {
+        '海陵区': ['城东街道','城西街道','城中街道'],
+        '高港区': ['口岸街道','刁铺街道']
+      },
+      '宿迁市': {
+        '宿城区': ['双庄街道','古城街道','项里街道']
+      }
+    }
+  };
+
+  var sel = { prov:'', city:'', dist:'', street:'' };
+
+  function genCode(prov, city, dist, street) {
+    var cityIdx = Object.keys(AREAS[prov]).indexOf(city);
+    var distIdx  = Object.keys(AREAS[prov][city]).indexOf(dist);
+    var stIdx    = AREAS[prov][city][dist].indexOf(street);
+    return '32' + (CITY_CODE[city] || '99')
+      + String(distIdx + 2).padStart(2, '0')
+      + String(stIdx + 2).padStart(3, '0') + '000';
+  }
+
+  function cascItems(arr, key, cur) {
+    if (!arr || !arr.length) return '<div class="casc-empty">暂无选项</div>';
+    return arr.map(function (v) {
+      var on = (v === cur);
+      return '<div class="casc-item' + (on ? ' sel' : '') + '" onclick="cascPick(\'' + key + '\',\'' + v + '\')">'
+        + '<span class="dot"><i></i></span><span>' + esc(v) + '</span></div>';
+    }).join('');
+  }
+
+  function renderCascade() {
+    var provs = Object.keys(AREAS);
+    $('colProv').innerHTML = cascItems(provs, 'prov', sel.prov);
+    if (!sel.prov) { $('colCity').innerHTML = '<div class="casc-empty">请选择省份</div>'; $('colDist').innerHTML = '<div class="casc-empty">请选择地市</div>'; $('colStreet').innerHTML = '<div class="casc-empty">请选择区县</div>'; return; }
+    var cities = Object.keys(AREAS[sel.prov]);
+    $('colCity').innerHTML = cascItems(cities, 'city', sel.city);
+    if (!sel.city) { $('colDist').innerHTML = '<div class="casc-empty">请选择地市</div>'; $('colStreet').innerHTML = '<div class="casc-empty">请选择区县</div>'; return; }
+    var dists = Object.keys(AREAS[sel.prov][sel.city]);
+    $('colDist').innerHTML = cascItems(dists, 'dist', sel.dist);
+    if (!sel.dist) { $('colStreet').innerHTML = '<div class="casc-empty">请选择区县</div>'; return; }
+    var streets = AREAS[sel.prov][sel.city][sel.dist];
+    $('colStreet').innerHTML = cascItems(streets, 'street', sel.street);
+  }
+
+  function cascPick(key, val) {
+    sel[key] = val;
+    if (key === 'prov') { sel.city = ''; sel.dist = ''; sel.street = ''; }
+    if (key === 'city') { sel.dist = ''; sel.street = ''; }
+    if (key === 'dist') { sel.street = ''; }
+    if (key === 'street') {
+      $('fName').value = sel.street;
+      $('fCode').value = genCode(sel.prov, sel.city, sel.dist, sel.street);
+      $('fLevel').value = '乡镇';
+      $('fBelong').value = sel.dist;
+      $('fArea').value = '';
+      $('fnameBox').classList.remove('open');
+      $('cascade').classList.remove('open');
+    } else {
+      renderCascade();
+    }
+  }
+
+  function toggleCascade() {
+    if (readonlyMode) return;
+    var open = $('cascade').classList.contains('open');
+    if (!open && !sel.prov) { sel.prov = '江苏省'; }
+    renderCascade();
+    $('cascade').classList.toggle('open');
+    $('fnameBox').classList.toggle('open');
+  }
+
+  /* 点击其他区域关闭级联 */
+  document.addEventListener('click', function (e) {
+    var w = $('fnameWrap') || null;
+    var hit = e.target.closest ? e.target.closest('.fname-wrap') : null;
+    if (!hit) {
+      $('cascade').classList.remove('open');
+      $('fnameBox').classList.remove('open');
+    }
+    void w;
+  });
+
+  /* ================= 弹窗：新建 / 编辑 / 查看 ================= */
+  function setVal(id, v) {
+    var el = $(id);
+    el.value = (v === null || v === undefined) ? '' : v;
+    if (el.classList.contains('fm-select') || el.classList.contains('fi-select')) markSelect(el);
+  }
+
+  function openForm(mode, idx) {
+    formMode = mode;
+    editIndex = (mode === 'create') ? -1 : idx;
+    readonlyMode = (mode === 'view');
+    var r = (editIndex >= 0) ? data[editIndex] : null;
+
+    $('formTitle').textContent = '行政区划信息维护';
+    $('fName').value = r ? r.name : '';
+    $('fCode').value  = r ? (editIndex === 12 ? '321002001000' : editIndex === 13 ? '321012001000' : '321012100000') : '';
+    $('fLevel').value = r ? r.level : '';
+    $('fBelong').value = r ? (r.level === '区县' ? '扬州市' : '江都区') : '';
+    $('fArea').value = '';
+    setVal('fYear', r ? String(r.year) : '');
+    setVal('fTotal', r ? r.total : '');
+    setVal('fResident', r ? r.resident : '');
+    setVal('fFloating', r ? r.floating : '');
+    setVal('fMale', r ? r.male : '');
+    setVal('fFemale', r ? r.female : '');
+    setVal('fWomen', r ? r.women : '');
+    setVal('fC06', r ? r.c06 : '');
+    setVal('fMaternal', r ? r.maternal : '');
+    setVal('fElder', r ? r.elder : '');
+    setVal('fHyp', r ? r.hyp : '');
+    setVal('fDia', r ? r.dia : '');
+    setVal('fDisab', r ? r.disab : '');
+    setVal('fSmi', r ? r.smi : '');
+    setVal('fFpf', r ? r.fpf : '');
+    setVal('fPoor', r ? r.poor : '');
+    setVal('fM036', r ? r.m036 : '');
+    setVal('fTb', r ? r.tb : '');
+    setVal('fCopd', r ? r.copd : '');
+
+    ['fYear', 'fTotal', 'fResident', 'fFloating', 'fMale', 'fFemale', 'fWomen', 'fC06', 'fMaternal',
+     'fElder', 'fHyp', 'fDia', 'fDisab', 'fSmi', 'fFpf', 'fPoor', 'fM036', 'fTb', 'fCopd'].forEach(function (id) {
+      $(id).disabled = readonlyMode;
+    });
+
+    $('btnConfirm').style.display = readonlyMode ? 'none' : '';
+    $('btnCancel').textContent = readonlyMode ? '关闭' : '取消';
+    $('mOverlay').classList.add('show');
+  }
+
+  function closeForm() {
+    $('cascade').classList.remove('open');
+    $('fnameBox').classList.remove('open');
+    $('mOverlay').classList.remove('show');
+  }
+
+  function saveForm() {
+    var name = $('fName').value.trim();
+    var year = $('fYear').value;
+    var total = $('fTotal').value.trim();
+    if (!name)  { toast('请选择行政区名称', 'warning'); return; }
+    if (!year)  { toast('请选择年度', 'warning'); return; }
+    if (!total) { toast('请输入辖区人口数', 'warning'); return; }
+
+    function num(id) {
+      var v = $(id).value.trim();
+      return v === '' ? null : v;
+    }
+
+    var obj = {
+      name: name,
+      level: $('fLevel').value || '乡镇',
+      year: year,
+      total: num('fTotal'),
+      resident: num('fResident'),
+      floating: num('fFloating'),
+      male: num('fMale'),
+      female: num('fFemale'),
+      women: num('fWomen'),
+      c06: num('fC06'),
+      maternal: num('fMaternal'),
+      elder: num('fElder'),
+      hyp: num('fHyp'),
+      dia: num('fDia'),
+      disab: num('fDisab'),
+      smi: num('fSmi'),
+      fpf: num('fFpf'),
+      poor: num('fPoor'),
+      m036: num('fM036'),
+      tb: num('fTb'),
+      copd: num('fCopd')
+    };
+
+    if (editIndex >= 0) {
+      data[editIndex] = obj;
+      toast('保存成功', 'success');
+    } else {
+      data.push(obj);
+      toast('新增成功', 'success');
+    }
+    closeForm();
+    renderTable();
+  }
+
+  /* 点击遮罩关闭 */
+  $('mOverlay').addEventListener('click', function (e) {
+    if (e.target === this) closeForm();
+  });
+  /* Esc 关闭 */
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeForm();
+  });
+
+  renderTable();
+
+  /* 操作列冻结：横向滚出内容后才给分离阴影 */
+  (function () {
+    var wrap = document.querySelector('.table-wrap');
+    function upd() { wrap.classList.toggle('hs-scrolled', wrap.scrollLeft > 0); }
+    wrap.addEventListener('scroll', upd, { passive: true });
+    window.addEventListener('resize', upd);
+    upd();
+  })();
+
+  /* 便于评审 / 截图：?open=create|edit|view（可带 &idx=n）直接打开弹窗 */
+  (function () {
+    var q = new URLSearchParams(location.search);
+    var m = q.get('open');
+    if (m) openForm(m, parseInt(q.get('idx') || '0', 10) || 0);
+  })();
+</script>
+
+</body>
+</html>

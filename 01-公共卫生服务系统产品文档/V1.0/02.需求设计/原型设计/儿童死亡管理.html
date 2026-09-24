@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>儿童死亡管理 - 三网监测</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0}
+
+  .page-head .right .btn{height:28px;padding:0 14px;font-size:13px}
+
+  .view{display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+  .view.active{display:flex}
+
+  /* 筛选区 */
+  .filter-panel{padding:10px 12px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;gap:10px 14px;margin-bottom:10px;align-items:center}
+  .filter-item{display:flex;align-items:center;gap:8px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:140px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+  /* 数据表格 */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+  .list-tbl{width:100%;min-width:1180px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 10px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:36px;padding:0 10px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:nth-child(even) td{background:var(--bg-table-even)}
+  .list-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .list-tbl th.center,.list-tbl td.center{text-align:center}
+  .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* 操作列 */
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px}
+  .op-link:hover{text-decoration:underline}
+  .op-gap{display:inline-block;width:8px}
+  .op-link.danger{color:var(--danger)}
+  .op-link.danger:hover{text-decoration:underline}
+
+  /* 分页 */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:44px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 22px 0 8px;font-size:13px;color:var(--text-secondary);background:#fff;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-jump input{width:40px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 6px;font-size:13px;text-align:center;color:var(--text-primary);outline:none}
+  .pg-jump input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+
+  /* 详情/表单页 */
+  .detail-body{flex:1;overflow:auto;padding:12px 16px;min-height:0}
+  .view-head{display:flex;align-items:center;height:44px;padding:0 16px;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .view-head h1{font-size:18px;font-weight:var(--font-weight-medium);color:var(--text-primary);line-height:25px;margin-right:auto}
+  .view-head .right{display:flex;gap:8px;align-items:center}
+
+  /* 信息表格 - 报卡表单 */
+  .report-tbl{width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--primary-border);background:var(--bg-white)}
+  .report-tbl .sec-row th{text-align:center;padding:5px 12px;background:var(--primary-header);color:var(--text-primary);font-weight:var(--font-weight-semibold);border:1px solid var(--primary-border);font-size:13px;height:30px}
+  .report-tbl th{text-align:right;padding:0 10px;height:34px;background:var(--primary-header);color:var(--text-primary);font-weight:var(--font-weight-medium);border:1px solid var(--primary-border);white-space:nowrap;width:180px;vertical-align:middle}
+  .report-tbl td{padding:4px 10px;height:34px;background:var(--bg-white);border:1px solid var(--primary-border);color:var(--text-secondary);vertical-align:middle}
+  .report-tbl .required::before{content:"*";color:var(--danger);margin-right:2px}
+
+  /* 表单控件 */
+  .fm-ctl{width:100%;height:28px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 8px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);box-sizing:border-box}
+  .fm-select{width:100%;height:28px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 24px 0 8px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;box-sizing:border-box}
+  .fm-date{width:100%;height:28px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 8px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-size:14px;appearance:none;-webkit-appearance:none;box-sizing:border-box}
+  .fm-area{width:100%;min-height:72px;height:auto;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:6px 8px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);box-sizing:border-box;resize:vertical;font-family:inherit;line-height:20px}
+  .fm-ctl:focus,.fm-select:focus,.fm-date:focus,.fm-area:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fm-ctl::placeholder,.fm-area::placeholder{color:var(--text-placeholder)}
+
+  /* 单选/复选组 */
+  .radio-group{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center}
+  .radio-item{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--text-secondary);cursor:pointer;user-select:none}
+  .radio-item input{cursor:pointer;width:13px;height:13px;accent-color:var(--primary)}
+  .checkbox-item{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--text-secondary);cursor:pointer;user-select:none}
+  .checkbox-item input{cursor:pointer;width:13px;height:13px;accent-color:var(--primary)}
+
+  /* 带单位/复合输入 */
+  .unit-input{display:flex;align-items:center;gap:6px}
+  .unit-input .fm-ctl{width:110px}
+  .unit-input span{font-size:13px;color:var(--text-tertiary);white-space:nowrap}
+  .weight-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .age-group{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .age-group .fm-ctl{width:70px}
+  .age-group span{font-size:13px;color:var(--text-tertiary);white-space:nowrap}
+  .code-group{display:flex;align-items:center;gap:8px}
+  .code-group .fm-ctl{width:160px}
+  .code-group .fm-select{width:160px}
+
+  /* 住址级联 */
+  .addr-cascade{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .addr-cascade .fm-select{width:150px;flex-shrink:0}
+  .addr-cascade .fm-ctl{flex:1;min-width:160px}
+
+  /* 弹窗 */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .modal-overlay.show{opacity:1;pointer-events:auto}
+  .modal{width:420px;max-width:92vw;background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 8px 32px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden;transform:translateY(10px);transition:transform var(--transition-normal)}
+  .modal-overlay.show .modal{transform:translateY(0)}
+  .modal-head{height:48px;display:flex;align-items:center;padding:0 16px;flex-shrink:0;border-bottom:1px solid #E8E8E8}
+  .modal-head h3{font-size:16px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+  .modal-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:18px;line-height:1}
+  .modal-close:hover{background:var(--primary-bg);color:var(--primary)}
+  .modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid #E8E8E8}
+
+  /* 确认弹窗 */
+  .confirm-body{display:flex;align-items:flex-start;gap:12px;padding:24px 20px}
+  .confirm-icon{width:28px;height:28px;border-radius:50%;background:var(--warning-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .confirm-icon svg{width:16px;height:16px;stroke:var(--warning);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .confirm-text{font-size:14px;color:var(--text-primary);line-height:28px}
+
+  /* 只读详情 */
+  .view-detail .radio-item{cursor:default}
+  .view-detail .radio-item input{pointer-events:none}
+
+  /* ===== 选择儿童档案弹框（关联儿童信息） ===== */
+  .select-modal .modal{width:1160px;max-width:96vw;max-height:88vh;display:flex;flex-direction:column}
+  .select-modal .modal-body{padding:12px 0 0;display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+  .select-filter{padding:0 16px 10px;border-bottom:1px solid #E8E8E8;flex-shrink:0}
+  .select-filter .filter-row{margin-bottom:10px}
+  .select-filter .fi-ctl{width:150px;height:30px;font-size:13px}
+  .select-filter .fi-select{width:130px;height:30px;font-size:13px}
+  .select-filter .btn{height:28px;padding:0 12px;font-size:13px}
+  .select-filter .btn-plain{height:28px;padding:0 6px;font-size:13px;color:var(--primary);background:none;border:none;cursor:pointer}
+  .select-filter .btn-plain:hover{text-decoration:underline}
+  .select-table-wrap{flex:1;overflow:auto;min-height:0;min-width:0}
+  .select-tbl{width:100%;min-width:1100px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .select-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#E6F7FF;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #D9E9F5}
+  .select-tbl td{height:36px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .select-tbl th.center,.select-tbl td.center{text-align:center}
+  .select-tbl tbody tr{cursor:pointer}
+  .select-tbl tbody tr:hover td{background:#E6F7FF}
+  .select-tbl .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .select-tbl .crowd-tag{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .select-tip{display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;color:var(--text-tertiary);border-top:1px solid #F0F0F0;flex-shrink:0;background:#FAFBFD}
+  .select-tip svg{width:14px;height:14px;stroke:var(--primary);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .select-pagefoot{display:flex;align-items:center;justify-content:flex-end;gap:10px;height:44px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .select-pagefoot .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .select-pagefoot .pg-size select{height:24px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 20px 0 6px;font-size:12px;color:var(--text-secondary);background:#fff;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 5px center;cursor:pointer}
+  .select-pagefoot .pg-pager{display:flex;align-items:center;gap:3px}
+  .select-pagefoot .pg-btn{min-width:24px;height:24px;padding:0 5px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:12px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff}
+  .select-pagefoot .pg-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .select-pagefoot .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .select-pagefoot .pg-jump input{width:36px;height:24px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 5px;font-size:12px;text-align:center;color:var(--text-primary);outline:none}
+  .select-pagefoot .pg-jump input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+</style>
+</head>
+<body>
+
+<div class="main-area">
+
+  <div class="tabbar">
+    <div class="tab-item active">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      儿童死亡管理
+      <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <!-- 视图1：列表 -->
+      <div class="view active" id="view-list">
+        <div class="page-head">
+          <h1>儿童死亡管理</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="toast('导出成功','success')">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              导出
+            </button>
+            <button class="btn btn-primary" onclick="openForm('create')">新增</button>
+          </div>
+        </div>
+
+        <div class="filter-panel">
+          <div class="filter-row">
+            <div class="filter-item">
+              <label>填报单位：</label>
+              <select class="fi-select">
+                <option value="">请选择</option>
+                <option>扬州市江都区滨江人民医院</option>
+                <option>扬州市江都区大桥中心卫生院</option>
+                <option>扬州市江都区宜陵镇中心卫生院</option>
+                <option>扬州市江都区吴桥镇卫生院</option>
+                <option>扬州市江都区仙女社区卫生服务中心</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>父亲姓名：</label>
+              <input class="fi-ctl" placeholder="请输入" type="text">
+            </div>
+            <div class="filter-item">
+              <label>母亲姓名：</label>
+              <input class="fi-ctl" placeholder="请输入" type="text">
+            </div>
+            <div class="filter-btns">
+              <button class="btn btn-default btn-sm" onclick="toast('已重置','info')">重置</button>
+              <button class="btn btn-primary btn-sm" onclick="toast('查询成功，共 8 条记录','success')">查询</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="list-tbl">
+            <colgroup>
+              <col style="width:50px"><col style="width:190px"><col style="width:90px"><col style="width:90px"><col style="width:90px"><col style="width:70px"><col style="width:130px"><col style="width:80px"><col style="width:100px"><col style="width:120px">
+            </colgroup>
+            <thead>
+              <tr>
+                <th class="center">序号</th>
+                <th>填报单位</th>
+                <th>儿童姓名</th>
+                <th>母亲姓名</th>
+                <th>父亲姓名</th>
+                <th class="center">儿童性别</th>
+                <th>联系电话</th>
+                <th>填表人</th>
+                <th>填报日期</th>
+                <th class="center">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="center">1</td>
+                <td><span class="cell" title="扬州市江都区滨江人民医院">扬州市江都区滨江人民医院</span></td>
+                <td>陈一诺</td>
+                <td>陈丽华</td>
+                <td>陈建国</td>
+                <td class="center">女</td>
+                <td>13805278888</td>
+                <td>朱劲松</td>
+                <td>2026-09-15</td>
+                <td class="center">
+                  <a class="op-link" onclick="openForm('edit',1)">编辑</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link" onclick="showView('detail')">查看</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link danger" onclick="openDelete(1)">删除</a>
+                </td>
+              </tr>
+              <tr>
+                <td class="center">2</td>
+                <td><span class="cell" title="扬州市江都区大桥中心卫生院">扬州市江都区大桥中心卫生院</span></td>
+                <td>李思远</td>
+                <td>王丽萍</td>
+                <td>李国强</td>
+                <td class="center">男</td>
+                <td>13805278889</td>
+                <td>陈燕</td>
+                <td>2023-03-22</td>
+                <td class="center">
+                  <a class="op-link" onclick="openForm('edit',2)">编辑</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link" onclick="showView('detail')">查看</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link danger" onclick="openDelete(2)">删除</a>
+                </td>
+              </tr>
+              <tr>
+                <td class="center">3</td>
+                <td><span class="cell" title="扬州市江都区宜陵镇中心卫生院">扬州市江都区宜陵镇中心卫生院</span></td>
+                <td>王梓萱</td>
+                <td>张秀英</td>
+                <td>王海涛</td>
+                <td class="center">女</td>
+                <td>13805278890</td>
+                <td>李芳</td>
+                <td>2023-07-11</td>
+                <td class="center">
+                  <a class="op-link" onclick="openForm('edit',3)">编辑</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link" onclick="showView('detail')">查看</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link danger" onclick="openDelete(3)">删除</a>
+                </td>
+              </tr>
+              <tr>
+                <td class="center">4</td>
+                <td><span class="cell" title="扬州市江都区吴桥镇卫生院">扬州市江都区吴桥镇卫生院</span></td>
+                <td>张浩宇</td>
+                <td>刘春梅</td>
+                <td>张伟</td>
+                <td class="center">男</td>
+                <td>13805278891</td>
+                <td>王艳</td>
+                <td>2024-01-27</td>
+                <td class="center">
+                  <a class="op-link" onclick="openForm('edit',4)">编辑</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link" onclick="showView('detail')">查看</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link danger" onclick="openDelete(4)">删除</a>
+                </td>
+              </tr>
+              <tr>
+                <td class="center">5</td>
+                <td><span class="cell" title="扬州市江都区仙女社区卫生服务中心">扬州市江都区仙女社区卫生服务中心</span></td>
+                <td>刘雨桐</td>
+                <td>陈丽华</td>
+                <td>刘军</td>
+                <td class="center">女</td>
+                <td>13805278892</td>
+                <td>赵敏</td>
+                <td>2024-05-20</td>
+                <td class="center">
+                  <a class="op-link" onclick="openForm('edit',5)">编辑</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link" onclick="showView('detail')">查看</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link danger" onclick="openDelete(5)">删除</a>
+                </td>
+              </tr>
+              <tr>
+                <td class="center">6</td>
+                <td><span class="cell" title="扬州市江都区小纪中心卫生院">扬州市江都区小纪中心卫生院</span></td>
+                <td>陈子墨</td>
+                <td>杨桂兰</td>
+                <td>陈志明</td>
+                <td class="center">男</td>
+                <td>13805278893</td>
+                <td>周静</td>
+                <td>2024-10-02</td>
+                <td class="center">
+                  <a class="op-link" onclick="openForm('edit',6)">编辑</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link" onclick="showView('detail')">查看</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link danger" onclick="openDelete(6)">删除</a>
+                </td>
+              </tr>
+              <tr>
+                <td class="center">7</td>
+                <td><span class="cell" title="扬州市江都区砖桥社区卫生服务中心">扬州市江都区砖桥社区卫生服务中心</span></td>
+                <td>孙悦</td>
+                <td>李秀兰</td>
+                <td>孙建国</td>
+                <td class="center">女</td>
+                <td>13805278894</td>
+                <td>吴芳</td>
+                <td>2025-02-23</td>
+                <td class="center">
+                  <a class="op-link" onclick="openForm('edit',7)">编辑</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link" onclick="showView('detail')">查看</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link danger" onclick="openDelete(7)">删除</a>
+                </td>
+              </tr>
+              <tr>
+                <td class="center">8</td>
+                <td><span class="cell" title="扬州市江都区樊川中心卫生院">扬州市江都区樊川中心卫生院</span></td>
+                <td>周浩然</td>
+                <td>孙红梅</td>
+                <td>周明</td>
+                <td class="center">男</td>
+                <td>13805278895</td>
+                <td>郑丽</td>
+                <td>2025-06-17</td>
+                <td class="center">
+                  <a class="op-link" onclick="openForm('edit',8)">编辑</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link" onclick="showView('detail')">查看</a>
+                  <span class="op-gap"></span>
+                  <a class="op-link danger" onclick="openDelete(8)">删除</a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="page-foot">
+          <div class="pg-total">共 <b>8</b> 条</div>
+          <div class="pg-size">
+            <select>
+              <option>20 条/页</option>
+              <option>50 条/页</option>
+              <option>100 条/页</option>
+            </select>
+          </div>
+          <div class="pg-pager">
+            <button class="pg-btn active">1</button>
+          </div>
+          <div class="pg-jump">跳至 <input type="text" value="1"> 页</div>
+        </div>
+      </div>
+
+      <!-- 视图2：详情 -->
+      <div class="view view-detail" id="view-detail">
+        <div class="view-head">
+          <h1>查看儿童死亡登记</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="showView('list')">返回</button>
+          </div>
+        </div>
+        <div class="detail-body">
+          <table class="report-tbl">
+            <tr class="sec-row"><th colspan="4">基本信息</th></tr>
+            <tr>
+              <th>补卡</th><td>否</td>
+              <th>编号</th><td>CD-2026-001</td>
+            </tr>
+            <tr>
+              <th>儿童姓名</th><td>陈一诺</td>
+              <th>联系电话</th><td>13805278888</td>
+            </tr>
+            <tr>
+              <th>住址</th><td colspan="3">江苏省扬州市江都区滨江镇郭阳村</td>
+            </tr>
+            <tr>
+              <th>父亲姓名</th><td>陈建国</td>
+              <th>母亲姓名</th><td>陈丽华</td>
+            </tr>
+            <tr>
+              <th>户籍</th><td>本地户口</td>
+              <th>性别</th><td>女</td>
+            </tr>
+            <tr>
+              <th>出生日期</th><td colspan="3">2026-03-14</td>
+            </tr>
+            <tr class="sec-row"><th colspan="4">出生信息</th></tr>
+            <tr>
+              <th>出生体重</th><td>测量 3450 克</td>
+              <th>孕周</th><td>39 周</td>
+            </tr>
+            <tr>
+              <th>出生地点</th><td colspan="3">区县级医院</td>
+            </tr>
+            <tr class="sec-row"><th colspan="4">死亡信息</th></tr>
+            <tr>
+              <th>死亡日期</th><td>2026-09-01</td>
+              <th>死亡年龄</th><td>0 岁 5 月 18 天</td>
+            </tr>
+            <tr>
+              <th>(a)直接导致死亡的疾病或情况</th><td colspan="3">重症肺炎</td>
+            </tr>
+            <tr>
+              <th>(b)引起(a)的疾病或情况</th><td colspan="3">先天性心脏病</td>
+            </tr>
+            <tr>
+              <th>(c)引起(b)的疾病或情况</th><td colspan="3">—</td>
+            </tr>
+            <tr>
+              <th>(d)引起(c)的疾病或情况</th><td colspan="3">—</td>
+            </tr>
+            <tr>
+              <th>根本死亡原因</th><td colspan="3">先天性心脏病</td>
+            </tr>
+            <tr>
+              <th>分类编码</th><td>Q24.9</td>
+              <th>分类编码</th><td>先心病类</td>
+            </tr>
+            <tr>
+              <th>死亡地点</th><td>家中</td>
+              <th>死前治疗</th><td>未治疗</td>
+            </tr>
+            <tr>
+              <th>诊断级别</th><td>未就医</td>
+              <th>死亡诊断依据</th><td>推断</td>
+            </tr>
+            <tr>
+              <th>未治疗或未就医的主要原因</th><td colspan="3">经济困难</td>
+            </tr>
+            <tr class="sec-row"><th colspan="4">死亡病例摘要或调查小结</th></tr>
+            <tr>
+              <th>转诊情况</th><td>无</td>
+              <th>孕母孕</th><td>—</td>
+            </tr>
+            <tr>
+              <th>产前围保级别</th><td>乡镇卫生院</td>
+              <th>产前围保次数</th><td>5</td>
+            </tr>
+            <tr>
+              <th>分娩地点</th><td colspan="3">区县级医院</td>
+            </tr>
+            <tr>
+              <th>病例摘要</th>
+              <td colspan="3">患儿出生后确诊先天性心脏病，因家庭经济困难未规律就医。2026-09-01 在家中突发呼吸困难后死亡，经村医现场调查推断为重症肺炎合并心力衰竭，符合 5 岁以下儿童死亡监测上报要求。</td>
+            </tr>
+            <tr class="sec-row"><th colspan="4">填报信息</th></tr>
+            <tr>
+              <th>填报单位</th><td>扬州市江都区滨江人民医院</td>
+              <th>填报人</th><td>朱劲松</td>
+            </tr>
+            <tr>
+              <th>填报时间</th><td colspan="3">2026-09-15</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- 视图3：新建/编辑 -->
+      <div class="view" id="view-create">
+        <div class="view-head">
+          <h1 id="formTitle">新建儿童死亡登记</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="showView('list')">返回</button>
+            <button class="btn btn-default" onclick="openModal('modal-child')">关联儿童信息</button>
+            <button class="btn btn-primary" onclick="saveForm()">保存</button>
+          </div>
+        </div>
+        <div class="detail-body">
+          <table class="report-tbl">
+            <tr class="sec-row"><th colspan="4">基本信息</th></tr>
+            <tr>
+              <th>补卡</th>
+              <td>
+                <label class="checkbox-item"><input type="checkbox" id="cIsBackup" value="1"> 补卡</label>
+              </td>
+              <th>编号</th>
+              <td><div style="width:200px"><input id="cCode" class="fm-ctl" placeholder="请输入" type="text"></div></td>
+            </tr>
+            <tr>
+              <th class="required">儿童姓名</th>
+              <td><div style="width:220px"><input id="cName" class="fm-ctl" placeholder="请输入" type="text"></div></td>
+              <th class="required">联系电话</th>
+              <td><div style="width:220px"><input id="cPhone" class="fm-ctl" placeholder="请输入" type="text"></div></td>
+            </tr>
+            <tr>
+              <th>住址</th>
+              <td colspan="3">
+                <div class="addr-cascade">
+                  <select class="fm-select"><option selected>江苏省</option><option>浙江省</option><option>安徽省</option></select>
+                  <select class="fm-select"><option selected>扬州市</option><option>南京市</option><option>苏州市</option></select>
+                  <select class="fm-select"><option selected>江都区</option><option>广陵区</option><option>邗江区</option></select>
+                  <input class="fm-ctl" placeholder="详细地址" type="text">
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">父亲姓名</th>
+              <td><div style="width:220px"><input id="cFather" class="fm-ctl" placeholder="请输入" type="text"></div></td>
+              <th class="required">母亲姓名</th>
+              <td><div style="width:220px"><input id="cMother" class="fm-ctl" placeholder="请输入" type="text"></div></td>
+            </tr>
+            <tr>
+              <th>户籍</th>
+              <td>
+                <div class="radio-group">
+                  <label class="radio-item"><input type="radio" name="cHukou" value="本地户口" checked> 本地户口</label>
+                  <label class="radio-item"><input type="radio" name="cHukou" value="非本地户口"> 非本地户口</label>
+                  <label class="radio-item"><input type="radio" name="cHukou" value="非本地户口居住一年以上"> 非本地户口居住一年以上</label>
+                </div>
+              </td>
+              <th class="required">性别</th>
+              <td>
+                <div class="radio-group">
+                  <label class="radio-item"><input type="radio" name="cGender" value="男"> 男</label>
+                  <label class="radio-item"><input type="radio" name="cGender" value="女"> 女</label>
+                  <label class="radio-item"><input type="radio" name="cGender" value="性别不明"> 性别不明</label>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">出生日期</th>
+              <td colspan="3"><div style="width:220px"><input id="cBirthDate" class="fm-date" placeholder="请选择" type="text"></div></td>
+            </tr>
+            <tr class="sec-row"><th colspan="4">出生信息</th></tr>
+            <tr>
+              <th class="required">出生体重</th>
+              <td>
+                <div class="weight-group">
+                  <label class="radio-item"><input type="radio" name="cWeightType" value="测量" checked> 测量</label>
+                  <label class="radio-item"><input type="radio" name="cWeightType" value="估计"> 估计</label>
+                  <input id="cWeight" class="fm-ctl" style="width:90px" placeholder="请输入" type="text">
+                  <span>克</span>
+                </div>
+              </td>
+              <th>孕周</th>
+              <td>
+                <div class="unit-input"><input id="cGestWeek" class="fm-ctl" placeholder="请输入" type="text"><span>周</span></div>
+              </td>
+            </tr>
+            <tr>
+              <th>出生地点</th>
+              <td colspan="3">
+                <div class="radio-group">
+                  <label class="radio-item"><input type="radio" name="cBirthPlace" value="省(市)级医院"> 省(市)级医院</label>
+                  <label class="radio-item"><input type="radio" name="cBirthPlace" value="区县级医院"> 区县级医院</label>
+                  <label class="radio-item"><input type="radio" name="cBirthPlace" value="街道(乡镇)卫生院"> 街道(乡镇)卫生院</label>
+                  <label class="radio-item"><input type="radio" name="cBirthPlace" value="村卫生室"> 村卫生室</label>
+                  <label class="radio-item"><input type="radio" name="cBirthPlace" value="家中"> 家中</label>
+                  <label class="radio-item"><input type="radio" name="cBirthPlace" value="途中"> 途中</label>
+                </div>
+              </td>
+            </tr>
+            <tr class="sec-row"><th colspan="4">死亡信息</th></tr>
+            <tr>
+              <th class="required">死亡日期</th>
+              <td><div style="width:220px"><input id="cDeathDate" class="fm-date" placeholder="请选择" type="text"></div></td>
+              <th>死亡年龄</th>
+              <td>
+                <div class="age-group">
+                  <input id="cDeathAgeY" class="fm-ctl" placeholder="0" type="text"><span>岁</span>
+                  <input id="cDeathAgeM" class="fm-ctl" placeholder="0" type="text"><span>月</span>
+                  <input id="cDeathAgeD" class="fm-ctl" placeholder="0" type="text"><span>天</span>
+                  <input id="cDeathAgeH" class="fm-ctl" placeholder="0" type="text"><span>时</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th>(a)直接导致死亡的疾病或情况</th>
+              <td colspan="3"><div style="width:420px"><input id="cDiagA" class="fm-ctl" placeholder="请输入" type="text"></div></td>
+            </tr>
+            <tr>
+              <th>(b)引起(a)的疾病或情况</th>
+              <td colspan="3"><div style="width:420px"><input id="cDiagB" class="fm-ctl" placeholder="请输入" type="text"></div></td>
+            </tr>
+            <tr>
+              <th>(c)引起(b)的疾病或情况</th>
+              <td colspan="3"><div style="width:420px"><input id="cDiagC" class="fm-ctl" placeholder="请输入" type="text"></div></td>
+            </tr>
+            <tr>
+              <th>(d)引起(c)的疾病或情况</th>
+              <td colspan="3"><div style="width:420px"><input id="cDiagD" class="fm-ctl" placeholder="请输入" type="text"></div></td>
+            </tr>
+            <tr>
+              <th class="required">根本死亡原因</th>
+              <td colspan="3"><div style="width:420px"><input id="cRootCause" class="fm-ctl" placeholder="请输入" type="text"></div></td>
+            </tr>
+            <tr>
+              <th>分类编码</th>
+              <td colspan="3">
+                <div class="code-group">
+                  <input id="cCode1" class="fm-ctl" placeholder="请输入" type="text">
+                  <select id="cCodeSel" class="fm-select">
+                    <option value="">请选择</option>
+                    <option>先天畸形类</option>
+                    <option>呼吸系统疾病类</option>
+                    <option>感染性疾病类</option>
+                    <option>意外伤害类</option>
+                    <option>其他类</option>
+                  </select>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th>死亡地点</th>
+              <td>
+                <div class="radio-group">
+                  <label class="radio-item"><input type="radio" name="cDeathPlace" value="医院"> 医院</label>
+                  <label class="radio-item"><input type="radio" name="cDeathPlace" value="途中"> 途中</label>
+                  <label class="radio-item"><input type="radio" name="cDeathPlace" value="家中"> 家中</label>
+                </div>
+              </td>
+              <th>死前治疗</th>
+              <td>
+                <div class="radio-group">
+                  <label class="radio-item"><input type="radio" name="cTreat" value="住院"> 住院</label>
+                  <label class="radio-item"><input type="radio" name="cTreat" value="门诊"> 门诊</label>
+                  <label class="radio-item"><input type="radio" name="cTreat" value="未治疗"> 未治疗</label>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th>诊断级别</th>
+              <td>
+                <div class="radio-group">
+                  <label class="radio-item"><input type="radio" name="cDiagLevel" value="省(市)"> 省(市)</label>
+                  <label class="radio-item"><input type="radio" name="cDiagLevel" value="区(县)"> 区(县)</label>
+                  <label class="radio-item"><input type="radio" name="cDiagLevel" value="街道(乡镇)"> 街道(乡镇)</label>
+                  <label class="radio-item"><input type="radio" name="cDiagLevel" value="村(诊所)"> 村(诊所)</label>
+                  <label class="radio-item"><input type="radio" name="cDiagLevel" value="未就医"> 未就医</label>
+                </div>
+              </td>
+              <th class="required">死亡诊断依据</th>
+              <td>
+                <div class="radio-group">
+                  <label class="radio-item"><input type="radio" name="cBasis" value="病例尸检"> 病例尸检</label>
+                  <label class="radio-item"><input type="radio" name="cBasis" value="临床"> 临床</label>
+                  <label class="radio-item"><input type="radio" name="cBasis" value="推断"> 推断</label>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th>未治疗或未就医的主要原因</th>
+              <td colspan="3">
+                <div class="radio-group">
+                  <label class="radio-item"><input type="radio" name="cNoTreatReason" value="经济困难"> 经济困难</label>
+                  <label class="radio-item"><input type="radio" name="cNoTreatReason" value="交通不便"> 交通不便</label>
+                  <label class="radio-item"><input type="radio" name="cNoTreatReason" value="来不及送医院"> 来不及送医院</label>
+                  <label class="radio-item"><input type="radio" name="cNoTreatReason" value="家长认为病情不严重"> 家长认为病情不严重</label>
+                  <label class="radio-item"><input type="radio" name="cNoTreatReason" value="风俗习惯"> 风俗习惯</label>
+                  <label class="radio-item"><input type="radio" name="cNoTreatReason" value="其他"> 其他</label>
+                </div>
+              </td>
+            </tr>
+            <tr class="sec-row"><th colspan="4">死亡病例摘要或调查小结</th></tr>
+            <tr>
+              <th>转诊情况</th>
+              <td><div style="width:220px"><input id="cReferral" class="fm-ctl" placeholder="请输入" type="text"></div></td>
+              <th>孕母孕</th>
+              <td><div style="width:120px"><input id="cMatPreg" class="fm-ctl" placeholder="请输入" type="text"></div></td>
+            </tr>
+            <tr>
+              <th>产前围保级别</th>
+              <td>
+                <div style="width:180px">
+                  <select id="cCareLevel" class="fm-select">
+                    <option value="">请选择</option>
+                    <option>省级医院</option>
+                    <option>市级医院</option>
+                    <option>区县级医院</option>
+                    <option>乡镇卫生院</option>
+                    <option>未做围保</option>
+                  </select>
+                </div>
+              </td>
+              <th>产前围保次数</th>
+              <td><div style="width:120px"><input id="cCareCount" class="fm-ctl" placeholder="请输入" type="text"></div></td>
+            </tr>
+            <tr>
+              <th>分娩地点</th>
+              <td colspan="3">
+                <div style="width:260px">
+                  <select id="cDelivPlace" class="fm-select">
+                    <option value="">请选择</option>
+                    <option>省(市)级医院</option>
+                    <option>区县级医院</option>
+                    <option>街道(乡镇)卫生院</option>
+                    <option>村卫生室</option>
+                    <option>家中</option>
+                    <option>途中</option>
+                  </select>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th>病例摘要</th>
+              <td colspan="3">
+                <textarea id="cSummary" class="fm-area" placeholder="请输入死亡病例摘要或调查小结"></textarea>
+              </td>
+            </tr>
+            <tr class="sec-row"><th colspan="4">填报信息</th></tr>
+            <tr>
+              <th class="required">填报单位</th>
+              <td>
+                <div style="width:260px">
+                  <select id="cReportUnit" class="fm-select">
+                    <option value="">请选择</option>
+                    <option>扬州市江都区滨江人民医院</option>
+                    <option>扬州市江都区大桥中心卫生院</option>
+                    <option>扬州市江都区宜陵镇中心卫生院</option>
+                    <option>扬州市江都区吴桥镇卫生院</option>
+                    <option>扬州市江都区仙女社区卫生服务中心</option>
+                  </select>
+                </div>
+              </td>
+              <th class="required">填报人</th>
+              <td>
+                <div style="width:180px">
+                  <select id="cReporter" class="fm-select">
+                    <option value="">请选择</option>
+                    <option>吕雪</option>
+                    <option>朱劲松</option>
+                    <option>康丽建</option>
+                    <option>张德卿</option>
+                  </select>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th class="required">填报时间</th>
+              <td><div style="width:220px"><input id="cReportTime" class="fm-date" type="text" value="2026-09-21"></div></td>
+              <th></th>
+              <td></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== 选择儿童档案弹框（关联儿童信息） ===== -->
+<div class="modal-overlay select-modal" id="modal-child">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>选择儿童档案</h3>
+      <span class="modal-close" onclick="closeModal('modal-child')">×</span>
+    </div>
+    <div class="modal-body">
+      <div class="select-filter">
+        <div class="filter-row">
+          <div class="filter-item"><label>姓名</label><input class="fi-ctl" placeholder="请输入" type="text"></div>
+          <div class="filter-item"><label>证件类型</label>
+            <select class="fi-select">
+              <option value="">请选择</option>
+              <option>居民身份证</option>
+              <option>居民户口簿</option>
+              <option>出生医学证明</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>证件号</label><input class="fi-ctl" placeholder="请输入" type="text"></div>
+        </div>
+        <div class="filter-row">
+          <div class="filter-item"><label>管理机构</label>
+            <select class="fi-select">
+              <option value="">请选择</option>
+              <option>扬州市江都区滨江人民医院</option>
+              <option>扬州市江都区仙女社区卫生服务中心</option>
+              <option>扬州市江都区大桥中心卫生院</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>管理网格</label>
+            <select class="fi-select">
+              <option value="">请选择</option>
+              <option>善玉村</option>
+              <option>北街社区</option>
+              <option>郭阳村</option>
+              <option>纪西村</option>
+            </select>
+          </div>
+          <div class="filter-btns">
+            <button class="btn btn-default" onclick="toast('已重置','info')">重置</button>
+            <button class="btn btn-primary" onclick="toast('查询成功，共 6 条记录','success')">查询</button>
+            <button class="btn-plain" id="btnSfExpand" onclick="toggleSfExtra()">展开 ▼</button>
+          </div>
+        </div>
+        <div class="filter-row" id="sfExtraRow" style="display:none">
+          <div class="filter-item"><label>性别</label>
+            <select class="fi-select">
+              <option value="">请选择</option>
+              <option>男</option>
+              <option>女</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>出生日期</label>
+            <div class="fi-date-range">
+              <input class="fi-date" placeholder="开始日期" type="text">
+              <span class="fi-sep">~</span>
+              <input class="fi-date" placeholder="结束日期" type="text">
+            </div>
+          </div>
+          <div class="filter-item"><label>人群类型</label>
+            <select class="fi-select">
+              <option value="">请选择</option>
+              <option>0-3岁儿童</option>
+              <option>流动儿童</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="select-table-wrap">
+        <table class="select-tbl">
+          <colgroup>
+            <col style="width:60px"><col style="width:170px"><col style="width:90px"><col style="width:55px"><col style="width:70px"><col style="width:110px"><col style="width:190px"><col style="width:190px"><col style="width:180px">
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="center">序号</th>
+              <th>档案编号</th>
+              <th>姓名</th>
+              <th class="center">性别</th>
+              <th class="center">年龄</th>
+              <th>证件类型</th>
+              <th>证件号</th>
+              <th>人群类型</th>
+              <th>管辖行政村</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ondblclick="selectChild(1)">
+              <td class="center">1</td>
+              <td><span class="cell" title="3210121000130600301">3210121000130600301</span></td>
+              <td>陈一诺</td>
+              <td class="center">女</td>
+              <td class="center">0.5岁</td>
+              <td>出生医学证明</td>
+              <td>321088202603142386</td>
+              <td><span class="crowd-tag">0-3岁儿童</span></td>
+              <td>善玉村</td>
+            </tr>
+            <tr ondblclick="selectChild(2)">
+              <td class="center">2</td>
+              <td><span class="cell" title="3210121000130600302">3210121000130600302</span></td>
+              <td>李思远</td>
+              <td class="center">男</td>
+              <td class="center">1岁</td>
+              <td>出生医学证明</td>
+              <td>321088202508275417</td>
+              <td><span class="crowd-tag">0-3岁儿童</span></td>
+              <td>北街社区</td>
+            </tr>
+            <tr ondblclick="selectChild(3)">
+              <td class="center">3</td>
+              <td><span class="cell" title="3210121000130600303">3210121000130600303</span></td>
+              <td>王梓萱</td>
+              <td class="center">女</td>
+              <td class="center">2岁</td>
+              <td>居民户口簿</td>
+              <td>321088202407315428</td>
+              <td><span class="crowd-tag">0-3岁儿童</span></td>
+              <td>郭阳村</td>
+            </tr>
+            <tr ondblclick="selectChild(4)">
+              <td class="center">4</td>
+              <td><span class="cell" title="3210121000130600304">3210121000130600304</span></td>
+              <td>张浩宇</td>
+              <td class="center">男</td>
+              <td class="center">3岁</td>
+              <td>出生医学证明</td>
+              <td>321088202305296439</td>
+              <td><span class="crowd-tag">0-3岁儿童</span></td>
+              <td>纪西村</td>
+            </tr>
+            <tr ondblclick="selectChild(5)">
+              <td class="center">5</td>
+              <td><span class="cell" title="3210121000130600305">3210121000130600305</span></td>
+              <td>刘雨桐</td>
+              <td class="center">女</td>
+              <td class="center">1.5岁</td>
+              <td>出生医学证明</td>
+              <td>321088202502118540</td>
+              <td><span class="crowd-tag">流动儿童</span></td>
+              <td>东苑社区</td>
+            </tr>
+            <tr ondblclick="selectChild(6)">
+              <td class="center">6</td>
+              <td><span class="cell" title="3210121000130600306">3210121000130600306</span></td>
+              <td>陈子墨</td>
+              <td class="center">男</td>
+              <td class="center">2.5岁</td>
+              <td>居民户口簿</td>
+              <td>321088202403226541</td>
+              <td><span class="crowd-tag">0-3岁儿童</span></td>
+              <td>龙溪社区</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="select-tip">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        双击表格行即可选择该档案
+      </div>
+      <div class="select-pagefoot">
+        <span class="pg-total">共 <b>6</b> 条</span>
+        <span class="pg-size">
+          <select>
+            <option>20 条/页</option>
+            <option>50 条/页</option>
+          </select>
+        </span>
+        <span class="pg-pager"><button class="pg-btn active">1</button></span>
+        <span class="pg-jump">跳至第 <input type="text" value="1"> 页</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 删除确认弹框 ===== -->
+<div class="modal-overlay" id="modal-delete">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>删除确认</h3>
+      <span class="modal-close" onclick="closeModal('modal-delete')">×</span>
+    </div>
+    <div class="confirm-body">
+      <div class="confirm-icon">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="confirm-text">确定要删除「<span id="delName">该记录</span>」的儿童死亡登记吗？删除后不可恢复。</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeModal('modal-delete')">取消</button>
+      <button class="btn btn-primary" onclick="doDelete()">确定</button>
+    </div>
+  </div>
+</div>
+
+<script src="框架.js" data-page="child-death-management" data-embed="auto"></script>
+<script>
+  /* ================= 儿童死亡登记模拟数据（供编辑回填） ================= */
+  var childDeathData = [
+    { name:'陈一诺', father:'陈建国', mother:'陈丽华', gender:'女', phone:'13805278888', unit:'扬州市江都区滨江人民医院', reporter:'朱劲松', reportTime:'2026-09-15' },
+    { name:'李思远', father:'李国强', mother:'王丽萍', gender:'男', phone:'13805278889', unit:'扬州市江都区大桥中心卫生院', reporter:'陈燕', reportTime:'2023-03-22' },
+    { name:'王梓萱', father:'王海涛', mother:'张秀英', gender:'女', phone:'13805278890', unit:'扬州市江都区宜陵镇中心卫生院', reporter:'李芳', reportTime:'2023-07-11' },
+    { name:'张浩宇', father:'张伟', mother:'刘春梅', gender:'男', phone:'13805278891', unit:'扬州市江都区吴桥镇卫生院', reporter:'王艳', reportTime:'2024-01-27' },
+    { name:'刘雨桐', father:'刘军', mother:'陈丽华', gender:'女', phone:'13805278892', unit:'扬州市江都区仙女社区卫生服务中心', reporter:'赵敏', reportTime:'2024-05-20' },
+    { name:'陈子墨', father:'陈志明', mother:'杨桂兰', gender:'男', phone:'13805278893', unit:'扬州市江都区小纪中心卫生院', reporter:'周静', reportTime:'2024-10-02' },
+    { name:'孙悦', father:'孙建国', mother:'李秀兰', gender:'女', phone:'13805278894', unit:'扬州市江都区砖桥社区卫生服务中心', reporter:'吴芳', reportTime:'2025-02-23' },
+    { name:'周浩然', father:'周明', mother:'孙红梅', gender:'男', phone:'13805278895', unit:'扬州市江都区樊川中心卫生院', reporter:'郑丽', reportTime:'2025-06-17' }
+  ];
+
+  /* ================= 视图切换 ================= */
+  function showView(name) {
+    document.querySelectorAll('.view').forEach(function (v) { v.classList.remove('active'); });
+    var target = document.getElementById('view-' + name);
+    if (target) target.classList.add('active');
+  }
+
+  function openForm(mode, idx) {
+    $('formTitle').textContent = mode === 'edit' ? '编辑儿童死亡登记' : '新建儿童死亡登记';
+    clearForm();
+    if (mode === 'edit' && idx) {
+      var r = childDeathData[idx - 1];
+      if (r) {
+        $('cName').value = r.name;
+        $('cFather').value = r.father;
+        $('cMother').value = r.mother;
+        $('cPhone').value = r.phone;
+        setRadio('cGender', r.gender);
+        $('cReporter').value = r.reporter;
+        $('cReportUnit').value = r.unit;
+        $('cReportTime').value = r.reportTime;
+      }
+    }
+    showView('create');
+  }
+
+  function clearForm() {
+    ['cCode', 'cName', 'cPhone', 'cFather', 'cMother', 'cBirthDate', 'cWeight', 'cGestWeek', 'cDeathDate', 'cDeathAgeY', 'cDeathAgeM', 'cDeathAgeD', 'cDeathAgeH', 'cDiagA', 'cDiagB', 'cDiagC', 'cDiagD', 'cRootCause', 'cCode1', 'cReferral', 'cMatPreg', 'cCareCount', 'cSummary', 'cReportTime'].forEach(function (id) {
+      var el = $(id);
+      if (el) el.value = '';
+    });
+    $('cIsBackup').checked = false;
+    $('cCodeSel').value = '';
+    $('cCareLevel').value = '';
+    $('cDelivPlace').value = '';
+    $('cReporter').value = '';
+    $('cReportUnit').value = '';
+    $('cReportTime').value = '2026-09-21';
+    ['cHukou', 'cGender', 'cWeightType', 'cBirthPlace', 'cDeathPlace', 'cTreat', 'cDiagLevel', 'cBasis', 'cNoTreatReason'].forEach(function (name) {
+      var checked = document.querySelector('input[name="' + name + '"]:checked');
+      if (checked) checked.checked = false;
+    });
+    setRadio('cHukou', '本地户口');
+    setRadio('cWeightType', '测量');
+  }
+
+  function setRadio(name, val) {
+    var node = document.querySelector('input[name="' + name + '"][value="' + val + '"]');
+    if (node) node.checked = true;
+  }
+
+  function $(id) { return document.getElementById(id); }
+
+  /* ================= 保存校验 ================= */
+  function saveForm() {
+    var missing = [];
+    if (!$('cName').value.trim()) missing.push('儿童姓名');
+    if (!$('cPhone').value.trim()) missing.push('联系电话');
+    if (!$('cFather').value.trim()) missing.push('父亲姓名');
+    if (!$('cMother').value.trim()) missing.push('母亲姓名');
+    if (!document.querySelector('input[name=cGender]:checked')) missing.push('性别');
+    if (!$('cBirthDate').value) missing.push('出生日期');
+    if (!$('cWeight').value.trim()) missing.push('出生体重');
+    if (!$('cDeathDate').value) missing.push('死亡日期');
+    if (!$('cRootCause').value.trim()) missing.push('根本死亡原因');
+    if (!document.querySelector('input[name=cBasis]:checked')) missing.push('死亡诊断依据');
+    if (!$('cReportUnit').value) missing.push('填报单位');
+    if (!$('cReporter').value) missing.push('填报人');
+    if (!$('cReportTime').value) missing.push('填报时间');
+    if (missing.length) { toast('请完善必填项：' + missing.join('、'), 'warning'); return; }
+    toast('儿童死亡登记保存成功', 'success');
+    showView('list');
+  }
+
+  /* ================= 弹框 ================= */
+  function openModal(id) {
+    var m = document.getElementById(id);
+    if (m) m.classList.add('show');
+  }
+  function closeModal(id) {
+    var m = document.getElementById(id);
+    if (m) m.classList.remove('show');
+  }
+  document.querySelectorAll('.modal-overlay').forEach(function (overlay) {
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) overlay.classList.remove('show');
+    });
+  });
+
+  function toggleSfExtra() {
+    var row = $('sfExtraRow'), btn = $('btnSfExpand');
+    var show = row.style.display !== 'none';
+    row.style.display = show ? 'none' : 'flex';
+    btn.textContent = show ? '展开 ▼' : '收起 ▲';
+  }
+
+  /* 儿童档案选择弹框：选择后回填基本信息并关闭弹框 */
+  function selectChild(idx) {
+    var list = [
+      { name:'陈一诺', gender:'女', birth:'2026-03-14', weight:'3450' },
+      { name:'李思远', gender:'男', birth:'2025-08-27', weight:'3280' },
+      { name:'王梓萱', gender:'女', birth:'2024-07-31', weight:'3120' },
+      { name:'张浩宇', gender:'男', birth:'2023-05-29', weight:'3560' },
+      { name:'刘雨桐', gender:'女', birth:'2025-02-11', weight:'2990' },
+      { name:'陈子墨', gender:'男', birth:'2024-03-22', weight:'3340' }
+    ];
+    var r = list[idx - 1];
+    if (!r) return;
+    $('cName').value = r.name;
+    setRadio('cGender', r.gender);
+    $('cBirthDate').value = r.birth;
+    $('cWeight').value = r.weight;
+    closeModal('modal-child');
+    toast('已关联儿童档案：' + r.name, 'success');
+  }
+
+  /* 删除确认 */
+  function openDelete(idx) {
+    var r = childDeathData[idx - 1];
+    $('delName').textContent = r ? r.name : '该记录';
+    openModal('modal-delete');
+  }
+  function doDelete() {
+    closeModal('modal-delete');
+    toast('删除成功', 'success');
+  }
+</script>
+</body>
+</html>

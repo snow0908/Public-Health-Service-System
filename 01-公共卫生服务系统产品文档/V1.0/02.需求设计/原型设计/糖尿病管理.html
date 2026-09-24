@@ -1190,6 +1190,7 @@
     if (r.org) params.push('specOrg=' + encodeURIComponent(r.org));
     if (r.specDoc) params.push('specDoc=' + encodeURIComponent(r.specDoc));
     if (r.specDate) params.push('specDate=' + encodeURIComponent(r.specDate));
+    params.push('edit=1');
     location.href = '档案维护.html?' + params.join('&');
   }
 

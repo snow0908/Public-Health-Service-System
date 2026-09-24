@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>辖区统计维护 - 系统设置</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}
+
+  /* ===== 页头 ===== */
+  .page-head .right{display:flex;align-items:center;gap:8px}
+
+  /* ===== 配置区（滚动） ===== */
+  .stat-body{flex:1;min-height:0;overflow:auto;padding:14px 16px;background:var(--bg-white)}
+
+  /* ---- 分区卡片 ---- */
+  .stat-section{margin-bottom:16px;background:var(--bg-white);border:1px solid #ECEEF2;border-radius:8px;padding:16px 18px 18px;box-shadow:0 1px 2px rgba(0,0,0,0.03)}
+  .sec-head{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+  .sec-head::before{content:"";width:3px;height:15px;border-radius:2px;background:var(--primary)}
+  .sec-head h2{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--text-primary)}
+
+  /* ---- 统计项卡片 ---- */
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
+  .stat-card{display:flex;align-items:flex-start;gap:10px;border:1px solid #ECEEF2;border-radius:6px;padding:12px 14px;background:#FAFBFC;transition:all var(--transition-fast);min-height:78px}
+  .stat-card:hover{border-color:#D6DCE5;box-shadow:0 2px 6px rgba(0,0,0,0.04)}
+  .stat-card.on{border-color:var(--primary);background:var(--primary-bg)}
+  .stat-card.ghost{visibility:hidden;min-height:0;padding:0;border:none;background:transparent}
+  .sc-main{flex:1;min-width:0}
+  .sc-name{font-size:14px;font-weight:var(--font-weight-semibold);color:var(--text-primary)}
+  .sc-desc{font-size:12px;color:var(--text-tertiary);line-height:1.5;margin-top:5px}
+
+  /* ---- 开关（启用/停用） ---- */
+  .sw{position:relative;display:inline-block;width:36px;height:20px;flex:none;margin-top:1px;cursor:pointer}
+  .sw input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;z-index:2}
+  .sw .track{position:absolute;inset:0;border-radius:10px;background:#D9D9D9;transition:background var(--transition-fast)}
+  .sw .knob{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,0.2);transition:left var(--transition-fast)}
+  .sw input:checked ~ .track{background:var(--primary)}
+  .sw input:checked ~ .knob{left:18px}
+  .sw input:focus-visible ~ .track{box-shadow:0 0 0 2px rgba(0,122,255,0.25)}
+</style>
+</head>
+<body>
+
+<div class="main-area">
+
+  <div class="tabbar">
+    <div class="tab-item active">辖区统计维护</div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <div class="page-head">
+        <h1>辖区统计维护</h1>
+        <div class="right">
+          <button class="btn btn-default" onclick="cancelForm()">取消</button>
+          <button class="btn btn-primary" onclick="saveForm()">保存</button>
+        </div>
+      </div>
+
+      <div class="stat-body">
+        <div class="stat-section">
+          <div class="sec-head"><h2>居民档案</h2></div>
+          <div class="stat-grid" id="gridRes"></div>
+        </div>
+        <div class="stat-section">
+          <div class="sec-head"><h2>业务档案</h2></div>
+          <div class="stat-grid" id="gridBiz"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="框架.js" data-page="jurisdiction-stats-maintenance" data-embed="auto"></script>
+<script>
+  /* ================= 工具 ================= */
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /* ================= 统计项配置 ================= */
+  var RES = [
+    { key: 'personal', name: '个人档案', desc: '展示截止当前日期,累计个人档案的人数', on: false },
+    { key: 'male',     name: '男性档案', desc: '展示截止当前日期,累计性别为男个人档案的人数', on: false },
+    { key: 'female',   name: '女性档案', desc: '展示截止当前日期,累计性别为女个人档案的人数', on: false },
+    { key: 'family',   name: '家庭档案', desc: '展示截止当前日期,累计建立家庭档案的人数', on: false }
+  ];
+
+  var BIZ = [
+    { key: 'hyp',   name: '高血压',   desc: '展示截止当前日期,累计高血压档案的人数', on: false },
+    { key: 'dia',   name: '糖尿病',   desc: '展示截止当前日期,累计糖尿病档案的人数', on: false },
+    { key: 'psy',   name: '精神病',   desc: '展示截止当前日期,累计精神病档案的人数', on: false },
+    { key: 'tb',    name: '肺结核',   desc: '展示截止当前日期,累计肺结核档案的人数', on: false },
+    { key: 'women', name: '妇女',     desc: '展示截止当前日期,累计妇女档案的人数', on: false },
+    { key: 'mat',   name: '孕产妇',   desc: '展示截止当前日期,累计孕产妇档案的人数', on: false },
+    { key: 'child', name: '儿童',     desc: '展示截止当前日期,累计儿童档案的人数', on: false },
+    { key: 'elder', name: '老年人',   desc: '展示截止当前日期,累计年龄符合老年人的个人档案的人数', on: false },
+    { key: 'cv',    name: '心脑血管', desc: '展示截止当前日期,累计心脑血管档案的人数', on: false },
+    { key: 'tumor', name: '肿瘤病',   desc: '展示截止当前日期,累计肿瘤病档案的人数', on: false },
+    { key: 'copd',  name: '慢阻肺',   desc: '展示截止当前日期,累计慢阻肺档案的人数', on: false }
+  ];
+
+  /* 已保存快照（取消时恢复） */
+  var saved = {};
+  [].concat(RES, BIZ).forEach(function (it) { saved[it.key] = it.on; });
+
+  function findItem(k) {
+    var all = RES.concat(BIZ);
+    for (var i = 0; i < all.length; i++) if (all[i].key === k) return all[i];
+    return null;
+  }
+
+  /* ================= 渲染 ================= */
+  function cardHtml(it) {
+    return '<div class="stat-card' + (it.on ? ' on' : '') + '">'
+      + '<div class="sc-main">'
+      +   '<div class="sc-name">' + esc(it.name) + '</div>'
+      +   '<div class="sc-desc">' + esc(it.desc) + '</div>'
+      + '</div>'
+      + '<label class="sw"><input type="checkbox"' + (it.on ? ' checked' : '')
+      + ' onchange="toggleCard(\'' + it.key + '\',this.checked)"><span class="track"></span><span class="knob"></span></label>'
+      + '</div>';
+  }
+
+  function render() {
+    $('gridRes').innerHTML = RES.map(cardHtml).join('');
+    var biz = BIZ.map(cardHtml).join('');
+    if (BIZ.length % 2) biz += '<div class="stat-card ghost"></div>';
+    $('gridBiz').innerHTML = biz;
+  }
+
+  function toggleCard(k, on) {
+    var it = findItem(k);
+    if (!it) return;
+    it.on = !!on;
+    render();
+  }
+
+  /* ================= 保存 / 取消 ================= */
+  function saveForm() {
+    [].concat(RES, BIZ).forEach(function (it) { saved[it.key] = it.on; });
+    var onCount = [].concat(RES, BIZ).filter(function (it) { return it.on; }).length;
+    toast('保存成功，已启用 ' + onCount + ' 项统计', 'success');
+  }
+
+  function cancelForm() {
+    [].concat(RES, BIZ).forEach(function (it) {
+      if (saved[it.key] !== undefined) it.on = saved[it.key];
+    });
+    render();
+    toast('已取消修改', 'info');
+  }
+
+  render();
+</script>
+
+</body>
+</html>

@@ -242,7 +242,7 @@
         <div class="right">
           <button class="btn btn-default" onclick="toast('导出功能建设中','info')">导出</button>
           <button class="btn btn-default" onclick="toast('请连接身份证读卡器','info')">身份证读卡</button>
-          <button class="btn btn-primary" onclick="openCreateModal()">新增专档</button>
+          <button class="btn btn-primary" onclick="openCreateModal()">新建专项</button>
         </div>
       </div>
 
@@ -1027,6 +1027,7 @@
     if (r.org) params.push('specOrg=' + encodeURIComponent(r.org));
     if (r.diagDate) params.push('diagDate=' + encodeURIComponent(r.diagDate));
     if (r.specDate) params.push('specDate=' + encodeURIComponent(r.specDate));
+    params.push('edit=1');
     location.href = '档案维护.html?' + params.join('&');
   }
 

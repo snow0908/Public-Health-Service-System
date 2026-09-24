@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>儿童中医指导模板 - 业务模板管理</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0}
+
+  .view{display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+  .view.active{display:flex}
+
+  /* ===== 筛选区（同 老年人中医指导模板.html） ===== */
+  .filter-panel{padding:14px 12px;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px}
+  .filter-item{display:flex;align-items:center;gap:4px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .fi-select.is-placeholder{color:var(--text-placeholder)}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+  /* ===== 数据表格 ===== */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+  .list-tbl th:last-child,.list-tbl td:last-child{position:sticky;right:0}
+  .list-tbl td:last-child{z-index:2;background-color:var(--bg-white)}
+  .list-tbl th:last-child{z-index:6}
+  .list-tbl{width:100%;min-width:1060px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 10px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:36px;padding:0 10px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:nth-child(even) td{background:var(--bg-table-even)}
+  .list-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .table-wrap.hs-scrolled .list-tbl thead th:last-child,
+  .table-wrap.hs-scrolled .list-tbl tbody tr td:last-child{
+    background-image:linear-gradient(to right,rgba(0,0,0,0.10),rgba(0,0,0,0));
+    background-repeat:no-repeat;background-size:9px 100%;background-position:left center;
+  }
+  .list-tbl .center{text-align:center}
+  .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* ===== 启用开关 ===== */
+  .sw{position:relative;display:inline-block;width:28px;height:16px;vertical-align:middle;cursor:pointer}
+  .sw input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;z-index:2}
+  .sw .track{position:absolute;inset:0;border-radius:8px;background:#D9D9D9;transition:background var(--transition-fast)}
+  .sw .knob{position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,0.2);transition:left var(--transition-fast)}
+  .sw input:checked ~ .track{background:var(--primary)}
+  .sw input:checked ~ .knob{left:14px}
+  .sw input:focus-visible ~ .track{box-shadow:0 0 0 2px rgba(0,122,255,0.25)}
+
+  /* ===== 操作列 ===== */
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px}
+  .op-link:hover{text-decoration:underline}
+  .op-gap{display:inline-block;width:8px}
+
+  /* ===== 分页 ===== */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:44px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 22px 0 8px;font-size:13px;color:var(--text-secondary);background:#fff;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-btn.disabled{color:var(--text-disabled);cursor:not-allowed;border-color:#EBEBEB}
+  .pg-btn.disabled:hover{border-color:#EBEBEB;color:var(--text-disabled)}
+  .pg-jump input{width:40px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 6px;font-size:13px;text-align:center;color:var(--text-primary);outline:none}
+  .pg-jump input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+
+  /* ===== 右侧弹框浮层（抽屉，同 老年人中医指导模板.html） ===== */
+  .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .drawer-overlay.show{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:620px;max-width:94vw;background:var(--bg-white);box-shadow:-8px 0 32px rgba(0,0,0,0.18);display:flex;flex-direction:column;transform:translateX(100%);transition:transform var(--transition-normal);z-index:var(--z-modal)}
+  .drawer-overlay.show .drawer{transform:translateX(0)}
+  .drawer-head{height:48px;display:flex;align-items:center;padding:0 16px;flex-shrink:0;border-bottom:1px solid #E8E8E8}
+  .drawer-head h3{font-size:16px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+  .drawer-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:18px;line-height:1}
+  .drawer-close:hover{background:var(--primary-bg);color:var(--primary)}
+  .drawer-body{flex:1;min-height:0;overflow:auto;padding:22px 24px;display:flex;flex-direction:column}
+  .drawer-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:14px 24px;border-top:1px solid #E8E8E8;flex-shrink:0}
+
+  /* ===== 录入表单 ===== */
+  .df-item{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-shrink:0}
+  .df-item>label{flex:none;width:80px;font-size:13px;color:var(--text-secondary);white-space:nowrap}
+  .df-item>label.required::before{content:"*";color:var(--danger);margin-right:2px}
+  .df-ctl{flex:1;min-width:0;height:34px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .df-select{flex:1;min-width:0;height:34px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .df-ctl:focus,.df-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .df-ctl::placeholder,.df-select.is-placeholder{color:var(--text-placeholder)}
+  .df-ctl:disabled,.df-select:disabled{background-color:#F5F5F5;color:var(--text-secondary);cursor:not-allowed}
+  .df-item.df-top{align-items:flex-start}
+  .df-item.df-top>label{padding-top:8px;line-height:20px}
+  .df-fill{flex:1;min-width:0;display:flex;flex-direction:column}
+
+  /* ===== 富文本编辑器（同 老年人中医指导模板.html） ===== */
+  .editor-wrap{position:relative;flex:1;min-width:0;display:flex}
+  .editor{flex:1;min-width:0;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);overflow:hidden;display:flex;flex-direction:column;background:#fff;transition:border-color var(--transition-fast)}
+  .editor:focus-within{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .ed-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:2px;padding:6px 8px;border-bottom:1px solid #E8E8E8;background:#FAFBFC;flex-shrink:0}
+  .ed-btn{min-width:26px;height:26px;padding:0 6px;border:none;background:transparent;border-radius:4px;font-size:13px;color:var(--text-secondary);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-family:inherit}
+  .ed-btn:hover{background:#EEF1F5;color:var(--primary)}
+  .ed-sep{width:1px;height:16px;background:#E0E4EA;margin:0 5px;flex-shrink:0}
+  .ed-area{flex:1;min-height:280px;padding:10px 12px 30px;font-size:13px;line-height:1.7;outline:none;overflow:auto;color:var(--text-primary);word-break:break-all}
+  .ed-area:empty::before{content:attr(data-placeholder);color:var(--text-placeholder)}
+  .ed-area[contenteditable="false"]{background:#FBFBFB;color:var(--text-secondary)}
+  .ed-count{position:absolute;right:12px;bottom:10px;font-size:12px;color:var(--text-placeholder);pointer-events:none;background:#fff;padding:0 4px;border-radius:3px}
+  .editor.fullscreen{position:fixed;inset:28px;z-index:calc(var(--z-modal) + 1);box-shadow:0 12px 40px rgba(0,0,0,0.35);border-color:var(--color-neutral-300)}
+  .editor.fullscreen .ed-area{min-height:0}
+</style>
+</head>
+<body>
+
+<div class="main-area">
+
+  <div class="tabbar">
+    <div class="tab-item active">儿童中医指导模板</div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <div class="view active" id="view-list">
+        <div class="page-head">
+          <h1>儿童中医指导模板</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="toast('导出成功','success')">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              导出
+            </button>
+            <button class="btn btn-primary" onclick="openForm('create')">新增</button>
+          </div>
+        </div>
+
+        <div class="filter-panel">
+          <div class="filter-row">
+            <div class="filter-item">
+              <label>使用范围：</label>
+              <select class="fi-select is-placeholder" id="qOrg" onchange="markSelect(this)">
+                <option value="">请选择</option>
+                <option>公用</option>
+                <option>**大学淮河医院</option>
+                <option>山东大学齐鲁医院</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>模板名称：</label>
+              <input class="fi-ctl" id="qName" placeholder="请输入" type="text">
+            </div>
+            <div class="filter-item">
+              <label>适用月龄：</label>
+              <select class="fi-select is-placeholder" id="qMonth" onchange="markSelect(this)">
+                <option value="">请选择</option>
+                <option>6月龄</option>
+                <option>12月龄</option>
+                <option>18月龄</option>
+                <option>24月龄</option>
+                <option>36月龄</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>是否启用：</label>
+              <select class="fi-select" id="qStatus" onchange="renderTable()">
+                <option value="">全部</option>
+                <option value="1">启用</option>
+                <option value="0">停用</option>
+              </select>
+            </div>
+            <div class="filter-btns">
+              <button class="btn btn-default" onclick="resetFilter()">重置</button>
+              <button class="btn btn-primary" onclick="applyFilter()">查询</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="list-tbl">
+            <colgroup>
+              <col style="width:52px">
+              <col style="width:150px">
+              <col style="width:180px">
+              <col style="width:110px">
+              <col style="width:180px">
+              <col style="width:100px">
+              <col style="width:120px">
+              <col style="width:80px">
+              <col style="width:110px">
+            </colgroup>
+            <thead>
+              <tr>
+                <th class="center">序号</th>
+                <th>使用范围</th>
+                <th>模板名称</th>
+                <th>适用月龄</th>
+                <th>项目</th>
+                <th>创建人</th>
+                <th>创建日期</th>
+                <th class="center">是否启用</th>
+                <th class="center">操作</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="page-foot">
+          <div class="pg-total">共 <b id="total">0</b> 条</div>
+          <div class="pg-size">
+            <select>
+              <option>20 条/页</option>
+              <option>50 条/页</option>
+              <option>100 条/页</option>
+            </select>
+          </div>
+          <div class="pg-pager">
+            <button class="pg-btn disabled">&lt;</button>
+            <button class="pg-btn active">1</button>
+            <button class="pg-btn disabled">&gt;</button>
+          </div>
+          <div class="pg-jump">跳至 <input type="text" value="1"> 页</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 右侧弹框浮层：新增 / 编辑 / 查看 -->
+  <div class="drawer-overlay" id="drawer">
+    <div class="drawer">
+      <div class="drawer-head">
+        <h3 id="formTitle">儿童中医指导模板</h3>
+        <div class="drawer-close" onclick="closeForm()">×</div>
+      </div>
+      <div class="drawer-body">
+        <div class="df-item">
+          <label class="required">模板名称:</label>
+          <input class="df-ctl" id="fName" placeholder="请输入" type="text">
+        </div>
+        <div class="df-item">
+          <label class="required">适用月龄:</label>
+          <select class="df-select is-placeholder" id="fMonth" onchange="markSelect(this)">
+            <option value="">请选择</option>
+            <option>6月龄</option>
+            <option>12月龄</option>
+            <option>18月龄</option>
+            <option>24月龄</option>
+            <option>36月龄</option>
+          </select>
+        </div>
+        <div class="df-item">
+          <label class="required">项目:</label>
+          <select class="df-select is-placeholder" id="fItem" onchange="markSelect(this)">
+            <option value="">请选择</option>
+            <option>中医饮食调养指导</option>
+            <option>中医起居调摄指导</option>
+            <option>传授按揉迎香穴、足三里穴方法</option>
+            <option>其它</option>
+          </select>
+        </div>
+        <div class="df-item">
+          <label class="required">使用范围:</label>
+          <select class="df-select is-placeholder" id="fOrg" onchange="markSelect(this)">
+            <option value="">请选择</option>
+            <option>公用</option>
+            <option>**大学淮河医院</option>
+            <option>山东大学齐鲁医院</option>
+          </select>
+        </div>
+        <div class="df-item df-top">
+          <label class="required">内容:</label>
+          <div class="df-fill">
+            <div class="editor-wrap">
+              <div class="editor" id="fEditor">
+                <div class="ed-toolbar">
+                  <button type="button" class="ed-btn" title="标题" onclick="edCmd('formatBlock','H3')">H</button>
+                  <button type="button" class="ed-btn" title="加粗" onclick="edCmd('bold')"><b>B</b></button>
+                  <button type="button" class="ed-btn" title="字号" onclick="edCmd('fontSize','4')">Tt</button>
+                  <button type="button" class="ed-btn" title="斜体" onclick="edCmd('italic')"><i>I</i></button>
+                  <span class="ed-sep"></span>
+                  <button type="button" class="ed-btn" title="下划线" onclick="edCmd('underline')"><u>U</u></button>
+                  <button type="button" class="ed-btn" title="删除线" onclick="edCmd('strikeThrough')"><s>S</s></button>
+                  <button type="button" class="ed-btn" title="无序列表" onclick="edCmd('insertUnorderedList')">≡</button>
+                  <button type="button" class="ed-btn" title="有序列表" onclick="edCmd('insertOrderedList')">1.</button>
+                  <span class="ed-sep"></span>
+                  <button type="button" class="ed-btn" title="左对齐" onclick="edCmd('justifyLeft')">左</button>
+                  <button type="button" class="ed-btn" title="居中对齐" onclick="edCmd('justifyCenter')">中</button>
+                  <button type="button" class="ed-btn" title="右对齐" onclick="edCmd('justifyRight')">右</button>
+                  <button type="button" class="ed-btn" title="插入图片" onclick="edImage()">图</button>
+                  <span class="ed-sep"></span>
+                  <button type="button" class="ed-btn" title="撤销" onclick="edCmd('undo')">↺</button>
+                  <button type="button" class="ed-btn" title="重做" onclick="edCmd('redo')">↻</button>
+                  <button type="button" class="ed-btn" title="全屏" onclick="edFull()">⛶</button>
+                </div>
+                <div class="ed-area" id="fContent" contenteditable="true" data-placeholder="请输入内容"></div>
+              </div>
+              <span class="ed-count" id="fCount">0 字</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="drawer-foot">
+        <button class="btn btn-primary" id="btnConfirm" onclick="saveForm()">确定</button>
+        <button class="btn btn-default" id="btnCancel" onclick="closeForm()">取消</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="框架.js" data-page="child-tcm-guide-template" data-embed="auto"></script>
+<script>
+  /* ================= 工具 ================= */
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function today() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  /* ================= 数据 ================= */
+  var data = [
+    { name:'xx', org:'**大学淮河医院', month:'12月龄', item:'中医起居调摄指导', creator:'吕雪', created:'2026-09-24', enabled:true,  content:'<p>xxxxxaadsdadsad</p>' },
+    { name:'6月龄饮食调养指导', org:'公用', month:'6月龄', item:'中医饮食调养指导', creator:'吕雪', created:'2026-09-20', enabled:true,  content:'<p>xxxxxaadsdadsad</p>' },
+    { name:'18月龄穴位保健指导', org:'公用', month:'18月龄', item:'传授按揉迎香穴、足三里穴方法', creator:'吕雪', created:'2026-09-18', enabled:false, content:'<p>xxxxxaadsdadsad</p>' }
+  ];
+
+  var editIndex = -1;   /* -1 = 新增 */
+  var formMode  = 'create';
+
+  /* ================= 列表 ================= */
+  function visibleRows() {
+    var org = $('qOrg').value;
+    var name = $('qName').value.trim();
+    var month = $('qMonth').value;
+    var st = $('qStatus').value;
+    return data.filter(function (r) {
+      if (org && r.org !== org) return false;
+      if (name && r.name.indexOf(name) === -1) return false;
+      if (month && r.month !== month) return false;
+      if (st !== '' && String(Number(r.enabled)) !== st) return false;
+      return true;
+    });
+  }
+
+  function renderTable() {
+    var rows = visibleRows();
+    $('tbody').innerHTML = rows.map(function (r, i) {
+      return '<tr>'
+        + '<td class="center">' + (i + 1) + '</td>'
+        + '<td>' + esc(r.org) + '</td>'
+        + '<td><span class="cell" title="' + esc(r.name) + '">' + esc(r.name) + '</span></td>'
+        + '<td>' + esc(r.month) + '</td>'
+        + '<td><span class="cell" title="' + esc(r.item) + '">' + esc(r.item) + '</span></td>'
+        + '<td>' + esc(r.creator) + '</td>'
+        + '<td>' + esc(r.created) + '</td>'
+        + '<td class="center"><label class="sw"><input type="checkbox"' + (r.enabled ? ' checked' : '')
+        + ' onchange="switchEnabled(' + data.indexOf(r) + ',this.checked)"><span class="track"></span><span class="knob"></span></label></td>'
+        + '<td class="center"><a class="op-link" onclick="openForm(\'edit\',' + data.indexOf(r) + ')">编辑</a>'
+        + '<span class="op-gap"></span>'
+        + '<a class="op-link" onclick="openForm(\'view\',' + data.indexOf(r) + ')">查看</a></td>'
+        + '</tr>';
+    }).join('');
+    $('total').textContent = rows.length;
+  }
+
+  function switchEnabled(i, on) {
+    data[i].enabled = !!on;
+    toast(on ? '已启用该模板' : '已停用该模板', 'success');
+  }
+
+  /* ================= 筛选 ================= */
+  function markSelect(el) {
+    el.classList.toggle('is-placeholder', el.value === '');
+  }
+  function resetFilter() {
+    $('qOrg').value = '';
+    $('qName').value = '';
+    $('qMonth').value = '';
+    $('qStatus').value = '';
+    markSelect($('qOrg'));
+    markSelect($('qMonth'));
+    renderTable();
+    toast('已重置', 'info');
+  }
+  function applyFilter() {
+    renderTable();
+    toast('查询完成，共 ' + $('total').textContent + ' 条记录', 'success');
+  }
+  $('qName').addEventListener('input', renderTable);
+
+  /* ================= 富文本编辑器 ================= */
+  function edCmd(cmd, val) {
+    document.execCommand(cmd, false, val || null);
+    $('fContent').focus();
+    updateCount();
+  }
+  function edImage() {
+    var uri = 'data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27640%27 height=%27180%27%3E%3Crect width=%27640%27 height=%27180%27 fill=%27%23EEF3FA%27/%3E%3Ctext x=%27264%27 y=%27100%27 font-size=%2722%27 fill=%27%238FA8C8%27%3E图片占位%3C/text%3E%3C/svg%3E';
+    document.execCommand('insertImage', false, uri);
+    $('fContent').focus();
+    updateCount();
+  }
+  function edFull() {
+    $('fEditor').classList.toggle('fullscreen');
+  }
+  function updateCount() {
+    var el = $('fContent');
+    var n = ((el.textContent || '').replace(/\s+/g, '')).length;
+    $('fCount').textContent = n + ' 字';
+  }
+  $('fContent').addEventListener('input', updateCount);
+
+  /* ================= 抽屉：新增 / 编辑 / 查看 ================= */
+  function setSel(id, val) {
+    var el = $(id);
+    el.value = val || '';
+    markSelect(el);
+  }
+
+  function openForm(mode, idx) {
+    formMode = mode;
+    editIndex = (mode === 'create') ? -1 : idx;
+    var readonly = (mode === 'view');
+    var r = (editIndex >= 0) ? data[editIndex] : null;
+
+    $('formTitle').textContent = '儿童中医指导模板';
+    $('fName').value = r ? r.name : '';
+    setSel('fMonth', r ? r.month : '');
+    setSel('fItem', r ? r.item : '');
+    setSel('fOrg', r ? r.org : '');
+    $('fContent').innerHTML = r ? r.content : '';
+    updateCount();
+
+    ['fName', 'fMonth', 'fItem', 'fOrg'].forEach(function (id) {
+      $(id).disabled = readonly;
+    });
+    $('fContent').contentEditable = readonly ? 'false' : 'true';
+    $('fEditor').classList.toggle('fullscreen', false);
+    $('btnConfirm').style.display = readonly ? 'none' : '';
+    $('btnCancel').textContent = readonly ? '关闭' : '取消';
+
+    $('drawer').classList.add('show');
+    if (!readonly) setTimeout(function () { $('fName').focus(); }, 60);
+  }
+
+  function closeForm() {
+    $('drawer').classList.remove('show');
+  }
+
+  function saveForm() {
+    var name = $('fName').value.trim();
+    var month = $('fMonth').value;
+    var item = $('fItem').value;
+    var org = $('fOrg').value;
+    var content = $('fContent').innerHTML.trim();
+    var contentText = ($('fContent').textContent || '').trim();
+    if (!name)   { toast('请输入模板名称', 'warning'); return; }
+    if (!month)  { toast('请选择适用月龄', 'warning'); return; }
+    if (!item)   { toast('请选择项目', 'warning'); return; }
+    if (!org)    { toast('请选择使用范围', 'warning'); return; }
+    if (!content || !contentText) { toast('请输入内容', 'warning'); return; }
+
+    if (editIndex >= 0) {
+      data[editIndex].name = name;
+      data[editIndex].month = month;
+      data[editIndex].item = item;
+      data[editIndex].org = org;
+      data[editIndex].content = content;
+      toast('保存成功', 'success');
+    } else {
+      data.push({
+        name: name, month: month, item: item, org: org, content: content,
+        creator: '吕雪', created: today(), enabled: true
+      });
+      toast('新增成功', 'success');
+    }
+    closeForm();
+    renderTable();
+  }
+
+  /* 点击遮罩关闭 */
+  $('drawer').addEventListener('click', function (e) {
+    if (e.target === this) closeForm();
+  });
+
+  /* Esc 关闭抽屉 */
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeForm();
+  });
+
+  renderTable();
+
+  /* 操作列冻结：横向滚出内容后才给分离阴影，静止态与设计稿一致 */
+  (function () {
+    var wrap = document.querySelector('.table-wrap');
+    function upd() { wrap.classList.toggle('hs-scrolled', wrap.scrollLeft > 0); }
+    wrap.addEventListener('scroll', upd, { passive: true });
+    window.addEventListener('resize', upd);
+    upd();
+  })();
+
+  /* 便于评审 / 截图：?open=create|edit|view（可带 &idx=n）直接打开抽屉 */
+  (function () {
+    var q = new URLSearchParams(location.search);
+    var m = q.get('open');
+    if (m) openForm(m, parseInt(q.get('idx') || '0', 10) || 0);
+  })();
+</script>
+
+</body>
+</html>

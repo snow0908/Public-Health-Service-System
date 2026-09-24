@@ -34,11 +34,18 @@
         { key: 'resident-archives',      label: '居民档案', url: '居民档案列表.html' },
         { key: 'family-archives',        label: '家庭档案', url: '家庭档案.html' },
         { key: 'disability-archives',    label: '残疾档案', url: '残疾档案.html' },
-        { key: 'archive-migration',      label: '档案迁移' },
-        { key: 'migration-review',       label: '迁移审核' },
-        { key: 'archive-recovery',       label: '档案恢复' },
-        { key: 'archive-access-records', label: '档案查阅记录' },
+        { key: 'archive-migration',      label: '档案迁移' , url: '档案迁移.html'},
+        { key: 'migration-review',       label: '迁移审核', url: '迁移审核.html' },
+        { key: 'archive-recovery',       label: '档案恢复', url: '档案恢复.html' },
+        { key: 'archive-access-records', label: '档案查阅记录', url: '档案查阅记录.html' },
         { key: 'health-checkup',         label: '健康体检' }
+      ] },
+    { type: 'divider' },
+    { type: 'group', key: 'plan-reminder', label: '计划提醒',
+      icon: '<path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/>',
+      children: [
+        { key: 'physical-exam-reminder', label: '随访计划提醒', url: '计划提醒.html' },
+        { key: 'follow-poor-reminder',   label: '随访不佳提醒', url: '随访不佳提醒.html' }
       ] },
     { type: 'divider' },
     { type: 'group', key: 'chronic', label: '慢病管理',
@@ -53,6 +60,14 @@
         { key: 'highrisk-management',       label: '高危人群管理', url: '高危人群管理.html' },
         { key: 'psychosis-management',      label: '重精管理', url: '重精管理.html' },
         { key: 'tuberculosis-management',   label: '结核病管理', url: '结核病管理.html' }
+      ] },
+    { type: 'divider' },
+    { type: 'group', key: 'tcm', label: '中医管理',
+      icon: '<path d="M11 20A7 7 0 019.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',
+      children: [
+        { key: 'elderly-tcm-management', label: '老年人中医管理', url: '老年人中医管理.html' },
+        { key: 'child-tcm-management',   label: '儿童中医管理',   url: '儿童中医管理.html' },
+        { key: 'tcm-health-guidance',    label: '中医健康指导',   url: '中医健康指导.html' }
       ] },
     { type: 'divider' },
     { type: 'group', key: 'elderly', label: '老年人管理',
@@ -95,6 +110,14 @@
         { key: 'inspection-register',  label: '巡查登记' },
         { key: 'event-report',         label: '事件报告' }
       ] },
+    { type: 'group', key: 'three-network', label: '三网监测',
+      icon: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+      children: [
+        { key: 'maternal-death-management', label: '孕产妇死亡管理', url: '孕产妇死亡管理.html' },
+        { key: 'perinatal-death-management', label: '围产儿死亡管理', url: '围产儿死亡管理.html' },
+        { key: 'neonatal-defect-management', label: '新生儿缺陷管理', url: '新生儿缺陷管理.html' },
+        { key: 'child-death-management', label: '儿童死亡管理', url: '儿童死亡管理.html' }
+      ] },
     { type: 'divider' },
     { type: 'group', key: 'reportcard', label: '疾病报卡',
       icon: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
@@ -119,8 +142,15 @@
     { type: 'group', key: 'syssetting', label: '系统设置',
       icon: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>',
       children: [
-        { key: 'jurisdiction-management',  label: '辖区管理' },
-        { key: 'biz-template-management',  label: '业务模板管理' },
+        { key: 'jurisdiction-management',  label: '辖区管理', url: '辖区管理.html' },
+        { key: 'biz-template-management',  label: '业务模板管理',
+          children: [
+            { key: 'health-guidance-template',    label: '健康指导模板',       url: '健康指导模板.html' },
+            { key: 'elderly-tcm-guide-template',  label: '老年人中医指导模板', url: '老年人中医指导模板.html' },
+            { key: 'child-tcm-guide-template',    label: '儿童中医指导模板', url: '儿童中医指导模板.html' },
+            { key: 'tcm-health-template',         label: '中医保健模板', url: '中医保健模板.html' }
+          ] },
+        { key: 'jurisdiction-stats-maintenance', label: '辖区统计维护', url: '辖区统计维护.html' },
         { key: 'sys-param-management',     label: '系统参数管理' },
         { key: 'subsidy-management',       label: '补助管理' },
         { key: 'disease-diagnosis-setting',label: '疾病诊疗设置' },
@@ -128,26 +158,9 @@
         { key: 'grid-management',          label: '网格化管理' },
         { key: 'grid-permission-mgmt',     label: '网格权限管理' },
         { key: 'archive-transfer-record',  label: '档案传输记录' },
-        { key: 'operation-log',            label: '操作日志' },
-        { key: 'interface-address-mgmt',   label: '接口地址管理' }
-      ] },
-    { type: 'divider' },
-    { type: 'group', key: 'panorama', label: '全景配置',
-      icon: '<rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>',
-      children: [
-        { key: 'template',  label: '模板管理' },
-        { key: 'scene',     label: '场景配置' },   // 页面文件就位后补回 url: '场景配置.html'
-        { key: 'module',    label: '模块配置' },
-        { key: 'view-list', label: '概况视图配置' }  // 页面文件就位后补回 url: '视图管理/视图列表.html'
-      ] },
-    { type: 'divider' },
-    { type: 'group', key: 'system', label: '系统管理',
-      icon: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>',
-      children: [
-        { key: 'common',    label: '通用设置' },
-        { key: 'tuomin',    label: '脱敏设置',     url: '脱敏规则.html' },
-        { key: 'watermark', label: '水印管理' },
-        { key: 'msgpush',   label: '消息推送设置' }
+        { key: 'operation-log',            label: '操作日志', url: '档案操作日志.html' },
+        { key: 'interface-address-mgmt',   label: '接口地址管理' },
+        { key: 'form-maintenance',         label: '表单维护', url: '表单维护.html' }
       ] }
   ];
 
@@ -303,8 +316,21 @@
     if (sub) sub.classList.toggle('open');
   };
 
-  /* 三级子分组展开/收起（如：两癌筛查） */
+  /* 三级子分组展开/收起（如：两癌筛查、业务模板管理） */
+  /* 手风琴：展开某一二级目录时，同级其他二级目录（含其三级子菜单）全部收起 */
   window.toggleSubMenu = function (el) {
+    var willExpand = !el.classList.contains('expanded');
+    if (willExpand) {
+      var parent = el.parentElement;
+      var sibs = parent.querySelectorAll(':scope > .sub-item.has-children');
+      for (var i = 0; i < sibs.length; i++) {
+        if (sibs[i] !== el) {
+          sibs[i].classList.remove('expanded');
+          var sb = sibs[i].nextElementSibling;
+          if (sb && sb.classList.contains('menu-sub')) sb.classList.remove('open');
+        }
+      }
+    }
     el.classList.toggle('expanded');
     var sub = el.nextElementSibling;
     if (sub && sub.classList.contains('menu-sub')) sub.classList.toggle('open');

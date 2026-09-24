@@ -127,10 +127,13 @@
   .op-more .more-btn:hover{text-decoration:underline}
   .op-more .more-btn svg{transition:transform var(--transition-fast)}
   .op-more.open .more-btn svg{transform:rotate(180deg)}
-  .op-menu{position:absolute;top:calc(100% + 6px);right:-8px;min-width:110px;background:var(--bg-white);border:1px solid var(--color-neutral-200);border-radius:var(--r-sm);box-shadow:var(--shadow-md);padding:4px 0;display:none;z-index:30}
-  .op-more.open .op-menu{display:block}
-  .op-menu .mi{display:block;width:100%;text-align:left;padding:7px 14px;font-size:13px;color:var(--text-secondary);line-height:1.4}
-  .op-menu .mi:hover{background:var(--primary-bg);color:var(--primary)}
+  .op-menu{display:none}
+  /* body 级下拉浮层（绕过 table-wrap overflow 裁剪） */
+  .op-menu-float{position:fixed;min-width:110px;background:var(--bg-white);border:1px solid var(--color-neutral-200);border-radius:var(--r-sm);box-shadow:var(--shadow-md);padding:4px 0;z-index:1000}
+  .op-menu-float .mi{display:block;width:100%;text-align:left;padding:7px 14px;font-size:13px;color:var(--text-secondary);line-height:1.4;background:none;border:none;cursor:pointer}
+  .op-menu-float .mi:hover{background:var(--primary-bg);color:var(--primary)}
+  .op-menu-float .mi.mi-danger{color:var(--danger)}
+  .op-menu-float .mi.mi-danger:hover{background:var(--danger-bg);color:var(--danger)}
 
   /* ===== 分页 ===== */
   .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:52px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
@@ -914,9 +917,10 @@
           +   '<span class="op-more">'
           +     '<a class="more-btn" onclick="toggleOpMenu(this,event)">更多<svg viewBox="0 0 24 24" style="width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="6 9 12 15 18 9"/></svg></a>'
           +     '<span class="op-menu">'
-          +       '<button class="mi" onclick="opAction(\'随访记录\',\'' + esc(r.name) + '\')">随访记录</button>'
-          +       '<button class="mi" onclick="opAction(\'血压上报\',\'' + esc(r.name) + '\')">血压上报</button>'
-          +       '<button class="mi" onclick="opAction(\'打印专项档案\',\'' + esc(r.name) + '\')">打印专项档案</button>'
+          +       '<button class="mi" onclick="openManageStatus(\'' + esc(r.archNo) + '\')">暂不管理</button>'
+          +       '<button class="mi" onclick="goArchive(\'' + esc(r.archNo) + '\',\'followup\')">新建随访</button>'
+          +       '<button class="mi" onclick="goArchive(\'' + esc(r.archNo) + '\',\'assessment\')">分层评估</button>'
+          +       '<button class="mi mi-danger" onclick="openCancelArchive(\'' + esc(r.archNo) + '\')">注销</button>'
           +     '</span>'
           +   '</span>'
           + '</td>'
@@ -1108,16 +1112,33 @@
     return true;
   }
 
+  var opMenuFloat = null;
+
   function toggleOpMenu(el, ev) {
     if (ev) ev.stopPropagation();
     var wrap = el.closest('.op-more');
-    var wasOpen = wrap.classList.contains('open');
+    var wasOpen = opMenuFloat !== null;
     closeAllOpMenus();
-    if (!wasOpen) wrap.classList.add('open');
+    if (wasOpen) return;
+    var rect = el.getBoundingClientRect();
+    var menuHtml = wrap.querySelector('.op-menu').innerHTML;
+    opMenuFloat = document.createElement('div');
+    opMenuFloat.className = 'op-menu-float';
+    opMenuFloat.innerHTML = menuHtml;
+    document.body.appendChild(opMenuFloat);
+    var menuW = opMenuFloat.offsetWidth;
+    var menuH = opMenuFloat.offsetHeight;
+    var left = rect.right - menuW;
+    var top = rect.bottom + 6;
+    if (top + menuH > window.innerHeight - 8) top = rect.top - menuH - 6;
+    opMenuFloat.style.left = Math.max(8, left) + 'px';
+    opMenuFloat.style.top = top + 'px';
+    wrap.classList.add('open');
   }
 
   function closeAllOpMenus() {
     document.querySelectorAll('.op-more.open').forEach(function (m) { m.classList.remove('open'); });
+    if (opMenuFloat) { opMenuFloat.remove(); opMenuFloat = null; }
   }
 
   function opAction(action, name) {
@@ -1313,14 +1334,14 @@
   }
 
   /* 列表操作列「查看/编辑」：跳转档案维护页并定位到高血压专项表（带行数据预填） */
-  function goArchive(archNo) {
+  function goArchive(archNo, view) {
     var r = null;
     for (var i = 0; i < hypertensionData.length; i++) {
       if (hypertensionData[i].archNo === archNo) { r = hypertensionData[i]; break; }
     }
     if (!r) return;
     var params = [
-      'view=hypertension',
+      'view=' + (view || 'hypertension'),
       'name=' + encodeURIComponent(r.name),
       'gender=' + encodeURIComponent(r.gender === '男' ? '男性' : '女性'),
       'idcard=' + encodeURIComponent(r.idcard),
@@ -1336,6 +1357,7 @@
     if (r.org) params.push('specOrg=' + encodeURIComponent(r.org));
     if (r.specDoc) params.push('specDoc=' + encodeURIComponent(r.specDoc));
     if (r.specDate) params.push('specDate=' + encodeURIComponent(r.specDate));
+    params.push('edit=1');
     location.href = '档案维护.html?' + params.join('&');
   }
 
@@ -1427,9 +1449,152 @@
     renderPreview();
   });
 
+  /* ================= 暂不管理弹框 ================= */
+  var pendingArchNo = '';
+
+  function openManageStatus(archNo) {
+    closeAllOpMenus();
+    pendingArchNo = archNo;
+    var r = null;
+    for (var i = 0; i < hypertensionData.length; i++) {
+      if (hypertensionData[i].archNo === archNo) { r = hypertensionData[i]; break; }
+    }
+    $('msName').textContent = r ? r.name : '';
+    $('msReason').value = '迁出';
+    $('msDoctor').value = '吕雪';
+    var today = new Date();
+    var y = today.getFullYear(), m = ('0' + (today.getMonth() + 1)).slice(-2), d = ('0' + today.getDate()).slice(-2);
+    $('msDate').value = y + '-' + m + '-' + d;
+    $('msNote').value = '';
+    $('cntMsNote').textContent = '0/200';
+    $('manageStatusModal').classList.add('show');
+  }
+  function closeManageStatus() {
+    $('manageStatusModal').classList.remove('show');
+    pendingArchNo = '';
+  }
+  function submitManageStatus() {
+    var reason = $('msReason').value;
+    var doctor = $('msDoctor').value;
+    var date = $('msDate').value;
+    if (!reason) { toast('请选择暂不管理原因', 'warning'); return; }
+    if (!doctor) { toast('请选择变更医生', 'warning'); return; }
+    if (!date) { toast('请选择变更日期', 'warning'); return; }
+    var idx = -1, name = '';
+    for (var i = 0; i < hypertensionData.length; i++) {
+      if (hypertensionData[i].archNo === pendingArchNo) { idx = i; name = hypertensionData[i].name; break; }
+    }
+    if (idx > -1) hypertensionData.splice(idx, 1);
+    closeManageStatus();
+    toast('已设置为暂不管理，居民「' + name + '」已从列表移除', 'success');
+    curPage = 1;
+    renderTable();
+  }
+
+  /* ================= 注销档案弹框 ================= */
+  function openCancelArchive(archNo) {
+    closeAllOpMenus();
+    pendingArchNo = archNo;
+    var r = null;
+    for (var i = 0; i < hypertensionData.length; i++) {
+      if (hypertensionData[i].archNo === archNo) { r = hypertensionData[i]; break; }
+    }
+    $('caName').textContent = r ? r.name : '';
+    $('caReason').value = '';
+    $('cntCaReason').textContent = '0/50';
+    $('cancelArchiveModal').classList.add('show');
+  }
+  function closeCancelArchive() {
+    $('cancelArchiveModal').classList.remove('show');
+    pendingArchNo = '';
+  }
+  function submitCancelArchive() {
+    var reason = $('caReason').value.trim();
+    if (!reason) { toast('请填写注销原因', 'warning'); return; }
+    var idx = -1, name = '';
+    for (var i = 0; i < hypertensionData.length; i++) {
+      if (hypertensionData[i].archNo === pendingArchNo) { idx = i; name = hypertensionData[i].name; break; }
+    }
+    if (idx > -1) hypertensionData.splice(idx, 1);
+    closeCancelArchive();
+    toast('居民「' + name + '」的高血压专项档案已注销', 'success');
+    curPage = 1;
+    renderTable();
+  }
+
   /* 初始渲染 */
   renderTable();
 </script>
+
+<!-- ===== 暂不管理弹框 ===== -->
+<div class="modal-overlay" id="manageStatusModal">
+  <div class="modal" style="width:560px">
+    <div class="modal-head">
+      <h3>管理状态</h3>
+      <span class="modal-close" onclick="closeManageStatus()">×</span>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:14px;font-size:14px;color:var(--text-secondary)">居民：<b id="msName" style="color:var(--text-primary)"></b></div>
+      <div class="fm-row">
+        <label><i>*</i>暂不管理原因：</label>
+        <select id="msReason" class="fm-select">
+          <option value="迁出">迁出</option>
+          <option value="死亡">死亡</option>
+          <option value="其他">其他</option>
+        </select>
+      </div>
+      <div class="fm-row">
+        <label><i>*</i>变更医生：</label>
+        <select id="msDoctor" class="fm-select">
+          <option value="吕雪">吕雪</option>
+          <option value="李彬槐">李彬槐</option>
+          <option value="张伟">张伟</option>
+        </select>
+      </div>
+      <div class="fm-row">
+        <label><i>*</i>变更日期：</label>
+        <input id="msDate" type="date" class="fm-ctl">
+      </div>
+      <div class="fm-row" style="align-items:flex-start">
+        <label>变更说明：</label>
+        <div class="fm-ctl-wrap" style="flex:1">
+          <textarea id="msNote" maxlength="200" rows="4" style="width:100%;height:auto;min-height:80px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:8px 10px;font-size:14px;color:var(--text-primary);outline:none;resize:vertical" oninput="document.getElementById('cntMsNote').textContent=this.value.length+'/200'"></textarea>
+          <span class="cnt" id="cntMsNote">0/200</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeManageStatus()">取消</button>
+      <button class="btn btn-primary" onclick="submitManageStatus()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 注销档案弹框 ===== -->
+<div class="modal-overlay" id="cancelArchiveModal">
+  <div class="modal" style="width:560px">
+    <div class="modal-head">
+      <h3>注销档案</h3>
+      <span class="modal-close" onclick="closeCancelArchive()">×</span>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:14px;font-size:14px;color:var(--text-secondary)">
+        如果注销此人的高血压专项档案，所有的随访记录档案将一并注销，确定要注销吗？
+      </div>
+      <div class="fm-row" style="align-items:flex-start">
+        <label><i>*</i>注销原因：</label>
+        <div class="fm-ctl-wrap" style="flex:1">
+          <textarea id="caReason" maxlength="50" rows="4" style="width:100%;height:auto;min-height:80px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:8px 10px;font-size:14px;color:var(--text-primary);outline:none;resize:vertical" oninput="document.getElementById('cntCaReason').textContent=this.value.length+'/50'"></textarea>
+          <span class="cnt" id="cntCaReason">0/50</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeCancelArchive()">取消</button>
+      <button class="btn btn-primary" onclick="submitCancelArchive()">确定</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>

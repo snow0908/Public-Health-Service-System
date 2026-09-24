@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>老年人中医药健康管理服务 - 中医管理</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  /* ===== 档案服务 · 老年人中医药健康管理服务 页面特有样式 =====
+     风格：与 框架.css 主题统一，问卷区清爽可读，体质结果实时联动。 */
+
+  /* ---- 顶栏（复用 .topbar 基础上加页面标题） ---- */
+  .topbar .tb-pagename{font-size:14px;color:rgba(255,255,255,0.9);margin-left:16px;padding-left:16px;border-left:1px solid rgba(255,255,255,0.3);white-space:nowrap}
+  .topbar .tb-btns{display:flex;align-items:center;gap:8px;margin-right:16px}
+  .topbar .tb-btns .btn{height:26px;padding:0 12px;font-size:12px;background:rgba(255,255,255,0.16);color:#fff;border:1px solid rgba(255,255,255,0.35)}
+  .topbar .tb-btns .btn:hover{background:rgba(255,255,255,0.28)}
+
+  /* ---- 患者信息条 ---- */
+  .pat-strip{background:var(--bg-white);border-bottom:1px solid var(--color-neutral-200);padding:9px 16px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;flex-shrink:0}
+  .pat-strip .pat-name{font-size:15px;font-weight:600;color:var(--text-primary)}
+  .pat-strip .pat-age{font-size:13px;color:var(--text-tertiary)}
+  .pat-tags{display:inline-flex;gap:6px;flex-wrap:wrap}
+  .pat-tag{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:4px;font-size:12px;line-height:1;font-weight:500}
+  .pat-tag.old{background:#E6F4FF;color:#1890FF;border:1px solid #91CAFF}
+  .pat-tag.hyp{background:#FFF1E6;color:#FA8C16;border:1px solid #FFC089}
+  .pat-tag.dia{background:#F6FFED;color:#52C41A;border:1px solid #B7EB8F}
+  .pat-tag.high{background:#FFF0F0;color:#F5222D;border:1px solid #FFA39E}
+  .pat-meta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text-tertiary)}
+  .pat-meta b{color:var(--text-secondary);font-weight:500}
+
+  /* ---- 主区滚动容器 ---- */
+  .main-area{overflow:hidden}
+  .form-scroll{flex:1;overflow:auto;min-height:0;padding:16px 20px 24px}
+
+  /* ---- 记录表卡片 ---- */
+  .svc-card{background:var(--bg-white);border:1px solid var(--color-neutral-200);border-radius:var(--r-md);overflow:hidden;margin-bottom:16px}
+  .svc-card .svc-head{display:flex;align-items:center;flex-wrap:wrap;gap:10px 22px;padding:12px 18px;border-bottom:1px solid var(--color-neutral-200);font-size:13px;color:var(--text-secondary)}
+  .svc-card .svc-head b{color:var(--text-primary);font-weight:600}
+  .svc-card .svc-head .lbl{color:var(--text-tertiary);margin-right:4px}
+  .svc-card .svc-body{padding:16px 18px}
+
+  /* ---- 问卷区 ---- */
+  .q-hint{font-size:13px;color:var(--text-secondary);background:var(--primary-bg);border:1px solid var(--primary-border);border-radius:var(--r-sm);padding:10px 14px;margin-bottom:14px;line-height:1.6}
+  .q-item{display:flex;align-items:flex-start;gap:10px;padding:9px 4px;border-bottom:1px dashed #EDEFF2}
+  .q-item:last-child{border-bottom:none}
+  .q-no{width:30px;flex-shrink:0;text-align:right;font-size:13px;color:var(--text-tertiary);line-height:26px}
+  .q-text{flex:1;min-width:0;font-size:13px;color:var(--text-primary);line-height:26px}
+  .q-text .q-note{color:var(--text-tertiary);font-size:12px}
+  .q-opts{display:flex;align-items:center;gap:2px;flex-shrink:0}
+  .q-opt{display:inline-flex;align-items:center;gap:4px;padding:0 7px;height:26px;border-radius:4px;font-size:12px;color:var(--text-secondary);cursor:pointer;transition:all var(--transition-fast);white-space:nowrap}
+  .q-opt:hover{background:var(--primary-bg)}
+  .q-opt input{width:14px;height:14px;margin:0;accent-color:var(--primary);cursor:pointer}
+  .q-opt.checked{background:var(--primary-bg);color:var(--primary);font-weight:500}
+
+  /* ---- 体质辨识结果表 ---- */
+  .res-tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .res-tbl th{background:#F8F9FA;color:var(--text-secondary);font-weight:500;height:38px;border:1px solid var(--color-neutral-200);padding:0 8px;text-align:center;white-space:nowrap}
+  .res-tbl th:first-child{text-align:left;padding-left:14px}
+  .res-tbl td{height:38px;border:1px solid var(--color-neutral-200);text-align:center;color:var(--text-primary)}
+  .res-tbl td:first-child{text-align:left;padding-left:14px;color:var(--text-tertiary);background:#FAFBFC}
+  .res-tbl .sc{font-weight:600;color:var(--primary)}
+  .res-tbl .res-yes{color:var(--success);font-weight:500}
+  .res-tbl .res-ten{color:var(--warning);font-weight:500}
+  .res-tbl .res-basic{color:var(--info);font-weight:500}
+  .res-tbl .res-no{color:var(--text-tertiary)}
+  .res-tip{font-size:12px;color:var(--text-tertiary);margin-top:10px;line-height:1.6}
+
+  /* ---- 中医药保健指导矩阵 ---- */
+  .guide-tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .guide-tbl th{background:#F8F9FA;color:var(--text-secondary);font-weight:500;height:38px;border:1px solid var(--color-neutral-200);padding:0 8px;text-align:center;white-space:nowrap}
+  .guide-tbl th:first-child{text-align:left;padding-left:14px}
+  .guide-tbl td{height:38px;border:1px solid var(--color-neutral-200);text-align:center;color:var(--text-primary)}
+  .guide-tbl td:first-child{text-align:left;padding-left:14px;background:#FAFBFC;color:var(--text-secondary)}
+  .guide-tbl input{width:15px;height:15px;margin:0;accent-color:var(--primary);cursor:pointer}
+
+  /* ---- 中医药保健方法 ---- */
+  .tcm-method{width:100%;min-height:110px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:10px 12px;font-size:13px;font-family:inherit;color:var(--text-primary);line-height:1.7;outline:none;resize:vertical;background:#FFFEFB}
+  .tcm-method:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.12)}
+
+  /* ---- 底部操作 ---- */
+  .form-foot{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid var(--color-neutral-200);background:var(--bg-white);flex-shrink:0}
+  .sec-title{font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .sec-title::before{content:"";width:3px;height:14px;border-radius:2px;background:var(--primary)}
+
+  /* 嵌入模式（被 index.html 壳子内嵌时生效） */
+  html.embed-mode .topbar,html.embed-mode .sidebar{display:none}
+  html.embed-mode .layout{height:100vh}
+  html.embed-mode .main-area{height:100vh}
+</style>
+</head>
+<body>
+<!-- ===== 顶栏 ===== -->
+<div class="topbar">
+  <img class="tb-logo" src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21s-7-4.35-9.5-8A6 6 0 0112 5a6 6 0 019.5 8c-2.5 3.65-9.5 8-9.5 8z'/%3E%3C/svg%3E">
+  <span class="tb-sysname">基层医疗卫生信息系统</span>
+  <span class="tb-org">扬州市江都区丁伙镇卫生院</span>
+  <span class="tb-pagename">档案服务 · 老年人中医药健康管理服务</span>
+  <span class="spacer"></span>
+  <span class="tb-btns">
+    <button class="btn" onclick="toast('健康全景视图（原型演示）','info')">健康全景视图</button>
+    <button class="btn" onclick="toast('已返回老年人中医管理','info')">返回</button>
+    <button class="btn" onclick="toast('预览（原型演示）','info')">预览</button>
+    <button class="btn btn-primary" onclick="saveForm()">保存</button>
+  </span>
+</div>
+
+<div class="layout">
+  <!-- ===== 左侧菜单：中医管理目录 ===== -->
+  <div class="sidebar">
+    <div class="sidebar-menu">
+      <div class="menu-item"><span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></span><span class="menu-label">个人首页</span></div>
+      <div class="menu-item"><span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span class="menu-label">个人档案</span></div>
+      <div class="menu-item"><span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14"/></svg></span><span class="menu-label">家庭管理</span></div>
+      <div class="menu-item"><span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 017 7c0 2.4-1.5 4-3 6h-8c-1.5-2-3-3.6-3-6a7 7 0 017-7z"/><path d="M9 21h6"/></svg></span><span class="menu-label">妇女管理</span></div>
+      <div class="menu-item"><span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></span><span class="menu-label">转诊跟踪</span></div>
+      <div class="menu-item"><span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span><span class="menu-label">健康体检</span></div>
+      <div class="menu-item"><span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.35-9.5-8A6 6 0 0112 5a6 6 0 019.5 8c-2.5 3.65-9.5 8-9.5 8z"/></svg></span><span class="menu-label">高血压管理</span></div>
+      <div class="menu-item"><span class="menu-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span><span class="menu-label">糖尿病管理</span></div>
+      <div class="menu-item"><span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span><span class="menu-label">高血脂管理</span></div>
+      <div class="menu-item"><span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/></svg></span><span class="menu-label">健康教育</span></div>
+      <!-- 老年人管理 → 中医管理（展开，老年人中医药健康管理服务 高亮） -->
+      <div class="menu-item expanded"><span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></span><span class="menu-label">老年人管理</span><svg class="arrow" viewBox="0 0 16 16"><polyline points="6 4 10 8 6 12"/></svg></div>
+      <div class="menu-sub open">
+        <div class="sub-item"><span class="menu-label">健康管理</span></div>
+        <div class="sub-item expanded" style="font-weight:600;color:var(--primary)"><span class="menu-label">中医管理</span><svg class="arrow" viewBox="0 0 16 16"><polyline points="6 4 10 8 6 12"/></svg></div>
+        <div class="menu-sub sub2 open">
+          <div class="sub-item" onclick="toast('中医体质辨识（原型演示）','info')">中医体质辨识</div>
+          <div class="sub-item" onclick="toast('中医药健康指导（原型演示）','info')">中医药健康指导</div>
+          <div class="sub-item active">老年人中医药健康管理服务</div>
+        </div>
+      </div>
+      <div class="menu-item"><span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M12 12m-9 0a9 9 0 1018 0a9 9 0 10-18 0"/><path d="M12 8v4l3 3"/></svg></span><span class="menu-label">结核病管理</span></div>
+      <div class="menu-item"><span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0110 10 10 10 0 01-10 10 10 10 0 01-10-10A10 10 0 0112 2z"/></svg></span><span class="menu-label">重精管理</span></div>
+      <div class="menu-item"><span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 8h14M5 16h14"/></svg></span><span class="menu-label">肿瘤管理</span></div>
+      <div class="menu-item"><span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M4 12c0-4 3-8 8-8s8 4 8 8"/><path d="M4 12h3M17 12h3"/></svg></span><span class="menu-label">慢阻肺管理</span></div>
+      <div class="menu-item"><span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0116 0"/><path d="M12 4v8"/></svg></span><span class="menu-label">心脑血管管理</span></div>
+      <div class="menu-item"><span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M12 2l8 4-8 4-8-4z"/><path d="M4 10v4l8 4 8-4v-4"/></svg></span><span class="menu-label">高危管理</span></div>
+      <div class="menu-item"><span class="menu-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-3 4-5 8-5s8 2 8 5"/></svg></span><span class="menu-label">残疾人管理</span></div>
+    </div>
+  </div>
+
+  <!-- ===== 主内容区 ===== -->
+  <div class="main-area">
+    <!-- 患者信息条 -->
+    <div class="pat-strip">
+      <span class="pat-name" id="patName">王海云</span>
+      <span class="pat-age" id="patAge">76岁</span>
+      <span class="pat-tags">
+        <span class="pat-tag old">老年人</span>
+        <span class="pat-tag hyp">高血压</span>
+        <span class="pat-tag dia">糖尿病</span>
+        <span class="pat-tag high">高危组</span>
+      </span>
+      <span class="pat-meta">
+        <span>身份证：<b id="patIdcard">411602195001222883</b></span>
+        <span>出生日期：<b id="patBirth">1950-01-22</b></span>
+        <span>联系电话：<b id="patPhone">1998468****</b></span>
+        <span>药物过敏史：<b>无</b></span>
+        <span>住址：<b>江苏省扬州市江都区大桥镇善玉村一组</b></span>
+      </span>
+    </div>
+
+    <div class="form-scroll">
+      <!-- ===== 记录表卡片：表头 + 问卷 + 结果 + 指导 ===== -->
+      <div class="svc-card">
+        <div class="svc-head">
+          <span><span class="lbl">姓名：</span><b id="hName">王海云</b></span>
+          <span><span class="lbl">出生日期：</span><b id="hBirth">1950-01-22</b></span>
+          <span><span class="lbl">测评医师：</span><select style="height:28px;font-size:12px;border:1px solid var(--color-neutral-300);border-radius:4px;padding:0 24px 0 8px;color:var(--text-primary);outline:none;appearance:none;-webkit-appearance:none;background-image:url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%226%22 viewBox=%220 0 10 6%22%3E%3Cpath d=%22M1 1l4 4 4-4%22 stroke=%22%238c8c8c%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 6px center;background-color:#fff"><option>吕雪</option><option>张丽</option><option>康丽建</option></select></span>
+          <span><span class="lbl">测评日期：</span><input type="date" id="evalDate" value="2026-09-23" style="height:28px;font-size:12px;border:1px solid var(--color-neutral-300);border-radius:4px;padding:0 6px;color:var(--text-primary);outline:none"></span>
+          <span><span class="lbl">档案编号：</span><b id="hArchNo">321012111811812457</b></span>
+        </div>
+        <div class="svc-body">
+          <div class="q-hint">请根据近一年的体验和感觉，回答以下问题。如果有一个问题不能肯定回答，请选择最接近实际情况的选项。</div>
+          <!-- 问卷 33 题：由 JS 渲染 -->
+          <div id="questionList"></div>
+        </div>
+      </div>
+
+      <!-- ===== 体质辨识结果（实时计算） ===== -->
+      <div class="svc-card">
+        <div class="svc-body">
+          <div class="sec-title">体质辨识结果</div>
+          <table class="res-tbl">
+            <thead>
+              <tr><th style="width:120px">体质类型</th><th>气虚质</th><th>阳虚质</th><th>阴虚质</th><th>痰湿质</th><th>湿热质</th><th>血瘀质</th><th>气郁质</th><th>特禀质</th><th>平和质</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>得分</td><td class="sc" id="sc_qixu">0</td><td class="sc" id="sc_yangxu">0</td><td class="sc" id="sc_yinxu">0</td><td class="sc" id="sc_tanshi">0</td><td class="sc" id="sc_shire">0</td><td class="sc" id="sc_xueyu">0</td><td class="sc" id="sc_qiyu">0</td><td class="sc" id="sc_tebing">0</td><td class="sc" id="sc_pinghe">0</td></tr>
+              <tr><td>体质辨识结果</td><td class="res-no" id="res_qixu">否</td><td class="res-no" id="res_yangxu">否</td><td class="res-no" id="res_yinxu">否</td><td class="res-no" id="res_tanshi">否</td><td class="res-no" id="res_shire">否</td><td class="res-no" id="res_xueyu">否</td><td class="res-no" id="res_qiyu">否</td><td class="res-no" id="res_tebing">否</td><td class="res-no" id="res_pinghe">否</td></tr>
+            </tbody>
+          </table>
+          <div class="res-tip">判定规则（依据《老年人中医药健康管理服务规范》体质判定标准表）：偏颇体质各条目得分相加 ≥11 分为「是」，9～10 分为「倾向是」，≤8 分为「否」；平和质各条目得分相加 ≥17 分且其他 8 种体质得分均 &lt;8 分为「是」，≥17 分且其他 8 种体质得分均 &lt;10 分为「基本是」，不满足为「否」。平和质中第（2）（4）（5）（13）题反向计分（1→5，2→4，3→3，4→2，5→1）。</div>
+        </div>
+      </div>
+
+      <!-- ===== 中医药保健指导 ===== -->
+      <div class="svc-card">
+        <div class="svc-body">
+          <div class="sec-title">中医药保健指导</div>
+          <table class="guide-tbl">
+            <thead>
+              <tr><th style="width:120px">体质类型</th><th>情志调摄</th><th>饮食调养</th><th>起居调摄</th><th>运动保健</th><th>穴位保健</th><th>其他</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>平和质</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+              <tr><td>气虚质</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+              <tr><td>阳虚质</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+              <tr><td>阴虚质</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+              <tr><td>痰湿质</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+              <tr><td>湿热质</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+              <tr><td>血瘀质</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+              <tr><td>气郁质</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+              <tr><td>特禀质</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== 中医药保健方法 ===== -->
+      <div class="svc-card">
+        <div class="svc-body">
+          <div class="sec-title">中医药保健方法</div>
+          <textarea class="tcm-method" placeholder="请输入针对该居民的中医药保健方法与健康指导内容…"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部操作 -->
+    <div class="form-foot">
+      <button class="btn btn-default" onclick="toast('已取消（原型演示）','info')">取消</button>
+      <button class="btn btn-primary" onclick="saveForm()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ================= 问卷数据：33 题体质辨识量表 =================
+     依据《老年人中医药健康管理服务规范》老年人中医药健康管理服务记录表。
+     每题选项：没有(1) 很少(2) 有时(3) 经常(4) 总是(5) */
+  var QUESTIONS = [
+    { n: 1,  t: '您精力充沛吗？（指精神头足，乐于做事）' },
+    { n: 2,  t: '您容易疲乏吗？（指体力如何，是否稍微活动一下或做一点家务劳动就感到累）' },
+    { n: 3,  t: '您容易气短，呼吸短促，接不上气吗？' },
+    { n: 4,  t: '您说话声音低弱无力吗？（指说话没有力气）' },
+    { n: 5,  t: '您感到闷闷不乐、情绪低沉吗？（指心情不愉快，情绪低落）' },
+    { n: 6,  t: '您容易精神紧张、焦虑不安吗？（指遇事是否心情紧张）' },
+    { n: 7,  t: '您因为生活状态改变而感到孤独、失落吗？' },
+    { n: 8,  t: '您容易感到害怕或受到惊吓吗？' },
+    { n: 9,  t: '您感到身体超重不轻松吗？（感觉身体沉重）', note: 'BMI指数=体重(kg)/身高²(m)' },
+    { n: 10, t: '您眼睛干涩吗？' },
+    { n: 11, t: '您手脚发凉吗？（不包含因周围温度低或穿的少导致的手脚发冷）' },
+    { n: 12, t: '您胃脘部、背部或腰膝部怕冷吗？（指上腹部、背部、腰部或膝关节等，有一处或多处怕冷）' },
+    { n: 13, t: '您比一般人耐受不了寒冷吗？（指比别人容易害怕冬天或是夏天的冷空调、电扇等）' },
+    { n: 14, t: '您容易患感冒吗？（指每年感冒的次数）' },
+    { n: 15, t: '您没有感冒时也会鼻塞、流鼻涕吗？' },
+    { n: 16, t: '您有口粘口腻，或睡眠打鼾吗？' },
+    { n: 17, t: '您容易过敏（对药物、食物、气味、花粉或在季节交替、气候变化时）吗？' },
+    { n: 18, t: '您的皮肤容易起荨麻疹吗？（包括风团、风疹块、风疙瘩）' },
+    { n: 19, t: '您的皮肤在不知不觉中会出现青紫瘀斑、皮下出血吗？（指皮肤在没有外伤的情况下出现青一块紫一块的情况）' },
+    { n: 20, t: '您的皮肤一抓就红，并出现抓痕吗？（指被指甲或钝物划过后皮肤的反应）' },
+    { n: 21, t: '您皮肤或口唇干吗？' },
+    { n: 22, t: '您有肢体麻木或固定部位疼痛的感觉吗？' },
+    { n: 23, t: '您面部或鼻部有油腻感或者油亮发光吗？（指脸上或鼻子）' },
+    { n: 24, t: '您面色或目眶晦黯，或出现褐色斑块/斑点吗？' },
+    { n: 25, t: '您有皮肤湿疹、疮疖吗？' },
+    { n: 26, t: '您感到口干咽燥、总想喝水吗？' },
+    { n: 27, t: '您感到口苦或嘴里有异味吗？（指口苦或口臭）' },
+    { n: 28, t: '您腹部肥大吗？（指腹部脂肪肥厚）' },
+    { n: 29, t: '您吃（喝）凉的东西会感到不舒服或者怕吃（喝）凉的食物，或吃了凉的食物后会不舒服吗？' },
+    { n: 30, t: '您有大便黏滞不爽、解不尽的感觉吗？（大便容易粘在马桶或便坑壁上）' },
+    { n: 31, t: '您容易大便干燥吗？' },
+    { n: 32, t: '您舌苔厚腻或有舌苔厚厚的感觉吗？（如果自我感觉不清楚可由调查员观察后填写）' },
+    { n: 33, t: '您舌下静脉瘀紫或增粗吗？（可由调查员辅助观察后填写）' }
+  ];
+
+  /* ================= 体质判定标准（公共卫生服务规范判定标准表） ================= */
+  var CONSTITUTION_MAP = {
+    qixu:    { name: '气虚质', items: [2, 3, 4, 14] },
+    yangxu:  { name: '阳虚质', items: [11, 12, 13, 29] },
+    yinxu:   { name: '阴虚质', items: [10, 21, 26, 31] },
+    tanshi:  { name: '痰湿质', items: [9, 16, 28, 32] },
+    shire:   { name: '湿热质', items: [23, 25, 27, 30] },
+    xueyu:   { name: '血瘀质', items: [19, 22, 24, 33] },
+    qiyu:    { name: '气郁质', items: [5, 6, 7, 8] },
+    tebing:  { name: '特禀质', items: [15, 17, 18, 20] }
+  };
+  // 平和质条目；(2)(4)(5)(13) 反向计分
+  var PINGHE_ITEMS = [1, 2, 4, 5, 13];
+  var PINGHE_REVERSE = { 2: true, 4: true, 5: true, 13: true };
+
+  var answers = {}; // 题号 -> 分值(1-5)，未答为 0
+
+  function $ (id) { return document.getElementById(id); }
+
+  function toast (msg) {
+    var t = document.createElement('div');
+    t.style.cssText = 'position:fixed;top:52px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.75);color:#fff;padding:9px 18px;border-radius:6px;font-size:13px;z-index:3000;transition:opacity 0.25s';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(function () { t.style.opacity = '0'; setTimeout(function () { t.remove(); }, 260); }, 1600);
+  }
+
+  /* 渲染问卷 */
+  function renderQuestions () {
+    var html = '';
+    QUESTIONS.forEach(function (q) {
+      var opts = '';
+      var labels = ['没有', '很少', '有时', '经常', '总是'];
+      labels.forEach(function (lb, i) {
+        opts += '<label class="q-opt"><input type="radio" name="q' + q.n + '" value="' + (i + 1) + '" onchange="answer(\'' + q.n + '\',\'' + (i + 1) + '\',this)">' + lb + '</label>';
+      });
+      html += '<div class="q-item">'
+        + '<span class="q-no">(' + q.n + ')</span>'
+        + '<span class="q-text">' + q.t + (q.note ? '<span class="q-note"> [' + q.note + ']</span>' : '') + '</span>'
+        + '<span class="q-opts">' + opts + '</span>'
+        + '</div>';
+    });
+    $('questionList').innerHTML = html;
+  }
+
+  /* 记录答案并实时重算 */
+  function answer (n, val, el) {
+    answers[n] = parseInt(val, 10);
+    var row = el.closest('.q-item');
+    if (row) {
+      Array.prototype.forEach.call(row.querySelectorAll('.q-opt'), function (o) {
+        o.classList.toggle('checked', o === el.parentNode);
+      });
+    }
+    calcConstitution();
+  }
+
+  /* 反向计分：1→5，2→4，3→3，4→2，5→1 */
+  function reverseScore (v) { return v >= 1 && v <= 5 ? 6 - v : 0; }
+
+  /* 实时计算体质辨识结果 */
+  function calcConstitution () {
+    var results = {};
+    Object.keys(CONSTITUTION_MAP).forEach(function (key) {
+      var def = CONSTITUTION_MAP[key];
+      var sum = 0;
+      def.items.forEach(function (n) { sum += (answers[n] || 0); });
+      var result = sum >= 11 ? '是' : (sum >= 9 ? '倾向是' : '否');
+      results[key] = { sum: sum, result: result, isBiasedYes: sum >= 11, isBiasedTen: sum >= 9 };
+      $('sc_' + key).textContent = sum;
+      $('res_' + key).textContent = result;
+      $('res_' + key).className = result === '是' ? 'res-yes' : (result === '倾向是' ? 'res-ten' : 'res-no');
+    });
+
+    /* 平和质：含反向计分 */
+    var phSum = 0;
+    PINGHE_ITEMS.forEach(function (n) {
+      var v = answers[n] || 0;
+      phSum += PINGHE_REVERSE[n] ? reverseScore(v) : v;
+    });
+    $('sc_pinghe').textContent = phSum;
+
+    /* 其他 8 种体质得分（用于平和质判定） */
+    var others = Object.keys(CONSTITUTION_MAP).map(function (k) { return results[k].sum; });
+    var maxOther = Math.max.apply(null, others.concat([0]));
+    var phResult;
+    if (phSum >= 17 && maxOther < 8) phResult = '是';
+    else if (phSum >= 17 && maxOther < 10) phResult = '基本是';
+    else phResult = '否';
+    $('res_pinghe').textContent = phResult;
+    $('res_pinghe').className = phResult === '是' ? 'res-yes' : (phResult === '基本是' ? 'res-basic' : 'res-no');
+  }
+
+  function saveForm () {
+    var filled = 0;
+    for (var i = 1; i <= 33; i++) { if (answers[i]) filled++; }
+    if (filled < 33) {
+      toast('尚有 ' + (33 - filled) + ' 题未作答，请完成全部 33 题后保存', 'warning');
+      return;
+    }
+    toast('保存成功：体质辨识结果已按标准自动判定（原型演示）', 'success');
+  }
+
+  /* ================= 从 URL 读取居民参数（老年人管理弹框跳转带入） ================= */
+  (function initFromUrl () {
+    var qs = {};
+    var raw = location.search.replace(/^\?/, '');
+    if (raw) {
+      raw.split('&').forEach(function (kv) {
+        var p = kv.split('=');
+        if (p[0]) qs[p[0]] = decodeURIComponent(p[1] || '');
+      });
+    }
+    var name = qs.name || '王海云';
+    var birth = qs.birth || '1950-01-22';
+    var idcard = qs.idcard || '411602195001222883';
+    var archNo = qs.archNo || '321012111811812457';
+    var gender = qs.gender || '女';
+    var age = '76';
+    if (birth) {
+      var b = new Date(birth);
+      var now = new Date();
+      age = (now.getFullYear() - b.getFullYear()) + '岁';
+    }
+    $('patName').textContent = name;
+    $('patAge').textContent = age;
+    $('patIdcard').textContent = idcard;
+    $('patBirth').textContent = birth;
+    $('patPhone').textContent = '1998468****';
+    $('hName').textContent = name;
+    $('hBirth').textContent = birth;
+    $('hArchNo').textContent = archNo;
+    document.title = name + ' - 老年人中医药健康管理服务';
+  })();
+
+  renderQuestions();
+  calcConstitution();
+</script>
+</body>
+</html>

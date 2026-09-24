@@ -121,6 +121,52 @@
   .cr-empty .ico{font-size:34px;margin-bottom:10px;opacity:.4}
   .cr-empty .btn{margin-top:14px}
 
+  /* ===== 精准扶贫表单（样式与家庭基本信息一致：r-opt≈soc-opt、pf-in≈cr-ctl、表头≈soc-tbl） ===== */
+  #poorForm{display:none}
+  /* 单选/复选：与 soc-opt 完全一致 */
+  .r-opt{display:inline-flex;align-items:center;gap:5px;margin:0 18px 0 0;cursor:pointer;user-select:none;white-space:nowrap;font-size:13px;color:var(--text-secondary)}
+  .r-opt input{accent-color:var(--primary);width:14px;height:14px;margin:0;cursor:pointer}
+  /* 动态数据网格（表头采用与 soc-tbl 相同的主题色） */
+  .pf-tbl-wrap{border:1px solid #E4E7ED;overflow:auto;margin-top:10px}
+  .pf-tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .pf-tbl th{height:34px;padding:0 8px;background:var(--primary-bg);color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:center;white-space:nowrap;border:1px solid #E4E7ED}
+  .pf-tbl td{height:34px;padding:4px 6px;border:1px solid #E4E7ED;color:var(--text-secondary)}
+  .pf-tbl td.center,.pf-tbl th.center{text-align:center}
+  .pf-tbl tbody tr:last-child td{border-bottom:none}
+  /* 表格内输入框：与 cr-ctl 完全一致 */
+  .pf-in{box-sizing:border-box;width:100%;min-width:72px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .pf-in:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .pf-in::placeholder{color:var(--text-placeholder)}
+  select.pf-in{appearance:none;-webkit-appearance:none;padding-right:26px;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;cursor:pointer}
+  .pf-tbl .op-act{color:var(--primary);cursor:pointer;font-size:13px}
+  .pf-tbl .op-act:hover{text-decoration:underline}
+  .pf-tbl .op-act.danger{color:var(--danger)}
+  .upload-btn{display:inline-flex;align-items:center;justify-content:center;height:24px;padding:0 12px;font-size:12px;color:#fff;background:var(--primary);border-radius:var(--r-sm);cursor:pointer}
+  .pf-addbar{display:flex;justify-content:center;margin:8px 0 2px}
+  .pf-add-link{color:var(--primary);cursor:pointer;user-select:none;font-size:13px}
+  .pf-add-link:hover{text-decoration:underline}
+  .pf-tbl th i{color:var(--danger);font-style:normal;margin-right:1px}
+  .pf-tbl th .srt{color:#aab;font-style:normal;font-size:9px;margin-left:2px}
+
+  /* 银行信息：单行五字段（标签样式与 cr-item 一致） */
+  .pf-bank-row{display:flex;flex-wrap:wrap;gap:10px 24px;margin-top:10px}
+  .pf-bank-item{display:flex;align-items:center;gap:8px;min-width:0}
+  .pf-bank-item label.pf-lb{width:92px;text-align:right;font-size:13px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
+  .pf-bank-item label.pf-lb i{color:var(--danger);font-style:normal;margin-right:2px}
+  .pf-bank-item .cr-ctl{width:160px;flex:none}
+
+  /* 详细分类：左右两块"标签列+输入列"（标签列样式与 soc-tbl th 一致） */
+  .pf-detail-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px}
+  .pf-rowtbl{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:6px}
+  .pf-rowtbl th{height:34px;padding:0 10px;background:var(--primary-bg);color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;border:1px solid #E4E7ED}
+  .pf-rowtbl td{border:1px solid #E4E7ED;padding:6px 10px;color:var(--text-secondary);vertical-align:middle}
+  .pf-rowtbl td.lb{width:140px;background:var(--primary-bg);text-align:center;white-space:normal;font-weight:var(--font-weight-medium);padding:5px 12px}
+  .pf-rowtbl td.lb i{color:var(--danger);font-style:normal;margin-right:2px}
+  .pf-rowtbl td.ctl{padding:5px 10px}
+  .pf-rowtbl td .r-opt{display:inline-flex;align-items:center;gap:5px;margin:2px 18px 2px 0;cursor:pointer;white-space:nowrap}
+  .pf-rowtbl td .r-opt input{accent-color:var(--primary);width:14px;height:14px;margin:0;cursor:pointer}
+  .pf-rowtbl td .pf-in{width:170px;max-width:100%}
+
   /* ===== 家庭地址级联选择 ===== */
   .cascader{position:relative;display:flex;flex:1;min-width:0}
   .cascader .cr-ctl{flex:1;min-width:0;cursor:pointer;appearance:none;-webkit-appearance:none;padding-right:26px;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;text-overflow:ellipsis}
@@ -513,11 +559,232 @@
         <!-- Tab 3：精准扶贫 -->
         <div class="cr-pane" id="panePoor" style="display:none">
           <div class="cr-body">
-            <div class="cr-sec-title">精准扶贫</div>
-            <div class="cr-empty">
+            <!-- 空态：未保存家庭基本信息 -->
+            <div class="cr-empty" id="poorEmpty">
               <div class="ico">📋</div>
-              暂无精准扶贫信息
+              请先完善并保存家庭基本信息后再维护精准扶贫信息
             </div>
+
+            <!-- 精准扶贫表单（保存家庭基本信息后出现） -->
+            <div id="poorForm">
+              <!-- 1. 银行信息 -->
+              <div class="cr-sec-title">银行信息</div>
+              <div class="pf-bank-row">
+                <div class="pf-bank-item"><label class="pf-lb"><i>*</i>开户银行：</label><input id="poorBank" class="cr-ctl" placeholder="请输入"></div>
+                <div class="pf-bank-item"><label class="pf-lb"><i>*</i>户名：</label><input id="poorHolder" class="cr-ctl" placeholder="请输入"></div>
+                <div class="pf-bank-item"><label class="pf-lb"><i>*</i>银行账户：</label><input id="poorAcc" class="cr-ctl" placeholder="请输入"></div>
+                <div class="pf-bank-item"><label class="pf-lb"><i>*</i>识别标准：</label>
+                  <span style="white-space:nowrap">
+                    <label class="r-opt"><input type="radio" name="poorStd">国家标准</label>
+                    <label class="r-opt"><input type="radio" name="poorStd">省定标准</label>
+                  </span>
+                </div>
+                <div class="pf-bank-item"><label class="pf-lb"><i>*</i>计划生育户：</label>
+                  <span style="white-space:nowrap">
+                    <label class="r-opt"><input type="radio" name="poorFp">计生户</label>
+                    <label class="r-opt"><input type="radio" name="poorFp">非计生户</label>
+                  </span>
+                </div>
+              </div>
+
+              <!-- 2. 收入情况 -->
+              <div class="cr-sec-title" style="margin-top:16px">收入情况</div>
+              <div class="pf-tbl-wrap">
+                <table class="pf-tbl" style="min-width:1180px">
+                  <thead>
+                    <tr>
+                      <th><i>*</i>年度<i class="srt">▲</i></th><th><i>*</i>家庭总收入<i class="srt">▲</i></th><th><i>*</i>工资性收入<i class="srt">▲</i></th><th><i>*</i>家庭经营性收入<i class="srt">▲</i></th><th><i>*</i>转移性收入<i class="srt">▲</i></th>
+                      <th>财产性收入<i class="srt">▲</i></th><th><i>*</i>生产经营费用总支出<i class="srt">▲</i></th><th><i>*</i>家庭纯收入<i class="srt">▲</i></th><th><i>*</i>家庭全部现金收入<i class="srt">▲</i></th><th><i>*</i>家庭年人均纯收入<i class="srt">▲</i></th><th class="center">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="poorIncTbody"></tbody>
+                </table>
+              </div>
+              <div class="pf-addbar">
+                <span class="pf-add-link" onclick="addPoorIncome()">+ 新增</span>
+              </div>
+
+              <!-- 3. 详细分类：左表（住房/生产/参与组织化） -->
+              <div class="pf-detail-cols">
+                <table class="pf-rowtbl">
+                  <tr><th colspan="2">住房条件</th></tr>
+                  <tr><td class="lb">建房时间</td>
+                    <td class="ctl"><input class="pf-in" type="text" placeholder="选择时间" onfocus="this.type='date'" onblur="if(!this.value){this.type='text'}"></td></tr>
+                  <tr><th colspan="2">生产条件情况</th></tr>
+                  <tr><td class="lb">耕地面积（亩）</td><td class="ctl"><input class="pf-in" placeholder="请输入"></td></tr>
+                  <tr><td class="lb"><i>*</i>水田（亩）</td><td class="ctl"><input class="pf-in" placeholder="请输入"></td></tr>
+                  <tr><td class="lb">林地、桑园、茶园、果园面积（亩）</td><td class="ctl"><input class="pf-in" placeholder="请输入"></td></tr>
+                  <tr><td class="lb">水面面积（亩）</td><td class="ctl"><input class="pf-in" placeholder="请输入"></td></tr>
+                  <tr><td class="lb">牲畜数量（头）</td><td class="ctl"><input class="pf-in" placeholder="请输入"></td></tr>
+                  <tr><th colspan="2">参与组织化和产业化情况</th></tr>
+                  <tr><td class="lb">参加扶贫互助资金组织</td><td class="ctl"><input class="pf-in" placeholder="请输入"></td></tr>
+                  <tr><td class="lb">产业类型</td><td class="ctl"><input class="pf-in" placeholder="请输入"></td></tr>
+                  <tr><td class="lb">从产业中收益（元）</td><td class="ctl"><input class="pf-in" placeholder="请输入"></td></tr>
+                  <tr><td class="lb"><i>*</i>通电情况</td><td class="ctl">
+                    <label class="r-opt"><input type="radio" name="poorElec">已通电</label>
+                    <label class="r-opt"><input type="radio" name="poorElec">未通电</label></td></tr>
+                </table>
+
+                <!-- 3b. 右表（易地扶贫搬迁及相关） -->
+                <table class="pf-rowtbl">
+                  <tr><td class="lb">易地扶贫搬迁情况</td><td class="ctl">
+                    <label class="r-opt"><input type="radio" name="poorMove">已搬迁</label>
+                    <label class="r-opt"><input type="radio" name="poorMove">需搬迁</label>
+                    <label class="r-opt"><input type="radio" name="poorMove">其他</label></td></tr>
+                  <tr><td class="lb">有效灌溉的耕地面积（亩）</td><td class="ctl"><input class="pf-in" placeholder="请输入"></td></tr>
+                  <tr><td class="lb"><i>*</i>旱地（亩）</td><td class="ctl"><input class="pf-in" placeholder="请输入"></td></tr>
+                  <tr><td class="lb">牧草地面积（亩）</td><td class="ctl"><input class="pf-in" placeholder="请输入"></td></tr>
+                  <tr><td class="lb">商品用经济作物面积（亩）</td><td class="ctl"><input class="pf-in" placeholder="请输入"></td></tr>
+                  <tr><td class="lb">生产用房面积（平方米）</td><td class="ctl"><input class="pf-in" placeholder="请输入"></td></tr>
+                  <tr><td class="lb">投入互助资金金额</td><td class="ctl"><input class="pf-in" placeholder="请输入"></td></tr>
+                  <tr><td class="lb">产业组织类型</td><td class="ctl">
+                    <select class="pf-in">
+                      <option value="" selected>请选择</option>
+                      <option>专业大户</option><option>家庭农场</option><option>农民专业合作社</option><option>龙头企业</option><option>其他</option>
+                    </select></td></tr>
+                  <tr><td class="lb">龙头企业带动收益（元）</td><td class="ctl"><input class="pf-in" placeholder="请输入"></td></tr>
+                  <tr><td class="lb"><i>*</i>距离最近的乡镇市集距离（公里）</td><td class="ctl"><input class="pf-in" placeholder="请输入"></td></tr>
+                </table>
+              </div>
+
+              <!-- 4. 生活条件情况 -->
+              <div class="cr-sec-title" style="margin-top:16px">生活条件情况</div>
+              <table class="pf-rowtbl" style="margin-top:6px">
+                <tr><td class="lb"><i>*</i>燃料类型（最多可选三项）</td><td class="ctl">
+                  <span style="display:inline-block;margin-top:-2px">
+                    <label class="r-opt"><input type="checkbox" name="poorFuel" onchange="togglePoorFuel(this)">柴草（农作物秸秆、干畜粪）</label>
+                    <label class="r-opt"><input type="checkbox" name="poorFuel" onchange="togglePoorFuel(this)">煤炭</label>
+                    <label class="r-opt"><input type="checkbox" name="poorFuel" onchange="togglePoorFuel(this)">灌装液化石油气</label>
+                    <label class="r-opt"><input type="checkbox" name="poorFuel" onchange="togglePoorFuel(this)">管道液化石油气</label>
+                    <label class="r-opt"><input type="checkbox" name="poorFuel" onchange="togglePoorFuel(this)">管道煤气</label>
+                    <label class="r-opt"><input type="checkbox" name="poorFuel" onchange="togglePoorFuel(this)">管道天然气</label>
+                    <label class="r-opt"><input type="checkbox" name="poorFuel" onchange="togglePoorFuel(this)">燃料用油</label>
+                    <label class="r-opt"><input type="checkbox" name="poorFuel" onchange="togglePoorFuel(this)">沼气</label>
+                    <label class="r-opt"><input type="checkbox" name="poorFuel" onchange="togglePoorFuel(this)">其他</label>
+                    <label class="r-opt"><input type="checkbox" id="poorNoFuel" onchange="togglePoorNoFuel(this)">无炊用行为</label>
+                  </span>
+                </td></tr>
+                <tr><td class="lb"><i>*</i>饮水情况</td><td class="ctl">
+                  <label class="r-opt"><input type="radio" name="poorWater">经过净化处理的自来水</label>
+                  <label class="r-opt"><input type="radio" name="poorWater">受保护的井水和泉水</label>
+                  <label class="r-opt"><input type="radio" name="poorWater">不受保护的井水和泉水</label>
+                  <label class="r-opt"><input type="radio" name="poorWater">江河湖泊水</label>
+                  <label class="r-opt"><input type="radio" name="poorWater">桶装水</label>
+                  <label class="r-opt"><input type="radio" name="poorWater">其他水源</label></td></tr>
+                <tr><td class="lb"><i>*</i>获取饮用水存在的主要困难</td><td class="ctl">
+                  <label class="r-opt"><input type="radio" name="poorWaterDiff">无困难</label>
+                  <label class="r-opt"><input type="radio" name="poorWaterDiff">单次取水往返超过半小时</label>
+                  <label class="r-opt"><input type="radio" name="poorWaterDiff">间断或定时供水</label>
+                  <label class="r-opt"><input type="radio" name="poorWaterDiff">当年连续缺水时间超过15天</label>
+                  <label class="r-opt"><input type="radio" name="poorWaterDiff">其他困难</label></td></tr>
+                <tr><td class="lb"><i>*</i>厕所类型</td><td class="ctl">
+                  <label class="r-opt"><input type="radio" name="poorToilet">水冲式厕所（冲入下水道、化粪池和厕坑）</label>
+                  <label class="r-opt"><input type="radio" name="poorToilet">水冲式非卫生厕所（冲入其他地方）</label>
+                  <label class="r-opt"><input type="radio" name="poorToilet">卫生旱厕</label>
+                  <label class="r-opt"><input type="radio" name="poorToilet">普通旱厕</label>
+                  <label class="r-opt"><input type="radio" name="poorToilet">无厕所</label></td></tr>
+                <tr><td class="lb">拥有耐用消费品情况</td><td class="ctl">
+                  <label class="r-opt"><input type="checkbox" name="poorGoods">洗衣机</label>
+                  <label class="r-opt"><input type="checkbox" name="poorGoods">电冰箱/冰柜</label>
+                  <label class="r-opt"><input type="checkbox" name="poorGoods">彩色电视机</label>
+                  <label class="r-opt"><input type="checkbox" name="poorGoods">空调</label>
+                  <label class="r-opt"><input type="checkbox" name="poorGoods">热水器</label>
+                  <label class="r-opt"><input type="checkbox" name="poorGoods">计算机</label>
+                  <label class="r-opt"><input type="checkbox" name="poorGoods">自行车</label>
+                  <label class="r-opt"><input type="checkbox" name="poorGoods">助力车</label>
+                  <label class="r-opt"><input type="checkbox" name="poorGoods">摩托车</label>
+                  <label class="r-opt"><input type="checkbox" name="poorGoods">三轮或四轮农用车</label>
+                  <label class="r-opt"><input type="checkbox" name="poorGoods">家用汽车</label>
+                  <label class="r-opt"><input type="checkbox" name="poorGoods">农机具</label>
+                  <label class="r-opt"><input type="checkbox" name="poorGoods">固定电话</label>
+                  <label class="r-opt"><input type="checkbox" name="poorGoods">手机</label></td></tr>
+              </table>
+
+              <!-- 4b. 致贫原因 -->
+              <div class="cr-sec-title" style="margin-top:16px">致贫原因</div>
+              <table class="pf-rowtbl" style="margin-top:6px">
+                <tr><td class="ctl"><label class="r-opt"><input type="checkbox" name="poorCause">因灾</label>
+                  <label class="r-opt"><input type="checkbox" name="poorCause">因病</label>
+                  <label class="r-opt"><input type="checkbox" name="poorCause">因残</label>
+                  <label class="r-opt"><input type="checkbox" name="poorCause">因学</label>
+                  <label class="r-opt"><input type="checkbox" name="poorCause">缺技术</label>
+                  <label class="r-opt"><input type="checkbox" name="poorCause">缺劳力</label>
+                  <label class="r-opt"><input type="checkbox" name="poorCause">缺资金</label>
+                  <label class="r-opt"><input type="checkbox" name="poorCause">缺土地</label>
+                  <label class="r-opt"><input type="checkbox" name="poorCause">交通条件落后</label>
+                  <label class="r-opt"><input type="checkbox" name="poorCause">自身发展动力不足</label>
+                  <label class="r-opt"><input type="checkbox" name="poorCause">其他</label></td></tr>
+              </table>
+
+              <!-- 5. 帮扶负责人 -->
+              <div class="cr-sec-title" style="margin-top:16px">帮扶负责人</div>
+              <div class="pf-tbl-wrap">
+                <table class="pf-tbl" style="min-width:1080px">
+                  <thead>
+                    <tr>
+                      <th class="center">序号</th><th><i>*</i>姓名<i class="srt">▲</i></th><th>单位名称<i class="srt">▲</i></th><th>职务<i class="srt">▲</i></th><th>单位隶属关系<i class="srt">▲</i></th>
+                      <th>单位性质<i class="srt">▲</i></th><th><i>*</i>联系电话<i class="srt">▲</i></th><th>开始帮扶时间<i class="srt">▲</i></th><th>结束帮扶时间<i class="srt">▲</i></th><th class="center">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="poorDutyTbody"></tbody>
+                </table>
+              </div>
+              <div class="pf-addbar">
+                <span class="pf-add-link" onclick="addPoorDuty()">+ 新增</span>
+              </div>
+
+              <!-- 6. 帮扶计划 -->
+              <div class="cr-sec-title" style="margin-top:16px">帮扶计划</div>
+              <div class="pf-tbl-wrap">
+                <table class="pf-tbl" style="min-width:920px">
+                  <thead>
+                    <tr>
+                      <th class="center">序号</th><th><i>*</i>项目类别<i class="srt">▲</i></th><th><i>*</i>项目名称<i class="srt">▲</i></th><th><i>*</i>项目内容<i class="srt">▲</i></th><th>计量单位<i class="srt">▲</i></th>
+                      <th>项目规模<i class="srt">▲</i></th><th><i>*</i>计划资金总额<i class="srt">▲</i></th><th class="center">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="poorPlanTbody"></tbody>
+                </table>
+              </div>
+              <div class="pf-addbar">
+                <span class="pf-add-link" onclick="addPoorPlan()">+ 新增</span>
+              </div>
+
+              <!-- 7. 帮扶成效 -->
+              <div class="cr-sec-title" style="margin-top:16px">帮扶成效</div>
+              <div class="pf-tbl-wrap">
+                <table class="pf-tbl" style="min-width:980px">
+                  <thead>
+                    <tr>
+                      <th class="center">序号</th><th><i>*</i>项目类别<i class="srt">▲</i></th><th><i>*</i>项目名称<i class="srt">▲</i></th><th><i>*</i>项目效果<i class="srt">▲</i></th><th><i>*</i>项目收益（元）<i class="srt">▲</i></th>
+                      <th class="center">帮扶前照片</th><th class="center">帮扶后照片</th><th class="center">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="poorResultTbody"></tbody>
+                </table>
+              </div>
+              <div class="pf-addbar">
+                <span class="pf-add-link" onclick="addPoorResult()">+ 新增</span>
+              </div>
+
+              <!-- 8. 脱贫评估 -->
+              <div class="cr-sec-title" style="margin-top:16px">脱贫评估</div>
+              <table class="pf-rowtbl" style="margin-top:6px">
+                <tr><td class="lb">年人均纯收入（元）</td><td class="ctl"><input class="pf-in" placeholder="请输入"></td></tr>
+                <tr><td class="lb">经营性收入（元）</td><td class="ctl"><input class="pf-in" placeholder="请输入"></td></tr>
+                <tr><td class="lb">工资性收入（元）</td><td class="ctl"><input class="pf-in" placeholder="请输入"></td></tr>
+              </table>
+
+              <!-- 9. 备注 -->
+              <div class="cr-sec-title" style="margin-top:16px">备注</div>
+              <div class="remark-box" style="max-width:720px">
+                <textarea id="poorRemarkInput" maxlength="200" placeholder="请输入备注" oninput="updatePoorRemark()" style="height:84px"></textarea>
+                <span class="remark-cnt" id="poorRemarkCnt">0/200</span>
+              </div>
+            </div>
+          </div>
+          <div class="cr-foot" id="poorFoot">
+            <button class="btn btn-primary" onclick="savePoor()">保存</button>
           </div>
         </div>
 
@@ -829,6 +1096,7 @@
     ['paneBase', 'paneMember', 'panePoor'].forEach(function (id) { $(id).style.display = 'none'; });
     $(paneId).style.display = 'block';
     if (paneId === 'paneMember') { updateMemberTabState(); }
+    if (paneId === 'panePoor') { updatePoorTabState(); }
   }
 
   /* 家庭成员 tab 状态：未保存家庭基本信息前不显示"添加家庭成员"按钮 */
@@ -841,6 +1109,114 @@
 
   function updateRemarkCnt() {
     $('remarkCnt').textContent = $('remarkInput').value.length + '/100';
+  }
+
+  /* ================= 精准扶贫 tab：未保存家庭基本信息前仅显示提示 ================= */
+  function updatePoorTabState() {
+    $('poorEmpty').style.display = familySaved ? 'none' : 'block';
+    $('poorForm').style.display = familySaved ? 'block' : 'none';
+    $('poorFoot').style.display = familySaved ? 'block' : 'none';
+  }
+
+  /* ================= 精准扶贫：行增删 ================= */
+  function delPoorRow(el) { el.closest('tr').remove(); }
+
+  function poorDateCell(ph) {
+    return '<input class="pf-in" style="width:110px" placeholder="' + ph + '" onfocus="this.type=\'date\'" onblur="if(!this.value)this.type=\'text\'">';
+  }
+
+  function addPoorIncome() {
+    var tb = $('poorIncTbody');
+    var row = '<td>' + poorDateCell('选择年度') + '</td>';
+    for (var i = 0; i < 9; i++) { row += '<td><input class="pf-in" placeholder="请输入"></td>'; }
+    row += '<td class="center"><span class="op-act danger" onclick="delPoorRow(this)">×</span></td>';
+    var tr = document.createElement('tr');
+    tr.innerHTML = row;
+    tb.appendChild(tr);
+  }
+
+  function addPoorDuty() {
+    var tb = $('poorDutyTbody');
+    var n = tb.querySelectorAll('tr').length;
+    var row = '<td class="center">' + (n + 1) + '</td>'
+      + '<td><input class="pf-in" placeholder="请输入"></td>'
+      + '<td><input class="pf-in" placeholder="请输入"></td>'
+      + '<td><input class="pf-in" placeholder="请输入"></td>'
+      + '<td><input class="pf-in" placeholder="请输入"></td>'
+      + '<td><input class="pf-in" placeholder="请输入"></td>'
+      + '<td><input class="pf-in" placeholder="请输入"></td>'
+      + '<td>' + poorDateCell('开始时间') + '</td>'
+      + '<td>' + poorDateCell('结束时间') + '</td>'
+      + '<td class="center"><span class="op-act danger" onclick="delPoorRow(this)">×</span></td>';
+    var tr = document.createElement('tr');
+    tr.innerHTML = row;
+    tb.appendChild(tr);
+  }
+
+  function addPoorPlan() {
+    var tb = $('poorPlanTbody');
+    var n = tb.querySelectorAll('tr').length;
+    var row = '<td class="center">' + (n + 1) + '</td>';
+    for (var i = 0; i < 6; i++) { row += '<td><input class="pf-in" placeholder="请输入"></td>'; }
+    row += '<td class="center"><span class="op-act danger" onclick="delPoorRow(this)">×</span></td>';
+    var tr = document.createElement('tr');
+    tr.innerHTML = row;
+    tb.appendChild(tr);
+  }
+
+  function addPoorResult() {
+    var tb = $('poorResultTbody');
+    var n = tb.querySelectorAll('tr').length;
+    var row = '<td class="center">' + (n + 1) + '</td>'
+      + '<td><input class="pf-in" placeholder="请输入"></td>'
+      + '<td><input class="pf-in" placeholder="请输入"></td>'
+      + '<td><input class="pf-in" placeholder="请输入"></td>'
+      + '<td><input class="pf-in" placeholder="请输入"></td>'
+      + '<td class="center"><span class="upload-btn" onclick="toast(\'已选择帮扶前照片（示例）\',\'success\')">上传</span></td>'
+      + '<td class="center"><span class="upload-btn" onclick="toast(\'已选择帮扶后照片（示例）\',\'success\')">上传</span></td>'
+      + '<td class="center"><span class="op-act danger" onclick="delPoorRow(this)">×</span></td>';
+    var tr = document.createElement('tr');
+    tr.innerHTML = row;
+    tb.appendChild(tr);
+  }
+
+  /* 燃料类型最多3种；勾选"无燃料使用行为"时清空所有燃料勾选 */
+  function togglePoorFuel(el) {
+    if ($('poorNoFuel').checked) { $('poorNoFuel').checked = false; }
+    var checked = document.querySelectorAll('input[name="poorFuel"]:checked');
+    if (checked.length > 3) {
+      el.checked = false;
+      toast('燃料类型最多选择3种', 'warning');
+    }
+  }
+
+  function togglePoorNoFuel(el) {
+    if (el.checked) {
+      document.querySelectorAll('input[name="poorFuel"]').forEach(function (c) { c.checked = false; });
+    }
+  }
+
+  /* 备注字数统计（0/200） */
+  function updatePoorRemark() {
+    $('poorRemarkCnt').textContent = $('poorRemarkInput').value.length + '/200';
+  }
+
+  /* 保存：校验必填项 */
+  function savePoor() {
+    var missing = [];
+    if (!$('poorBank').value.trim()) missing.push('开户银行');
+    if (!$('poorHolder').value.trim()) missing.push('户名');
+    if (!$('poorAcc').value.trim()) missing.push('银行账户');
+    if (!document.querySelector('input[name="poorStd"]:checked')) missing.push('识别标准');
+    if (!document.querySelector('input[name="poorFp"]:checked')) missing.push('计划生育户');
+    if (!document.querySelector('input[name="poorElec"]:checked')) missing.push('通电情况');
+    var fuelOk = $('poorNoFuel').checked || document.querySelector('input[name="poorFuel"]:checked');
+    if (!fuelOk) missing.push('燃料类型');
+    if (!document.querySelector('input[name="poorWater"]:checked')) missing.push('饮水情况');
+    if (!document.querySelector('input[name="poorWaterDiff"]:checked')) missing.push('获取饮用水存在的主要困难');
+    if (!document.querySelector('input[name="poorToilet"]:checked')) missing.push('厕所类型');
+    if (missing.length) { toast('请完善必填项：' + missing.join('、'), 'warning'); return; }
+    toast('精准扶贫信息已保存', 'success');
   }
 
   /* ================= 添加家庭成员（选择户主） ================= */

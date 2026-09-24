@@ -17,31 +17,56 @@
 
   .page-head .right .btn{height:28px;padding:0 14px;font-size:13px}
 
-  /* ===== 筛选区 ===== */
-  .filter-panel{padding:14px 12px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
-  .filter-row{display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:14px;align-items:center}
+  /* ===== 筛选区 =====
+     量测自设计稿（设计稿设备px ÷1.10 = CSS px，基准：标准控件 198 设备px = 180 CSS）：
+       控件 180×32 CSS；行距 pitch 46 设备px -> 行间隙 10；日期区间 252 设备px -> 229 CSS
+       标签字 14px（由「跨标签一字推进量」15.5 设备px 反推）
+       标签→控件：设计稿 4~5 设备px —— 是「紧贴」，目视那 ~10px 空隙其实是全角冒号
+                   「：」自身左右各 ~5.5px 留白，别按墨迹间距设 gap（会设成 16px，错 3 倍）
+       字段间：设计稿列节距 304 设备px = 276.4 CSS；实现取 22，列节距 = 70+4+180+22 = 276 ✓
+       标签左沿与页头 h1 左沿对齐（设计稿两者墨迹均在 25 设备px）-> 面板左右内边距取 12px
+       操作按钮贴在筛选区右下角，随「最后一个可见行」移动（收起时在第 2 行，展开时在第 5 行） */
+  .filter-panel{position:relative;padding:14px 12px;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px}
+  .filter-row + .filter-row{margin-top:10px}
   .filter-row.extra{display:none}
   .filter-row.extra.show{display:flex}
-  .filter-item{display:flex;align-items:center;gap:8px}
+  .filter-item{display:flex;align-items:center;gap:4px}
   .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
-  .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
-  .fi-select{width:140px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
-  .fi-select.w-lg{width:180px}
-  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
-  .fi-ctl::placeholder{color:var(--text-placeholder)}
-  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
-  .btn-plain{height:28px;padding:0 8px;font-size:13px;color:var(--primary);border-radius:var(--r-sm)}
-  .btn-plain:hover{background:var(--primary-bg)}
+  .filter-item.tight{gap:4px}
 
-  /* 日期区间 / 比较符 / 数值 */
-  .fi-date-range{display:flex;align-items:center;gap:6px}
-  .fi-date{width:120px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 28px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-size:14px;appearance:none;-webkit-appearance:none}
-  .fi-date:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
-  .fi-sep{color:var(--text-placeholder);font-size:13px}
-  .fi-cmp{width:78px}
-  .fi-num{width:70px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 8px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl:focus,.fi-select:focus,.fi-range:focus-within{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  /* 下拉未选择时显示「请选择」为占位灰（设计稿：#B3B3B3 ≈ --text-placeholder），选了值即为常规深色 */
+  .fi-select.is-placeholder{color:var(--text-placeholder)}
+
+  /* 日期区间：整段一个边框，内含「开始日期 ~ 结束日期」与右侧日历图标（设计稿为单个控件） */
+  .fi-range{position:relative;display:flex;align-items:center;width:229px;height:32px;padding:0 26px 0 10px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);background:var(--bg-white);transition:all var(--transition-fast)}
+  .fi-range input{flex:1;min-width:0;height:100%;padding:0;border:none;background:transparent;outline:none;font-size:14px;color:var(--text-primary);font-family:inherit}
+  .fi-range input::placeholder{color:var(--text-placeholder)}
+  .fi-tilde{flex:none;padding:0 4px;font-size:13px;color:var(--text-placeholder)}
+  .fi-cal{position:absolute;right:7px;width:14px;height:14px;stroke:var(--color-neutral-500);fill:none;pointer-events:none}
+
+  /* 随访次数：比较符 + 数值；未选比较符时数值框为禁用灰底（设计稿即灰底） */
+  .fi-cmp{width:88px}
+  .fi-num{width:88px;height:32px;padding:0 8px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
   .fi-num:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
-  .fi-unit{font-size:13px;color:var(--text-secondary)}
+  .fi-num:disabled{background-color:#F5F5F5;cursor:not-allowed}
+
+  /* 只看个人管理档案 */
+  .fi-check{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--text-secondary);white-space:nowrap;cursor:pointer}
+  .fi-check input{flex:none;width:16px;height:16px;border:1px solid var(--color-neutral-300);border-radius:2px;background:var(--bg-white);outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;transition:all var(--transition-fast)}
+  .fi-check input:checked{border-color:var(--primary);background:var(--primary) url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.4 8.4l3.1 3.1 6-6.9' stroke='%23fff' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px 14px no-repeat}
+
+  /* 操作按钮：绝对定位吸在筛选区右下角 —— 等价于「贴在最后一个可见行右侧」，
+     收起时落在第 2 行、展开时落在第 5 行，无需搬 DOM */
+  .filter-btns{position:absolute;right:16px;bottom:14px;display:flex;gap:8px;align-items:center}
+  .btn-plain{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 6px;border:none;background:none;border-radius:var(--r-sm);font-size:14px;color:var(--primary);cursor:pointer;transition:background var(--transition-fast)}
+  .btn-plain:hover{background:var(--primary-bg)}
+  .btn-plain .tri{flex:none;width:10px;height:6px;fill:currentColor;transition:transform var(--transition-fast)}
+  .btn-plain.open .tri{transform:rotate(180deg)}
 
   /* ===== 数据表格 ===== */
   .table-wrap{flex:1;overflow:auto;min-height:0}
@@ -143,11 +168,11 @@
         </div>
       </div>
 
-      <!-- 筛选区 -->
+      <!-- 筛选区：4 列 × 4 行 + 建档日期/勾选行；操作按钮吸右下角 -->
       <div class="filter-panel">
         <div class="filter-row">
           <div class="filter-item"><label>管理机构：</label>
-            <select class="fi-select w-lg"><option value="">请选择</option><option>扬州市江都区仙女社区卫生服务中心</option><option>扬州市江都区浦头镇承仪村卫生室</option><option>扬州市江都区砖桥社区卫生服务中心</option></select>
+            <select class="fi-select"><option value="">请选择</option><option>扬州市江都区仙女社区卫生服务中心</option><option>扬州市江都区浦头镇承仪村卫生室</option><option>扬州市江都区砖桥社区卫生服务中心</option></select>
           </div>
           <div class="filter-item"><label>姓名：</label>
             <input class="fi-ctl" placeholder="请输入" type="text">
@@ -158,42 +183,85 @@
           <div class="filter-item"><label>管辖行政区：</label>
             <select class="fi-select"><option value="">请选择</option><option>新都社区</option><option>承仪村</option><option>曹王林园场村</option></select>
           </div>
+        </div>
+
+        <div class="filter-row">
           <div class="filter-item"><label>锁定状态：</label>
             <select class="fi-select"><option value="未上锁">未上锁</option><option value="已锁定">已锁定</option></select>
           </div>
           <div class="filter-item"><label>居民状态：</label>
             <select class="fi-select"><option value="正常">正常</option><option value="迁出">迁出</option><option value="死亡">死亡</option></select>
           </div>
-          <div class="filter-btns">
-            <button class="btn btn-default btn-sm" onclick="toast('已重置','info')">重置</button>
-            <button class="btn btn-primary btn-sm" onclick="toast('查询成功','success')">查询</button>
-            <button class="btn-plain" id="expandBtn" onclick="toggleExtra()">展开
-              <svg viewBox="0 0 24 24" style="width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;margin-left:2px"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="filter-row extra" id="extraRow">
           <div class="filter-item"><label>当前分色：</label>
             <select class="fi-select"><option value="">请选择</option><option value="white">白色</option><option value="yellow">黄色</option><option value="red">红色</option><option value="green">绿色</option></select>
           </div>
           <div class="filter-item"><label>随访日期：</label>
-            <div class="fi-date-range">
-              <input class="fi-date" placeholder="开始日期" type="text">
-              <span class="fi-sep">~</span>
-              <input class="fi-date" placeholder="结束日期" type="text">
+            <div class="fi-range">
+              <input placeholder="开始日期" type="text">
+              <span class="fi-tilde">~</span>
+              <input placeholder="结束日期" type="text">
+              <svg class="fi-cal" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             </div>
           </div>
-          <div class="filter-item"><label>随访次数：</label>
-            <select class="fi-select fi-cmp"><option value=">=">大于等于</option><option value="=">等于</option><option value="<=">小于等于</option></select>
-            <input class="fi-num" placeholder="" type="text" value="0">
-            <span class="fi-unit">次</span>
+        </div>
+
+        <div class="filter-row extra">
+          <div class="filter-item tight"><label>随访次数：</label>
+            <select class="fi-select fi-cmp" id="fiVisitCmp" onchange="fiCmpChange(this)">
+              <option value="">请选择</option><option value="&gt;=">大于等于</option><option value="=">等于</option><option value="&lt;=">小于等于</option>
+            </select>
+            <input class="fi-num" id="fiVisitNum" type="text" disabled>
           </div>
           <div class="filter-item"><label>重点人群类型：</label>
-            <select class="fi-select w-lg"><option value="">请选择</option><option value="old">老年人</option><option value="hyp">高血压</option><option value="dia">糖尿病</option><option value="tb">结核病</option></select>
+            <select class="fi-select"><option value="">请选择</option><option value="old">老年人</option><option value="hyp">高血压</option><option value="dia">糖尿病</option><option value="tb">结核病</option></select>
           </div>
           <div class="filter-item"><label>档案类型：</label>
             <select class="fi-select"><option value="">请选择</option><option value="个人">个人档案</option><option value="家庭">家庭档案</option></select>
           </div>
+          <div class="filter-item"><label>居民类型：</label>
+            <select class="fi-select"><option value="">请选择</option><option value="常驻">常驻人口</option><option value="流动">流动人口</option><option value="暂住">暂住人口</option></select>
+          </div>
+        </div>
+
+        <div class="filter-row extra">
+          <div class="filter-item"><label>居住类型：</label>
+            <select class="fi-select"><option value="">请选择</option><option value="家庭户">家庭户</option><option value="集体户">集体户</option><option value="空挂户">空挂户</option></select>
+          </div>
+          <div class="filter-item"><label>建档医生：</label>
+            <input class="fi-ctl" placeholder="请输入" type="text">
+          </div>
+          <div class="filter-item"><label>档案编号：</label>
+            <input class="fi-ctl" placeholder="请输入" type="text">
+          </div>
+          <div class="filter-item"><label>出生日期：</label>
+            <div class="fi-range">
+              <input placeholder="开始日期" type="text">
+              <span class="fi-tilde">~</span>
+              <input placeholder="结束日期" type="text">
+              <svg class="fi-cal" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-row extra">
+          <div class="filter-item"><label>建档日期：</label>
+            <div class="fi-range">
+              <input placeholder="开始日期" type="text">
+              <span class="fi-tilde">~</span>
+              <input placeholder="结束日期" type="text">
+              <svg class="fi-cal" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+          </div>
+          <label class="fi-check"><input type="checkbox" id="fiSelfOnly">只看个人管理档案</label>
+        </div>
+
+        <div class="filter-btns">
+          <button class="btn btn-default" onclick="toast('已重置','info')">重置</button>
+          <button class="btn btn-primary" onclick="toast('查询成功','success')">查询</button>
+          <button class="btn-plain" id="expandBtn" onclick="toggleExtra()">
+            <span id="expandLab">展开</span>
+            <svg class="tri" viewBox="0 0 10 6"><polygon points="0,0 10,0 5,6"/></svg>
+          </button>
         </div>
       </div>
 
@@ -361,16 +429,25 @@
   var extraOpen = false;
   function toggleExtra() {
     extraOpen = !extraOpen;
-    var row = document.getElementById('extraRow');
+    document.querySelectorAll('.filter-row.extra').forEach(function (r) {
+      r.classList.toggle('show', extraOpen);
+    });
     var btn = document.getElementById('expandBtn');
-    if (extraOpen) {
-      row.classList.add('show');
-      btn.innerHTML = '收起<svg viewBox="0 0 24 24" style="width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;margin-left:2px;transform:rotate(180deg)"><polyline points="6 9 12 15 18 9"/></svg>';
-    } else {
-      row.classList.remove('show');
-      btn.innerHTML = '展开<svg viewBox="0 0 24 24" style="width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;margin-left:2px"><polyline points="6 9 12 15 18 9"/></svg>';
-    }
+    btn.classList.toggle('open', extraOpen);
+    document.getElementById('expandLab').textContent = extraOpen ? '收起' : '展开';
   }
+  /* 随访次数：选中比较符后才可填写数值（设计稿未选时为灰底禁用态） */
+  function fiCmpChange(sel) {
+    document.getElementById('fiVisitNum').disabled = !sel.value;
+  }
+  /* 下拉占位灰：未选值（value=""）时给 .is-placeholder，选了实际值即恢复常规色 */
+  function syncSelectPlaceholder(sel) {
+    sel.classList.toggle('is-placeholder', !sel.value);
+  }
+  [].forEach.call(document.querySelectorAll('.filter-panel .fi-select'), function (sel) {
+    syncSelectPlaceholder(sel);
+    sel.addEventListener('change', function () { syncSelectPlaceholder(sel); });
+  });
 
   renderTable();
 </script>

@@ -493,6 +493,7 @@
       var doctors = ['冯仁卉', '李蕾', '朱劲松', '敖鹏天', '陆柳琳', '王盛'];
       var groupMap = { '老': '65岁及以上老年人', '高': '高血压患者', '糖': '2型糖尿病患者', '儿': '0-6岁儿童' };
       list.forEach(function (r, i) {
+        var srcIdx = residentData.indexOf(r);
         var crowdHtml = r.crowd.length
           ? r.crowd.map(function (c) { return '<span class="crowd-badge">' + esc(c) + '</span>'; }).join('')
           : '<span class="crowd-none">-</span>';
@@ -529,9 +530,9 @@
           + '<td><span class="st-dot ok"></span>' + esc(r.status) + '</td>'
           + '<td><span class="st-dot warn"></span>未上传</td>'
           + '<td class="center">'
-          +   '<a class="op-link" onclick="toast(\'查看居民档案：' + esc(r.name) + '\',\'info\')">查看</a>'
+          +   '<a class="op-link" onclick="openArchive(' + srcIdx + ')">查看</a>'
           +   '<span class="op-gap"></span>'
-          +   '<a class="op-link" onclick="toast(\'编辑居民档案：' + esc(r.name) + '\',\'info\')">编辑</a>'
+          +   '<a class="op-link" onclick="openArchive(' + srcIdx + ')">编辑</a>'
           +   '<span class="op-gap"></span>'
           +   '<span class="op-more">'
           +     '<a class="more-btn" onclick="toggleOpMenu(this,event)">更多<svg viewBox="0 0 24 24" style="width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="6 9 12 15 18 9"/></svg></a>'
@@ -589,6 +590,29 @@
   document.addEventListener('click', function (e) {
     if (!e.target.closest('.op-more')) closeAllOpMenus();
   });
+
+  /* ================= 查看/编辑：携带居民数据打开档案维护界面（个人基本信息表目录） ================= */
+  function openArchive(idx) {
+    var r = residentData[idx];
+    if (!r) return;
+    var p = new URLSearchParams();
+    p.set('view', 'basic');
+    p.set('edit', '1');
+    p.set('archNo', r.archNo);
+    p.set('name', r.name);
+    p.set('gender', r.gender === '男' ? '男性' : '女性');
+    p.set('idType', r.idType);
+    p.set('idcard', r.idcard);
+    p.set('birth', r.birth);
+    p.set('phone', r.phone);
+    p.set('nation', '汉族');
+    p.set('crowd', r.crowd.join(','));
+    p.set('region', '山东省' + r.region);
+    p.set('addr', r.address.replace(r.region, ''));
+    p.set('org', r.org);
+    p.set('created', r.created);
+    window.open('档案维护.html?' + p.toString(), '_blank');
+  }
 
   /* 筛选控件输入即实时过滤 */
   ['fOrg1','fName','fIdcard','fRegion','fOrg2','fPersonal','fPhone','fBirth','fCreate','fArchNo'].forEach(function (id) {

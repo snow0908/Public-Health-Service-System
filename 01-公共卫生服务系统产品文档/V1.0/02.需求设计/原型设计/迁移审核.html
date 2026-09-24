@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>迁移审核 - 档案管理</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0;border:none;border-top:none}
+
+  /* 页内子 tab：迁入 / 迁出审核 */
+  .sub-tabs{display:flex;align-items:center;gap:4px;height:44px;padding:0 16px;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .sub-tab{padding:0 16px;font-size:14px;color:var(--text-secondary);cursor:pointer;line-height:42px;border-bottom:2px solid transparent}
+  .sub-tab:hover{color:var(--primary)}
+  .sub-tab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:var(--font-weight-medium)}
+
+  /* 子 tab 内容区：两个列表视图叠加切换 */
+  .sub-view{display:none;flex-direction:column;flex:1;min-height:0}
+  .sub-view.active{display:flex}
+
+  .stat-grid{display:flex;gap:12px;padding:14px 16px 12px;flex-wrap:wrap}
+  .stat-item{flex:1;min-width:130px;height:78px;border:1px solid var(--primary-border);border-radius:8px;background:var(--bg-white);box-shadow:0 1px 2px rgba(26,26,26,.04);display:flex;flex-direction:column;justify-content:center;padding:0 16px}
+  .stat-item .k{font-size:13px;color:var(--text-secondary)}
+  .stat-item .v{font-size:22px;font-weight:600;color:var(--text-primary);margin-top:4px;line-height:1}
+  .stat-item .v small{font-size:12px;color:var(--text-tertiary);font-weight:400}
+  .stat-item.red .v{color:var(--danger)}
+  .stat-item.orange .v{color:#E6A23C}
+  .stat-item.green .v{color:var(--success)}
+  .stat-item.blue .v{color:var(--primary)}
+
+  .filter-panel{padding:14px 16px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:14px;align-items:center}
+  .filter-item{display:flex;align-items:center;gap:8px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:160px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .fi-ctl.date{width:118px}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .filter-btns .filter-more{margin-bottom:0;align-self:center}
+  .filter-more{margin-left:auto;font-size:13px;color:var(--primary);cursor:pointer;align-self:flex-end;margin-bottom:14px}
+  .filter-check{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--text-primary);cursor:pointer;white-space:nowrap}
+  .filter-check input{width:14px;height:14px;accent-color:var(--primary);cursor:pointer}
+  .filter-panel .f-collapse{display:none}
+
+  .toolbar{padding:12px 16px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .toolbar .right{margin-left:auto;display:flex;gap:8px}
+
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+  .list-tbl{width:100%;min-width:1380px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:38px;padding:0 10px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:40px;padding:0 10px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:nth-child(even) td{background:var(--bg-table-even)}
+  .list-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .list-tbl th.center,.list-tbl td.center{text-align:center}
+  .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  .tag{display:inline-block;padding:1px 8px;border-radius:3px;font-size:12px;line-height:18px;white-space:nowrap;margin-right:2px}
+  .tag.blue{background:var(--primary-bg);color:var(--primary);border:1px solid var(--primary-border)}
+  .tag.red{background:#FEF0F0;color:var(--danger);border:1px solid #FBC4C4}
+  .tag.orange{background:#FDF6EC;color:#E6A23C;border:1px solid #F5DAB1}
+  .tag.green{background:#F0F9EB;color:var(--success);border:1px solid #C2E7B0}
+  .tag.gray{background:#F4F4F5;color:#909399;border:1px solid #D3D4D6}
+
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px}
+  .op-link:hover{text-decoration:underline}
+  .op-link.ok{color:var(--success)}
+  .op-link.danger{color:var(--danger)}
+  .op-gap{display:inline-block;width:8px}
+
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:52px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 22px 0 8px;font-size:13px;color:var(--text-secondary);background:#fff;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+
+  .pagenote{padding:12px 16px;background:var(--bg-white);border-top:1px solid #E8E8E8;font-size:12px;color:var(--text-tertiary);line-height:1.9}
+  .pagenote b{color:var(--text-secondary)}
+
+  /* 详情弹窗 */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:var(--z-overlay);display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 16px}
+  .modal-overlay.show{display:flex}
+  .modal-wrap{background:#fff;border-radius:8px;width:920px;max-width:96vw;box-shadow:0 4px 24px rgba(0,0,0,.2)}
+  .modal-head{height:50px;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid #E8E8E8;font-size:16px;font-weight:var(--font-weight-medium);color:var(--text-primary)}
+  .modal-head .x{margin-left:auto;cursor:pointer;color:var(--text-tertiary);font-size:20px;font-weight:400;line-height:1}
+  .modal-body{padding:18px 20px;max-height:64vh;overflow:auto}
+  .modal-foot{padding:12px 20px;border-top:1px solid #E8E8E8;display:flex;justify-content:flex-end;gap:8px}
+  fieldset{border:1px solid var(--primary-border);border-radius:6px;padding:12px 14px;margin-bottom:14px}
+  legend{padding:0 6px;font-size:13px;color:var(--primary);font-weight:var(--font-weight-medium)}
+  .info-tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .info-tbl th{text-align:right;padding:0 12px;height:36px;background:var(--primary-header);color:var(--text-primary);font-weight:var(--font-weight-medium);border:1px solid var(--primary-border);white-space:nowrap;width:130px;vertical-align:middle}
+  .info-tbl td{padding:0 12px;height:36px;background:var(--bg-white);border:1px solid var(--primary-border);color:var(--text-secondary);vertical-align:middle}
+</style>
+</head>
+<body>
+
+<div class="main-area">
+
+  <div class="tabbar">
+    <div class="tab-item active">迁移审核</div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <div class="sub-tabs">
+        <div class="sub-tab active" onclick="switchSub(this,'in')">迁入审核</div>
+        <div class="sub-tab" onclick="switchSub(this,'out')">迁出审核</div>
+      </div>
+
+      <!-- ============ 迁入审核 ============ -->
+      <div class="sub-view active" id="sv-in">
+        <div class="stat-grid">
+          <div class="stat-item red"><div class="k">待审核</div><div class="v">128<small> 条</small></div></div>
+          <div class="stat-item blue"><div class="k">本月迁入</div><div class="v">96<small> 条</small></div></div>
+          <div class="stat-item green"><div class="k">已通过</div><div class="v">312<small> 条</small></div></div>
+          <div class="stat-item orange"><div class="k">已驳回</div><div class="v">23<small> 条</small></div></div>
+        </div>
+
+        <div class="filter-panel">
+          <div class="filter-row">
+            <div class="filter-item"><label>姓名：</label><input class="fi-ctl" placeholder="请输入"></div>
+            <div class="filter-item"><label>证件号：</label><input class="fi-ctl" placeholder="请输入"></div>
+            <div class="filter-item"><label>居民状态：</label><select class="fi-select"><option>正常</option><option>注销</option><option>死亡</option></select></div>
+            <div class="filter-item"><label>管辖行政区：</label><select class="fi-select"><option>请选择</option><option>江都区</option><option>丁伙镇</option><option>仙女镇</option><option>大桥镇</option></select></div>
+          </div>
+          <div class="filter-row">
+            <div class="filter-item"><label>档案类型：</label><select class="fi-select"><option>请选择</option><option>个人档案</option><option>儿童档案</option></select></div>
+            <div class="filter-item"><label>迁入机构：</label><select class="fi-select"><option>请选择</option><option>丁伙镇卫生院</option><option>仙女镇卫生院</option><option>大桥镇卫生院</option></select></div>
+            <div class="filter-item"><label>出生日期：</label><input class="fi-ctl date" placeholder="开始日期">~<input class="fi-ctl date" placeholder="结束日期"></div>
+            <div class="filter-item"><label>申请日期：</label><input class="fi-ctl date" placeholder="开始日期">~<input class="fi-ctl date" placeholder="结束日期"></div>
+            <div class="filter-btns">
+              <button class="btn btn-default btn-sm" onclick="toast('已重置','info')">重置</button>
+              <button class="btn btn-primary btn-sm" onclick="toast('查询成功','success')">查询</button>
+              <span class="filter-more" onclick="toggleMore(this)">展开 ▼</span>
+            </div>
+          </div>
+          <div class="filter-row f-collapse">
+            <div class="filter-item"><label>锁定状态：</label><select class="fi-select"><option>请选择</option><option>未锁定</option><option>已锁定</option></select></div>
+            <div class="filter-item"><label class="filter-check"><input type="checkbox">只看个人管理档案</label></div>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <button class="btn btn-primary btn-sm" onclick="toast('批量通过成功','success')">批量通过</button>
+          <button class="btn btn-danger btn-sm" onclick="toast('批量驳回，请输入驳回原因','warning')">批量驳回</button>
+          <div class="right">
+            <button class="btn btn-default btn-sm" onclick="toast('已导出','success')">导出</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="list-tbl">
+            <thead><tr>
+              <th style="width:30px"><input type="checkbox"></th>
+              <th style="width:52px">序号</th>
+              <th style="width:170px">迁出机构</th>
+              <th style="width:80px">姓名</th>
+              <th style="width:140px">证件号</th>
+              <th style="width:90px">证件类型</th>
+              <th style="width:52px">性别</th>
+              <th style="width:50px">年龄</th>
+              <th style="width:105px">出生日期</th>
+              <th style="width:100px">电话号码</th>
+              <th style="width:100px">重点人群类型</th>
+              <th style="width:150px">详细地址</th>
+              <th style="width:80px">申请人</th>
+              <th style="width:100px">申请类型</th>
+              <th style="width:90px">审核状态</th>
+              <th style="width:140px">操作</th>
+            </tr></thead>
+            <tbody>
+              <tr>
+                <td class="center"><input type="checkbox"></td><td>1</td>
+                <td><span class="cell" title="仙女镇横沟村卫生室">仙女镇横沟村卫生室</span></td>
+                <td>马成威</td><td>3203**********3424</td><td>居民身份证</td><td class="center">女</td><td class="center">42</td>
+                <td>1983-10-01</td><td>150****2599</td>
+                <td><span class="tag red">高</span></td>
+                <td><span class="cell" title="丁伙镇东兴组12号">丁伙镇东兴组12号</span></td>
+                <td>马成威</td><td>搬迁</td>
+                <td><span class="tag orange">待审核</span></td>
+                <td><a class="op-link" onclick="openModal('modal-in')">查看</a><span class="op-gap"></span><a class="op-link ok" onclick="toast('审核通过','success')">通过</a><span class="op-gap"></span><a class="op-link danger" onclick="toast('请输入驳回原因','warning')">驳回</a></td>
+              </tr>
+              <tr>
+                <td class="center"><input type="checkbox"></td><td>2</td>
+                <td><span class="cell" title="大桥镇中闸村卫生室">大桥镇中闸村卫生室</span></td>
+                <td>朱玉兰</td><td>3210**********7125</td><td>身份证号</td><td class="center">女</td><td class="center">73</td>
+                <td>1953-03-16</td><td>158****8792</td>
+                <td><span class="tag green">老</span></td>
+                <td><span class="cell" title="大桥镇昌西巷5组">大桥镇昌西巷5组</span></td>
+                <td>朱玉兰</td><td>随子女居住</td>
+                <td><span class="tag orange">待审核</span></td>
+                <td><a class="op-link" onclick="openModal('modal-in')">查看</a><span class="op-gap"></span><a class="op-link ok" onclick="toast('审核通过','success')">通过</a><span class="op-gap"></span><a class="op-link danger" onclick="toast('请输入驳回原因','warning')">驳回</a></td>
+              </tr>
+              <tr>
+                <td class="center"><input type="checkbox"></td><td>3</td>
+                <td><span class="cell" title="邵伯镇苏油社区">邵伯镇苏油社区</span></td>
+                <td>夏明秀</td><td>3208**********2020</td><td>身份证号</td><td class="center">女</td><td class="center">86</td>
+                <td>1940-07-27</td><td>159****2435</td>
+                <td><span class="tag green">老</span><span class="tag red">高</span><span class="tag orange">糖</span></td>
+                <td><span class="cell" title="仙女镇绿康缘">仙女镇绿康缘</span></td>
+                <td>夏明秀</td><td>搬入养老院</td>
+                <td><span class="tag orange">待审核</span></td>
+                <td><a class="op-link" onclick="openModal('modal-in')">查看</a><span class="op-gap"></span><a class="op-link ok" onclick="toast('审核通过','success')">通过</a><span class="op-gap"></span><a class="op-link danger" onclick="toast('请输入驳回原因','warning')">驳回</a></td>
+              </tr>
+              <tr>
+                <td class="center"><input type="checkbox"></td><td>4</td>
+                <td><span class="cell" title="仙女镇南关社区">仙女镇南关社区</span></td>
+                <td>王志强</td><td>3210**********1886</td><td>居民身份证</td><td class="center">男</td><td class="center">35</td>
+                <td>1991-05-12</td><td>137****4120</td>
+                <td>—</td>
+                <td><span class="cell" title="丁伙镇解放路88号">丁伙镇解放路88号</span></td>
+                <td>王志强</td><td>搬迁</td>
+                <td><span class="tag green">已通过</span></td>
+                <td><a class="op-link" onclick="openModal('modal-in')">查看</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="page-foot">
+          <div class="pg-total">共 <b>128</b> 条</div>
+          <div class="pg-size"><select><option>10 条/页</option><option>20 条/页</option><option>50 条/页</option></select></div>
+          <div class="pg-pager"><button class="pg-btn">&lt;</button><button class="pg-btn active">1</button><button class="pg-btn">2</button><button class="pg-btn">3</button><button class="pg-btn">…</button><button class="pg-btn">13</button><button class="pg-btn">&gt;</button></div>
+        </div>
+      </div>
+
+      <!-- ============ 迁出审核 ============ -->
+      <div class="sub-view" id="sv-out">
+        <div class="stat-grid">
+          <div class="stat-item red"><div class="k">待审核</div><div class="v">86<small> 条</small></div></div>
+          <div class="stat-item blue"><div class="k">本月迁出</div><div class="v">74<small> 条</small></div></div>
+          <div class="stat-item green"><div class="k">已迁出</div><div class="v">247<small> 条</small></div></div>
+          <div class="stat-item orange"><div class="k">已驳回</div><div class="v">18<small> 条</small></div></div>
+        </div>
+
+        <div class="filter-panel">
+          <div class="filter-row">
+            <div class="filter-item"><label>姓名：</label><input class="fi-ctl" placeholder="请输入"></div>
+            <div class="filter-item"><label>证件号：</label><input class="fi-ctl" placeholder="请输入"></div>
+            <div class="filter-item"><label>居民状态：</label><select class="fi-select"><option>正常</option><option>注销</option><option>死亡</option></select></div>
+            <div class="filter-item"><label>档案类型：</label><select class="fi-select"><option>请选择</option><option>个人档案</option><option>儿童档案</option></select></div>
+          </div>
+          <div class="filter-row">
+            <div class="filter-item"><label>迁入机构：</label><select class="fi-select"><option>请选择</option><option>仙女镇卫生院</option><option>大桥镇卫生院</option><option>城南社区卫生服务中心</option></select></div>
+            <div class="filter-item"><label>管辖行政区：</label><select class="fi-select"><option>请选择</option><option>江都区</option><option>丁伙镇</option><option>仙女镇</option><option>大桥镇</option></select></div>
+            <div class="filter-item"><label>档案申请日期：</label><input class="fi-ctl date" placeholder="开始日期">~<input class="fi-ctl date" placeholder="结束日期"></div>
+            <div class="filter-item"><label>出生日期：</label><input class="fi-ctl date" placeholder="开始日期">~<input class="fi-ctl date" placeholder="结束日期"></div>
+            <div class="filter-btns">
+              <button class="btn btn-default btn-sm" onclick="toast('已重置','info')">重置</button>
+              <button class="btn btn-primary btn-sm" onclick="toast('查询成功','success')">查询</button>
+              <span class="filter-more" onclick="toggleMore(this)">展开 ▼</span>
+            </div>
+          </div>
+          <div class="filter-row f-collapse">
+            <div class="filter-item"><label>锁定状态：</label><select class="fi-select"><option>请选择</option><option>未锁定</option><option>已锁定</option></select></div>
+            <div class="filter-item"><label class="filter-check"><input type="checkbox">只看个人管理档案</label></div>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <button class="btn btn-primary btn-sm" onclick="toast('批量通过成功','success')">批量通过</button>
+          <button class="btn btn-danger btn-sm" onclick="toast('批量驳回，请输入驳回原因','warning')">批量驳回</button>
+          <div class="right">
+            <button class="btn btn-default btn-sm" onclick="toast('已导出','success')">导出</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="list-tbl">
+            <thead><tr>
+              <th style="width:30px"><input type="checkbox"></th>
+              <th style="width:52px">序号</th>
+              <th style="width:190px">迁出机构</th>
+              <th style="width:80px">姓名</th>
+              <th style="width:140px">证件号</th>
+              <th style="width:90px">证件类型</th>
+              <th style="width:52px">性别</th>
+              <th style="width:50px">年龄</th>
+              <th style="width:105px">出生日期</th>
+              <th style="width:100px">电话号码</th>
+              <th style="width:90px">人群类型</th>
+              <th style="width:140px">详细地址</th>
+              <th style="width:170px">迁入机构</th>
+              <th style="width:90px">审核状态</th>
+              <th style="width:140px">操作</th>
+            </tr></thead>
+            <tbody>
+              <tr>
+                <td class="center"><input type="checkbox"></td><td>1</td>
+                <td><span class="cell" title="城南社区卫生服务中心">城南社区卫生服务中心</span></td>
+                <td>马成威</td><td>3203**********3424</td><td>居民身份证</td><td class="center">女</td><td class="center">42</td>
+                <td>1983-10-01</td><td>150****2599</td>
+                <td><span class="tag red">高</span></td>
+                <td><span class="cell" title="东兴组12号">东兴组12号</span></td>
+                <td><span class="cell" title="仙女镇张纲社区">仙女镇张纲社区</span></td>
+                <td><span class="tag orange">待审核</span></td>
+                <td><a class="op-link" onclick="openModal('modal-out')">查看</a><span class="op-gap"></span><a class="op-link ok" onclick="toast('审核通过','success')">通过</a><span class="op-gap"></span><a class="op-link danger" onclick="toast('请输入驳回原因','warning')">驳回</a></td>
+              </tr>
+              <tr>
+                <td class="center"><input type="checkbox"></td><td>2</td>
+                <td><span class="cell" title="城中社区卫生服务中心">城中社区卫生服务中心</span></td>
+                <td>朱玉兰</td><td>3210**********7125</td><td>身份证号</td><td class="center">女</td><td class="center">73</td>
+                <td>1953-03-16</td><td>158****8792</td>
+                <td><span class="tag green">老</span></td>
+                <td><span class="cell" title="昌西巷5组">昌西巷5组</span></td>
+                <td><span class="cell" title="大桥镇昌西村卫生室">大桥镇昌西村卫生室</span></td>
+                <td><span class="tag orange">待审核</span></td>
+                <td><a class="op-link" onclick="openModal('modal-out')">查看</a><span class="op-gap"></span><a class="op-link ok" onclick="toast('审核通过','success')">通过</a><span class="op-gap"></span><a class="op-link danger" onclick="toast('请输入驳回原因','warning')">驳回</a></td>
+              </tr>
+              <tr>
+                <td class="center"><input type="checkbox"></td><td>3</td>
+                <td><span class="cell" title="邵伯镇苏油社区">邵伯镇苏油社区</span></td>
+                <td>夏明秀</td><td>3208**********2020</td><td>身份证号</td><td class="center">女</td><td class="center">86</td>
+                <td>1940-07-27</td><td>159****2435</td>
+                <td><span class="tag green">老</span><span class="tag red">高</span><span class="tag orange">糖</span></td>
+                <td><span class="cell" title="仙女镇绿康缘">仙女镇绿康缘</span></td>
+                <td><span class="cell" title="仙女镇卫生院">仙女镇卫生院</span></td>
+                <td><span class="tag orange">待审核</span></td>
+                <td><a class="op-link" onclick="openModal('modal-out')">查看</a><span class="op-gap"></span><a class="op-link ok" onclick="toast('审核通过','success')">通过</a><span class="op-gap"></span><a class="op-link danger" onclick="toast('请输入驳回原因','warning')">驳回</a></td>
+              </tr>
+              <tr>
+                <td class="center"><input type="checkbox"></td><td>4</td>
+                <td><span class="cell" title="西门社区卫生服务站">西门社区卫生服务站</span></td>
+                <td>王志强</td><td>3210**********1886</td><td>居民身份证</td><td class="center">男</td><td class="center">35</td>
+                <td>1991-05-12</td><td>137****4120</td>
+                <td>—</td>
+                <td><span class="cell" title="解放路88号">解放路88号</span></td>
+                <td><span class="cell" title="张庄社区卫生服务站">张庄社区卫生服务站</span></td>
+                <td><span class="tag green">已迁出</span></td>
+                <td><a class="op-link" onclick="openModal('modal-out')">查看</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="page-foot">
+          <div class="pg-total">共 <b>86</b> 条</div>
+          <div class="pg-size"><select><option>10 条/页</option><option>20 条/页</option><option>50 条/页</option></select></div>
+          <div class="pg-pager"><button class="pg-btn">&lt;</button><button class="pg-btn active">1</button><button class="pg-btn">2</button><button class="pg-btn">3</button><button class="pg-btn">…</button><button class="pg-btn">9</button><button class="pg-btn">&gt;</button></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ============ 迁入档案审核详情 ============ -->
+<div class="modal-overlay" id="modal-in"><div class="modal-wrap">
+  <div class="modal-head">迁入档案审核详情<span class="x" onclick="closeModal('modal-in')">×</span></div>
+  <div class="modal-body">
+    <fieldset><legend>迁移信息</legend>
+      <table class="info-tbl">
+        <tr><th>迁出机构</th><td>仙女镇横沟村卫生室</td><th>迁入机构</th><td>丁伙镇卫生院（当前机构）</td></tr>
+        <tr><th>申请人</th><td>马成威</td><th>申请类型</th><td>搬迁</td></tr>
+        <tr><th>申请日期</th><td>2026-09-15</td><th>锁定状态</th><td>未锁定</td></tr>
+      </table>
+    </fieldset>
+    <fieldset><legend>居民基本信息</legend>
+      <table class="info-tbl">
+        <tr><th>姓名</th><td>马成威</td><th>性别</th><td>女</td></tr>
+        <tr><th>年龄</th><td>42</td><th>证件号</th><td>3203**********3424</td></tr>
+        <tr><th>出生日期</th><td>1983-10-01</td><th>电话号码</th><td>150****2599</td></tr>
+        <tr><th>重点人群类型</th><td><span class="tag red">高</span> 高血压</td><th>详细地址</th><td>丁伙镇东兴组12号</td></tr>
+      </table>
+    </fieldset>
+  </div>
+  <div class="modal-foot"><button class="btn btn-danger" onclick="closeModal('modal-in');toast('请输入驳回原因','warning')">驳回</button><button class="btn btn-primary" onclick="closeModal('modal-in');toast('审核通过','success')">通过</button><button class="btn btn-default" onclick="closeModal('modal-in')">取消</button></div>
+</div></div>
+
+<!-- ============ 迁出档案审核详情 ============ -->
+<div class="modal-overlay" id="modal-out"><div class="modal-wrap">
+  <div class="modal-head">迁出档案审核详情<span class="x" onclick="closeModal('modal-out')">×</span></div>
+  <div class="modal-body">
+    <fieldset><legend>迁移信息</legend>
+      <table class="info-tbl">
+        <tr><th>迁出机构</th><td>城南社区卫生服务中心（当前机构）</td><th>迁入机构</th><td>仙女镇张纲社区</td></tr>
+        <tr><th>档案申请日期</th><td>2026-09-14</td><th>锁定状态</th><td>已锁定</td></tr>
+      </table>
+    </fieldset>
+    <fieldset><legend>居民基本信息</legend>
+      <table class="info-tbl">
+        <tr><th>姓名</th><td>马成威</td><th>性别</th><td>女</td></tr>
+        <tr><th>年龄</th><td>42</td><th>证件号</th><td>3203**********3424</td></tr>
+        <tr><th>出生日期</th><td>1983-10-01</td><th>电话号码</th><td>150****2599</td></tr>
+        <tr><th>人群类型</th><td><span class="tag red">高</span> 高血压</td><th>详细地址</th><td>东兴组12号</td></tr>
+      </table>
+    </fieldset>
+  </div>
+  <div class="modal-foot"><button class="btn btn-danger" onclick="closeModal('modal-out');toast('请输入驳回原因','warning')">驳回</button><button class="btn btn-primary" onclick="closeModal('modal-out');toast('审核通过','success')">通过</button><button class="btn btn-default" onclick="closeModal('modal-out')">取消</button></div>
+</div></div>
+
+<script src="框架.js" data-page="migration-review" data-embed="auto"></script>
+<script>
+  function switchSub(el, id) {
+    document.querySelectorAll('.sub-tab').forEach(function (t) { t.classList.remove('active'); });
+    el.classList.add('active');
+    document.querySelectorAll('.sub-view').forEach(function (v) { v.classList.remove('active'); });
+    document.getElementById('sv-' + id).classList.add('active');
+  }
+  function toggleMore(btn) {
+    var panel = btn.closest('.filter-panel');
+    var rows = panel.querySelectorAll('.f-collapse');
+    var isExpand = btn.textContent.indexOf('展开') >= 0;
+    rows.forEach(function (el) { el.style.display = isExpand ? 'flex' : 'none'; });
+    btn.textContent = isExpand ? '收起 ▲' : '展开 ▼';
+  }
+  function openModal(id) { document.getElementById(id).classList.add('show'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+  document.querySelectorAll('.modal-overlay').forEach(function (overlay) {
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) overlay.classList.remove('show'); });
+  });
+</script>
+</body>
+</html>

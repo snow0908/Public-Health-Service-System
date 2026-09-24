@@ -688,7 +688,7 @@
         html += '<tr>'
           + '<td class="center">' + (start + i + 1) + '</td>'
           + '<td title="' + esc(r.org) + '"><span class="cell">' + esc(r.org) + '</span></td>'
-          + '<td><a class="op-link" onclick="toast(\'查看肿瘤专项档案：' + esc(r.name) + '\',\'info\')">' + esc(r.name) + '</a></td>'
+          + '<td><a class="op-link" onclick="goArchive(\'' + esc(r.archNo) + '\')" title="查看肿瘤专项档案">' + esc(r.name) + '</a></td>'
           + '<td>' + esc(r.idType) + '</td>'
           + '<td title="' + esc(r.idcard) + '"><span class="cell">' + esc(r.idcard) + '</span></td>'
           + '<td class="center">' + esc(r.gender) + '</td>'
@@ -702,7 +702,7 @@
           + '<td class="center">' + (r.tnm ? esc(r.tnm) : '<span class="td-nil">—</span>') + '</td>'
           + '<td class="center">' + esc(r.clinical) + '</td>'
           + '<td class="center">'
-          +   '<a class="op-link" onclick="toast(\'编辑肿瘤专项档案：' + esc(r.name) + '\',\'info\')">编辑</a>'
+          +   '<a class="op-link" onclick="goArchive(\'' + esc(r.archNo) + '\')">编辑</a>'
           +   '<span class="op-gap"></span>'
           +   '<a class="op-link" onclick="toast(\'新建随访：' + esc(r.name) + '（功能建设中）\',\'info\')">新建随访</a>'
           +   '<span class="op-gap"></span>'
@@ -961,7 +961,30 @@
     $('selectModal').classList.remove('show');
   }
 
-  /* 选择档案后点击"新建专项"：带入居民基本信息，打开肿瘤专项表单 */
+  /* 选择档案后点击"新建专项"：跳转至档案维护页，切换到肿瘤专项表填报界面 */
+  /* 列表操作列「查看/编辑」：跳转档案维护页并定位到肿瘤专项表（自动模拟内容） */
+  function goArchive(archNo) {
+    var r = null;
+    for (var i = 0; i < tuData.length; i++) {
+      if (tuData[i].archNo === archNo) { r = tuData[i]; break; }
+    }
+    if (!r) return;
+    var params = [
+      'view=tumor',
+      'name=' + encodeURIComponent(r.name),
+      'gender=' + encodeURIComponent(r.gender === '男' ? '男性' : '女性'),
+      'idcard=' + encodeURIComponent(r.idcard),
+      'idType=' + encodeURIComponent(r.idType || '居民身份证'),
+      'archNo=' + encodeURIComponent(r.archNo),
+      'addr=' + encodeURIComponent(r.address || '')
+    ];
+    if (r.birth) params.push('birth=' + encodeURIComponent(r.birth));
+    if (r.phone) params.push('phone=' + encodeURIComponent(r.phone));
+    if (r.org) params.push('specOrg=' + encodeURIComponent(r.org));
+    params.push('edit=1');
+    location.href = '档案维护.html?' + params.join('&');
+  }
+
   function selectArchive(archNo) {
     var r = null;
     for (var i = 0; i < selectArchiveData.length; i++) {
@@ -969,22 +992,18 @@
     }
     if (!r) return;
     closeSelectModal();
-    $('cmIdType').value = r.idType || '居民身份证';
-    $('cmName').value = r.name || '';
-    $('cntName').textContent = $('cmName').value.length + '/8';
-    $('cmGender').value = r.gender === '男' ? '男性' : (r.gender === '女' ? '女性' : '');
+    var params = [
+      'view=tumor',
+      'name=' + encodeURIComponent(r.name),
+      'gender=' + encodeURIComponent(r.gender === '男' ? '男性' : '女性'),
+      'idcard=' + encodeURIComponent(r.idcard),
+      'idType=' + encodeURIComponent(r.idType),
+      'archNo=' + encodeURIComponent(r.archNo)
+    ];
     if (r.idcard && /^\d{17}[\dXx]$/.test(r.idcard)) {
-      $('cmIdcard').value = r.idcard;
-      $('cntIdcard').textContent = r.idcard.length + '/18';
-      $('cmBirth').value = r.idcard.slice(6, 10) + '-' + r.idcard.slice(10, 12) + '-' + r.idcard.slice(12, 14);
-    } else {
-      $('cmIdcard').value = '';
-      $('cntIdcard').textContent = '0/18';
-      $('cmBirth').value = '';
+      params.push('birth=' + r.idcard.slice(6, 10) + '-' + r.idcard.slice(10, 12) + '-' + r.idcard.slice(12, 14));
     }
-    renderPreview();
-    $('createModal').classList.add('show');
-    toast('已带入居民档案基本信息，请补充肿瘤专项信息', 'success');
+    location.href = '档案维护.html?' + params.join('&');
   }
 
   /* 已有专项档案：点击"进入专项" */

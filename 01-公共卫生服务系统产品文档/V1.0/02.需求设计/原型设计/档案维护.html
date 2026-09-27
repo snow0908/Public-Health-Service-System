@@ -1082,6 +1082,155 @@
   .hc-eval-btn{height:26px;padding:0 11px;font-size:13px;margin-left:10px;
                color:var(--primary);border-color:var(--primary);background:var(--bg-white)}
   .hc-eval-btn:hover{color:var(--primary);border-color:var(--primary);background:#EAF4FF}
+
+  /* ============================================================
+     中医管理：老年人中医药健康管理服务记录表
+     ------------------------------------------------------------
+     设计稿为「表单式列表」而非表格：
+       ① 顶部「姓名：xxx」一行「档案编号：xxx」右对齐
+       ② 第二行「出生日期 / *测评医师 / *测评日期」三项横排
+       ③ 橙色提示条（带 ① 圆形图标，可换行）
+       ④ 33 道题目：题干独占一行（序号 + 题干 + 括号补充说明），
+          其下再一行 5 个 ○ 选项；题目之间用浅灰细线分隔
+       ⑤ 无表格网格线、无表头
+     ============================================================ */
+  #viewElderTcmService .hp-card{max-width:none}
+  #viewElderTcmService .hp-head{display:block;padding:12px 12px}
+  #viewElderTcmService .wm-body{padding:0 12px 12px}
+
+  /* ① 姓名行：姓名在左、档案编号右对齐 */
+  .ets-head-line{display:flex;align-items:center;gap:12px;padding:2px 0 10px;
+                 font-size:13px;color:var(--text-primary)}
+  .ets-head-line .ets-lab{white-space:nowrap}
+  .ets-head-line .ets-arcno{margin-left:auto;white-space:nowrap;color:var(--text-primary)}
+  .ets-head-line b{font-weight:var(--font-weight-medium)}
+
+  /* ② 出生日期 / 测评医师 / 测评日期 三项横排 */
+  .ets-meta{display:flex;align-items:center;flex-wrap:wrap;gap:10px 28px;padding:0 0 10px}
+  .ets-meta .ets-fi{display:inline-flex;align-items:center;white-space:nowrap}
+  .ets-meta .ets-fi > label{font-size:13px;color:var(--text-primary);white-space:nowrap;margin-right:4px}
+  .ets-meta .ets-fi > label i{color:var(--danger);font-style:normal;margin-right:2px}
+  .ets-meta .ctl{width:176px;flex:none}
+  .ets-meta .wm-date{width:176px}
+  /* 只读展示值（出生日期） */
+  .ets-meta .ets-val{font-size:13px;color:var(--text-primary);white-space:nowrap}
+
+  /* ③ 橙色提示条：① 圆形序号 + 文案，文案可换行 */
+  .ets-note{display:flex;align-items:flex-start;gap:8px;padding:9px 12px;margin-bottom:2px;
+            background:#FFF7E6;border:1px solid #FFE7BA;border-radius:var(--r-sm);
+            font-size:13px;color:#AD6800;line-height:1.7}
+  .ets-note .ets-note-ico{flex:none;width:15px;height:15px;margin-top:3px;border-radius:50%;
+                          border:1px solid #D48806;color:#D48806;font-size:10px;line-height:13px;
+                          text-align:center;font-style:normal}
+  .ets-note .ets-note-txt{flex:1;min-width:0}
+
+  /* ④ 题目列表：题目之间浅灰细线分隔 */
+  .ets-list{margin-top:2px}
+  .ets-q{padding:12px 2px 11px;border-bottom:1px solid #F0F2F5}
+  .ets-q:first-child{padding-top:10px}
+  .ets-q:last-child{border-bottom:none}
+  /* 题干行：*N、 + 题干（加粗）+ 括号补充说明（常规字重） */
+  .ets-q .ets-q-title{font-size:13px;color:var(--text-primary);line-height:1.75}
+  .ets-q .ets-q-title .ets-q-star{color:var(--danger);font-style:normal;margin-right:1px}
+  .ets-q .ets-q-title .ets-q-no{font-weight:var(--font-weight-medium)}
+  .ets-q .ets-q-title .ets-q-main{font-weight:var(--font-weight-semibold)}
+  .ets-q .ets-q-title .ets-q-sub{font-weight:var(--font-weight-regular);color:var(--text-primary)}
+  /* 选项行：5 个选项铺满整行、均分宽度 */
+  .ets-q .ets-opts{display:flex;align-items:flex-start;gap:8px;margin-top:8px}
+  .ets-q .ets-opts .ets-opt{flex:1 1 0;min-width:0;display:flex;align-items:flex-start;gap:7px;
+                            font-size:13px;color:var(--text-primary);cursor:pointer;line-height:1.55}
+  /* 单选框自绘：14px 细圈（设计稿为空心圆、未选中浅灰边） */
+  .ets-q .ets-opts .ets-opt input[type="radio"]{
+    appearance:none;-webkit-appearance:none;flex:none;width:14px;height:14px;margin-top:2px;
+    border:1px solid #D9D9D9;border-radius:50%;background:#fff;position:relative;
+    cursor:pointer;transition:border-color var(--transition-fast)}
+  .ets-q .ets-opts .ets-opt input[type="radio"]:hover{border-color:var(--primary)}
+  .ets-q .ets-opts .ets-opt input[type="radio"]:checked{border-color:var(--primary)}
+  .ets-q .ets-opts .ets-opt input[type="radio"]:checked::after{
+    content:'';position:absolute;left:50%;top:50%;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;
+    border-radius:50%;background:var(--primary)}
+  /* 选项文本块：主级说明 + 可选的第二行副说明（BMI / 感冒次数 / 过敏次数 / 腹围） */
+  .ets-q .ets-opts .ets-opt .opt-box{display:flex;flex-direction:column;min-width:0}
+  .ets-q .ets-opts .ets-opt .opt-txt{white-space:nowrap}
+  .ets-q .ets-opts .ets-opt .opt-sub2{margin-top:1px;color:var(--text-secondary);font-size:12px;white-space:nowrap}
+
+  /* ⑤ 体质辨识结果 / 中医药保健指导 / 中医药保健方法 */
+  /* 体质辨识结果：9 列横向表格（首列标签 + 九种体质列） */
+  .ets-blk{margin-top:4px}
+  .ets-blk-t{display:flex;align-items:center;gap:6px;font-size:13px;
+             font-weight:var(--font-weight-medium);color:var(--text-primary);
+             padding:0 0 8px 0}
+  .ets-blk-t::before{content:'';flex:none;width:3px;height:13px;border-radius:2px;
+                     background:var(--primary)}
+  .ets-judge{width:100%;overflow-x:auto}
+  .ets-jtbl{width:100%;border-collapse:collapse;table-layout:fixed}
+  .ets-jtbl th,.ets-jtbl td{border:1px solid #EBEDF2;height:34px;padding:0 6px;
+                            font-size:12.5px;color:var(--text-primary);
+                            text-align:center;font-weight:var(--font-weight-regular)}
+  .ets-jtbl thead th{background:#F7FAFF;font-weight:var(--font-weight-medium)}
+  .ets-jtbl .ets-jt-lb{width:96px;background:#F7FAFF;color:var(--text-secondary);
+                       font-weight:var(--font-weight-regular);text-align:center}
+  .ets-jtbl tbody .ets-jt-lb{background:#FAFBFC}
+  .ets-jtbl .ets-jt-score{color:var(--text-primary)}
+  /* 体质辨识结果行：自动计算的文字结果（是 / 基本是 / 倾向是 / 否） */
+  .ets-jtbl .ets-jt-res{font-weight:600}
+  /* 中医药保健指导：按体质逐行多选 */
+  .ets-gtbl{width:100%;border-collapse:collapse;table-layout:fixed}
+  .ets-gtbl th,.ets-gtbl td{border:1px solid #EBEDF2;height:34px;padding:0 8px;
+                            font-size:12.5px;color:var(--text-primary);vertical-align:middle}
+  .ets-gtbl .ets-gt-lb{width:96px;background:#F7FAFF;color:var(--text-secondary);
+                       font-weight:var(--font-weight-regular);text-align:center}
+  .ets-gtbl .ets-gt-chks{display:flex;align-items:center;flex-wrap:nowrap;
+                         gap:8px 22px;white-space:nowrap}
+  .ets-gtbl .ets-gt-chks .chk{font-size:12.5px;color:var(--text-secondary)}
+  /* 中医药保健方法：富文本编辑器 */
+  .ets-edit-bar{display:flex;align-items:center;gap:2px;flex-wrap:wrap;
+                border:1px solid #E5E7EB;border-bottom:0;
+                border-radius:var(--r-sm) var(--r-sm) 0 0;padding:3px 6px;background:#fff}
+  .ets-edit-btn{border:0;background:none;width:26px;height:26px;border-radius:var(--r-sm);
+                color:var(--text-secondary);cursor:pointer;font-size:13px;line-height:1;
+                display:inline-flex;align-items:center;justify-content:center}
+  .ets-edit-btn:hover{background:#F2F4F7;color:var(--text-primary)}
+  .ets-edit{min-height:150px;border:1px solid #E5E7EB;border-radius:0 0 var(--r-sm) var(--r-sm);
+            padding:10px 12px;font-size:13px;color:var(--text-primary);
+            outline:none;background:#fff;line-height:1.7}
+  .ets-edit:focus{border-color:var(--primary)}
+  .ets-edit:empty::before{content:attr(data-ph);color:#C0C4CC}
+
+  /* ============================================================
+     中医健康指导（表格化表单：左标签列 + 右内容列）
+     ============================================================ */
+  .tcg-tbl{width:100%;border-collapse:collapse;table-layout:fixed}
+  .tcg-tbl th,.tcg-tbl td{border:1px solid #EBEDF2;padding:0 10px;
+                          font-size:12.5px;color:var(--text-primary);
+                          font-weight:var(--font-weight-regular);vertical-align:middle}
+  /* 左侧两列标签（分组列 + 字段列） */
+  .tcg-tbl .tcg-g{width:58px;background:#F7FAFF;color:var(--text-primary);
+                  text-align:center;font-weight:var(--font-weight-medium)}
+  .tcg-tbl .tcg-lb{width:96px;background:#FAFBFC;color:var(--text-primary);
+                   text-align:center;position:relative}
+  .tcg-tbl .tcg-lb i{color:var(--danger);font-style:normal;margin-right:2px}
+  /* 内容单元格：选项自动换行 */
+  .tcg-tbl .tcg-c{background:#fff}
+  /* 姓名行：档案编号右对齐 */
+  .tcg-tbl .tcg-c .tcg-arcno{float:right;color:var(--text-secondary);font-weight:var(--font-weight-regular)}
+  .tcg-tbl .tcg-c .tcg-arcno b{color:var(--text-primary)}
+  .tcg-tbl .tcg-row-g .tcg-g{background:#F7FAFF}
+  .tcg-opts{display:flex;align-items:flex-start;flex-wrap:wrap;gap:6px 20px;
+            padding:7px 0;min-height:32px}
+  .tcg-opts .chk,.tcg-opts .rad{font-size:12.5px;color:var(--text-secondary);line-height:1.5}
+  .tcg-opts.wide{gap:6px 24px}
+  /* 底部「健康判定」多行文本域 */
+  .tcg-tbl .tcg-ta-wrap{position:relative;padding:8px 0 0}
+  .tcg-ta{width:100%;min-height:96px;border:1px solid #E5E7EB;border-radius:var(--r-sm);
+          padding:8px 10px;font-size:12.5px;color:var(--text-primary);resize:vertical;
+          outline:none;font-family:inherit;line-height:1.7}
+  .tcg-ta:focus{border-color:var(--primary)}
+  .tcg-cnt{position:absolute;right:8px;bottom:6px;font-size:11px;color:#A8B0BA;pointer-events:none}
+  /* 指导医师 + 评估日期 同行 */
+  .tcg-date-cell{display:flex;align-items:center;gap:18px}
+  .tcg-date-cell > .rad{flex:none}
+  .tcg-date-cell .ctl{width:130px}
 </style>
 </head>
 <body>
@@ -1244,6 +1393,8 @@
         <svg class="arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
       <div class="nav-sub">
+        <div class="nav-sub-item" id="navElderTcmService" onclick="switchView('elderTcmService')">老年人中医药健康管理服务</div>
+        <div class="nav-sub-item" id="navTcmGuide" onclick="switchView('tcmGuide')">中医健康指导</div>
         <div class="nav-sub-item" onclick="toast('「中医体质辨识」模块功能建设中','info')">中医体质辨识</div>
       </div>
     </div>
@@ -14640,6 +14791,452 @@
       </div>
     </div>
 
+    <!-- ===== 视图：老年人中医药健康管理服务记录表（中医管理） ===== -->
+    <div class="pv-view hidden" id="viewElderTcmService">
+      <div class="hp-card" id="etsCard">
+        <div class="hp-head">
+          <div class="wm-head-top">
+            <h3>老年人中医药健康管理服务记录表</h3>
+            <div class="hp-actions">
+              <button class="btn btn-primary" onclick="saveElderTcmService()">保存</button>
+            </div>
+          </div>
+        </div>
+        <div class="wm-body">
+          <!-- ① 姓名行（姓名左 / 档案编号右对齐） -->
+          <div class="ets-head-line">
+            <span class="ets-lab">姓名：<b id="etsNameTxt">--</b></span>
+            <span class="ets-arcno">档案编号：<b id="etsArchNo">--</b></span>
+          </div>
+
+          <!-- ② 出生日期 / 测评医师 / 测评日期 三项横排 -->
+          <div class="ets-meta">
+            <div class="ets-fi">
+              <label>出生日期：</label>
+              <span class="ets-val" id="etsBirthTxt">--</span>
+            </div>
+            <div class="ets-fi">
+              <label><i>*</i>测评医师：</label>
+              <select class="ctl" id="etsDoctor">
+                <option value="" selected>请选择</option>
+                <option value="吕雪">吕雪</option>
+                <option value="张丽">张丽</option>
+                <option value="康丽建">康丽建</option>
+                <option value="盖丽清">盖丽清</option>
+                <option value="张德卿">张德卿</option>
+              </select>
+            </div>
+            <div class="ets-fi">
+              <label><i>*</i>测评日期：</label>
+              <span class="wm-date">
+                <input class="ctl" id="etsDate" type="text" placeholder="请选择" onclick="wsaPickDate(this)" onblur="wsaBlurDate(this)">
+                <svg class="cal-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9AA7B8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/></svg>
+              </span>
+            </div>
+          </div>
+
+          <!-- ③ 橙色提示条 -->
+          <div class="ets-note">
+            <i class="ets-note-ico">!</i>
+            <span class="ets-note-txt">请您根据近一年的体验和感觉，回答以下问题。如果有一个问题不能肯定回答，请选择最接近实际情况的选项。</span>
+          </div>
+
+          <!-- ④ 33 道题目（由 JS 渲染，表单式列表） -->
+          <div class="ets-list" id="etsList"></div>
+
+          <!-- ⑤ 体质辨识结果（9 列横向表格） -->
+          <div class="ets-blk">
+            <div class="ets-blk-t">体质辨识结果</div>
+            <div class="ets-judge">
+              <table class="ets-jtbl">
+                <colgroup>
+                  <col style="width:96px">
+                  <col><col><col><col><col><col><col><col><col>
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th class="ets-jt-lb">体质类型</th>
+                    <th id="etsJtH0">气虚质</th>
+                    <th id="etsJtH1">阳虚质</th>
+                    <th id="etsJtH2">阴虚质</th>
+                    <th id="etsJtH3">痰湿质</th>
+                    <th id="etsJtH4">湿热质</th>
+                    <th id="etsJtH5">血瘀质</th>
+                    <th id="etsJtH6">气郁质</th>
+                    <th id="etsJtH7">特禀质</th>
+                    <th id="etsJtH8">平和质</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="ets-jt-lb">得分</td>
+                    <td class="ets-jt-score" id="etsJtS0">0</td>
+                    <td class="ets-jt-score" id="etsJtS1">0</td>
+                    <td class="ets-jt-score" id="etsJtS2">0</td>
+                    <td class="ets-jt-score" id="etsJtS3">0</td>
+                    <td class="ets-jt-score" id="etsJtS4">0</td>
+                    <td class="ets-jt-score" id="etsJtS5">0</td>
+                    <td class="ets-jt-score" id="etsJtS6">0</td>
+                    <td class="ets-jt-score" id="etsJtS7">0</td>
+                    <td class="ets-jt-score" id="etsJtS8">0</td>
+                  </tr>
+                  <tr>
+                    <td class="ets-jt-lb">体质辨识结果</td>
+                    <td class="ets-jt-res" id="etsJtR0"></td>
+                    <td class="ets-jt-res" id="etsJtR1"></td>
+                    <td class="ets-jt-res" id="etsJtR2"></td>
+                    <td class="ets-jt-res" id="etsJtR3"></td>
+                    <td class="ets-jt-res" id="etsJtR4"></td>
+                    <td class="ets-jt-res" id="etsJtR5"></td>
+                    <td class="ets-jt-res" id="etsJtR6"></td>
+                    <td class="ets-jt-res" id="etsJtR7"></td>
+                    <td class="ets-jt-res" id="etsJtR8"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ⑥ 中医药保健指导（按体质逐行多选） -->
+          <div class="ets-blk">
+            <div class="ets-blk-t">中医药保健指导</div>
+            <table class="ets-gtbl">
+              <colgroup>
+                <col style="width:96px">
+                <col>
+              </colgroup>
+              <tbody id="etsGuideBody"></tbody>
+            </table>
+          </div>
+
+          <!-- ⑦ 中医药保健方法（富文本编辑器） -->
+          <div class="ets-blk">
+            <div class="ets-blk-t">中医药保健方法</div>
+            <div class="ets-edit-bar" id="etsEditBar"></div>
+            <div class="ets-edit" id="etsEditBody" contenteditable="true" data-ph="请输入"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 视图：中医健康指导（中医管理） ===== -->
+    <div class="pv-view hidden" id="viewTcmGuide">
+      <div class="hp-card" id="tcgCard">
+        <div class="hp-head">
+          <div class="wm-head-top">
+            <h3>中医健康指导</h3>
+            <div class="hp-actions">
+              <button class="btn btn-primary" onclick="saveTcmGuide()">保存</button>
+            </div>
+          </div>
+        </div>
+        <div class="wm-body">
+          <table class="tcg-tbl">
+            <colgroup>
+              <col style="width:58px"><col style="width:96px"><col>
+            </colgroup>
+            <tbody>
+              <!-- 姓名 / 档案编号 -->
+              <tr>
+                <td class="tcg-g"></td>
+                <td class="tcg-lb">姓名</td>
+                <td class="tcg-c"><b id="tcgNameTxt">--</b>
+                  <span class="tcg-arcno">档案编号：<b id="tcgArchNo">--</b></span></td>
+              </tr>
+              <tr>
+                <td class="tcg-g"></td>
+                <td class="tcg-lb">性别</td>
+                <td class="tcg-c" id="tcgGenderTxt">--</td>
+              </tr>
+              <tr>
+                <td class="tcg-g"></td>
+                <td class="tcg-lb">出生年月</td>
+                <td class="tcg-c" id="tcgBirthTxt">--</td>
+              </tr>
+              <tr>
+                <td class="tcg-g"></td>
+                <td class="tcg-lb">证件号</td>
+                <td class="tcg-c" id="tcgIdcardTxt">--</td>
+              </tr>
+              <tr>
+                <td class="tcg-g"></td>
+                <td class="tcg-lb">联系电话</td>
+                <td class="tcg-c" id="tcgPhoneTxt">--</td>
+              </tr>
+              <!-- 人群分类 -->
+              <tr>
+                <td class="tcg-g"></td>
+                <td class="tcg-lb"><i>*</i>人群分类</td>
+                <td class="tcg-c"><div class="tcg-opts wide">
+                  <label class="chk"><input type="checkbox" name="tcgGroup" value="0-3岁儿童">0-3岁儿童</label>
+                  <label class="chk"><input type="checkbox" name="tcgGroup" value="3-6岁儿童">3-6岁儿童</label>
+                  <label class="chk"><input type="checkbox" name="tcgGroup" value="老年人" checked>老年人</label>
+                  <label class="chk"><input type="checkbox" name="tcgGroup" value="高血压" checked>高血压</label>
+                  <label class="chk"><input type="checkbox" name="tcgGroup" value="糖尿病" checked>糖尿病</label>
+                </div></td>
+              </tr>
+
+              <!-- ===== 老年人六项（单选） ===== -->
+              <tr class="tcg-row-g">
+                <td class="tcg-g" rowspan="6">老年人</td>
+                <td class="tcg-lb">心理</td>
+                <td class="tcg-c"><div class="tcg-opts">
+                  <label class="rad"><input type="radio" name="tcgOldMind" value="性格随和开朗">性格随和开朗</label>
+                  <label class="rad"><input type="radio" name="tcgOldMind" value="性格内向，不喜冒险">性格内向，不喜冒险</label>
+                  <label class="rad"><input type="radio" name="tcgOldMind" value="性格多沉静、内向">性格多沉静、内向</label>
+                  <label class="rad"><input type="radio" name="tcgOldMind" value="性情急躁，外向好动，活泼">性情急躁，外向好动，活泼</label>
+                  <label class="rad"><input type="radio" name="tcgOldMind" value="性格偏弱、多愁善感">性格偏弱、多愁善感</label>
+                  <label class="rad"><input type="radio" name="tcgOldMind" value="容易心慌易惊">容易心慌易惊</label>
+                  <label class="rad"><input type="radio" name="tcgOldMind" value="易烦、健忘">易烦、健忘</label>
+                  <label class="rad"><input type="radio" name="tcgOldMind" value="性格内向不稳定、敏感多疑">性格内向不稳定、敏感多疑</label>
+                  <label class="rad"><input type="radio" name="tcgOldMind" value="其他">其他</label>
+                </div></td>
+              </tr>
+              <tr>
+                <td class="tcg-lb">小便</td>
+                <td class="tcg-c"><div class="tcg-opts">
+                  <label class="rad"><input type="radio" name="tcgOldUrine" value="小便正常">小便正常</label>
+                  <label class="rad"><input type="radio" name="tcgOldUrine" value="夜尿频多">夜尿频多</label>
+                  <label class="rad"><input type="radio" name="tcgOldUrine" value="遗尿">遗尿</label>
+                  <label class="rad"><input type="radio" name="tcgOldUrine" value="咳嗽或谈笑时出现小便失禁">咳嗽或谈笑时出现小便失禁</label>
+                  <label class="rad"><input type="radio" name="tcgOldUrine" value="其他">其他</label>
+                </div></td>
+              </tr>
+              <tr>
+                <td class="tcg-lb">形体</td>
+                <td class="tcg-c"><div class="tcg-opts">
+                  <label class="rad"><input type="radio" name="tcgOldShape" value="体形匀称健壮">体形匀称健壮</label>
+                  <label class="rad"><input type="radio" name="tcgOldShape" value="肌肉松软不实">肌肉松软不实</label>
+                  <label class="rad"><input type="radio" name="tcgOldShape" value="体形偏瘦">体形偏瘦</label>
+                  <label class="rad"><input type="radio" name="tcgOldShape" value="体形肥胖，腹部肥满松软">体形肥胖，腹部肥满松软</label>
+                  <label class="rad"><input type="radio" name="tcgOldShape" value="形体中等或偏瘦">形体中等或偏瘦</label>
+                  <label class="rad"><input type="radio" name="tcgOldShape" value="肥胖适中">肥胖适中</label>
+                  <label class="rad"><input type="radio" name="tcgOldShape" value="先天禀赋异常者或有畸形，或有生理缺陷">先天禀赋异常者或有畸形，或有生理缺陷</label>
+                  <label class="rad"><input type="radio" name="tcgOldShape" value="其他">其他</label>
+                </div></td>
+              </tr>
+              <tr>
+                <td class="tcg-lb">腰腿痛</td>
+                <td class="tcg-c"><div class="tcg-opts">
+                  <label class="rad"><input type="radio" name="tcgOldWaist" value="腰腿不痛">腰腿不痛</label>
+                  <label class="rad"><input type="radio" name="tcgOldWaist" value="腰腿疼痛">腰腿疼痛</label>
+                  <label class="rad"><input type="radio" name="tcgOldWaist" value="腰腿酸软">腰腿酸软</label>
+                  <label class="rad"><input type="radio" name="tcgOldWaist" value="每逢阴雨天或腰部感寒后加剧">每逢阴雨天或腰部感寒后加剧</label>
+                  <label class="rad"><input type="radio" name="tcgOldWaist" value="喜按喜揉，得温痛减">喜按喜揉，得温痛减</label>
+                  <label class="rad"><input type="radio" name="tcgOldWaist" value="劳累后加重">劳累后加重</label>
+                  <label class="rad"><input type="radio" name="tcgOldWaist" value="其他">其他</label>
+                </div></td>
+              </tr>
+              <tr>
+                <td class="tcg-lb">睡眠</td>
+                <td class="tcg-c"><div class="tcg-opts">
+                  <label class="rad"><input type="radio" name="tcgOldSleep" value="睡眠安和">睡眠安和</label>
+                  <label class="rad"><input type="radio" name="tcgOldSleep" value="入睡困难">入睡困难</label>
+                  <label class="rad"><input type="radio" name="tcgOldSleep" value="易醒">易醒</label>
+                  <label class="rad"><input type="radio" name="tcgOldSleep" value="醒后不能再睡">醒后不能再睡</label>
+                  <label class="rad"><input type="radio" name="tcgOldSleep" value="数日彻夜不睡">数日彻夜不睡</label>
+                  <label class="rad"><input type="radio" name="tcgOldSleep" value="其他">其他</label>
+                </div></td>
+              </tr>
+              <tr>
+                <td class="tcg-lb">听力</td>
+                <td class="tcg-c"><div class="tcg-opts">
+                  <label class="rad"><input type="radio" name="tcgOldEar" value="听力如常">听力如常</label>
+                  <label class="rad"><input type="radio" name="tcgOldEar" value="自觉耳内鸣响，如闻蝉声，或如闻潮声">自觉耳内鸣响，如闻蝉声，或如闻潮声</label>
+                  <label class="rad"><input type="radio" name="tcgOldEar" value="如雷声，难以忍受，可伴有听力减退">如雷声，难以忍受，可伴有听力减退</label>
+                  <label class="rad"><input type="radio" name="tcgOldEar" value="其他">其他</label>
+                </div></td>
+              </tr>
+
+              <!-- ===== 高血压（主症单选 / 次症多选 / 舌脉单选）===== -->
+              <tr class="tcg-row-g">
+                <td class="tcg-g" rowspan="3">高血压</td>
+                <td class="tcg-lb">主症</td>
+                <td class="tcg-c"><div class="tcg-opts">
+                  <label class="rad"><input type="radio" name="tcgBpMain" value="头部胀痛">头部胀痛</label>
+                  <label class="rad"><input type="radio" name="tcgBpMain" value="头晕时作">头晕时作</label>
+                  <label class="rad"><input type="radio" name="tcgBpMain" value="头重或痛">头重或痛</label>
+                  <label class="rad"><input type="radio" name="tcgBpMain" value="心烦不寐">心烦不寐</label>
+                  <label class="rad"><input type="radio" name="tcgBpMain" value="背寒恶风">背寒恶风</label>
+                  <label class="rad"><input type="radio" name="tcgBpMain" value="妇女月经来潮或更年期前后出现头痛">妇女月经来潮或更年期前后出现头痛</label>
+                </div></td>
+              </tr>
+              <tr>
+                <td class="tcg-lb">次症</td>
+                <td class="tcg-c"><div class="tcg-opts">
+                  <label class="chk"><input type="checkbox" name="tcgBpSub" value="面红目赤">面红目赤</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpSub" value="胁痛口苦">胁痛口苦</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpSub" value="便秘溲黄">便秘溲黄</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpSub" value="五心烦热">五心烦热</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpSub" value="口干口渴">口干口渴</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpSub" value="失眠梦遗">失眠梦遗</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpSub" value="头重如裹">头重如裹</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpSub" value="胸胁胀痛">胸胁胀痛</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpSub" value="胸闷心悸">胸闷心悸</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpSub" value="纳呆恶心">纳呆恶心</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpSub" value="身重困倦">身重困倦</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpSub" value="手足麻木">手足麻木</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpSub" value="心悸健忘">心悸健忘</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpSub" value="头重痛偏冷加重">头重痛偏冷加重</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpSub" value="手足发冷">手足发冷</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpSub" value="夜尿频数">夜尿频数</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpSub" value="动则气短">动则气短</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpSub" value="头部空痛">头部空痛</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpSub" value="自汗或盗汗">自汗或盗汗</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpSub" value="心烦">心烦</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpSub" value="失眠">失眠</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpSub" value="腹胀">腹胀</label>
+                </div></td>
+              </tr>
+              <tr>
+                <td class="tcg-lb">舌脉</td>
+                <td class="tcg-c"><div class="tcg-opts">
+                  <label class="rad"><input type="radio" name="tcgBpTongue" value="舌红少苔，脉细数或弦细">舌红少苔，脉细数或弦细</label>
+                  <label class="rad"><input type="radio" name="tcgBpTongue" value="苔腻脉滑">苔腻脉滑</label>
+                  <label class="rad"><input type="radio" name="tcgBpTongue" value="舌质淡，脉沉细无力">舌质淡，脉沉细无力</label>
+                  <label class="rad"><input type="radio" name="tcgBpTongue" value="舌淡暗，脉细大无力">舌淡暗，脉细大无力</label>
+                  <label class="rad"><input type="radio" name="tcgBpTongue" value="舌红少苔，脉弦数或弦细">舌红少苔，脉弦数或弦细</label>
+                  <label class="rad"><input type="radio" name="tcgBpTongue" value="舌淡胖，脉沉细">舌淡胖，脉沉细</label>
+                  <label class="rad"><input type="radio" name="tcgBpTongue" value="舌淡，脉沉细">舌淡，脉沉细</label>
+                </div></td>
+              </tr>
+
+              <!-- ===== 糖尿病（主症单选 / 次症多选 / 舌脉单选）===== -->
+              <tr class="tcg-row-g">
+                <td class="tcg-g" rowspan="3">糖尿病</td>
+                <td class="tcg-lb">主症</td>
+                <td class="tcg-c"><div class="tcg-opts">
+                  <label class="rad"><input type="radio" name="tcgDmMain" value="烦渴多饮">烦渴多饮</label>
+                  <label class="rad"><input type="radio" name="tcgDmMain" value="多食善饥">多食善饥</label>
+                  <label class="rad"><input type="radio" name="tcgDmMain" value="五心发热">五心发热</label>
+                  <label class="rad"><input type="radio" name="tcgDmMain" value="腰膝酸软">腰膝酸软</label>
+                  <label class="rad"><input type="radio" name="tcgDmMain" value="形寒肢冷">形寒肢冷</label>
+                  <label class="rad"><input type="radio" name="tcgDmMain" value="耳轮焦干">耳轮焦干</label>
+                </div></td>
+              </tr>
+              <tr>
+                <td class="tcg-lb">次症</td>
+                <td class="tcg-c"><div class="tcg-opts">
+                  <label class="chk"><input type="checkbox" name="tcgDmSub" value="乏力">乏力</label>
+                  <label class="chk"><input type="checkbox" name="tcgDmSub" value="气短">气短</label>
+                  <label class="chk"><input type="checkbox" name="tcgDmSub" value="自汗">自汗</label>
+                  <label class="chk"><input type="checkbox" name="tcgDmSub" value="口干舌燥">口干舌燥</label>
+                  <label class="chk"><input type="checkbox" name="tcgDmSub" value="多饮多尿">多饮多尿</label>
+                  <label class="chk"><input type="checkbox" name="tcgDmSub" value="咽干舌燥">咽干舌燥</label>
+                  <label class="chk"><input type="checkbox" name="tcgDmSub" value="溲赤便秘">溲赤便秘</label>
+                  <label class="chk"><input type="checkbox" name="tcgDmSub" value="浮肿">浮肿</label>
+                  <label class="chk"><input type="checkbox" name="tcgDmSub" value="目睛干涩">目睛干涩</label>
+                  <label class="chk"><input type="checkbox" name="tcgDmSub" value="肢体麻木">肢体麻木</label>
+                  <label class="chk"><input type="checkbox" name="tcgDmSub" value="肢体疼痛">肢体疼痛</label>
+                </div></td>
+              </tr>
+              <tr>
+                <td class="tcg-lb">舌脉</td>
+                <td class="tcg-c"><div class="tcg-opts">
+                  <label class="rad"><input type="radio" name="tcgDmTongue" value="舌红少津苔黄、脉滑数或弦细">舌红少津苔黄、脉滑数或弦细</label>
+                  <label class="rad"><input type="radio" name="tcgDmTongue" value="舌淡或红暗、便有齿痕">舌淡或红暗、便有齿痕</label>
+                  <label class="rad"><input type="radio" name="tcgDmTongue" value="舌淡苔白、脉沉细无力">舌淡苔白、脉沉细无力</label>
+                </div></td>
+              </tr>
+
+              <!-- ===== 健康判定（多行文本）===== -->
+              <tr>
+                <td class="tcg-g"></td>
+                <td class="tcg-lb">健康判定</td>
+                <td class="tcg-c"><div class="tcg-ta-wrap">
+                  <textarea class="tcg-ta" id="tcgSummary" maxlength="200" placeholder="请输入" oninput="tcgCount(this,'tcgSummaryCnt')"></textarea>
+                  <span class="tcg-cnt" id="tcgSummaryCnt">0/200</span>
+                </div></td>
+              </tr>
+
+              <!-- ===== 指导医师 + 评估日期 ===== -->
+              <tr>
+                <td class="tcg-g"></td>
+                <td class="tcg-lb"><i>*</i>指导医师</td>
+                <td class="tcg-c"><div class="tcg-date-cell">
+                  <select class="ctl" id="tcgDoctor">
+                    <option value="" selected>请选择</option>
+                    <option value="吕雪">吕雪</option>
+                    <option value="张丽">张丽</option>
+                    <option value="康丽建">康丽建</option>
+                    <option value="盖丽清">盖丽清</option>
+                    <option value="张德卿">张德卿</option>
+                  </select>
+                  <label class="rad" style="flex:none;color:var(--danger)">*</label>
+                  <span style="flex:none">评估日期</span>
+                  <span class="wm-date">
+                    <input class="ctl" id="tcgDate" type="text" placeholder="请选择" onclick="wsaPickDate(this)" onblur="wsaBlurDate(this)">
+                    <svg class="cal-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9AA7B8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/></svg>
+                  </span>
+                </div></td>
+              </tr>
+
+              <!-- ===== 中医体质判定（九种体质，多选）===== -->
+              <tr>
+                <td class="tcg-g"></td>
+                <td class="tcg-lb">中医体质判定</td>
+                <td class="tcg-c"><div class="tcg-opts">
+                  <label class="chk"><input type="checkbox" name="tcgType" value="阳虚质">阳虚质</label>
+                  <label class="chk"><input type="checkbox" name="tcgType" value="阴虚质">阴虚质</label>
+                  <label class="chk"><input type="checkbox" name="tcgType" value="气虚质">气虚质</label>
+                  <label class="chk"><input type="checkbox" name="tcgType" value="痰湿质">痰湿质</label>
+                  <label class="chk"><input type="checkbox" name="tcgType" value="湿热质">湿热质</label>
+                  <label class="chk"><input type="checkbox" name="tcgType" value="血瘀质">血瘀质</label>
+                  <label class="chk"><input type="checkbox" name="tcgType" value="特禀质">特禀质</label>
+                  <label class="chk"><input type="checkbox" name="tcgType" value="气郁质">气郁质</label>
+                  <label class="chk"><input type="checkbox" name="tcgType" value="平和质" checked>平和质</label>
+                  <label class="chk"><input type="checkbox" name="tcgType" value="昏厥">昏厥</label>
+                </div></td>
+              </tr>
+
+              <!-- ===== 高血压辨证 ===== -->
+              <tr>
+                <td class="tcg-g"></td>
+                <td class="tcg-lb">高血压辨证</td>
+                <td class="tcg-c"><div class="tcg-opts">
+                  <label class="chk"><input type="checkbox" name="tcgBpType" value="阴虚阳亢症">阴虚阳亢症</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpType" value="气血两虚症">气血两虚症</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpType" value="痰瘀互结症">痰瘀互结症</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpType" value="肾精不足症">肾精不足症</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpType" value="肾阳亏虚症">肾阳亏虚症</label>
+                  <label class="chk"><input type="checkbox" name="tcgBpType" value="冲任失调症">冲任失调症</label>
+                </div></td>
+              </tr>
+
+              <!-- ===== 糖尿病辨证 ===== -->
+              <tr>
+                <td class="tcg-g"></td>
+                <td class="tcg-lb">糖尿病辨证</td>
+                <td class="tcg-c"><div class="tcg-opts">
+                  <label class="chk"><input type="checkbox" name="tcgDmType" value="阴虚燥热症">阴虚燥热症</label>
+                  <label class="chk"><input type="checkbox" name="tcgDmType" value="气阴两虚症">气阴两虚症</label>
+                  <label class="chk"><input type="checkbox" name="tcgDmType" value="阴阳两虚症">阴阳两虚症</label>
+                  <label class="chk"><input type="checkbox" name="tcgDmType" value="其他">其他</label>
+                </div></td>
+              </tr>
+
+              <!-- ===== 健康状况 ===== -->
+              <tr>
+                <td class="tcg-g"></td>
+                <td class="tcg-lb">健康状况</td>
+                <td class="tcg-c"><div class="tcg-opts">
+                  <label class="chk"><input type="checkbox" name="tcgHealth" value="正常">正常</label>
+                  <label class="chk"><input type="checkbox" name="tcgHealth" value="腰腿痛">腰腿痛</label>
+                  <label class="chk"><input type="checkbox" name="tcgHealth" value="失眠">失眠</label>
+                  <label class="chk"><input type="checkbox" name="tcgHealth" value="便秘">便秘</label>
+                  <label class="chk"><input type="checkbox" name="tcgHealth" value="健忘">健忘</label>
+                  <label class="chk"><input type="checkbox" name="tcgHealth" value="耳鸣">耳鸣</label>
+                  <label class="chk"><input type="checkbox" name="tcgHealth" value="尿频">尿频</label>
+                  <label class="chk"><input type="checkbox" name="tcgHealth" value="伴下肢血管病变">伴下肢血管病变</label>
+                  <label class="chk"><input type="checkbox" name="tcgHealth" value="其他">其他</label>
+                </div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- ===== 视图：残疾人基本信息（残疾人管理） ===== -->
     <div class="pv-view hidden" id="viewDisability">
       <div class="hp-card" id="disCard">
@@ -18573,6 +19170,29 @@
     var el = $('navVaccineRecord');
     if (el) el.classList.remove('nav-followup-hidden');
   }
+  /* 糖尿病管理：开放「糖尿病随访 / 糖尿病评估」两个业务目录 */
+  function revealDmModules() {
+    ['navDmFollowup', 'navDmAssessment'].forEach(function (id) {
+      var el = $(id);
+      if (el) el.classList.remove('nav-followup-hidden');
+    });
+  }
+  /* 慢病模块：开放各自的「随访」业务目录（慢阻肺/肿瘤/高危/重精/心脑血管/高血脂/结核病） */
+  function revealChronicFollowup(group) {
+    var map = {
+      copd: ['navCopdFollowup'],
+      tumor: ['navTumorFollowup'],
+      hr: ['navHrFollowup'],
+      psi: ['navPsiFollowup'],
+      cardio: ['navCardioFollowup'],
+      hlp: ['navHlpFollowup'],
+      tb: ['navTbFollowup']
+    };
+    (map[group] || []).forEach(function (id) {
+      var el = $(id);
+      if (el) el.classList.remove('nav-followup-hidden');
+    });
+  }
   /* 建卡状态写入 localStorage：刷新 / 重新进入后目录仍然保持展开 */
   var VC_ARCH_KEY = 'hps.vaccineCardCreated';
   function vaccineCardCreated() {
@@ -19016,6 +19636,8 @@
     var isRsk = name === 'msRiskScreen';
     var isAsm = name === 'msRiskAssess';
     var isEa = name === 'elderlySelfCare';
+    var isEts = name === 'elderTcmService';
+    var isTcg = name === 'tcmGuide';
     var isDis = name === 'disability';
     var isVi = name === 'vaccineInfo';
     var isVr = name === 'vaccineRecord';
@@ -19087,6 +19709,8 @@
     $('viewMsRiskScreen').classList.toggle('hidden', !isRsk);
     $('viewMsRiskAssess').classList.toggle('hidden', !isAsm);
     $('viewElderlySelfCare').classList.toggle('hidden', !isEa);
+    $('viewElderTcmService').classList.toggle('hidden', !isEts);
+    $('viewTcmGuide').classList.toggle('hidden', !isTcg);
     $('viewDisability').classList.toggle('hidden', !isDis);
     $('viewVaccineInfo').classList.toggle('hidden', !isVi);
     $('viewVaccineRecord').classList.toggle('hidden', !isVr);
@@ -19146,6 +19770,8 @@
     $('navMsRiskScreen').classList.toggle('active', isRsk);
     $('navMsRiskAssess').classList.toggle('active', isAsm);
     $('navElderlySelfCare').classList.toggle('active', isEa);
+    $('navElderTcmService').classList.toggle('active', isEts);
+    $('navTcmGuide').classList.toggle('active', isTcg);
     $('navDisability').classList.toggle('active', isDis);
     $('navVaccineInfo').classList.toggle('active', isVi);
     $('navVaccineRecord').classList.toggle('active', isVr);
@@ -19189,6 +19815,12 @@
       $('pvContent').scrollTop = 0;
     } else if (isEa) {
       $('navElderlyGroup').classList.add('open');
+      $('pvContent').scrollTop = 0;
+    } else if (isEts) {
+      $('navTcmGroup').classList.add('open');
+      $('pvContent').scrollTop = 0;
+    } else if (isTcg) {
+      $('navTcmGroup').classList.add('open');
       $('pvContent').scrollTop = 0;
     } else if (isVcAny) {
       $('navVaccineGroup').classList.add('open');
@@ -21163,8 +21795,9 @@
   /* ================= 初始化 ================= */
   function init() {
     buildFamTable();
-    bindFamMutex();
-    bindMutex('allergyBox', '无');
+    /* 中医管理：老年人中医药健康管理服务记录表（33 题量表）构建 */
+    etsBuild();
+    bindFamMutex();    bindMutex('allergyBox', '无');
     bindMutex('exposureBox', '无');
     bindMutex('disabilityBox', '无残疾');
     bindPastToggle();
@@ -21558,39 +22191,55 @@
     } else if (initView === 'assessment') {
       switchView('assessment');
     } else if (initView === 'diabetes') {
+      revealDmModules();
       switchView('diabetes');
     } else if (initView === 'dmFollowup') {
+      revealDmModules();
       switchView('dmFollowup');
     } else if (initView === 'dmAssessment') {
+      revealDmModules();
       switchView('dmAssessment');
     } else if (initView === 'copd') {
+      revealChronicFollowup('copd');
       switchView('copd');
     } else if (initView === 'copdFollowup') {
+      revealChronicFollowup('copd');
       switchView('copdFollowup');
     } else if (initView === 'tumor') {
+      revealChronicFollowup('tumor');
       switchView('tumor');
     } else if (initView === 'tumorFollowup') {
+      revealChronicFollowup('tumor');
       switchView('tumorFollowup');
     } else if (initView === 'hr') {
+      revealChronicFollowup('hr');
       switchView('hr');
     } else if (initView === 'hrFollowup') {
+      revealChronicFollowup('hr');
       switchView('hrFollowup');
     } else if (initView === 'tb') {
+      revealChronicFollowup('tb');
       switchView('tb');
     } else if (initView === 'tbFollowup') {
+      revealChronicFollowup('tb');
       switchView('tbFollowup');
     } else if (initView === 'psi') {
+      revealChronicFollowup('psi');
       switchView('psi');
     } else if (initView === 'psiFollowup') {
+      revealChronicFollowup('psi');
       switchView('psiFollowup');
     } else if (initView === 'cardio') {
+      revealChronicFollowup('cardio');
       switchView('cardio');
     } else if (initView === 'cardioFollowup') {
+      revealChronicFollowup('cardio');
       switchView('cardioFollowup');
     } else if (initView === 'hyperlipidemia') {
+      revealChronicFollowup('hlp');
       switchView('hyperlipidemia');
     } else if (initView === 'hlpFollowup') {
-      $('navHlpFollowup').classList.remove('nav-followup-hidden');
+      revealChronicFollowup('hlp');
       switchView('hlpFollowup');
     } else if (initView === 'healthCard') {
       switchView('healthCard');
@@ -21638,6 +22287,15 @@
     }
     else if (initView === 'elderlySelfCare') {
       switchView('elderlySelfCare');
+    }
+    /* 中医管理：老年人中医药健康管理服务记录表 */
+    else if (initView === 'elderTcmService') {
+      etsFillHead();
+      switchView('elderTcmService');
+    }
+    else if (initView === 'tcmGuide') {
+      tcgFillHead();
+      switchView('tcmGuide');
     }
     else if (initView === 'disability') {
       switchView('disability');
@@ -21715,6 +22373,8 @@
       else if (initView === 'msRiskScreen') { mockMsRiskScreen(); }
       else if (initView === 'msRiskAssess') { mockMsRiskAssess(); }
       else if (initView === 'elderlySelfCare') { mockEaSelfCare(); }
+      else if (initView === 'elderTcmService') { mockElderTcmService(); }
+      else if (initView === 'tcmGuide') { mockTcmGuide(); }
       else if (initView === 'disability') { mockDisability(); }
       /* 预防接种业务：已有档案 → 回填设计稿演示值并开放「预防接种记录」目录 */
       else if (initView === 'vaccineInfo') { mockVaccineInfo(); revealVaccineModules(); }
@@ -21941,6 +22601,344 @@
       b.checked = false;
     });
     calcEaTotal();
+  }
+
+  /* ============================================================
+     中医管理：老年人中医药健康管理服务记录表
+     ------------------------------------------------------------
+     量表共 33 题，每题 5 级计分：没有=1 / 很少=2 / 有时=3 / 经常=4 / 总是=5。
+     题目文本严格按《老年人中医药健康管理服务记录表》原文录入。
+     ============================================================ */
+  /* 33 题：[主题干, 括号补充说明（可为空）] —— 依设计稿原文录入 */
+  var ETS_ITEMS = [
+    ['您精力充沛吗？', '（指精神头足，乐于做事）'],
+    ['您容易疲乏吗？', '（指体力如何，是否稍微活动一下或做一点家务劳动就感到累）'],
+    ['您容易气短、呼吸短促，接不上气吗？', ''],
+    ['您说话声音低弱无力吗？', '（指说话没有力气）'],
+    ['您感到闷闷不乐、情绪低沉吗？', '（指心情不愉快，情绪低落）'],
+    ['您容易精神紧张、焦虑不安吗？', '（指遇事是否心情紧张）'],
+    ['您因为生活状态改变而感到孤独、失落吗？', ''],
+    ['您容易感到害怕或受到惊吓吗？', ''],
+    ['您感到身体超重不轻松吗?', '（感觉身体沉重）BMI 指数=体重（kg）/身高 2（m）'],
+    ['您眼睛干涩吗？', ''],
+    ['您手脚发凉吗？', '（不包括因周围温度过低或穿的少导致的手脚发凉）'],
+    ['您胃脘部、背部或腰膝部怕冷吗？', '（指上腹、背部、腰部或膝关节等，有一处或多处怕冷）'],
+    ['您比一般人耐受不了寒冷吗？', '（指比别人更怕寒凉或是夏天的冷空调、电扇等）'],
+    ['您容易患感冒吗？', '（指每年感冒的次数）'],
+    ['您没有感冒时也会鼻塞、流鼻涕吗？', ''],
+    ['您有口粘口腻，或睡眠打鼾吗？', ''],
+    ['您容易过敏（对药物、食物、气味、花粉或在季节交替、气候变化时）吗？', ''],
+    ['您的皮肤容易起荨麻疹吗？', '（包括风团、风疹块、风疙瘩）'],
+    ['您的皮肤在不知不觉中会出现青紫瘀斑、皮下出血吗？', '（指皮肤在没有外伤的情况下出现青一块紫一块的情况）'],
+    ['您的皮肤一抓就红，并出现抓痕吗？', '（指被指甲或钝物划过后皮肤的反应）'],
+    ['您皮肤或口唇干吗？', ''],
+    ['您有肢体麻或固定部位疼痛的感觉吗？', ''],
+    ['您面部或鼻部有油腻感或者油亮发光吗？', '（指脸上或鼻子）'],
+    ['您面色或目眶晦黯，或出现褐色斑块/斑点吗？', ''],
+    ['您有皮肤湿疹、疮疖吗？', ''],
+    ['您感到口干咽燥、总想喝水吗？', ''],
+    ['您感到口苦或嘴里有异味吗？', '（指口苦或口臭）'],
+    ['您腹部肥大吗？', '（指腹部脂肪肥厚）'],
+    ['您吃(喝)凉的东西会感到不舒服或者怕吃(喝)凉的东西吗？', '（指不喜欢吃凉的食物，或吃了凉的食物后会不舒服）'],
+    ['您有大便黏滞不爽、解不尽的感觉吗？', '（大便容易粘在马桶上）'],
+    ['您容易大便干燥吗？', ''],
+    ['您舌苔厚腻或有舌苔厚厚的感觉吗？', '（如果自我感觉不清楚可由调查员观察后填写）'],
+    ['您舌下静脉瘀紫或增粗吗？', '（可由调查员观察后填写）']
+  ];
+  /* 每题 5 级选项：没有 / 很少 / 有时 / 经常 / 总是（含括号补充说明） */
+  var ETS_LEVELS = [
+    { v: 1, t: '没有', s: '（根本不/从来没有）' },
+    { v: 2, t: '很少', s: '（有一点/偶尔）' },
+    { v: 3, t: '有时', s: '（有些/少数时间）' },
+    { v: 4, t: '经常', s: '（相当/多数时间）' },
+    { v: 5, t: '总是', s: '（非常/每天）' }
+  ];
+  /* 第 9 题（BMI）、第 14 题（感冒次数）、第 17 题（过敏次数）、第 28 题（腹围）有专属的选项第二行说明 */
+  var ETS_SPECIAL = {
+    9:  ['（BMI＜24）', '（24≤BMI＜25）', '（25≤BMI＜26）', '（26≤BMI＜28）', '（BMI≥28）'],
+    14: ['一年＜2次', '一年感冒 2-4 次', '一年感冒 5-6 次', '一年感冒 8 次以上', '几乎每月都感冒'],
+    17: ['从来没有', '一年 1、2 次', '一年 3、4 次', '一年 5、6 次', '每次遇到上述原因都过敏'],
+    28: ['（腹围＜80cm，相当于 2.4 尺）', '（腹围 80-85cm，2.4-2.55 尺）', '（腹围 86-90cm，2.56-2.7 尺）', '（腹围 91-105cm，2.71-3.15 尺）', '（腹围＞105cm，3.15 尺）']
+  };
+  /* 体质辨识结果表：列顺序与设计稿一致（平和质在最后一列） */
+  var ETS_COLS = ['气虚质', '阳虚质', '阴虚质', '痰湿质', '湿热质', '血瘀质', '气郁质', '特禀质', '平和质'];
+  /* 九种体质（全量，用于保健指导行） */
+  var ETS_TYPES = ['气虚质', '阳虚质', '阴虚质', '痰湿质', '湿热质', '血瘀质', '气郁质', '特禀质', '平和质'];
+  /* 中医药保健指导六个选项 */
+  var ETS_GUIDES = ['情志调摄', '饮食调养', '起居调摄', '运动保健', '穴位保健', '其他'];
+
+  /* ============================================================
+     体质判定标准（来源：《老年人中医药健康管理服务记录表及体质判定标准表》）
+     八种偏颇体质：各条目得分相加 ≥11 分「是」；9～10 分「倾向是」；≤8 分「否」
+     平和质：条目 (1)(2)(4)(5)(13)，其中 (2)(4)(5)(13) 反向计分（1↔5、2↔4、3↔3）
+            原始分 ≥17 分且其他 8 种体质得分都 ＜8 分 →「是」
+            原始分 ≥17 分且其他 8 种体质得分都 ＜10 分 →「基本是」
+            不满足上述条件者 →「否」
+     ============================================================ */
+  var ETS_BIAS_MAP = [
+    { n: '气虚质', q: [2, 3, 4, 14] },
+    { n: '阳虚质', q: [11, 12, 13, 29] },
+    { n: '阴虚质', q: [10, 21, 26, 31] },
+    { n: '痰湿质', q: [9, 16, 28, 32] },
+    { n: '湿热质', q: [23, 25, 27, 30] },
+    { n: '血瘀质', q: [19, 22, 24, 33] },
+    { n: '气郁质', q: [5, 6, 7, 8] },
+    { n: '特禀质', q: [15, 17, 18, 20] }
+  ];
+  var ETS_PEACE_ITEMS = [1, 2, 4, 5, 13];
+  var ETS_PEACE_REVERSE = [2, 4, 5, 13];
+  /* 各偏颇体质初始得分（设计稿演示：痰湿质 5 分，其余 0 分） */
+  var ETS_MOCK_SCORES = { 气虚质: 0, 阳虚质: 0, 阴虚质: 0, 痰湿质: 5, 湿热质: 0, 血瘀质: 0, 气郁质: 0, 特禀质: 0, 平和质: 0 };
+  /* 中医药保健方法富文本工具栏 */
+  var ETS_TOOLS = [
+    { c: 'H', t: '标题', cmd: 'formatBlock', v: '<h4>', w: 'bold' },
+    { c: 'B', t: '加粗', cmd: 'bold', w: 'bold' },
+    { c: 'I', t: '斜体', cmd: 'italic', w: 'italic' },
+    { c: 'U', t: '下划线', cmd: 'underline', w: 'underline' },
+    { c: 'S', t: '删除线', cmd: 'strikeThrough', w: 'line-through' },
+    { c: '•', t: '无序列表', cmd: 'insertUnorderedList' },
+    { c: '≣', t: '有序列表', cmd: 'insertOrderedList' },
+    { c: '⤺', t: '撤销', cmd: 'undo' },
+    { c: '⤻', t: '重做', cmd: 'redo' }
+  ];
+  var ETS_ARCH_NO = '321012103103000004';
+
+  /* 渲染 33 道题（表单式列表）+ 保健指导行 + 保健方法工具栏 */
+  function etsBuild() {
+    var list = $('etsList');
+    if (list) {
+      var html = '';
+      ETS_ITEMS.forEach(function (it, i) {
+        var no = i + 1, q = it[0], sub = it[1];
+        html += '<div class="ets-q">'
+          + '<div class="ets-q-title"><i class="ets-q-star">*</i><span class="ets-q-no">' + no + '、</span>'
+          + '<span class="ets-q-main">' + q + '</span>'
+          + (sub ? '<span class="ets-q-sub">' + sub + '</span>' : '')
+          + '</div>'
+          + '<div class="ets-opts">';
+        var labels = ETS_SPECIAL[no];
+        ETS_LEVELS.forEach(function (lv, k) {
+          html += '<label class="ets-opt"><input type="radio" name="etsQ' + no + '" value="' + lv.v
+            + '" onclick="etsCalcScore()"><span class="opt-box">'
+            + '<span class="opt-txt">' + lv.t + lv.s + '</span>'
+            + (labels ? '<span class="opt-sub2">' + labels[k] + '</span>' : '')
+            + '</span></label>';
+        });
+        html += '</div></div>';
+      });
+      list.innerHTML = html;
+    }
+
+    /* 体质辨识结果表：九列，「得分 / 体质辨识结果」由 33 题自动计算 */
+    ETS_COLS.forEach(function (t, i) {
+      var h = $('etsJtH' + i);
+      if (h) h.textContent = t;
+    });
+
+    /* 中医药保健指导：九行，每行六个多选框 */
+    var gb = $('etsGuideBody');
+    if (gb) {
+      gb.innerHTML = ETS_TYPES.map(function (t, i) {
+        return '<tr><td class="ets-gt-lb">' + t + '</td><td><div class="ets-gt-chks">'
+          + ETS_GUIDES.map(function (g, k) {
+              return '<label class="chk"><input type="checkbox" name="etsGuide' + i + '" value="' + g + '">' + g + '</label>';
+            }).join('')
+          + '</div></td></tr>';
+      }).join('');
+    }
+
+    /* 中医药保健方法：工具栏 */
+    var bar = $('etsEditBar');
+    if (bar) {
+      bar.innerHTML = ETS_TOOLS.map(function (o) {
+        return '<button type="button" class="ets-edit-btn" title="' + o.t + '"'
+          + (o.w ? ' style="font-weight:' + o.w + '"' : '')
+          + ' onmousedown="event.preventDefault()" onclick="etsEditCmd(\'' + o.cmd + '\',\'' + (o.v || '') + '\')">' + o.c + '</button>';
+      }).join('');
+    }
+    etsCalcScore();
+  }
+
+  function etsEditCmd(cmd, v) {
+    var box = $('etsEditBody');
+    if (!box) return;
+    box.focus();
+    try { document.execCommand(cmd, false, v || null); } catch (e) {}
+  }
+
+  /* 读取某题当前得分；未作答返回 null */
+  function etsQScore(no) {
+    var el = document.querySelector('input[name="etsQ' + no + '"]:checked');
+    return el ? (parseInt(el.value, 10) || 0) : null;
+  }
+
+  /* 反向计分：1↔5、2↔4、3↔3、4↔2、5↔1 */
+  function etsReverse(v) { return 6 - v; }
+
+  /* 依《体质判定标准表》计算九种体质得分与判定结果
+     返回 { 气虚质: {score, result, ready}, …, 平和质: {…} } */
+  function etsJudgeAll() {
+    var out = {}, answers = [], i;
+    for (i = 1; i <= ETS_ITEMS.length; i++) answers[i] = etsQScore(i);
+    var ready = answers.every(function (v) { return v !== null; });
+
+    /* 八种偏颇体质：条目得分直接相加 */
+    ETS_BIAS_MAP.forEach(function (g) {
+      var s = 0, miss = 0;
+      g.q.forEach(function (no) {
+        if (answers[no] === null) { miss++; } else { s += answers[no]; }
+      });
+      var r = '否';
+      if (!miss) r = s >= 11 ? '是' : (s >= 9 ? '倾向是' : '否');
+      out[g.n] = { score: s, result: r, ready: miss === 0 };
+    });
+
+    /* 平和质：原始分（(2)(4)(5)(13) 反向计分） */
+    var ps = 0, pmiss = 0;
+    ETS_PEACE_ITEMS.forEach(function (no) {
+      var v = answers[no];
+      if (v === null) { pmiss++; return; }
+      ps += (ETS_PEACE_REVERSE.indexOf(no) >= 0) ? etsReverse(v) : v;
+    });
+    /* 其他 8 种体质得分 */
+    var others = [], omax = 0;
+    ETS_BIAS_MAP.forEach(function (g) { others.push(out[g.n].score); if (out[g.n].score > omax) omax = out[g.n].score; });
+    var maxBias = Math.max.apply(null, others);
+    var pr = '否';
+    if (pmiss === 0) {
+      if (ps >= 17 && maxBias < 8) pr = '是';
+      else if (ps >= 17 && maxBias < 10) pr = '基本是';
+    }
+    out['平和质'] = { score: ps, result: pr, ready: pmiss === 0 };
+    out._ready = ready;
+    return out;
+  }
+
+  /* 得分 + 体质辨识结果：由 33 题自动计算并回填表格 */
+  function etsCalcScore() {
+    var total = 0, done = 0;
+    ETS_ITEMS.forEach(function (q, i) {
+      var el = document.querySelector('input[name="etsQ' + (i + 1) + '"]:checked');
+      if (el) { total += parseInt(el.value, 10) || 0; done++; }
+    });
+
+    var r = etsJudgeAll();
+    ETS_COLS.forEach(function (t, i) {
+      var c = $('etsJtS' + i);
+      var cell = $('etsJtR' + i);
+      var info = r[t] || { score: 0, result: '否', ready: false };
+      /* 未作答完毕时，得分按 0 显示（与设计稿一致） */
+      if (c) c.textContent = info.ready ? info.score : 0;
+      if (cell) {
+        var v = info.ready ? info.result : '否';
+        cell.textContent = v;
+        cell.style.color = v === '否' ? '#52C41A' : (v === '是' ? '#389E0D' : '#D48806');
+        cell.style.fontWeight = v === '否' ? '400' : '600';
+      }
+    });
+    return total;
+  }
+
+  /* 顶部「姓名 / 档案编号 / 出生日期」按居民档案预填 */
+  function etsFillHead() {
+    var t = $('etsNameTxt'), a = $('etsArchNo'), b = $('etsBirthTxt');
+    if (t) t.textContent = P.name;
+    if (a) a.textContent = QS.get('archNo') || ETS_ARCH_NO;
+    if (b) b.textContent = P.birth || '--';
+  }
+
+  /* 体质辨识结果：自动计算所得且非「否」的体质，返回如 ["痰湿质 是"] */
+  function etsCheckedTypes() {
+    var r = etsJudgeAll(), out = [];
+    ETS_COLS.forEach(function (t) {
+      var info = r[t];
+      if (info && info.ready && info.result !== '否') out.push(t + ' ' + info.result);
+    });
+    return out;
+  }
+
+  /* 已勾选保健指导：（体质 → 选项数组） */
+  function etsCheckedGuides() {
+    var out = [];
+    ETS_TYPES.forEach(function (t, i) {
+      var sel = document.querySelectorAll('input[name="etsGuide' + i + '"]:checked');
+      var arr = [];
+      Array.prototype.forEach.call(sel, function (b) { arr.push(b.value); });
+      if (arr.length) out.push(t + '：' + arr.join('、'));
+    });
+    return out;
+  }
+
+  function saveElderTcmService() {
+    var missing = wmMissing([
+      { t: 'val', id: 'etsDoctor', label: '测评医师' },
+      { t: 'val', id: 'etsDate', label: '测评日期' }
+    ]);
+    if (missing.length) { toast('请完善必填项：' + missing.join('、'), 'warning'); return; }
+    var undone = [];
+    ETS_ITEMS.forEach(function (q, i) {
+      if (!document.querySelector('input[name="etsQ' + (i + 1) + '"]:checked')) undone.push(i + 1);
+    });
+    if (undone.length) { toast('请完成第 ' + undone.join('、') + ' 题的作答', 'warning'); return; }
+    var types = etsCheckedTypes();
+    var guides = etsCheckedGuides();
+    wmToastSaved('保存成功：体质辨识结果 ' + (types.length ? types.join('；') : '平和（无偏颇体质）')
+      + (guides.length ? '；保健指导 ' + guides.join('；') : ''));
+  }
+
+  function mockElderTcmService() {
+    etsFillHead();
+    setVal('etsDoctor', '吕雪');
+    setVal('etsDate', '2026-09-22');
+    /* 设计稿演示：量表未作答、得分 0、九种体质结果均为「否」 */
+    Array.prototype.forEach.call(document.querySelectorAll('#viewElderTcmService input[name^="etsQ"]'), function (b) {
+      b.checked = false;
+    });
+    etsCalcScore();
+  }
+
+  /* ================= 中医管理：中医健康指导 ================= */
+  var TCG_ARCH_NO = '32101211811812487';
+  function tcgFillHead() {
+    var t = $('tcgNameTxt'), a = $('tcgArchNo'), g = $('tcgGenderTxt');
+    var b = $('tcgBirthTxt'), id = $('tcgIdcardTxt'), p = $('tcgPhoneTxt');
+    if (t) t.textContent = P.name;
+    if (a) a.textContent = QS.get('archNo') || TCG_ARCH_NO;
+    if (g) g.textContent = P.gender || '--';
+    if (b) b.textContent = P.birth || '--';
+    if (id) id.textContent = P.idcard || '--';
+    if (p) p.textContent = P.phone || '--';
+  }
+  /* 字数计数（独立实现，避免与 msCount 耦合） */
+  function tcgCount(el, cntId) {
+    var c = $(cntId);
+    if (c && el) c.textContent = el.value.length + '/' + (el.maxLength > 0 ? el.maxLength : 200);
+  }
+  /* 取某组选中值：多选返回数组 */
+  function tcgChecked(name) {
+    var list = document.querySelectorAll('#viewTcmGuide input[name="' + name + '"]:checked');
+    return Array.prototype.map.call(list, function (b) { return b.value; });
+  }
+  function saveTcmGuide() {
+    var missing = wmMissing([
+      { t: 'val', id: 'tcgDoctor', label: '指导医师' },
+      { t: 'val', id: 'tcgDate', label: '评估日期' }
+    ]);
+    if (missing.length) { toast('请完善必填项：' + missing.join('、'), 'warning'); return; }
+    var groups = tcgChecked('tcgGroup');
+    if (!groups.length) { toast('请至少选择一项人群分类', 'warning'); return; }
+    var types = tcgChecked('tcgType');
+    var health = tcgChecked('tcgHealth');
+    wmToastSaved('保存成功：人群分类 ' + groups.join('、')
+      + (types.length ? '；体质判定 ' + types.join('、') : '')
+      + (health.length ? '；健康状况 ' + health.join('、') : ''));
+  }
+  function mockTcmGuide() {
+    tcgFillHead();
+    setVal('tcgDoctor', '吕雪');
+    setVal('tcgDate', '2026-09-27');
+    var ta = $('tcgSummary');
+    if (ta) { ta.value = ''; tcgCount(ta, 'tcgSummaryCnt'); }
   }
 
   /* ================= 残疾人管理：残疾人基本信息 ================= */

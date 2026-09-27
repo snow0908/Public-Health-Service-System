@@ -16,24 +16,29 @@
   .content .content-card{flex:1;min-height:0;min-width:0}
 
   /* ===== 页头按钮 ===== */
-  .page-head .right .btn{height:28px;padding:0 14px;font-size:13px}
+  .page-head .right .btn{height:28px;padding:0 14px;font-size:13px;gap:5px}
+  .page-head .right .btn svg{flex:none}
 
   /* ===== 筛选区 ===== */
-  .filter-panel{padding:14px 12px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
-  .filter-row{display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:14px;align-items:center}
+  .filter-panel{position:relative;padding:14px 16px;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;gap:10px 16px;margin-bottom:0;align-items:center}
+  .filter-row + .filter-row{margin-top:10px}
   .filter-row.extra{display:none}
   .filter-row.extra.show{display:flex}
-  .filter-item{display:flex;align-items:center;gap:8px}
-  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
-  .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
-  .fi-select{width:140px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .filter-item{display:flex;align-items:center;gap:4px}
+  .filter-item label{font-size:13px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:160px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;cursor:pointer}
   .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
   .fi-ctl::placeholder{color:var(--text-placeholder)}
-  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
-  .btn-plain{height:28px;padding:0 8px;font-size:13px;color:var(--primary);border-radius:var(--r-sm)}
+  /* 操作按钮：绝对定位吸在筛选区右下角（等价于贴在最后一行右侧） */
+  .filter-btns{position:absolute;right:16px;bottom:14px;display:flex;gap:8px;align-items:center}
+  .btn-plain{display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 8px;border:none;background:none;border-radius:var(--r-sm);font-size:13px;color:var(--primary);cursor:pointer;transition:background var(--transition-fast)}
   .btn-plain:hover{background:var(--primary-bg)}
+  .btn-plain .tri{width:10px;height:6px;fill:currentColor;flex:none;transition:transform var(--transition-fast)}
+  .btn-plain.open .tri{transform:rotate(180deg)}
   .date-range{display:flex;align-items:center;gap:4px}
-  .date-range .fi-ctl{width:130px}
+  .date-range .fi-ctl{width:120px;padding-right:26px;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 7px center}
   .date-sep{color:var(--text-tertiary)}
 
   /* ===== 数据表格 ===== */
@@ -48,14 +53,17 @@
   /* 家庭行 */
   .fam-tbl tr.fam-row td{background:var(--bg-white)}
   .fam-tbl tr.fam-row.open td{background:#F0F7FF}
-  .fam-toggle{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-right:6px;border:1px solid var(--color-neutral-300);border-radius:3px;color:var(--text-tertiary);font-size:12px;line-height:1;cursor:pointer;user-select:none;background:var(--bg-white);vertical-align:middle;transition:all var(--transition-fast)}
-  .fam-toggle:hover{color:var(--primary);border-color:var(--primary)}
+  .fam-toggle{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border:none;background:none;color:var(--text-tertiary);cursor:pointer;user-select:none;vertical-align:middle;transition:all var(--transition-fast)}
+  .fam-toggle svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform var(--transition-fast)}
+  .fam-toggle:hover{color:var(--primary)}
+  .fam-row.open .fam-toggle{color:var(--primary)}
+  .fam-row.open .fam-toggle svg{transform:rotate(90deg)}
 
   /* 成员嵌套块 */
   tr.member-block > td{padding:0;border-bottom:none;background:var(--bg-white)}
   .member-tbl{width:100%;table-layout:fixed;border-collapse:collapse;font-size:13px}
-  .member-tbl th{height:30px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED;border-top:1px solid #EEF0F4}
-  .member-tbl td{height:32px;padding:0 8px;color:var(--text-secondary);border-bottom:1px solid #F5F6FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .member-tbl th{height:32px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED;border-top:1px solid #EEF0F4}
+  .member-tbl td{height:34px;padding:0 8px;color:var(--text-secondary);border-bottom:1px solid #F5F6FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .member-tbl th.center,.member-tbl td.center{text-align:center}
   .member-tbl tbody tr:hover td{background:var(--primary-bg)}
 
@@ -253,14 +261,6 @@
 <!-- ===== 主内容区（顶部导航栏与左侧菜单栏由 框架.js 注入） ===== -->
 <div class="main-area">
 
-  <!-- 页面标签条（嵌入模式下隐藏，由壳子统一管理） -->
-  <div class="tabbar">
-    <div class="tab-item dashboard active" onclick="toast('当前已在「家庭档案」页','info')">
-      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      家庭档案
-    </div>
-  </div>
-
   <div class="content">
     <div class="content-card">
 
@@ -271,8 +271,14 @@
       <div class="page-head">
         <h1>家庭档案</h1>
         <div class="right">
-          <button class="btn btn-default" onclick="toast('家庭档案导出成功','success')">导出</button>
-          <button class="btn btn-primary" onclick="openCreateView()">新建</button>
+          <button class="btn btn-default" onclick="toast('家庭档案导出成功','success')">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            导出
+          </button>
+          <button class="btn btn-primary" onclick="openCreateView()">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            新建
+          </button>
         </div>
       </div>
 
@@ -309,9 +315,18 @@
             </select>
           </div>
           <div class="filter-btns">
-            <button class="btn btn-default" onclick="resetFilter()">重置</button>
-            <button class="btn btn-primary" onclick="applyFilter()">查看</button>
-            <button class="btn-plain" id="btnExpand" onclick="toggleExtra()">展开 +</button>
+            <button class="btn btn-default" onclick="resetFilter()">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 9 8 9"/></svg>
+              重置
+            </button>
+            <button class="btn btn-primary" onclick="applyFilter()">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+              查看
+            </button>
+            <button class="btn-plain" id="btnExpand" onclick="toggleExtra()">
+              <span id="btnExpandLab">展开</span>
+              <svg class="tri" viewBox="0 0 10 6"><polygon points="0,0 10,0 5,6"/></svg>
+            </button>
           </div>
         </div>
         <div class="filter-row extra" id="extraRow">
@@ -331,7 +346,7 @@
       <div class="table-wrap">
       <table class="fam-tbl">
         <colgroup>
-          <col style="width:34px"><col style="width:170px"><col style="width:90px"><col style="width:150px"><col style="width:90px"><col style="width:150px"><col style="width:90px"><col style="width:70px"><col style="width:110px"><col style="width:80px"><col style="width:90px"><col style="width:130px"><col style="width:150px">
+          <col style="width:40px"><col style="width:170px"><col style="width:90px"><col style="width:150px"><col style="width:90px"><col style="width:150px"><col style="width:100px"><col style="width:70px"><col style="width:140px"><col style="width:80px"><col style="width:90px"><col style="width:130px"><col style="width:150px">
         </colgroup>
         <thead>
           <tr>
@@ -345,7 +360,7 @@
             <th>贫困情况</th>
             <th>详细地址</th>
             <th>建档医生</th>
-            <th>建档日期</th>
+            <th class="center">建档日期</th>
             <th>建档机构</th>
             <th class="center">操作</th>
           </tr>
@@ -991,10 +1006,10 @@
     } else {
       list.forEach(function (r, i) {
         var famId = 'fam_' + i;
-        /* 家庭行（首户默认展开） */
-        var open = i === 0;
+        /* 家庭行（成员子表默认全部收起，点击箭头展开） */
+        var open = false;
         html += '<tr class="fam-row' + (open ? ' open' : '') + '" id="' + famId + '">'
-          + '<td class="center"><span class="fam-toggle" onclick="toggleFam(\'' + famId + '\',this)">' + (open ? '−' : '+') + '</span></td>'
+          + '<td class="center"><span class="fam-toggle" onclick="toggleFam(\'' + famId + '\',this)"><svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg></span></td>'
           + '<td title="' + esc(r.org) + '"><span class="cell">' + esc(r.org) + '</span></td>'
           + '<td>' + esc(r.owner) + '</td>'
           + '<td>' + esc(r.famNo) + '</td>'
@@ -1002,16 +1017,18 @@
           + '<td title="' + esc(r.idcard) + '"><span class="cell">' + esc(r.idcard) + '</span></td>'
           + '<td class="center">' + esc(r.birth) + '</td>'
           + '<td>' + esc(r.poverty) + '</td>'
-          + '<td>' + esc(r.addr) + '</td>'
+          + '<td title="' + esc(r.addr) + '"><span class="cell">' + esc(r.addr) + '</span></td>'
           + '<td>' + esc(r.doctor) + '</td>'
-          + '<td>' + esc(r.created) + '</td>'
+          + '<td class="center">' + esc(r.created) + '</td>'
           + '<td title="' + esc(r.buildOrg) + '"><span class="cell">' + esc(r.buildOrg) + '</span></td>'
           + '<td class="center">'
-          +   '<a class="op-link" onclick="toast(\'编辑家庭档案：' + esc(r.owner) + '\',\'info\')">编辑</a>'
+          +   '<a class="op-link" onclick="editFamily(\'' + famId + '\')">编辑</a>'
           +   '<span class="op-gap"></span>'
-          +   '<a class="op-link" onclick="toast(\'查看家庭档案：' + esc(r.owner) + '\',\'info\')">查看</a>'
+          +   '<a class="op-link" onclick="viewFamily(\'' + famId + '\')">查看</a>'
           +   '<span class="op-gap"></span>'
-          +   '<a class="op-link danger" onclick="toast(\'删除家庭档案：' + esc(r.owner) + '\',\'warning\')">删除家庭档案</a>'
+          +   '<a class="op-link danger" onclick="deleteFamily(\'' + famId + '\')">删除</a>'
+          +   '<span class="op-gap"></span>'
+          +   '<a class="op-link" onclick="toast(\'查看家庭档案详情：' + esc(r.owner) + '\',\'info\')">家庭档案</a>'
           + '</td>'
           + '</tr>';
         /* 成员块（默认收起，首户默认展开） */
@@ -1019,7 +1036,7 @@
           + '<td colspan="13" style="padding:0">'
           +   '<table class="member-tbl">'
           +     '<colgroup>'
-          +       '<col style="width:34px"><col style="width:90px"><col style="width:110px"><col style="width:50px"><col style="width:100px"><col style="width:170px"><col style="width:100px"><col style="width:120px"><col style="width:200px"><col style="width:120px">'
+          +       '<col style="width:64px"><col style="width:100px"><col style="width:110px"><col style="width:60px"><col style="width:100px"><col style="width:180px"><col style="width:120px"><col style="width:120px"><col style="width:220px"><col style="width:160px">'
           +     '</colgroup>'
           +     '<thead><tr>'
           +       '<th class="center">序号</th><th>姓名</th><th>与户主关系</th><th class="center">性别</th><th>证件类型</th><th>证件号</th><th class="center">出生日期</th><th>电话</th><th>地址</th><th class="center">操作</th>'
@@ -1035,7 +1052,7 @@
             + '<td title="' + esc(m.idcard) + '"><span class="cell">' + esc(m.idcard) + '</span></td>'
             + '<td class="center">' + esc(m.birth) + '</td>'
             + '<td>' + esc(m.phone) + '</td>'
-            + '<td>' + esc(m.addr) + '</td>'
+            + '<td title="' + esc(m.addr) + '"><span class="cell">' + esc(m.addr) + '</span></td>'
             + '<td class="center">'
             +   '<a class="op-link" onclick="toast(\'查看成员：' + esc(m.name) + '\',\'info\')">查看</a>'
             +   '<span class="op-gap"></span>'
@@ -1052,20 +1069,44 @@
     $('tbBody').innerHTML = html;
   }
 
+  /* 家庭档案行操作 */
+  function editFamily(famId) {
+    var i = parseInt(famId.split('_')[1], 10);
+    var r = familyData[i];
+    if (!r) return;
+    toast('编辑家庭档案：' + r.owner, 'info');
+  }
+  function viewFamily(famId) {
+    var i = parseInt(famId.split('_')[1], 10);
+    var r = familyData[i];
+    if (!r) return;
+    toast('查看家庭档案：' + r.owner, 'info');
+  }
+  function deleteFamily(famId) {
+    var i = parseInt(famId.split('_')[1], 10);
+    var r = familyData[i];
+    if (!r) return;
+    if (!window.confirm('确定删除「' + r.owner + '」的家庭档案吗？')) return;
+    familyData.splice(i, 1);
+    renderTable();
+    toast('已删除家庭档案：' + r.owner, 'success');
+  }
+
   /* ================= 交互 ================= */
   function toggleFam(famId, btn) {
     var block = $(famId + '_members');
     var row = $(famId);
     var show = block.style.display === 'none';
     block.style.display = show ? 'table-row' : 'none';
-    btn.textContent = show ? '−' : '+';
     row.classList.toggle('open', show);
   }
 
   function toggleExtra() {
     var row = $('extraRow');
     row.classList.toggle('show');
-    $('btnExpand').textContent = row.classList.contains('show') ? '收起 −' : '展开 +';
+    var open = row.classList.contains('show');
+    $('btnExpandLab').textContent = open ? '收起' : '展开';
+    $('btnExpand').classList.toggle('open', open);
   }
 
   function applyFilter() {

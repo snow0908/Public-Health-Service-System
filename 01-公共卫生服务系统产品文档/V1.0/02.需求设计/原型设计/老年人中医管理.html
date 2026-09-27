@@ -1099,20 +1099,21 @@
     $('selectModal').classList.remove('show');
   }
 
-  /* 点击"新建服务"：携带居民信息跳转至 档案服务.html 中医管理 → 老年人中医药健康管理服务 表单 */
+  /* 点击"新建服务"：携带居民信息跳转至 档案维护.html →「中医管理 · 老年人中医药健康管理服务」表单 */
   function startService(archNo) {
     var r = null;
     for (var i = 0; i < selectArchiveData.length; i++) {
       if (selectArchiveData[i].archNo === archNo) { r = selectArchiveData[i]; break; }
     }
     if (!r) return;
-    var qs = '?archNo=' + encodeURIComponent(r.archNo)
+    var qs = '?view=elderTcmService'
+      + '&archNo=' + encodeURIComponent(r.archNo)
       + '&name=' + encodeURIComponent(r.name)
       + '&gender=' + encodeURIComponent(r.gender)
-      + '&birth=' + encodeURIComponent(r.birth)
+      + '&age=' + encodeURIComponent(r.age)
       + '&idcard=' + encodeURIComponent(r.idcard)
-      + '&view=elderTcmService';
-    window.open('档案服务.html' + qs, '_blank');
+      + '&edit=1';
+    window.open('档案维护.html' + qs, '_blank');
   }
 
   /* 已有专项档案：点击"进入专项" */

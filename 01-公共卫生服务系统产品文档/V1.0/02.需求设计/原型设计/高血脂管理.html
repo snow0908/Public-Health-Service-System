@@ -89,10 +89,13 @@
   .op-more .more-btn:hover{text-decoration:underline}
   .op-more .more-btn svg{transition:transform var(--transition-fast)}
   .op-more.open .more-btn svg{transform:rotate(180deg)}
-  .op-menu{position:absolute;top:calc(100% + 6px);right:-8px;min-width:110px;background:var(--bg-white);border:1px solid var(--color-neutral-200);border-radius:var(--r-sm);box-shadow:var(--shadow-md);padding:4px 0;display:none;z-index:30}
-  .op-more.open .op-menu{display:block}
-  .op-menu .mi{display:block;width:100%;text-align:left;padding:7px 14px;font-size:13px;color:var(--text-secondary);line-height:1.4}
-  .op-menu .mi:hover{background:var(--primary-bg);color:var(--primary)}
+  .op-menu{display:none}
+  /* body 级下拉浮层（绕过 table-wrap overflow 裁剪 + sticky 列遮挡） */
+  .op-menu-float{position:fixed;min-width:110px;background:var(--bg-white);border:1px solid var(--color-neutral-200);border-radius:var(--r-sm);box-shadow:var(--shadow-md);padding:4px 0;z-index:1000}
+  .op-menu-float .mi{display:block;width:100%;text-align:left;padding:7px 14px;font-size:13px;color:var(--text-secondary);line-height:1.4;background:none;border:none;cursor:pointer}
+  .op-menu-float .mi:hover{background:var(--primary-bg);color:var(--primary)}
+  .op-menu-float .mi.mi-danger{color:var(--danger)}
+  .op-menu-float .mi.mi-danger:hover{background:var(--danger-bg);color:var(--danger)}
 
   /* ===== 分页 ===== */
   .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:52px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
@@ -703,14 +706,13 @@
           + '<td class="center">'
           +   '<a class="op-link" onclick="goArchive(\'' + esc(r.archNo) + '\')">编辑</a>'
           +   '<span class="op-gap"></span>'
-          +   '<a class="op-link" onclick="toast(\'新建随访：' + esc(r.name) + '（功能建设中）\',\'info\')">新建随访</a>'
+          +   '<a class="op-link" onclick="goArchive(\'' + esc(r.archNo) + '\',\'hlpFollowup\')">新建随访</a>'
           +   '<span class="op-gap"></span>'
           +   '<span class="op-more">'
           +     '<a class="more-btn" onclick="toggleOpMenu(this,event)">更多<svg viewBox="0 0 24 24" style="width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="6 9 12 15 18 9"/></svg></a>'
           +     '<span class="op-menu">'
-          +       '<button class="mi" onclick="opAction(\'随访记录\',\'' + esc(r.name) + '\')">随访记录</button>'
-          +       '<button class="mi" onclick="opAction(\'血脂上报\',\'' + esc(r.name) + '\')">血脂上报</button>'
-          +       '<button class="mi" onclick="opAction(\'打印专项档案\',\'' + esc(r.name) + '\')">打印专项档案</button>'
+          +       '<button class="mi" onclick="goArchive(\'' + esc(r.archNo) + '\')">查看</button>'
+          +       '<button class="mi mi-danger" onclick="openCancelArchive(\'' + esc(r.archNo) + '\')">注销</button>'
           +     '</span>'
           +   '</span>'
           + '</td>'
@@ -785,16 +787,33 @@
     btn.textContent = show ? '收起 −' : '展开 +';
   }
 
+  var opMenuFloat = null;
+
   function toggleOpMenu(el, ev) {
     if (ev) ev.stopPropagation();
     var wrap = el.closest('.op-more');
-    var wasOpen = wrap.classList.contains('open');
+    var wasOpen = opMenuFloat !== null;
     closeAllOpMenus();
-    if (!wasOpen) wrap.classList.add('open');
+    if (wasOpen) return;
+    var rect = el.getBoundingClientRect();
+    var menuHtml = wrap.querySelector('.op-menu').innerHTML;
+    opMenuFloat = document.createElement('div');
+    opMenuFloat.className = 'op-menu-float';
+    opMenuFloat.innerHTML = menuHtml;
+    document.body.appendChild(opMenuFloat);
+    var menuW = opMenuFloat.offsetWidth;
+    var menuH = opMenuFloat.offsetHeight;
+    var left = rect.right - menuW;
+    var top = rect.bottom + 6;
+    if (top + menuH > window.innerHeight - 8) top = rect.top - menuH - 6;
+    opMenuFloat.style.left = Math.max(8, left) + 'px';
+    opMenuFloat.style.top = top + 'px';
+    wrap.classList.add('open');
   }
 
   function closeAllOpMenus() {
     document.querySelectorAll('.op-more.open').forEach(function (m) { m.classList.remove('open'); });
+    if (opMenuFloat) { opMenuFloat.remove(); opMenuFloat = null; }
   }
 
   function opAction(action, name) {
@@ -963,14 +982,14 @@
 
   /* 选择档案后点击"新建专项"：跳转至档案维护页，切换到高血脂专项表填报界面 */
   /* 列表操作列「查看/编辑」：跳转档案维护页并定位到高血脂专项表（自动模拟内容） */
-  function goArchive(archNo) {
+  function goArchive(archNo, view) {
     var r = null;
     for (var i = 0; i < hlpData.length; i++) {
       if (hlpData[i].archNo === archNo) { r = hlpData[i]; break; }
     }
     if (!r) return;
     var params = [
-      'view=hyperlipidemia',
+      'view=' + (view || 'hyperlipidemia'),
       'name=' + encodeURIComponent(r.name),
       'gender=' + encodeURIComponent(r.gender === '男' ? '男性' : '女性'),
       'idcard=' + encodeURIComponent(r.idcard),
@@ -983,6 +1002,39 @@
     if (r.org) params.push('specOrg=' + encodeURIComponent(r.org));
     params.push('edit=1');
     location.href = '档案维护.html?' + params.join('&');
+  }
+
+  /* ================= 注销档案弹框 ================= */
+  var pendingArchNo = '';
+
+  function openCancelArchive(archNo) {
+    closeAllOpMenus();
+    pendingArchNo = archNo;
+    var r = null;
+    for (var i = 0; i < hlpData.length; i++) {
+      if (hlpData[i].archNo === archNo) { r = hlpData[i]; break; }
+    }
+    $('caName').textContent = r ? r.name : '';
+    $('caReason').value = '';
+    $('cntCaReason').textContent = '0/50';
+    $('cancelArchiveModal').classList.add('show');
+  }
+  function closeCancelArchive() {
+    $('cancelArchiveModal').classList.remove('show');
+    pendingArchNo = '';
+  }
+  function submitCancelArchive() {
+    var reason = $('caReason').value.trim();
+    if (!reason) { toast('请填写注销原因', 'warning'); return; }
+    var idx = -1, name = '';
+    for (var i = 0; i < hlpData.length; i++) {
+      if (hlpData[i].archNo === pendingArchNo) { idx = i; name = hlpData[i].name; break; }
+    }
+    if (idx > -1) hlpData.splice(idx, 1);
+    closeCancelArchive();
+    toast('居民「' + name + '」的高血脂专项档案已注销', 'success');
+    curPage = 1;
+    renderTable();
   }
 
   function selectArchive(archNo) {
@@ -1093,6 +1145,32 @@
   /* 初始渲染 */
   renderTable();
 </script>
+
+<!-- ===== 注销档案弹框 ===== -->
+<div class="modal-overlay" id="cancelArchiveModal">
+  <div class="modal" style="width:560px">
+    <div class="modal-head">
+      <h3>注销档案</h3>
+      <span class="modal-close" onclick="closeCancelArchive()">×</span>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:14px;font-size:14px;color:var(--text-secondary)">
+        如果注销此人的高血脂专项档案，所有的随访记录档案将一并注销，确定要注销吗？
+      </div>
+      <div class="fm-row" style="align-items:flex-start">
+        <label><i>*</i>注销原因：</label>
+        <div class="fm-ctl-wrap" style="flex:1">
+          <textarea id="caReason" maxlength="50" rows="4" style="width:100%;height:auto;min-height:80px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:8px 10px;font-size:14px;color:var(--text-secondary);outline:none;resize:vertical" oninput="document.getElementById('cntCaReason').textContent=this.value.length+'/50'"></textarea>
+          <span class="cnt" id="cntCaReason">0/50</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeCancelArchive()">取消</button>
+      <button class="btn btn-primary" onclick="submitCancelArchive()">确定</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>

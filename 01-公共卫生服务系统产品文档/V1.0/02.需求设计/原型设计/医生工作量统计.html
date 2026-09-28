@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>医生工作量统计 - 业务统计</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}
+
+  /* ===== 页头 ===== */
+  .page-head .right .btn{height:30px;padding:0 14px;font-size:13px}
+
+  /* ===== 统计 TAB ===== */
+  .stat-tabs{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px 10px;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .stat-tab{height:30px;padding:0 16px;border-radius:15px;border:1px solid #DDE3EA;background:#fff;color:var(--text-secondary);font-size:13px;cursor:pointer;transition:all var(--transition-fast);display:inline-flex;align-items:center}
+  .stat-tab:hover{border-color:var(--primary);color:var(--primary)}
+  .stat-tab.active{background:var(--primary);border-color:var(--primary);color:#fff}
+
+  /* ===== 筛选区 ===== */
+  .filter-panel{padding:14px 16px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin-bottom:14px}
+  .filter-item{display:flex;align-items:center;gap:4px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .fi-select.is-placeholder{color:var(--text-placeholder)}
+  .fi-date{width:118px}
+  .fi-range{display:flex;align-items:center;gap:4px;color:var(--text-tertiary)}
+  .fi-percent{position:relative;display:flex;align-items:center}
+  .fi-percent .fi-ctl{width:86px;padding-right:22px}
+  .fi-percent span{position:absolute;right:9px;font-size:13px;color:var(--text-tertiary);pointer-events:none}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+  /* ===== 数据表格 ===== */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+  .list-tbl th:last-child,.list-tbl td:last-child{position:sticky;right:0}
+  .list-tbl td:last-child{z-index:2;background-color:var(--bg-white)}
+  .list-tbl th:last-child{z-index:6}
+  .list-tbl{width:100%;min-width:1500px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:36px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:nth-child(even) td{background:var(--bg-table-even)}
+  .list-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .list-tbl tbody tr.sel td{background:#EAF3FF}
+  .table-wrap.hs-scrolled .list-tbl thead th:last-child,
+  .table-wrap.hs-scrolled .list-tbl tbody tr td:last-child{
+    background-image:linear-gradient(to right,rgba(0,0,0,0.10),rgba(0,0,0,0));
+    background-repeat:no-repeat;background-size:9px 100%;background-position:left center;
+  }
+  .list-tbl .center{text-align:center}
+  .list-tbl .num{font-family:Consolas,'Microsoft YaHei',monospace;text-align:right}
+  .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* 状态点 / 标签 */
+  .st-dot{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+  .st-dot i{width:7px;height:7px;border-radius:50%;flex:none}
+  .st-green i{background:#52C41A}
+  .st-yellow i{background:#F5A623}
+  .st-red i{background:#F5222D}
+  .st-gray i{background:#C0C4CC}
+  .st-blue i{background:#1890FF}
+  .type-tag{display:inline-block;padding:0 8px;height:18px;line-height:18px;border-radius:9px;font-size:12px}
+  .type-tag.in{background:#E6F7FF;color:#1890FF}
+  .type-tag.out{background:#F9F0FF;color:#7A3FF2}
+
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px}
+  .op-link:hover{text-decoration:underline}
+  .op-gap{display:inline-block;width:8px}
+
+  /* 空状态 */
+  .empty-td{height:200px;text-align:center;color:var(--text-tertiary)}
+  .empty-box{display:inline-flex;flex-direction:column;align-items:center;gap:10px}
+  .empty-box svg{width:56px;height:56px;stroke:#C9CFD8;fill:none;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round}
+  .empty-box p{font-size:13px;color:var(--text-placeholder)}
+
+  /* ===== 分页 ===== */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:44px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 22px 0 8px;font-size:13px;color:var(--text-secondary);background:#fff;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-btn.disabled{color:var(--text-disabled);cursor:not-allowed;border-color:#EBEBEB}
+  .pg-jump input{width:40px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 6px;font-size:13px;text-align:center;color:var(--text-primary);outline:none}
+</style>
+</head>
+<body>
+
+<div class="main-area">
+
+  <div class="tabbar">
+    <div class="tab-item active">医生工作量统计</div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <div class="page-head">
+        <h1>医生工作量统计</h1>
+        <div class="right">
+          <button class="btn btn-default" onclick="toast('导出成功','success')">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            导出
+          </button>
+        </div>
+      </div>
+
+      <div class="stat-tabs" id="statTabs"></div>
+      <div class="filter-panel" id="filterPanel"></div>
+      <div class="table-wrap" id="tableWrap">
+        <table class="list-tbl" id="listTbl">
+          <colgroup id="colgroup"></colgroup>
+          <thead id="thead"></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="page-foot">
+        <div class="pg-total">共 <b id="total">0</b> 条</div>
+        <div class="pg-size">
+          <select>
+            <option>20 条/页</option>
+            <option>50 条/页</option>
+            <option>100 条/页</option>
+          </select>
+        </div>
+        <div class="pg-pager">
+          <button class="pg-btn disabled">&lt;</button>
+          <button class="pg-btn active">1</button>
+          <button class="pg-btn disabled">&gt;</button>
+        </div>
+        <div class="pg-jump">跳至 <input type="text" value="1"> 页</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="框架.js" data-page="doctor-workload-stat" data-embed="auto"></script>
+<script>
+  /* ================= 工具 ================= */
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function markSelect(el) { el.classList.toggle('is-placeholder', el.value === ''); }
+
+  var ORGS = ['请选择','扬州市江都区仙女社区卫生服务中心','扬州市江都区郭村镇卫生院','扬州市江都区小纪镇兴旺村卫生室','扬州市江都区大桥镇杨墅村卫生室','扬州市江都区真武镇曹桥村卫生室','仙女镇北苑社区','仙女镇镇北社区','仪征市月塘中心卫生院','山东大学齐鲁医院'];
+  var GRIDS = ['请选择','仙女镇','大桥镇','郭村镇','小纪镇','真武镇','丁沟镇'];
+  var RES_ST = ['请选择','正常','迁出','死亡','失访'];
+  var MG_ST  = ['请选择','未管理','在管','暂缓管理','退出管理'];
+  var FWAY   = ['请选择','门诊','电话','家庭访视'];
+  var FCLS   = ['请选择','控制满意','控制不满意','控制一般','未分类'];
+  var FRES   = ['请选择','已随访','失访','转诊'];
+  var T_ST   = ['请选择','待审核','审核通过','审核驳回'];
+  var T_TYPE = ['请选择','迁入单','迁出单'];
+  var G_SRC  = ['请选择','本系统','外系统'];
+  var DIS1   = ['请选择','高血压','糖尿病','慢阻肺','其他'];
+
+  function opts(arr) {
+    return arr.map(function (o, i) {
+      return '<option value="' + esc(o) + '"' + (i === 0 ? ' value=""' : '') + '>' + esc(o) + '</option>';
+    }).join('');
+  }
+
+  /* ================= 数据 ================= */
+  var SUMMARY_ROWS = [
+    { org:'扬州市江都区仙女镇金陵村卫生室', doc:'柏红霖', hyp:1,  dm:3,  copd:0, trans:0,  diet:0 },
+    { org:'扬州市江都区大桥镇杨墅村卫生室', doc:'卞露丹', hyp:1,  dm:0,  copd:0, trans:0,  diet:0 },
+    { org:'仙女镇镇北社区',                 doc:'蔡其兰', hyp:1,  dm:0,  copd:0, trans:0,  diet:0 },
+    { org:'扬州市江都区仙女社区卫生服务中心', doc:'蔡娅媛', hyp:0,  dm:0,  copd:0, trans:37, diet:0 },
+    { org:'仙女镇北苑社区',                 doc:'蔡娅媛', hyp:4,  dm:3,  copd:0, trans:0,  diet:0 },
+    { org:'扬州市江都区郭村镇卫生院',        doc:'曹爱兵', hyp:0,  dm:0,  copd:0, trans:20, diet:0 },
+    { org:'扬州市江都区小纪镇宗村村卫生室',  doc:'曹爱梅', hyp:2,  dm:0,  copd:0, trans:0,  diet:0 },
+    { org:'扬州市江都区小纪镇吉东村卫生室',  doc:'曹爱梅', hyp:2,  dm:0,  copd:0, trans:0,  diet:0 },
+    { org:'扬州市江都区小纪镇高徐村卫生室',  doc:'曹爱梅', hyp:3,  dm:0,  copd:0, trans:0,  diet:0 },
+    { org:'扬州市江都区小纪镇兴旺村卫生室',  doc:'曹爱梅', hyp:158,dm:64, copd:0, trans:0,  diet:0 },
+    { org:'扬州市江都区丁沟镇卫生院',        doc:'曹亮',   hyp:1,  dm:0,  copd:0, trans:0,  diet:0 },
+    { org:'扬州市江都区仙女社区卫生服务中心', doc:'曹晓静', hyp:0,  dm:0,  copd:0, trans:185,diet:0 },
+    { org:'仙女镇禹王宫社区',                doc:'曹晓静', hyp:1,  dm:0,  copd:0, trans:0,  diet:0 },
+    { org:'仙女镇孔庄社区',                  doc:'曹晓静', hyp:2,  dm:0,  copd:0, trans:0,  diet:0 },
+    { org:'仙女镇南苑社区',                  doc:'曹晓静', hyp:0,  dm:0,  copd:1, trans:0,  diet:0 },
+    { org:'仙女镇龙川社区',                  doc:'曹晓静', hyp:5,  dm:0,  copd:0, trans:0,  diet:0 },
+    { org:'仙女镇横沟村卫生室',              doc:'陈保国', hyp:1,  dm:0,  copd:0, trans:0,  diet:0 },
+    { org:'扬州市江都区吴川镇大桥村卫生室',  doc:'陈传英', hyp:623,dm:179,copd:18,trans:10, diet:0 },
+    { org:'扬州市江都区小纪镇太平村卫生室',  doc:'陈存凤', hyp:1279,dm:329,copd:14,trans:0,  diet:1 },
+    { org:'扬州市江都区真武镇曹桥村卫生室',  doc:'陈飞',   hyp:26, dm:4,  copd:0, trans:0,  diet:0 }
+  ];
+
+  var HYP_ROWS = [
+    { org:'扬州市江都区小纪镇太平村卫生室', name:'陈粉风', id:'3210********1568', idType:'身份证号', sex:'女', age:68, phone:'158****6909', fdate:'2026-08-12', fway:'门诊', fcls:'控制不满意', fdoc:'凌金妹', lock:'未上锁' },
+    { org:'扬州市江都区小纪镇兴旺村卫生室', name:'吴桂华', id:'3210********2356', idType:'身份证号', sex:'女', age:72, phone:'139****2231', fdate:'2026-08-18', fway:'门诊', fcls:'控制不满意', fdoc:'凌金妹', lock:'未上锁' },
+    { org:'扬州市江都区仙女社区卫生服务中心', name:'王秀珍', id:'3210********8964', idType:'身份证号', sex:'女', age:65, phone:'137****8820', fdate:'2026-08-21', fway:'门诊', fcls:'控制满意',   fdoc:'蔡娅媛', lock:'未上锁' },
+    { org:'仙女镇北苑社区',                 name:'张桂英', id:'3210********4512', idType:'身份证号', sex:'女', age:70, phone:'151****3467', fdate:'2026-08-25', fway:'门诊', fcls:'控制不满意', fdoc:'蔡娅媛', lock:'未上锁' },
+    { org:'扬州市江都区郭村镇卫生院',        name:'李秀兰', id:'3210********7845', idType:'身份证号', sex:'女', age:66, phone:'136****9012', fdate:'2026-08-27', fway:'门诊', fcls:'控制一般',   fdoc:'曹爱兵', lock:'未上锁' },
+    { org:'仙女镇禹王宫社区',                name:'赵秀英', id:'3210********3689', idType:'身份证号', sex:'女', age:74, phone:'158****2210', fdate:'2026-09-01', fway:'门诊', fcls:'控制不满意', fdoc:'曹晓静', lock:'未上锁' },
+    { org:'仙女镇孔庄社区',                  name:'刘玉兰', id:'3210********9145', idType:'身份证号', sex:'女', age:69, phone:'133****6754', fdate:'2026-09-03', fway:'门诊', fcls:'控制满意',   fdoc:'曹晓静', lock:'未上锁' },
+    { org:'仙女镇龙川社区',                  name:'周桂芳', id:'3210********5871', idType:'身份证号', sex:'女', age:71, phone:'150****4432', fdate:'2026-09-05', fway:'门诊', fcls:'控制不满意', fdoc:'曹晓静', lock:'未上锁' },
+    { org:'扬州市江都区真武镇曹桥村卫生室',  name:'陈传英', id:'3210********1234', idType:'身份证号', sex:'女', age:73, phone:'139****8876', fdate:'2026-09-06', fway:'门诊', fcls:'控制不满意', fdoc:'陈飞',   lock:'未上锁' },
+    { org:'扬州市江都区大桥镇杨墅村卫生室',  name:'卞玉珍', id:'3210********6678', idType:'身份证号', sex:'女', age:67, phone:'158****3320', fdate:'2026-09-08', fway:'门诊', fcls:'控制满意',   fdoc:'卞露丹', lock:'未上锁' },
+    { org:'扬州市江都区仙女社区卫生服务中心', name:'王长喜', id:'3210********4456', idType:'身份证号', sex:'男', age:64, phone:'137****1098', fdate:'2026-09-09', fway:'门诊', fcls:'控制不满意', fdoc:'蔡娅媛', lock:'未上锁' },
+    { org:'仙女镇镇北社区',                 name:'柏世华', id:'3210********3321', idType:'身份证号', sex:'男', age:76, phone:'151****5523', fdate:'2026-09-10', fway:'门诊', fcls:'控制不满意', fdoc:'蔡其兰', lock:'未上锁' },
+    { org:'扬州市江都区小纪镇太平村卫生室',  name:'曹德全', id:'3210********7789', idType:'身份证号', sex:'男', age:69, phone:'136****2214', fdate:'2026-09-11', fway:'门诊', fcls:'控制一般',   fdoc:'凌金妹', lock:'未上锁' },
+    { org:'扬州市江都区郭村镇卫生院',        name:'孙玉英', id:'3210********5567', idType:'身份证号', sex:'女', age:68, phone:'159****6678', fdate:'2026-09-12', fway:'门诊', fcls:'控制不满意', fdoc:'曹爱兵', lock:'未上锁' },
+    { org:'仙女镇南苑社区',                  name:'杨秀兰', id:'3210********2245', idType:'身份证号', sex:'女', age:70, phone:'138****7789', fdate:'2026-09-13', fway:'门诊', fcls:'控制满意',   fdoc:'曹晓静', lock:'未上锁' },
+    { org:'扬州市江都区丁沟镇卫生院',        name:'吴长贵', id:'3210********9912', idType:'身份证号', sex:'男', age:72, phone:'135****4430', fdate:'2026-09-15', fway:'门诊', fcls:'控制不满意', fdoc:'曹亮',   lock:'未上锁' },
+    { org:'扬州市江都区吴川镇大桥村卫生室',  name:'陈明芳', id:'3210********8823', idType:'身份证号', sex:'女', age:65, phone:'133****9910', fdate:'2026-09-16', fway:'门诊', fcls:'控制不满意', fdoc:'陈传英', lock:'未上锁' },
+    { org:'仙女镇横沟村卫生室',              name:'蒋金凤', id:'3210********1190', idType:'身份证号', sex:'女', age:74, phone:'151****2246', fdate:'2026-09-17', fway:'门诊', fcls:'控制一般',   fdoc:'陈保国', lock:'未上锁' },
+    { org:'扬州市江都区小纪镇兴旺村卫生室',  name:'高长林', id:'3210********6670', idType:'身份证号', sex:'男', age:71, phone:'137****8802', fdate:'2026-09-18', fway:'门诊', fcls:'控制不满意', fdoc:'凌金妹', lock:'未上锁' },
+    { org:'扬州市江都区仙女社区卫生服务中心', name:'韩秀珍', id:'3210********3314', idType:'身份证号', sex:'女', age:66, phone:'136****1145', fdate:'2026-09-19', fway:'门诊', fcls:'控制满意',   fdoc:'蔡娅媛', lock:'未上锁' }
+  ];
+
+  var DM_ROWS = [
+    { org:'扬州市江都区小纪镇太平村卫生室', name:'曹德全', id:'3210********7789', idType:'身份证号', sex:'男', age:69, phone:'136****2214', fdate:'2026-08-10', fway:'门诊', fcls:'控制不满意', fdoc:'凌金妹', lock:'未上锁' },
+    { org:'仙女镇北苑社区',                 name:'张桂英', id:'3210********4512', idType:'身份证号', sex:'女', age:70, phone:'151****3467', fdate:'2026-08-15', fway:'门诊', fcls:'控制满意',   fdoc:'蔡娅媛', lock:'未上锁' },
+    { org:'扬州市江都区仙女社区卫生服务中心', name:'王秀珍', id:'3210********8964', idType:'身份证号', sex:'女', age:65, phone:'137****8820', fdate:'2026-08-22', fway:'门诊', fcls:'控制不满意', fdoc:'蔡娅媛', lock:'未上锁' },
+    { org:'扬州市江都区郭村镇卫生院',        name:'孙玉英', id:'3210********5567', idType:'身份证号', sex:'女', age:68, phone:'159****6678', fdate:'2026-09-02', fway:'门诊', fcls:'控制一般',   fdoc:'曹爱兵', lock:'未上锁' },
+    { org:'仙女镇禹王宫社区',                name:'赵秀英', id:'3210********3689', idType:'身份证号', sex:'女', age:74, phone:'158****2210', fdate:'2026-09-04', fway:'门诊', fcls:'控制不满意', fdoc:'曹晓静', lock:'未上锁' },
+    { org:'扬州市江都区真武镇曹桥村卫生室',  name:'陈传英', id:'3210********1234', idType:'身份证号', sex:'女', age:73, phone:'139****8876', fdate:'2026-09-07', fway:'门诊', fcls:'控制满意',   fdoc:'陈飞',   lock:'未上锁' },
+    { org:'扬州市江都区大桥镇杨墅村卫生室',  name:'卞玉珍', id:'3210********6678', idType:'身份证号', sex:'女', age:67, phone:'158****3320', fdate:'2026-09-10', fway:'门诊', fcls:'控制不满意', fdoc:'卞露丹', lock:'未上锁' },
+    { org:'仙女镇南苑社区',                  name:'杨秀兰', id:'3210********2245', idType:'身份证号', sex:'女', age:70, phone:'138****7789', fdate:'2026-09-14', fway:'门诊', fcls:'控制不满意', fdoc:'曹晓静', lock:'未上锁' },
+    { org:'扬州市江都区小纪镇兴旺村卫生室',  name:'高长林', id:'3210********6670', idType:'身份证号', sex:'男', age:71, phone:'137****8802', fdate:'2026-09-18', fway:'门诊', fcls:'控制满意',   fdoc:'凌金妹', lock:'未上锁' },
+    { org:'扬州市江都区仙女社区卫生服务中心', name:'韩秀珍', id:'3210********3314', idType:'身份证号', sex:'女', age:66, phone:'136****1145', fdate:'2026-09-20', fway:'门诊', fcls:'控制一般',   fdoc:'蔡娅媛', lock:'未上锁' },
+    { org:'仙女镇镇北社区',                 name:'柏世华', id:'3210********3321', idType:'身份证号', sex:'男', age:76, phone:'151****5523', fdate:'2026-09-21', fway:'门诊', fcls:'控制不满意', fdoc:'蔡其兰', lock:'未上锁' },
+    { org:'扬州市江都区吴川镇大桥村卫生室',  name:'陈明芳', id:'3210********8823', idType:'身份证号', sex:'女', age:65, phone:'133****9910', fdate:'2026-09-22', fway:'门诊', fcls:'控制满意',   fdoc:'陈传英', lock:'未上锁' },
+    { org:'仙女镇孔庄社区',                  name:'刘玉兰', id:'3210********9145', idType:'身份证号', sex:'女', age:69, phone:'133****6754', fdate:'2026-09-23', fway:'门诊', fcls:'控制不满意', fdoc:'曹晓静', lock:'未上锁' },
+    { org:'扬州市江都区丁沟镇卫生院',        name:'吴长贵', id:'3210********9912', idType:'身份证号', sex:'男', age:72, phone:'135****4430', fdate:'2026-09-24', fway:'门诊', fcls:'控制不满意', fdoc:'曹亮',   lock:'未上锁' }
+  ];
+
+  var TRANSFER_ROWS = [
+    { org:'扬州市江都区仙女社区卫生服务中心', name:'王长喜', id:'3210********4456', idType:'身份证号', sex:'男', age:64, phone:'137****1098', birth:'1962-04-15', addr:'仙女镇龙川社区', doc:'蔡娅媛', type:'迁入单', st:'待审核' },
+    { org:'扬州市江都区郭村镇卫生院',        name:'孙玉英', id:'3210********5567', idType:'身份证号', sex:'女', age:68, phone:'159****6678', birth:'1958-08-22', addr:'郭村镇郭村村', doc:'曹爱兵', type:'迁出单', st:'审核通过' },
+    { org:'扬州市江都区小纪镇兴旺村卫生室',  name:'高长林', id:'3210********6670', idType:'身份证号', sex:'男', age:71, phone:'137****8802', birth:'1955-03-09', addr:'小纪镇兴旺村', doc:'凌金妹', type:'迁入单', st:'审核通过' },
+    { org:'仙女镇北苑社区',                 name:'张桂英', id:'3210********4512', idType:'身份证号', sex:'女', age:70, phone:'151****3467', birth:'1956-11-30', addr:'仙女镇北苑社区', doc:'蔡娅媛', type:'迁出单', st:'审核驳回' },
+    { org:'扬州市江都区真武镇曹桥村卫生室',  name:'陈传英', id:'3210********1234', idType:'身份证号', sex:'女', age:73, phone:'139****8876', birth:'1953-05-18', addr:'真武镇曹桥村', doc:'陈飞',   type:'迁入单', st:'待审核' },
+    { org:'扬州市江都区大桥镇杨墅村卫生室',  name:'卞玉珍', id:'3210********6678', idType:'身份证号', sex:'女', age:67, phone:'158****3320', birth:'1959-09-26', addr:'大桥镇杨墅村', doc:'卞露丹', type:'迁出单', st:'审核通过' },
+    { org:'扬州市江都区仙女社区卫生服务中心', name:'韩秀珍', id:'3210********3314', idType:'身份证号', sex:'女', age:66, phone:'136****1145', birth:'1960-12-03', addr:'仙女镇禹王宫社区', doc:'蔡娅媛', type:'迁入单', st:'审核驳回' },
+    { org:'仙女镇南苑社区',                  name:'杨秀兰', id:'3210********2245', idType:'身份证号', sex:'女', age:70, phone:'138****7789', birth:'1956-07-12', addr:'仙女镇南苑社区', doc:'曹晓静', type:'迁出单', st:'待审核' },
+    { org:'扬州市江都区丁沟镇卫生院',        name:'吴长贵', id:'3210********9912', idType:'身份证号', sex:'男', age:72, phone:'135****4430', birth:'1954-02-28', addr:'丁沟镇联民村', doc:'曹亮',   type:'迁入单', st:'审核通过' },
+    { org:'扬州市江都区吴川镇大桥村卫生室',  name:'陈明芳', id:'3210********8823', idType:'身份证号', sex:'女', age:65, phone:'133****9910', birth:'1961-10-19', addr:'吴川镇大桥村', doc:'陈传英', type:'迁出单', st:'审核通过' }
+  ];
+
+  var DIET_ROWS = [
+    { org:'扬州市江都区小纪镇卫生院', name:'陈明芳', id:'3210********8823', idType:'身份证号', sex:'女', age:65, phone:'133****9910', dis:'高血压',      ddate:'2026-09-03', doc:'邵宇',   src:'本系统', st:'正常' },
+    { org:'仪征市月塘中心卫生院',     name:'张生典', id:'3210********7741', idType:'身份证号', sex:'男', age:72, phone:'139****2235', dis:'糖尿病',      ddate:'2026-09-05', doc:'张华',   src:'本系统', st:'正常' },
+    { org:'扬州市江都区郭村镇卫生院', name:'赵秀英', id:'3210********3689', idType:'身份证号', sex:'女', age:74, phone:'158****2210', dis:'高血压/糖尿病', ddate:'2026-09-06', doc:'杨红琴', src:'本系统', st:'正常' },
+    { org:'仙女镇北苑社区',           name:'张桂英', id:'3210********4512', idType:'身份证号', sex:'女', age:70, phone:'151****3467', dis:'高血压',      ddate:'2026-09-08', doc:'蔡娅媛', src:'本系统', st:'正常' },
+    { org:'扬州市江都区真武镇卫生院', name:'陈传英', id:'3210********1234', idType:'身份证号', sex:'女', age:73, phone:'139****8876', dis:'慢阻肺',      ddate:'2026-09-10', doc:'陈飞',   src:'本系统', st:'正常' },
+    { org:'扬州市江都区大桥镇卫生院', name:'卞玉珍', id:'3210********6678', idType:'身份证号', sex:'女', age:67, phone:'158****3320', dis:'糖尿病',      ddate:'2026-09-11', doc:'卞露丹', src:'本系统', st:'正常' },
+    { org:'仙女镇禹王宫社区',         name:'赵长贵', id:'3210********5562', idType:'身份证号', sex:'男', age:68, phone:'137****4478', dis:'高血压',      ddate:'2026-09-12', doc:'曹晓静', src:'本系统', st:'正常' },
+    { org:'扬州市江都区仙女社区卫生服务中心', name:'王秀珍', id:'3210********8964', idType:'身份证号', sex:'女', age:65, phone:'137****8820', dis:'高血压/糖尿病', ddate:'2026-09-13', doc:'蔡娅媛', src:'本系统', st:'正常' },
+    { org:'仪征市陈集中心卫生院',     name:'李秀兰', id:'3210********7845', idType:'身份证号', sex:'女', age:66, phone:'136****9012', dis:'高血压',      ddate:'2026-09-15', doc:'张华',   src:'本系统', st:'正常' },
+    { org:'扬州市江都区小纪镇卫生院', name:'高长林', id:'3210********6670', idType:'身份证号', sex:'男', age:71, phone:'137****8802', dis:'慢阻肺',      ddate:'2026-09-16', doc:'凌金妹', src:'本系统', st:'正常' },
+    { org:'仙女镇南苑社区',           name:'杨秀兰', id:'3210********2245', idType:'身份证号', sex:'女', age:70, phone:'138****7789', dis:'糖尿病',      ddate:'2026-09-18', doc:'曹晓静', src:'本系统', st:'正常' },
+    { org:'扬州市江都区丁沟镇卫生院', name:'吴长贵', id:'3210********9912', idType:'身份证号', sex:'男', age:72, phone:'135****4430', dis:'高血压',      ddate:'2026-09-19', doc:'曹亮',   src:'本系统', st:'正常' },
+    { org:'扬州市江都区仙女社区卫生服务中心', name:'韩秀珍', id:'3210********3314', idType:'身份证号', sex:'女', age:66, phone:'136****1145', dis:'高血压',    ddate:'2026-09-20', doc:'蔡娅媛', src:'本系统', st:'正常' },
+    { org:'仙女镇镇北社区',           name:'柏世华', id:'3210********3321', idType:'身份证号', sex:'男', age:76, phone:'151****5523', dis:'高血压/糖尿病', ddate:'2026-09-22', doc:'蔡其兰', src:'本系统', st:'正常' },
+    { org:'仪征市刘集中心卫生院',     name:'孙玉英', id:'3210********5567', idType:'身份证号', sex:'女', age:68, phone:'159****6678', dis:'糖尿病',      ddate:'2026-09-23', doc:'张华',   src:'本系统', st:'正常' },
+    { org:'扬州市江都区郭村镇卫生院', name:'曹德全', id:'3210********7789', idType:'身份证号', sex:'男', age:69, phone:'136****2214', dis:'高血压',      ddate:'2026-09-24', doc:'杨红琴', src:'本系统', st:'正常' },
+    { org:'仙女镇孔庄社区',           name:'刘玉兰', id:'3210********9145', idType:'身份证号', sex:'女', age:69, phone:'133****6754', dis:'慢阻肺',      ddate:'2026-09-25', doc:'曹晓静', src:'本系统', st:'正常' },
+    { org:'扬州市江都区吴川镇卫生院', name:'陈保国', id:'3210********8845', idType:'身份证号', sex:'男', age:63, phone:'138****7712', dis:'高血压',      ddate:'2026-09-26', doc:'陈传英', src:'本系统', st:'正常' }
+  ];
+
+  var COPd_ROWS = [];
+
+  /* ================= TAB 配置 ================= */
+  var TABS = {
+    summary: {
+      label: '按医生汇总',
+      rows: SUMMARY_ROWS,
+      filters: [
+        { items: [
+          { type: 'select', label: '业务机构', key: 'org',  opts: ORGS },
+          { type: 'input',  label: '业务医生', key: 'doc',  ph: '请输入' },
+          { type: 'daterange', label: '业务日期', key: 'date' },
+          { type: 'select', label: '居民状态', key: 'resst', opts: RES_ST }
+        ] }
+      ],
+      cols: [
+        { label: '序号', w: 52,  c: 1, t: function (r, i) { return i + 1; } },
+        { label: '业务机构', w: 240, render: function (r) { return r.org; } },
+        { label: '业务医生', w: 90,  render: function (r) { return r.doc; } },
+        { label: '高血压随访合计', w: 120, num: 1, render: function (r) { return r.hyp; } },
+        { label: '糖尿病随访合计', w: 120, num: 1, render: function (r) { return r.dm; } },
+        { label: '慢阻肺随访合计', w: 120, num: 1, render: function (r) { return r.copd; } },
+        { label: '档案迁移合计', w: 110, num: 1, render: function (r) { return r.trans; } },
+        { label: '膳食处方合计', w: 110, num: 1, render: function (r) { return r.diet; } }
+      ]
+    },
+    hyp: {
+      label: '高血压随访',
+      rows: HYP_ROWS,
+      filters: [
+        { items: [
+          { type: 'select', label: '业务机构', key: 'org',   opts: ORGS },
+          { type: 'select', label: '管理网格', key: 'grid',  opts: GRIDS },
+          { type: 'input',  label: '随访医生', key: 'fdoc',  ph: '请输入' },
+          { type: 'daterange', label: '随访日期', key: 'fdate' },
+          { type: 'select', label: '居民状态', key: 'resst', opts: RES_ST },
+          { type: 'select', label: '管理状态', key: 'mgst',  opts: MG_ST }
+        ] },
+        { items: [
+          { type: 'input',  label: '姓名', key: 'name', ph: '请输入' },
+          { type: 'input',  label: '证件号', key: 'id',  ph: '请输入' },
+          { type: 'select', label: '随访方式', key: 'fway', opts: FWAY },
+          { type: 'select', label: '此次随访分类', key: 'fcls', opts: FCLS },
+          { type: 'percent', label: '档案完整度', key: 'per', ph: '请输入' }
+        ] },
+        { items: [
+          { type: 'input',  label: '联系电话', key: 'phone', ph: '请输入' },
+          { type: 'select', label: '随访结果', key: 'fres', opts: FRES }
+        ] }
+      ],
+      cols: [
+        { label: '序号', w: 52,  c: 1, t: function (r, i) { return i + 1; } },
+        { label: '管理机构', w: 220, render: function (r) { return r.org; } },
+        { label: '姓名', w: 84,  render: function (r) { return r.name; } },
+        { label: '证件号', w: 150, render: function (r) { return r.id; } },
+        { label: '证件类型', w: 90,  render: function (r) { return r.idType; } },
+        { label: '性别', w: 58,  c: 1, render: function (r) { return r.sex; } },
+        { label: '年龄', w: 58,  c: 1, render: function (r) { return r.age; } },
+        { label: '联系电话', w: 118, render: function (r) { return r.phone; } },
+        { label: '随访日期', w: 108, render: function (r) { return r.fdate; } },
+        { label: '随访方式', w: 88,  render: function (r) { return r.fway; } },
+        { label: '此次随访分类', w: 116, render: function (r) { return r.fcls; } },
+        { label: '随访医生', w: 88,  render: function (r) { return r.fdoc; } },
+        { label: '锁定状态', w: 100, render: function (r) { return '<span class="st-dot st-' + (r.lock === '已锁定' ? 'red' : 'green') + '"><i></i>' + esc(r.lock) + '</span>'; } },
+        { label: '操作', w: 110, c: 1, render: function (r) { return '<a class="op-link" onclick="toast(\'查看 ' + esc(r.name) + ' 随访记录\',\'info\')">查看</a><span class="op-gap"></span><a class="op-link" onclick="toast(\'编辑 ' + esc(r.name) + ' 随访记录\',\'info\')">编辑</a>'; } }
+      ]
+    },
+    dm: {
+      label: '糖尿病随访',
+      rows: DM_ROWS,
+      filters: [
+        { items: [
+          { type: 'select', label: '业务机构', key: 'org',   opts: ORGS },
+          { type: 'select', label: '管理网格', key: 'grid',  opts: GRIDS },
+          { type: 'input',  label: '随访医生', key: 'fdoc',  ph: '请输入' },
+          { type: 'daterange', label: '随访日期', key: 'fdate' },
+          { type: 'select', label: '居民状态', key: 'resst', opts: RES_ST },
+          { type: 'select', label: '管理状态', key: 'mgst',  opts: MG_ST }
+        ] },
+        { items: [
+          { type: 'input',  label: '姓名', key: 'name', ph: '请输入' },
+          { type: 'input',  label: '证件号', key: 'id',  ph: '请输入' },
+          { type: 'select', label: '随访方式', key: 'fway', opts: FWAY },
+          { type: 'select', label: '此次随访分类', key: 'fcls', opts: FCLS },
+          { type: 'percent', label: '档案完整度', key: 'per', ph: '请输入' }
+        ] },
+        { items: [
+          { type: 'input',  label: '联系电话', key: 'phone', ph: '请输入' },
+          { type: 'select', label: '随访结果', key: 'fres', opts: FRES }
+        ] }
+      ],
+      cols: [
+        { label: '序号', w: 52,  c: 1, t: function (r, i) { return i + 1; } },
+        { label: '管理机构', w: 220, render: function (r) { return r.org; } },
+        { label: '姓名', w: 84,  render: function (r) { return r.name; } },
+        { label: '证件号', w: 150, render: function (r) { return r.id; } },
+        { label: '证件类型', w: 90,  render: function (r) { return r.idType; } },
+        { label: '性别', w: 58,  c: 1, render: function (r) { return r.sex; } },
+        { label: '年龄', w: 58,  c: 1, render: function (r) { return r.age; } },
+        { label: '联系电话', w: 118, render: function (r) { return r.phone; } },
+        { label: '随访日期', w: 108, render: function (r) { return r.fdate; } },
+        { label: '随访方式', w: 88,  render: function (r) { return r.fway; } },
+        { label: '此次随访分类', w: 116, render: function (r) { return r.fcls; } },
+        { label: '随访医生', w: 88,  render: function (r) { return r.fdoc; } },
+        { label: '锁定状态', w: 100, render: function (r) { return '<span class="st-dot st-' + (r.lock === '已锁定' ? 'red' : 'green') + '"><i></i>' + esc(r.lock) + '</span>'; } },
+        { label: '操作', w: 110, c: 1, render: function (r) { return '<a class="op-link" onclick="toast(\'查看 ' + esc(r.name) + ' 随访记录\',\'info\')">查看</a><span class="op-gap"></span><a class="op-link" onclick="toast(\'编辑 ' + esc(r.name) + ' 随访记录\',\'info\')">编辑</a>'; } }
+      ]
+    },
+    copd: {
+      label: '慢阻肺随访',
+      rows: COPd_ROWS,
+      filters: [
+        { items: [
+          { type: 'select', label: '管理机构', key: 'org',   opts: ORGS },
+          { type: 'select', label: '管辖网格', key: 'grid',  opts: GRIDS },
+          { type: 'input',  label: '随访医生', key: 'fdoc',  ph: '请输入' },
+          { type: 'daterange', label: '随访日期', key: 'fdate' },
+          { type: 'select', label: '居民状态', key: 'resst', opts: RES_ST }
+        ] },
+        { items: [
+          { type: 'select', label: '管理状态', key: 'mgst', opts: MG_ST },
+          { type: 'input',  label: '姓名', key: 'name', ph: '请输入' },
+          { type: 'input',  label: '证件号', key: 'id',  ph: '请输入' },
+          { type: 'select', label: '随访方式', key: 'fway', opts: FWAY },
+          { type: 'select', label: '此次随访分类', key: 'fcls', opts: FCLS }
+        ] },
+        { items: [
+          { type: 'input',  label: '联系电话', key: 'phone', ph: '请输入' },
+          { type: 'select', label: '随访结果', key: 'fres', opts: FRES }
+        ] }
+      ],
+      cols: [
+        { label: '序号', w: 52,  c: 1, t: function (r, i) { return i + 1; } },
+        { label: '管理机构', w: 220, render: function (r) { return r.org; } },
+        { label: '姓名', w: 84,  render: function (r) { return r.name; } },
+        { label: '证件号', w: 150, render: function (r) { return r.id; } },
+        { label: '证件类型', w: 90,  render: function (r) { return r.idType; } },
+        { label: '性别', w: 58,  c: 1, render: function (r) { return r.sex; } },
+        { label: '年龄', w: 58,  c: 1, render: function (r) { return r.age; } },
+        { label: '联系电话', w: 118, render: function (r) { return r.phone; } },
+        { label: '随访日期', w: 108, render: function (r) { return r.fdate; } },
+        { label: '随访方式', w: 88,  render: function (r) { return r.fway; } },
+        { label: '此次随访分类', w: 116, render: function (r) { return r.fcls; } },
+        { label: '随访医生', w: 88,  render: function (r) { return r.fdoc; } },
+        { label: '锁定状态', w: 100, render: function (r) { return '<span class="st-dot st-' + (r.lock === '已锁定' ? 'red' : 'green') + '"><i></i>' + esc(r.lock) + '</span>'; } },
+        { label: '操作', w: 110, c: 1, render: function (r) { return '<a class="op-link" onclick="toast(\'查看 ' + esc(r.name) + ' 随访记录\',\'info\')">查看</a><span class="op-gap"></span><a class="op-link" onclick="toast(\'编辑 ' + esc(r.name) + ' 随访记录\',\'info\')">编辑</a>'; } }
+      ]
+    },
+    transfer: {
+      label: '档案迁移',
+      rows: TRANSFER_ROWS,
+      filters: [
+        { items: [
+          { type: 'select', label: '申请机构', key: 'org',   opts: ORGS },
+          { type: 'input',  label: '申请医生', key: 'doc',   ph: '请输入' },
+          { type: 'daterange', label: '申请日期', key: 'date' },
+          { type: 'select', label: '迁移状态', key: 'tst',   opts: T_ST },
+          { type: 'select', label: '居民状态', key: 'resst', opts: RES_ST },
+          { type: 'select', label: '管理行政区', key: 'grid', opts: GRIDS }
+        ] },
+        { items: [
+          { type: 'select', label: '申请类型', key: 'type', opts: T_TYPE },
+          { type: 'input',  label: '姓名', key: 'name', ph: '请输入' },
+          { type: 'input',  label: '证件号', key: 'id',  ph: '请输入' }
+        ] }
+      ],
+      cols: [
+        { label: '序号', w: 52,  c: 1, t: function (r, i) { return i + 1; } },
+        { label: '申请机构', w: 220, render: function (r) { return r.org; } },
+        { label: '姓名', w: 84,  render: function (r) { return r.name; } },
+        { label: '证件号', w: 150, render: function (r) { return r.id; } },
+        { label: '证件类型', w: 90,  render: function (r) { return r.idType; } },
+        { label: '性别', w: 58,  c: 1, render: function (r) { return r.sex; } },
+        { label: '年龄', w: 58,  c: 1, render: function (r) { return r.age; } },
+        { label: '联系电话', w: 118, render: function (r) { return r.phone; } },
+        { label: '出生日期', w: 108, render: function (r) { return r.birth; } },
+        { label: '现住址', w: 150, render: function (r) { return r.addr; } },
+        { label: '申请医生', w: 90,  render: function (r) { return r.doc; } },
+        { label: '申请类型', w: 90,  c: 1, render: function (r) { return '<span class="type-tag ' + (r.type === '迁入单' ? 'in' : 'out') + '">' + esc(r.type) + '</span>'; } },
+        { label: '迁移状态', w: 100, render: function (r) { return '<span class="st-dot st-' + (r.st === '待审核' ? 'yellow' : r.st === '审核通过' ? 'green' : 'red') + '"><i></i>' + esc(r.st) + '</span>'; } },
+        { label: '操作', w: 80,  c: 1, render: function (r) { return '<a class="op-link" onclick="toast(\'查看 ' + esc(r.name) + ' 迁移申请\',\'info\')">查看</a>'; } }
+      ]
+    },
+    diet: {
+      label: '膳食处方',
+      rows: DIET_ROWS,
+      filters: [
+        { items: [
+          { type: 'select', label: '指导机构', key: 'org',   opts: ORGS },
+          { type: 'input',  label: '指导医生', key: 'doc',   ph: '请输入' },
+          { type: 'daterange', label: '申请日期', key: 'date' },
+          { type: 'select', label: '居民状态', key: 'resst', opts: RES_ST },
+          { type: 'select', label: '指导来源', key: 'src',   opts: G_SRC }
+        ] },
+        { items: [
+          { type: 'select', label: '主要疾病', key: 'dis1', opts: DIS1 },
+          { type: 'input',  label: '姓名', key: 'name', ph: '请输入' },
+          { type: 'input',  label: '证件号', key: 'id',  ph: '请输入' }
+        ] }
+      ],
+      cols: [
+        { label: '序号', w: 52,  c: 1, t: function (r, i) { return i + 1; } },
+        { label: '指导机构', w: 210, render: function (r) { return r.org; } },
+        { label: '姓名', w: 84,  render: function (r) { return r.name; } },
+        { label: '证件号', w: 150, render: function (r) { return r.id; } },
+        { label: '证件类型', w: 90,  render: function (r) { return r.idType; } },
+        { label: '性别', w: 58,  c: 1, render: function (r) { return r.sex; } },
+        { label: '年龄', w: 58,  c: 1, render: function (r) { return r.age; } },
+        { label: '联系电话', w: 118, render: function (r) { return r.phone; } },
+        { label: '主要疾病', w: 120, render: function (r) { return r.dis; } },
+        { label: '指导日期', w: 108, render: function (r) { return r.ddate; } },
+        { label: '指导医生', w: 90,  render: function (r) { return r.doc; } },
+        { label: '指导来源', w: 90,  render: function (r) { return r.src; } },
+        { label: '居民状态', w: 100, render: function (r) { return '<span class="st-dot st-green"><i></i>' + esc(r.st) + '</span>'; } },
+        { label: '操作', w: 80,  c: 1, render: function (r) { return '<a class="op-link" onclick="toast(\'查看 ' + esc(r.name) + ' 膳食处方\',\'info\')">查看</a>'; } }
+      ]
+    }
+  };
+
+  /* ================= 渲染 ================= */
+  var curTab = 'summary';
+  var curRows = [];
+
+  function renderTabs() {
+    $('statTabs').innerHTML = Object.keys(TABS).map(function (k) {
+      var t = TABS[k];
+      return '<span class="stat-tab' + (k === curTab ? ' active' : '') + '" onclick="switchTab(\'' + k + '\')">' + esc(t.label) + '</span>';
+    }).join('');
+  }
+
+  function filterItemHtml(f, idx) {
+    var ph = f.ph || '';
+    var label = f.noLabel ? '' : f.label + '：';
+    if (f.type === 'select') {
+      return '<div class="filter-item"><label>' + label + '</label><select class="fi-select is-placeholder" data-f="' + idx + '" onchange="markSelect(this);filterRows()">' + opts(f.opts) + '</select></div>';
+    }
+    if (f.type === 'daterange') {
+      return '<div class="filter-item"><label>' + f.label + '：</label><span class="fi-range"><input class="fi-ctl fi-date" value="2026-01-01" data-f="' + idx + '" oninput="filterRows()">~<input class="fi-ctl fi-date" value="2026-12-31" data-half="end" data-f="' + idx + '" oninput="filterRows()"></span></div>';
+    }
+    if (f.type === 'percent') {
+      return '<div class="filter-item"><label>' + label + '</label><span class="fi-percent"><input class="fi-ctl" placeholder="' + ph + '" data-f="' + idx + '" oninput="filterRows()"><span>%</span></span></div>';
+    }
+    return '<div class="filter-item"><label>' + label + '</label><input class="fi-ctl" placeholder="' + ph + '" data-f="' + idx + '" oninput="filterRows()"></div>';
+  }
+
+  function renderFilter() {
+    var t = TABS[curTab];
+    var html = '';
+    var fidx = 0;
+    t.filters.forEach(function (rowDef, ri) {
+      html += '<div class="filter-row">';
+      rowDef.items.forEach(function (f) {
+        html += filterItemHtml(f, fidx);
+        fidx++;
+      });
+      if (ri === t.filters.length - 1) {
+        html += '<div class="filter-btns">'
+          + '<button class="btn btn-default" onclick="resetFilter()">重置</button>'
+          + '<button class="btn btn-primary" onclick="queryFilter()">查询</button></div>';
+      }
+      html += '</div>';
+    });
+    $('filterPanel').innerHTML = html;
+  }
+
+  function renderTable() {
+    var t = TABS[curTab];
+    var cols = t.cols;
+    var colgroup = cols.map(function (c) { return '<col style="width:' + c.w + 'px">'; }).join('');
+    var thead = '<tr>' + cols.map(function (c) {
+      return '<th class="' + (c.c ? 'center' : '') + '">' + esc(c.label) + '</th>';
+    }).join('') + '</tr>';
+
+    if (!curRows.length) {
+      $('colgroup').innerHTML = colgroup;
+      $('thead').innerHTML = thead;
+      $('tbody').innerHTML = '<tr><td class="empty-td" colspan="' + cols.length + '"><div class="empty-box">'
+        + '<svg viewBox="0 0 24 24"><path d="M21 8v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"/><path d="M3 8h18l-2.5-4h-13z"/><line x1="10" y1="12" x2="14" y2="12"/></svg>'
+        + '<p>暂无数据</p></div></td></tr>';
+      $('total').textContent = 0;
+      return;
+    }
+
+    var body = curRows.map(function (r, i) {
+      return '<tr>' + cols.map(function (c, ci) {
+        var v = c.t ? c.t(r, i) : (c.render ? c.render(r) : '-');
+        var cls = c.c ? 'center' : (c.num ? 'num' : '');
+        return '<td class="' + cls + '">' + v + '</td>';
+      }).join('') + '</tr>';
+    }).join('');
+
+    $('colgroup').innerHTML = colgroup;
+    $('thead').innerHTML = thead;
+    $('tbody').innerHTML = body;
+    $('total').textContent = curRows.length;
+  }
+
+  function filterRows() {
+    var t = TABS[curTab];
+    var fields = $('filterPanel').querySelectorAll('[data-f]');
+    var arr = [];
+    fields.forEach(function (el) { arr.push(el.value ? el.value.trim().toLowerCase() : ''); });
+    var rowDefs = [];
+    t.filters.forEach(function (rd) { rd.items.forEach(function (f) { rowDefs.push(f); }); });
+    curRows = t.rows.filter(function (r) {
+      return rowDefs.every(function (f, i) {
+        var v = arr[i];
+        if (!v) return true;
+        var k = f.key;
+        if (k === 'date' || k === 'per') return true;
+        var rv = r[k];
+        if (rv === undefined || rv === null) return true;
+        if (f.type === 'select') return String(rv) === v;
+        return String(rv).toLowerCase().indexOf(v) !== -1;
+      });
+    });
+    renderTable();
+  }
+
+  function resetFilter() {
+    $('filterPanel').querySelectorAll('[data-f]').forEach(function (el) {
+      if (el.tagName === 'SELECT') { el.value = ''; markSelect(el); }
+      else if (el.classList.contains('fi-date')) el.value = (el.getAttribute('data-half') === 'end') ? '2026-12-31' : '2026-01-01';
+      else el.value = '';
+    });
+    filterRows();
+    toast('已重置', 'info');
+  }
+
+  function queryFilter() {
+    filterRows();
+    toast('查询完成，共 ' + $('total').textContent + ' 条记录', 'success');
+  }
+
+  function switchTab(k) {
+    curTab = k;
+    curRows = TABS[k].rows.slice();
+    renderTabs();
+    renderFilter();
+    renderTable();
+    var wrap = $('tableWrap');
+    if (wrap.scrollLeft) { wrap.scrollLeft = 0; updShadow(); }
+  }
+
+  /* ================= 操作列冻结阴影 ================= */
+  function updShadow() {
+    var wrap = $('tableWrap');
+    wrap.classList.toggle('hs-scrolled', wrap.scrollLeft > 0);
+  }
+
+  /* ================= 初始化 ================= */
+  switchTab('summary');
+  (function () {
+    var wrap = $('tableWrap');
+    wrap.addEventListener('scroll', updShadow, { passive: true });
+    window.addEventListener('resize', updShadow);
+    updShadow();
+  })();
+
+  /* 便于评审 / 截图：?tab=summary|hyp|dm|copd|transfer|diet */
+  (function () {
+    var q = new URLSearchParams(location.search);
+    var t = q.get('tab');
+    if (t && TABS[t]) switchTab(t);
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>疾病诊疗设置 - 系统设置</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  /* ===== 疾病诊疗设置页面特有样式（设计变量与公共样式见 框架.css） ===== */
+
+  /* ===== 嵌入模式（被 index.html 壳子以 iframe 内嵌时，框架.js 自动加 html.embed-mode） ===== */
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  /* ===== 布局：content 改为 flex 列，三栏区撑满并内部滚动 ===== */
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column;padding:0 12px 12px 0}
+  .page-head{padding-left:4px}
+
+  /* 标签条在页签较多时允许横向滚动 */
+  .tabbar{overflow-x:auto;scrollbar-width:thin}
+  .tab-item{flex-shrink:0}
+
+  /* ===== 三栏容器 ===== */
+  .disease-wrap{flex:1;min-height:0;display:flex;gap:10px;align-items:stretch}
+  .d-col{display:flex;flex-direction:column;min-height:0;background:var(--bg-white);border:1px solid #E4E7ED;border-radius:var(--r-sm);overflow:hidden}
+  .d-col.c-left{width:254px;flex-shrink:0}
+  .d-col.c-mid{width:34%;flex-shrink:0;min-width:430px}
+  .d-col.c-right{flex:1;min-width:0}
+
+  /* ===== 栏头 ===== */
+  .d-col-head{height:40px;display:flex;align-items:center;gap:8px;padding:0 12px;border-bottom:1px solid #EEF0F4;background:#FAFBFC;flex-shrink:0}
+  .d-col-head h3{font-size:14px;font-weight:var(--font-weight-medium);color:var(--text-primary);white-space:nowrap}
+  .d-col-head .sub{font-size:12px;color:var(--text-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .d-col-head .spacer{flex:1}
+  .d-col-head .cnt{font-size:12px;color:var(--text-tertiary);white-space:nowrap}
+
+  /* ===== 搜索框 ===== */
+  .d-col-search{padding:10px 12px;border-bottom:1px solid #EEF0F4;flex-shrink:0}
+  .d-search{position:relative}
+  .d-search .s-ico{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;color:var(--text-tertiary);pointer-events:none}
+  .d-search input{width:100%;height:30px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px 0 28px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .d-search input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .d-search input::placeholder{color:var(--text-placeholder)}
+
+  /* ===== 左侧疾病列表（表格，与参考图一致：蓝色表头 + 斑马纹 + 每病两行） ===== */
+  .d-tbl-left tbody tr{cursor:pointer}
+  .d-tbl-left thead th{background:#E8F1FB}
+  .d-tbl-left tbody tr:nth-child(even) td{background:#F1F7FC}
+  .d-tbl-left tbody tr:hover td{background:var(--primary-bg)}
+  .d-tbl-left tbody tr.d-sel td,.d-tbl-left tbody tr.d-sel:hover td{background:var(--primary);color:#fff}
+  .d-tbl-left td:first-child{font-weight:var(--font-weight-medium)}
+
+  /* ===== 栏底按钮 ===== */
+  .d-col-foot{display:flex;gap:8px;padding:10px 12px;border-top:1px solid #EEF0F4;flex-shrink:0}
+  .d-col-foot .btn{height:28px;padding:0 14px;font-size:13px}
+
+  /* ===== 中间 / 右侧表格 ===== */
+  .d-tblwrap{flex:1;overflow:auto;min-height:0}
+  .col-tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .col-tbl th{position:sticky;top:0;z-index:3;height:34px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .col-tbl td{height:32px;padding:0 8px;border-bottom:1px solid #F2F3F5;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .col-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .col-tbl th.center,.col-tbl td.center{text-align:center}
+  .col-tbl td.c-name{max-width:0}
+  .col-tbl td .nm{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .col-tbl td .py{color:var(--text-tertiary);font-size:12px}
+  .col-tbl td .py{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .col-tbl .ck{width:14px;height:14px;accent-color:var(--primary);cursor:pointer;vertical-align:middle}
+  .t-empty td{text-align:center;height:110px;color:var(--text-tertiary)}
+  .t-empty .ico{font-size:22px;display:block;margin-bottom:6px}
+
+  /* ===== 穿梭按钮（左右表穿插） ===== */
+  .d-transfer{width:46px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+  .t-btn{width:34px;height:34px;border-radius:6px;border:1px solid #D9DEE4;background:#fff;color:#8C939E;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all var(--transition-fast)}
+  .t-btn svg{width:16px;height:16px}
+  .t-btn:hover:not(:disabled){border-color:var(--primary);color:var(--primary)}
+  .t-btn.active{background:var(--primary);border-color:var(--primary);color:#fff}
+  .t-btn.active:hover{background:#0F6FE0;border-color:#0F6FE0;color:#fff}
+  .t-btn:disabled{opacity:0.4;cursor:not-allowed}
+
+  /* ===== 弹框 ===== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .modal-overlay.show{opacity:1;pointer-events:auto}
+  .modal{width:460px;max-width:92vw;background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 8px 32px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden;transform:translateY(10px);transition:transform var(--transition-normal)}
+  .modal-overlay.show .modal{transform:translateY(0)}
+  .modal-head{height:48px;display:flex;align-items:center;padding:0 16px;flex-shrink:0}
+  .modal-head h3{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+  .modal-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:16px}
+  .modal-close:hover{background:var(--primary-bg);color:var(--primary)}
+  .modal-body{padding:20px 20px 6px;font-size:14px;color:var(--text-secondary);line-height:1.7}
+  .modal-body b{color:var(--text-primary)}
+  .f-row{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+  .f-row label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .f-row label i{color:var(--danger);font-style:normal;margin-right:2px}
+  .f-row input{flex:1;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);outline:none}
+  .f-row input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:16px 20px 20px}
+</style>
+</head>
+<body>
+
+<!-- ===== 主内容区（顶部导航栏与左侧菜单栏由 框架.js 注入） ===== -->
+<div class="main-area">
+
+  <!-- 页面标签条（嵌入模式下隐藏，由壳子统一管理） -->
+  <div class="tabbar">
+    <div class="tab-item" onclick="toast('「卫生监管」功能建设中','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      卫生监管
+      <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+    </div>
+    <div class="tab-item" onclick="toast('「体检管理」功能建设中','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      体检管理
+      <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+    </div>
+    <div class="tab-item" onclick="toast('「辖区统计维护」功能建设中','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+      辖区统计维护
+      <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+    </div>
+    <div class="tab-item" onclick="toast('「表单配置」功能建设中','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      表单配置
+      <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+    </div>
+    <div class="tab-item" onclick="toast('「随访参数维护」功能建设中','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+      随访参数维护
+      <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+    </div>
+    <div class="tab-item" onclick="toast('「数据源设置」功能建设中','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+      数据源设置
+      <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+    </div>
+    <div class="tab-item" onclick="toast('「重复规则维护」功能建设中','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+      重复规则维护
+      <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+    </div>
+    <div class="tab-item" onclick="toast('「体检异常配置」功能建设中','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      体检异常配置
+      <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+    </div>
+    <div class="tab-item" onclick="toast('「补助管理」功能建设中','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+      补助管理
+      <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+    </div>
+    <div class="tab-item dashboard active" onclick="toast('当前已在「疾病诊疗设置」页','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      疾病诊疗设置
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <!-- 页头 -->
+      <div class="page-head">
+        <h1>疾病诊疗设置</h1>
+        <div class="right">
+          <button class="btn btn-primary" onclick="saveConfig()">保存</button>
+        </div>
+      </div>
+
+      <!-- 三栏主体 -->
+      <div class="disease-wrap">
+
+        <!-- ===== 第一栏：诊疗信息（疾病列表） ===== -->
+        <div class="d-col c-left">
+          <div class="d-col-head">
+            <h3>诊疗信息</h3>
+            <span class="spacer"></span>
+            <span class="cnt" id="dLeftCnt">0 种</span>
+          </div>
+          <div class="d-tblwrap">
+            <table class="col-tbl d-tbl-left">
+              <colgroup>
+                <col style="width:34px"><col style="width:64px"><col style="width:auto">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th class="center"><input type="checkbox" class="ck" id="ckLeftAll" onclick="toggleLeftAll()"></th>
+                  <th>疾病编号</th>
+                  <th>疾病名称</th>
+                </tr>
+              </thead>
+              <tbody id="dListBody"></tbody>
+            </table>
+          </div>
+          <div class="d-col-foot">
+            <button class="btn btn-default" onclick="openAddDisease()">新增</button>
+            <button class="btn btn-default" onclick="delDisease()">删除</button>
+          </div>
+        </div>
+
+        <!-- ===== 第二栏：当前疾病对应 ICD10 ===== -->
+        <div class="d-col c-mid">
+          <div class="d-col-head">
+            <h3 id="midTitle">高血压对应ICD10疾病</h3>
+            <span class="spacer"></span>
+            <span class="cnt" id="midCnt">0 条</span>
+          </div>
+          <div class="d-col-search">
+            <div class="d-search">
+              <svg class="s-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input id="midQ" placeholder="请输入疾病编号/疾病名称/拼音码" oninput="renderMid()">
+            </div>
+          </div>
+          <div class="d-tblwrap">
+            <table class="col-tbl">
+              <colgroup>
+                <col style="width:34px"><col style="width:120px"><col style="width:auto"><col style="width:96px">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th class="center"><input type="checkbox" class="ck" id="ckMidAll" onclick="toggleMidAll()"></th>
+                  <th>疾病编码</th>
+                  <th>疾病名称</th>
+                  <th>拼音码</th>
+                </tr>
+              </thead>
+              <tbody id="midBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ===== 穿梭按钮：上「>」移出左表，下「<」添加进左表 ===== -->
+        <div class="d-transfer">
+          <button class="t-btn" id="btnTransRem" onclick="transRem()" title="移出左表" aria-label="移出左表">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+          </button>
+          <button class="t-btn" id="btnTransAdd" onclick="transAdd()" title="添加所选到左表" aria-label="添加所选到左表">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+          </button>
+        </div>
+
+        <!-- ===== 第三栏：ICD10 疾病列表 ===== -->
+        <div class="d-col c-right">
+          <div class="d-col-head">
+            <h3>ICD10疾病列表</h3>
+            <span class="spacer"></span>
+            <span class="cnt" id="rSelCnt">已选 0 项</span>
+            <span class="cnt" style="margin-left:8px" id="rCnt">共 0 条</span>
+          </div>
+          <div class="d-col-search">
+            <div class="d-search">
+              <svg class="s-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input id="rightQ" placeholder="请输入疾病编号/疾病名称/拼音码" oninput="renderRight()">
+            </div>
+          </div>
+          <div class="d-tblwrap">
+            <table class="col-tbl">
+              <colgroup>
+                <col style="width:34px"><col style="width:130px"><col style="width:auto"><col style="width:110px">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th class="center"><input type="checkbox" class="ck" id="ckAll" onclick="toggleAll()"></th>
+                  <th>疾病编码</th>
+                  <th>疾病名称</th>
+                  <th>拼音码</th>
+                </tr>
+              </thead>
+              <tbody id="rightBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== 新增疾病弹框 ===== -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>新增疾病</h3>
+      <span class="modal-close" onclick="closeModal('addModal')">×</span>
+    </div>
+    <div class="modal-body">
+      <div class="f-row">
+        <label><i>*</i>疾病名称</label>
+        <input id="addName" placeholder="请输入疾病名称">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeModal('addModal')">取消</button>
+      <button class="btn btn-primary" onclick="submitAdd()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 删除疾病确认弹框 ===== -->
+<div class="modal-overlay" id="delModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>删除疾病</h3>
+      <span class="modal-close" onclick="closeModal('delModal')">×</span>
+    </div>
+    <div class="modal-body" id="delText">确定删除该疾病吗？</div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeModal('delModal')">取消</button>
+      <button class="btn btn-primary" onclick="submitDel()">确定</button>
+    </div>
+  </div>
+</div>
+
+<script src="框架.js" data-page="disease-diagnosis-setting" data-embed="auto"></script>
+<script>
+  /* ================= 数据：诊疗信息（疾病分类） ================= */
+  var DISEASES = [
+    { code:'001', name:'高血压', maps:['E10.700x022','E10.700x023','E11.700x022','E11.700x023','E14.700x022','E14.700x023','E16.800x101','E16.800x102','F06.800x011','H35.004','I10.x00','I10.x00x002','I10.x00x007','I10.x00x008','I10.x00x009','I10.x00x015','I10.x00x016','I10.x00x017','I10.x02','I11.900','I13.900'] },
+    { code:'002', name:'糖尿病', maps:['E10.700x022','E10.700x023','E11.700x022','E11.700x023','E11.900','E14.700x022','E14.700x023','E14.900','E16.800x101','E16.800x102'] },
+    { code:'003', name:'冠心病', maps:['I20.000','I21.900','I25.101','I25.103'] },
+    { code:'004', name:'慢性阻塞性肺疾病', maps:['J43.900','J44.000','J44.900'] },
+    { code:'005', name:'恶性肿瘤', maps:['C16.900','C50.900','C50.900x001'] },
+    { code:'006', name:'脑卒中', maps:['I63.900','I64.x00','I64.x00x001'] },
+    { code:'007', name:'严重精神障碍', maps:['F20.000','F20.900'] },
+    { code:'008', name:'结核病', maps:['A15.000','A15.001'] },
+    { code:'009', name:'肝炎', maps:['B15.900','B18.100','B18.200'] },
+    { code:'010', name:'其他法定传染病', maps:['A00.000','A00.900','A01.000'] },
+    { code:'011', name:'职业病', maps:[] },
+    { code:'012', name:'其他疾病', maps:['G40.900'] },
+    { code:'013', name:'手术', maps:[] },
+    { code:'014', name:'外伤', maps:['S00.900','S61.900','T14.900'] },
+    { code:'015', name:'输血', maps:[] },
+    { code:'016', name:'遗传病', maps:['Q90.900'] },
+    { code:'017', name:'艾滋病', maps:['B24.x00','Z21.x00'] },
+    { code:'018', name:'梅毒', maps:['A53.900','A50.900'] },
+    { code:'019', name:'乙肝', maps:['B16.900','B18.100'] },
+    { code:'020', name:'传染病报卡', maps:['A15.001','A00.900'] },
+    { code:'021', name:'孕产妇', maps:[] },
+    { code:'022', name:'先天畸形', maps:['Q24.900','Q90.900'] }
+  ];
+
+  /* ================= 数据：ICD10 编码库（国家临床版2.0扩展码格式） ================= */
+  /* [疾病编码, 疾病名称, 拼音码] */
+  var ICD10 = [
+    ['A00.000',       '霍乱，由于O1群霍乱弧菌，霍乱弧菌O1群生物型引起的霍乱', 'HLYOYIQHLHHLHSWX'],
+    ['A00.000x001',   '古典生物型霍乱', 'GDSWXHL'],
+    ['A00.100',       '霍乱，由于O1群霍乱弧菌，埃尔托生物型霍乱弧菌引起的霍乱', 'HLYOYIQHLHHLHSWX'],
+    ['A00.100x001',   '埃尔托生物型霍乱', 'AETSWXHL'],
+    ['A00.900',       '霍乱', 'HL'],
+    ['A00.900x002',   '霍乱轻型', 'HLQX'],
+    ['A00.900x003',   '霍乱中型', 'HLZX'],
+    ['A00.900x004',   '霍乱重型', 'HLZZ'],
+    ['A00.900x005',   '霍乱暴发型', 'HLBFZ'],
+    ['A01.000',       '伤寒', 'SH'],
+    ['A01.000x004',   '伤寒复发', 'SHFF'],
+    ['A01.000x005+J17.0*', '伤寒并发肺炎', 'SHBFFY'],
+    ['A01.000x006',   '伤寒迁延型', 'SHQYXX'],
+    ['A01.000x007',   '伤寒逍遥型', 'SHXYXX'],
+    ['A01.000x008',   '伤寒并发腹膜炎', 'SHBFFMY'],
+    ['A01.000x009',   '伤寒并发肠穿孔', 'SHBFCCK'],
+    ['A01.000x010',   '伤寒并发肠出血', 'SHBFCCX'],
+    ['A01.000x011',   '伤寒并发中毒性肝炎', 'SHBFZDGY'],
+    ['A01.000x012',   '伤寒并发支气管炎', 'SHBFZQGY'],
+    ['A15.000',       '肺结核，涂片镜检证实', 'FJH'],
+    ['A15.001',       '肺结核', 'FJH'],
+    ['B15.900',       '急性甲型病毒性肝炎', 'JXJXBXGY'],
+    ['B18.100',       '慢性乙型病毒性肝炎', 'MXYXBXGY'],
+    ['B18.200',       '慢性丙型病毒性肝炎', 'MXBXVXGY'],
+    ['C16.900',       '胃恶性肿瘤', 'WEXZL'],
+    ['C50.900',       '乳腺恶性肿瘤', 'RXEXZL'],
+    ['C50.900x001',   '乳腺癌', 'RXA'],
+    ['E10.700x022',   '1型糖尿病性高血压', '1XTNBXYGY'],
+    ['E10.700x023',   '1型糖尿病性肥胖症', '1XTNBXFPZ'],
+    ['E11.700x022',   '2型糖尿病性高血压', '2XTNBXYGY'],
+    ['E11.700x023',   '2型糖尿病性肥胖症', '2XTNBXFPZ'],
+    ['E11.900',       '2型糖尿病', '2XTNB'],
+    ['E14.700x022',   '糖尿病性高血压', 'TNBXYGY'],
+    ['E14.700x023',   '糖尿病性肥胖症', 'TNBXFPZ'],
+    ['E14.900',       '糖尿病', 'TNB'],
+    ['E16.800x101',   '糖耐量受损伴肥胖', 'TNLSSBFP'],
+    ['E16.800x102',   '糖耐量受损伴高血压', 'TNLSSBGY'],
+    ['F06.800x011',   '高血压所致精神障碍', 'GYSZSJSZA'],
+    ['F20.000',       '偏执型精神分裂症', 'PZXJSFLZ'],
+    ['F20.900',       '精神分裂症', 'JSFLZ'],
+    ['G40.900',       '癫痫', 'DX'],
+    ['H35.004',       '高血压性视网膜病变', 'GYSXSWMB'],
+    ['I10.x00',       '特发性(原发性)高血压', 'TFXYFXYGY'],
+    ['I10.x00x002',   '高血压', 'GXY'],
+    ['I10.x00x007',   '老年收缩期高血压', 'LNSQGY'],
+    ['I10.x00x008',   '良性高血压', 'LXGY'],
+    ['I10.x00x009',   '临界性高血压', 'LJXGY'],
+    ['I10.x00x015',   '青春期高血压', 'QCQGY'],
+    ['I10.x00x016',   '白大衣高血压', 'BDYGY'],
+    ['I10.x00x017',   '假性高血压', 'JXGY'],
+    ['I10.x02',       '恶性高血压', 'EXGXY'],
+    ['I11.900',       '高血压性心脏病', 'GYSXZB'],
+    ['I13.900',       '高血压性心脏病和肾脏病', 'GYSXZBHSZB'],
+    ['I20.000',       '不稳定型心绞痛', 'BWDXJT'],
+    ['I21.900',       '急性心肌梗死', 'JXXGGS'],
+    ['I25.101',       '冠心病', 'GXB'],
+    ['I25.103',       '冠状动脉粥样硬化性心脏病', 'GDMZXYKYBXZBXGXBYZ'],
+    ['I63.900',       '脑梗死', 'NGS'],
+    ['I64.x00',       '脑卒中', 'NCZ'],
+    ['I64.x00x001',   '脑血管病', 'NXGB'],
+    ['J43.900',       '肺气肿', 'FQZ'],
+    ['J44.000',       '慢性阻塞性肺病伴急性下呼吸道感染', 'MXZSXFBBJXXHDXGR'],
+    ['J44.900',       '慢性阻塞性肺病', 'MXZSXFB'],
+    ['S00.900',       '头部浅表损伤', 'TBQBS'],
+    ['S61.900',       '腕和手开放性伤口', 'WHSKFXSK'],
+    ['T14.900',       '损伤', 'SS'],
+    ['Q24.900',       '先天性心脏病', 'XTXXZB'],
+    ['Q90.900',       '唐氏综合征', 'TSZHZ'],
+    ['B16.900',       '急性乙型病毒性肝炎', 'JXYXBXGY'],
+    ['B24.x00',       '艾滋病', 'AZB'],
+    ['Z21.x00',       '无症状人类免疫缺陷病毒感染状态', 'WZZRLMYQZBDGRBGDZ'],
+    ['A50.900',       '先天性梅毒', 'XTXMD'],
+    ['A53.900',       '梅毒', 'MD']
+  ];
+
+  /* ================= 工具函数 ================= */
+  function esc(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function $(id) { return document.getElementById(id); }
+  var icdMap = {};
+  ICD10.forEach(function (r) { icdMap[r[0]] = { n: r[1], p: r[2] }; });
+
+  /* ================= 状态 ================= */
+  var curIdx = 0;          // 当前选中疾病下标
+
+  /* ================= 第一栏：诊疗信息（疾病列表，可勾选多选） ================= */
+  function renderLeft() {
+    if (curIdx < 0) curIdx = 0;
+    if (curIdx >= DISEASES.length) curIdx = DISEASES.length - 1;
+    var html = '';
+    if (!DISEASES.length) {
+      html = '<tr class="t-empty"><td colspan="3"><span class="ico">📋</span>暂无疾病，请点击下方「新增」添加</td></tr>';
+    } else {
+      DISEASES.forEach(function (d, i) {
+        var sel = i === curIdx ? ' d-sel' : '';
+        html += '<tr class="d-tbl-row' + sel + '" onclick="selectDisease(' + i + ')" title="' + esc(d.name) + '">'
+          + '<td class="center"><input type="checkbox" class="ck" data-i="' + i + '"' + (d.checked ? ' checked' : '') + ' onclick="event.stopPropagation();leftCheck(' + i + ', this.checked)"></td>'
+          + '<td>' + esc(d.code) + '</td>'
+          + '<td><span class="nm">' + esc(d.name) + '</span></td>'
+          + '</tr>';
+      });
+    }
+    $('dListBody').innerHTML = html;
+    $('dLeftCnt').textContent = DISEASES.length + ' 种';
+    syncLeftAll();
+    renderMid();
+  }
+
+  function leftCheck(i, checked) {
+    DISEASES[i].checked = checked;
+    syncLeftAll();
+  }
+
+  function syncLeftAll() {
+    var n = DISEASES.length;
+    var c = 0;
+    DISEASES.forEach(function (d) { if (d.checked) c++; });
+    var a = $('ckLeftAll');
+    a.checked = n > 0 && c === n;
+    a.indeterminate = c > 0 && c < n;
+  }
+
+  function toggleLeftAll() {
+    var a = $('ckLeftAll');
+    DISEASES.forEach(function (d) { d.checked = a.checked; });
+    renderLeft();
+  }
+
+  function selectDisease(i) {
+    if (curIdx === i) return;
+    curIdx = i;
+    renderLeft();
+  }
+
+  /* ================= 第二栏：当前疾病对应 ICD10（可勾选批量移除） ================= */
+  function midFilteredList() {
+    var d = DISEASES[curIdx];
+    if (!d) return [];
+    var q = $('midQ').value.trim().toLowerCase();
+    return d.maps.filter(function (c) {
+      if (!q) return true;
+      var it = icdMap[c];
+      var info = it ? it.n + it.p : '';
+      return c.toLowerCase().indexOf(q) > -1 || (info.toLowerCase().indexOf(q) > -1);
+    });
+  }
+
+  function renderMid() {
+    var d = DISEASES[curIdx];
+    if (!d) { $('midBody').innerHTML = ''; $('midCnt').textContent = '0 条'; return; }
+    $('midTitle').textContent = d.name + '对应ICD10疾病';
+    var list = midFilteredList();
+    $('midCnt').textContent = list.length + ' 条';
+    var html = '';
+    if (!list.length) {
+      html = '<tr class="t-empty"><td colspan="4"><span class="ico">🔗</span>暂无关联的ICD10编码，请在右侧勾选后点击「<」添加</td></tr>';
+    } else {
+      list.forEach(function (c) {
+        var it = icdMap[c];
+        html += '<tr>'
+          + '<td class="center"><input type="checkbox" class="ck" data-code="' + esc(c) + '" onchange="syncMidState()"></td>'
+          + '<td>' + esc(c) + '</td>'
+          + '<td class="c-name" title="' + esc(it ? it.n : '') + '"><span class="nm">' + esc(it ? it.n : '') + '</span></td>'
+          + '<td><span class="py" title="' + esc(it ? it.p : '') + '">' + esc(it ? it.p : '') + '</span></td>'
+          + '</tr>';
+      });
+    }
+    $('midBody').innerHTML = html;
+    syncMidState();
+  }
+
+  function midChecked() {
+    var arr = [];
+    $('midBody').querySelectorAll('input.ck[data-code]:checked').forEach(function (cb) {
+      arr.push(cb.getAttribute('data-code'));
+    });
+    return arr;
+  }
+
+  function syncMidState() {
+    var arr = midChecked();
+    var btnRem = $('btnTransRem');
+    btnRem.disabled = arr.length === 0;
+    btnRem.classList.toggle('active', arr.length > 0);
+    var list = midFilteredList();
+    var ckAll = $('ckMidAll');
+    ckAll.checked = list.length > 0 && arr.length === list.length;
+    ckAll.indeterminate = arr.length > 0 && arr.length < list.length;
+  }
+
+  function toggleMidAll() {
+    var a = $('ckMidAll');
+    $('midBody').querySelectorAll('input.ck[data-code]').forEach(function (cb) { cb.checked = a.checked; });
+    syncMidState();
+  }
+
+  function transRem() {
+    var d = DISEASES[curIdx];
+    if (!d) { toast('请先选择疾病', 'warning'); return; }
+    var arr = midChecked();
+    if (!arr.length) { toast('请先在左表勾选需要移除的ICD10编码', 'warning'); return; }
+    var removed = 0;
+    arr.forEach(function (c) {
+      var i = d.maps.indexOf(c);
+      if (i > -1) { d.maps.splice(i, 1); removed++; }
+    });
+    renderLeft();
+    toast('已移除 ' + removed + ' 个ICD10编码的关联', 'success');
+  }
+
+  /* ================= 第三栏：ICD10 疾病列表 ================= */
+  function filterICD10(q) {
+    q = (q || '').trim().toLowerCase();
+    if (!q) return ICD10.slice();
+    return ICD10.filter(function (r) {
+      return r[0].toLowerCase().indexOf(q) > -1
+        || r[1].toLowerCase().indexOf(q) > -1
+        || r[2].toLowerCase().indexOf(q) > -1;
+    });
+  }
+
+  function renderRight() {
+    var list = filterICD10($('rightQ').value);
+    $('rCnt').textContent = '共 ' + list.length + ' 条';
+    var html = '';
+    if (!list.length) {
+      html = '<tr class="t-empty"><td colspan="4"><span class="ico">🔍</span>未找到匹配的ICD10编码</td></tr>';
+    } else {
+      list.forEach(function (r) {
+        html += '<tr>'
+          + '<td class="center"><input type="checkbox" class="ck" data-c="' + esc(r[0]) + '" onchange="syncRightState()"></td>'
+          + '<td>' + esc(r[0]) + '</td>'
+          + '<td class="c-name" title="' + esc(r[1]) + '"><span class="nm">' + esc(r[1]) + '</span></td>'
+          + '<td><span class="py" title="' + esc(r[2]) + '">' + esc(r[2]) + '</span></td>'
+          + '</tr>';
+      });
+    }
+    $('rightBody').innerHTML = html;
+    syncRightState();
+  }
+
+  function checkedCodes() {
+    var arr = [];
+    $('rightBody').querySelectorAll('input.ck:checked').forEach(function (cb) {
+      arr.push(cb.getAttribute('data-c'));
+    });
+    return arr;
+  }
+
+  function syncRightState() {
+    var arr = checkedCodes();
+    $('rSelCnt').textContent = '已选 ' + arr.length + ' 项';
+    var btnAdd = $('btnTransAdd');
+    btnAdd.disabled = arr.length === 0;
+    btnAdd.classList.toggle('active', arr.length > 0);
+    var list = filterICD10($('rightQ').value);
+    var ckAll = $('ckAll');
+    ckAll.checked = list.length > 0 && arr.length === list.length;
+    ckAll.indeterminate = arr.length > 0 && arr.length < list.length;
+  }
+
+  function toggleAll() {
+    var ckAll = $('ckAll');
+    var list = filterICD10($('rightQ').value);
+    $('rightBody').querySelectorAll('input.ck').forEach(function (cb, i) {
+      cb.checked = ckAll.checked;
+    });
+    syncRightState();
+  }
+
+  function transAdd() {
+    var d = DISEASES[curIdx];
+    if (!d) { toast('请先选择疾病', 'warning'); return; }
+    var arr = checkedCodes();
+    if (!arr.length) { toast('请在右侧勾选需要添加的ICD10编码', 'warning'); return; }
+    var added = 0, dup = 0;
+    arr.forEach(function (c) {
+      if (d.maps.indexOf(c) === -1) { d.maps.push(c); added++; }
+      else dup++;
+    });
+    /* 清空右侧勾选 */
+    $('rightBody').querySelectorAll('input.ck').forEach(function (cb) { cb.checked = false; });
+    syncRightState();
+    renderLeft();
+    toast('已为「' + d.name + '」添加 ' + added + ' 个ICD10编码' + (dup ? '（' + dup + ' 个已存在）' : ''), 'success');
+  }
+
+  /* ================= 新增 / 删除疾病 ================= */
+  function openAddDisease() {
+    $('addName').value = '';
+    $('addModal').classList.add('show');
+    setTimeout(function () { $('addName').focus(); }, 60);
+  }
+
+  function submitAdd() {
+    var name = $('addName').value.trim();
+    if (!name) { toast('请输入疾病名称', 'warning'); return; }
+    var next = 1;
+    DISEASES.forEach(function (d) {
+      var n = parseInt(d.code, 10);
+      if (n >= next) next = n + 1;
+    });
+    var code = String(next).padStart(3, '0');
+    DISEASES.push({ code: code, name: name, maps: [] });
+    curIdx = DISEASES.length - 1;
+    closeModal('addModal');
+    renderLeft();
+    toast('已新增疾病「' + name + '」（' + code + '）', 'success');
+  }
+
+  function delDisease() {
+    var sel = DISEASES.filter(function (d) { return d.checked; });
+    if (!sel.length) {
+      var cur = DISEASES[curIdx];
+      if (cur) sel = [cur];
+    }
+    if (!sel.length) { toast('请先勾选或选择疾病', 'warning'); return; }
+    var names = sel.map(function (d) { return d.code + ' ' + d.name; }).join('、');
+    var maps = sel.reduce(function (s, d) { return s + d.maps.length; }, 0);
+    $('delText').innerHTML = '确定删除「<b>' + esc(names) + '</b>」吗？其关联的 <b>' + maps + '</b> 个ICD10编码将一并解除关联。';
+    $('delModal').classList.add('show');
+  }
+
+  function submitDel() {
+    var sel = DISEASES.filter(function (d) { return d.checked; });
+    if (!sel.length) {
+      var cur = DISEASES[curIdx];
+      if (cur) sel = [cur];
+    }
+    if (!sel.length) { closeModal('delModal'); return; }
+    var n = sel.length;
+    var name = n > 1 ? n + ' 个疾病' : sel[0].name;
+    DISEASES = DISEASES.filter(function (d) { return sel.indexOf(d) === -1; });
+    if (curIdx >= DISEASES.length) curIdx = DISEASES.length - 1;
+    if (curIdx < 0) curIdx = 0;
+    closeModal('delModal');
+    renderLeft();
+    toast('已删除' + name, 'success');
+  }
+
+  /* ================= 保存 / 弹框通用 ================= */
+  function saveConfig() {
+    toast('疾病诊疗设置已保存', 'success');
+  }
+
+  function closeModal(id) {
+    $(id).classList.remove('show');
+  }
+
+  /* ================= 初始化 ================= */
+  $('midQ').addEventListener('input', renderMid);
+  $('rightQ').addEventListener('input', renderRight);
+
+  renderLeft();
+  renderRight();
+</script>
+</body>
+</html>

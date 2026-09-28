@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>体检管理 - 档案管理</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  /* ===== 体检管理页面特有样式（设计变量与公共样式见 框架.css） ===== */
+
+  /* ===== 嵌入模式（被 index.html 壳子以 iframe 内嵌时，框架.js 自动加 html.embed-mode） ===== */
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  /* ===== 布局：content 改为 flex，content-card 撑满并让表格区内部滚动 ===== */
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0}
+
+  /* ===== 页头按钮 ===== */
+  .page-head .right .btn{height:28px;padding:0 14px;font-size:13px}
+
+  /* ===== 筛选区 ===== */
+  .filter-panel{padding:14px 12px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:14px;align-items:center}
+  .filter-row.extra{display:none}
+  .filter-row.extra.show{display:flex}
+  .filter-item{display:flex;align-items:center;gap:8px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:140px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;cursor:pointer}
+  .fi-select.w-lg{width:210px}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .btn-plain{height:28px;padding:0 8px;font-size:13px;color:var(--primary);border-radius:var(--r-sm)}
+  .btn-plain:hover{background:var(--primary-bg)}
+  /* 筛选区扩展控件：日期区间 / 复选 */
+  .fi-date{width:138px}
+  .fi-sep{color:var(--text-placeholder);font-size:13px}
+  .fi-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer}
+  .fi-check input{margin:0;accent-color:var(--primary);cursor:pointer}
+
+  /* ===== 居民状态多选（选中后触发框显示「已选择(N)」徽标） ===== */
+  .ms-wrap{position:relative}
+  .ms-trigger{width:140px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all var(--transition-fast)}
+  .ms-trigger:hover{border-color:var(--primary)}
+  .ms-trigger .ms-caret{width:10px;height:6px;flex-shrink:0;transition:transform var(--transition-fast)}
+  .ms-wrap.open .ms-caret{transform:rotate(180deg)}
+  .ms-badge{display:inline-flex;align-items:center;height:18px;padding:0 7px;border-radius:9px;background:var(--primary);color:#fff;font-size:11px;line-height:1;font-style:normal}
+  .ms-panel{position:absolute;top:36px;left:0;min-width:140px;background:var(--bg-white);border:1px solid var(--color-neutral-200);border-radius:var(--r-sm);box-shadow:var(--shadow-md);padding:6px;z-index:200;display:none}
+  .ms-wrap.open .ms-panel{display:block}
+  .ms-opt{display:flex;align-items:center;gap:6px;padding:5px 8px;font-size:13px;color:var(--text-secondary);cursor:pointer;border-radius:var(--r-sm);white-space:nowrap}
+  .ms-opt:hover{background:var(--primary-bg);color:var(--primary)}
+  .ms-opt input{margin:0;accent-color:var(--primary);cursor:pointer}
+
+  /* ===== 数据表格 ===== */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+
+  /* 横向滚动时前 4 列冻结（序号/管理机构/姓名/证件号） */
+  .list-tbl th:nth-child(-n+4),.list-tbl td:nth-child(-n+4){position:sticky}
+  .list-tbl td:nth-child(-n+4){z-index:2;background:var(--bg-white)}
+  .list-tbl th:nth-child(-n+4){z-index:6}
+  .list-tbl th:nth-child(1),.list-tbl td:nth-child(1){left:0}
+  .list-tbl th:nth-child(2),.list-tbl td:nth-child(2){left:44px}
+  .list-tbl th:nth-child(3),.list-tbl td:nth-child(3){left:194px}
+  .list-tbl th:nth-child(4),.list-tbl td:nth-child(4){left:270px}
+  .list-tbl th:nth-child(4),.list-tbl td:nth-child(4){box-shadow:6px 0 8px -6px rgba(0,0,0,0.2)}
+  /* 横向滚动时操作列（末列）冻结在右侧 */
+  .list-tbl th:last-child,.list-tbl td:last-child{position:sticky;right:0}
+  .list-tbl td:last-child{z-index:2;background:var(--bg-white)}
+  .list-tbl th:last-child{z-index:6}
+  .list-tbl th:last-child,.list-tbl td:last-child{box-shadow:-6px 0 8px -6px rgba(0,0,0,0.2)}
+  .list-tbl tr.empty-row td:last-child{position:static;box-shadow:none}
+  .list-tbl{width:100%;min-width:2212px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:36px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:nth-child(even) td{background:var(--bg-table-even)}
+  .list-tbl tbody tr:nth-child(even) td:nth-child(-n+4){background:var(--bg-table-even)}
+  .list-tbl tbody tr:hover td,.list-tbl tbody tr:hover td:nth-child(-n+4){background:var(--primary-bg)}
+  .list-tbl th.center,.list-tbl td.center{text-align:center}
+  .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .empty-row td{text-align:center;height:120px;color:var(--text-tertiary)}
+  .empty-row .ico{font-size:26px;display:block;margin-bottom:6px}
+
+  /* 档案完整度（≥90 绿 / 60-89 橙 / <60 红） */
+  .full-ok{color:var(--success);font-weight:var(--font-weight-medium)}
+  .full-mid{color:var(--warning)}
+  .full-low{color:var(--danger)}
+
+  /* 异常信息（无异常为 —，有异常橙色警示） */
+  .abn-info{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .abn-info.has{color:var(--warning)}
+  .abn-info.none{color:var(--text-tertiary)}
+
+  /* 状态圆点（居民状态 / 锁定状态） */
+  .st-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  .st-dot.ok{background:var(--success)}
+  .st-dot.warn{background:#FF9500}
+
+  /* 操作列 */
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px}
+  .op-link:hover{text-decoration:underline}
+  .op-link.danger{color:var(--danger)}
+  .op-link.danger:hover{color:var(--danger)}
+  .op-gap{display:inline-block;width:8px}
+
+  /* ===== 分页 ===== */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:52px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 22px 0 8px;font-size:13px;color:var(--text-secondary);background:#fff;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-ellipsis{display:inline-block;padding:0 4px;line-height:26px;color:var(--text-tertiary)}
+  .pg-jump input{width:40px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 6px;font-size:13px;text-align:center;color:var(--text-primary);outline:none}
+  .pg-jump input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+
+  /* ===== 删除确认弹框 ===== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .modal-overlay.show{opacity:1;pointer-events:auto}
+  .modal{width:480px;max-width:92vw;background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 8px 32px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden;transform:translateY(10px);transition:transform var(--transition-normal)}
+  .modal-overlay.show .modal{transform:translateY(0)}
+  .modal-head{height:48px;display:flex;align-items:center;padding:0 16px;flex-shrink:0}
+  .modal-head h3{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+  .modal-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:16px}
+  .modal-close:hover{background:var(--primary-bg);color:var(--primary)}
+  .modal-body{padding:20px 20px 6px;font-size:14px;color:var(--text-secondary);line-height:1.6}
+  .modal-body b{color:var(--text-primary)}
+  .modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:16px 20px 20px}
+</style>
+</head>
+<body>
+
+<!-- ===== 主内容区（顶部导航栏与左侧菜单栏由 框架.js 注入） ===== -->
+<div class="main-area">
+
+  <!-- 页面标签条（嵌入模式下隐藏，由壳子统一管理） -->
+  <div class="tabbar">
+    <div class="tab-item dashboard active" onclick="toast('当前已在「体检管理」页','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      体检管理
+    </div>
+    <div class="tab-item" onclick="toast('「体检登记」功能建设中','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      体检登记
+      <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+    </div>
+    <div class="tab-item" onclick="toast('「体检结果」功能建设中','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      体检结果
+      <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+    </div>
+    <div class="tab-item" onclick="toast('「体检报告」功能建设中','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+      体检报告
+      <span class="tab-close" onclick="event.stopPropagation();toast('关闭标签','info')">×</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <!-- 页头 -->
+      <div class="page-head">
+        <h1>体检管理</h1>
+        <div class="right">
+          <button class="btn btn-default" onclick="toast('导出功能建设中','info')">导出</button>
+          <button class="btn btn-default" onclick="toast('请连接身份证读卡器','info')">身份证读卡</button>
+        </div>
+      </div>
+
+      <!-- 筛选区 -->
+      <div class="filter-panel">
+        <div class="filter-row">
+          <div class="filter-item"><label>管理机构</label>
+            <select id="fOrg" class="fi-select w-lg">
+              <option value="" selected>请选择</option>
+              <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
+              <option value="济南市历下区甸柳新村社区卫生服务中心">济南市历下区甸柳新村社区卫生服务中心</option>
+              <option value="济南市市中区舜玉路社区卫生服务中心">济南市市中区舜玉路社区卫生服务中心</option>
+              <option value="济南市历下区千佛山社区卫生服务中心">济南市历下区千佛山社区卫生服务中心</option>
+              <option value="济南市天桥区工人新村社区卫生服务中心">济南市天桥区工人新村社区卫生服务中心</option>
+              <option value="济南市历下区文化东路社区卫生服务中心">济南市历下区文化东路社区卫生服务中心</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>姓名</label><input id="fName" class="fi-ctl" placeholder="请输入姓名"></div>
+          <div class="filter-item"><label>证件号</label><input id="fIdcard" class="fi-ctl" placeholder="请输入证件号"></div>
+          <div class="filter-item"><label>数据来源</label>
+            <select id="fSrc" class="fi-select">
+              <option value="本系统" selected>本系统</option>
+              <option value="">全部</option>
+              <option value="外系统">外系统</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>锁定状态</label>
+            <select id="fLock" class="fi-select">
+              <option value="未上锁" selected>未上锁</option>
+              <option value="">全部</option>
+              <option value="已上锁">已上锁</option>
+            </select>
+          </div>
+        </div>
+        <div class="filter-row">
+          <div class="filter-item"><label>居民状态</label>
+            <div class="ms-wrap" id="msWrap">
+              <div class="ms-trigger" onclick="toggleMsPanel(event)">请选择<i class="ms-badge" id="msBadge" style="display:none">已选择(0)</i>
+                <svg class="ms-caret" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="#8c8c8c" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div class="ms-panel" id="msPanel" onclick="event.stopPropagation()">
+                <label class="ms-opt"><input type="checkbox" value="正常" checked>正常</label>
+                <label class="ms-opt"><input type="checkbox" value="死亡">死亡</label>
+                <label class="ms-opt"><input type="checkbox" value="迁出">迁出</label>
+                <label class="ms-opt"><input type="checkbox" value="注销">注销</label>
+              </div>
+            </div>
+          </div>
+          <div class="filter-item"><label>体检类型</label>
+            <select id="fExamType" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="健康体检">健康体检</option>
+              <option value="老年人健康体检">老年人健康体检</option>
+              <option value="高血压患者年度体检">高血压患者年度体检</option>
+              <option value="糖尿病患者年度体检">糖尿病患者年度体检</option>
+              <option value="儿童体检">儿童体检</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>体检日期</label>
+            <input id="fExamStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+            <span class="fi-sep">—</span>
+            <input id="fExamEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+          </div>
+          <div class="filter-item"><label>体检机构</label>
+            <select id="fExamOrg" class="fi-select w-lg">
+              <option value="" selected>请选择</option>
+              <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
+              <option value="济南市历下区甸柳新村社区卫生服务中心">济南市历下区甸柳新村社区卫生服务中心</option>
+              <option value="济南市市中区舜玉路社区卫生服务中心">济南市市中区舜玉路社区卫生服务中心</option>
+              <option value="济南市历下区千佛山社区卫生服务中心">济南市历下区千佛山社区卫生服务中心</option>
+              <option value="济南市天桥区工人新村社区卫生服务中心">济南市天桥区工人新村社区卫生服务中心</option>
+              <option value="济南市历下区文化东路社区卫生服务中心">济南市历下区文化东路社区卫生服务中心</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>主检医师</label><input id="fDoctor" class="fi-ctl" placeholder="请输入主检医师"></div>
+          <div class="filter-btns">
+            <button class="btn btn-default" onclick="resetFilter()">重置</button>
+            <button class="btn btn-primary" onclick="applyFilter()">查询</button>
+            <button class="btn-plain" id="btnExpand" onclick="toggleExtra()">展开 ▼</button>
+          </div>
+        </div>
+        <div class="filter-row extra">
+          <div class="filter-item"><label>性别</label>
+            <select id="fGender" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="男">男</option>
+              <option value="女">女</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>出生日期</label>
+            <input id="fBirthStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+            <span class="fi-sep">—</span>
+            <input id="fBirthEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+          </div>
+          <div class="filter-item"><label>建档日期</label>
+            <input id="fArchStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+            <span class="fi-sep">—</span>
+            <input id="fArchEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+          </div>
+          <div class="filter-item"><label>档案编号</label><input id="fArchNo" class="fi-ctl" placeholder="请输入档案编号"></div>
+        </div>
+        <div class="filter-row extra">
+          <div class="filter-item"><label>电话号码</label><input id="fPhone" class="fi-ctl" placeholder="请输入电话号码"></div>
+          <div class="filter-item"><label>详细地址</label><input id="fAddress" class="fi-ctl" placeholder="请输入详细地址"></div>
+          <div class="filter-item">
+            <label class="fi-check"><input type="checkbox" id="fMine">只看个人管理档案</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- 数据表格 -->
+      <div class="table-wrap">
+        <table class="list-tbl">
+          <colgroup>
+            <col style="width:44px"><col style="width:150px"><col style="width:76px"><col style="width:148px"><col style="width:82px"><col style="width:48px"><col style="width:48px"><col style="width:92px"><col style="width:104px"><col style="width:72px"><col style="width:96px"><col style="width:150px"><col style="width:84px"><col style="width:96px"><col style="width:110px"><col style="width:140px"><col style="width:160px"><col style="width:130px"><col style="width:104px"><col style="width:84px"><col style="width:84px"><col style="width:110px">
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="center">序号</th>
+              <th>管理机构</th>
+              <th>姓名</th>
+              <th>证件号</th>
+              <th>证件类型</th>
+              <th class="center">性别</th>
+              <th class="center">年龄</th>
+              <th>出生日期</th>
+              <th>电话号码</th>
+              <th>体检类型</th>
+              <th>体检日期</th>
+              <th>体检机构</th>
+              <th>主检医师</th>
+              <th>建档日期</th>
+              <th class="center">档案完整度(%)</th>
+              <th>异常信息</th>
+              <th>详细地址</th>
+              <th>档案编号</th>
+              <th>管辖行政区</th>
+              <th>居民状态</th>
+              <th>锁定状态</th>
+              <th class="center">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tbBody"></tbody>
+        </table>
+      </div>
+
+      <!-- 分页 -->
+      <div class="page-foot">
+        <span class="pg-total">共 <b id="pgTotal">0</b> 条</span>
+        <span class="pg-size">
+          <select onchange="toast('原型演示：每页条数固定 20 条','info')">
+            <option selected>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+        </span>
+        <span class="pg-pager" id="pgPager"></span>
+        <span class="pg-jump">跳至第 <input id="pgJump" value="1" onkeydown="if(event.key==='Enter'){jumpPage()}"> 页</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== 删除确认弹框 ===== -->
+<div class="modal-overlay" id="delModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>删除体检记录</h3>
+      <span class="modal-close" onclick="closeDelModal()">×</span>
+    </div>
+    <div class="modal-body">
+      确定删除 <b id="delName"></b> 于 <b id="delDate"></b> 的体检记录吗？删除后该记录将无法恢复。
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeDelModal()">取消</button>
+      <button class="btn btn-primary" onclick="submitDel()">确定</button>
+    </div>
+  </div>
+</div>
+
+<script src="框架.js" data-page="exam-management" data-embed="auto"></script>
+<script>
+  /* ================= 模拟数据（姓名/证件号/出生日期/性别/年龄相互对应；同一居民可有多次体检记录） ================= */
+  var examData = [
+    { org:'山东大学齐鲁医院', name:'帅兰女', idcard:'321087197610122827', idType:'居民身份证', gender:'女', age:49, birth:'1976-10-12', phone:'15895712049', examType:'健康体检', examDate:'2026-09-23', examOrg:'山东大学齐鲁医院', doctor:'吕雪', archDate:'2025-08-19', full:0,   abnormal:'体温：异常 36.8℃；血压偏高', address:'江苏省扬州市江都区郭村镇大彭村', archNo:'171277101', region:'大彭村',   rStatus:'正常', lock:'未上锁', src:'本系统' },
+    { org:'山东大学齐鲁医院', name:'帅兰女', idcard:'321087197610122827', idType:'居民身份证', gender:'女', age:49, birth:'1976-10-12', phone:'15895712049', examType:'健康体检', examDate:'2026-09-09', examOrg:'山东大学齐鲁医院', doctor:'朱劲松', archDate:'2025-08-19', full:0,   abnormal:'',                          address:'江苏省扬州市江都区郭村镇大彭村', archNo:'171277101', region:'大彭村',   rStatus:'正常', lock:'未上锁', src:'本系统' },
+    { org:'山东大学齐鲁医院', name:'王秀英', idcard:'370102195403152847', idType:'居民身份证', gender:'女', age:71, birth:'1954-03-15', phone:'13905312361', examType:'老年人健康体检', examDate:'2026-09-20', examOrg:'山东大学齐鲁医院', doctor:'徐东升', archDate:'2024-03-11', full:100,  abnormal:'',                          address:'济南市历下区解放路105号',        archNo:'370102JM26001', region:'解放路社区', rStatus:'正常', lock:'未上锁', src:'本系统' },
+    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'董梅香', idcard:'370102196705244824', idType:'居民身份证', gender:'女', age:58, birth:'1967-05-24', phone:'15863770125', examType:'健康体检', examDate:'2026-09-18', examOrg:'山东大学齐鲁医院', doctor:'王盛',   archDate:'2024-06-30', full:85,  abnormal:'血脂：异常',                       address:'济南市历下区甸柳新村七区3号楼',  archNo:'370102JM26023', region:'甸柳社区',   rStatus:'正常', lock:'未上锁', src:'本系统' },
+    { org:'济南市市中区舜玉路社区卫生服务中心', name:'高凤仙', idcard:'370102194503124826', idType:'居民身份证', gender:'女', age:80, birth:'1945-03-12', phone:'13626415789', examType:'老年人健康体检', examDate:'2026-09-15', examOrg:'济南市市中区舜玉路社区卫生服务中心', doctor:'敖鹏天', archDate:'2024-05-21', full:100, abnormal:'血糖：偏高',                       address:'济南市市中区二环南路2766号',      archNo:'370102JM26017', region:'舜玉社区',   rStatus:'正常', lock:'未上锁', src:'本系统' },
+    { org:'山东大学齐鲁医院', name:'刘德海', idcard:'37010219551130863X', idType:'居民身份证', gender:'男', age:70, birth:'1955-11-30', phone:'13605401937', examType:'高血压患者年度体检', examDate:'2026-09-12', examOrg:'山东大学齐鲁医院', doctor:'徐东升', archDate:'2024-03-26', full:100, abnormal:'',                          address:'济南市历下区和平路36号',          archNo:'370102JM26004', region:'解放路社区', rStatus:'正常', lock:'未上锁', src:'本系统' },
+    { org:'济南市天桥区工人新村社区卫生服务中心', name:'潘金凤', idcard:'370102196202144226', idType:'居民身份证', gender:'女', age:63, birth:'1962-02-14', phone:'15098763214', examType:'健康体检', examDate:'2026-09-10', examOrg:'山东大学齐鲁医院', doctor:'朱劲松', archDate:'2024-07-25', full:60,  abnormal:'心电图：窦性心动过速',            address:'济南市天桥区堤口路92号',          archNo:'370105JM26025', region:'工人新村社区', rStatus:'正常', lock:'未上锁', src:'外系统' },
+    { org:'济南市历下区千佛山社区卫生服务中心', name:'何广田', idcard:'370102196511023513', idType:'居民身份证', gender:'男', age:60, birth:'1965-11-02', phone:'15508660215', examType:'健康体检', examDate:'2026-09-05', examOrg:'济南市历下区千佛山社区卫生服务中心', doctor:'王盛', archDate:'2024-08-06', full:40,  abnormal:'',                          address:'济南市历下区经十路9777号',        archNo:'370102JM26026', region:'千佛山社区', rStatus:'迁出', lock:'已上锁', src:'本系统' },
+    { org:'山东大学齐鲁医院', name:'杨春梅', idcard:'370102198109082543', idType:'居民身份证', gender:'女', age:44, birth:'1981-09-08', phone:'18764165283', examType:'健康体检', examDate:'2026-08-30', examOrg:'山东大学齐鲁医院', doctor:'李蕾',   archDate:'2024-04-15', full:95,  abnormal:'',                          address:'济南市历下区山大南路27号',        archNo:'370102JM26006', region:'千佛山社区', rStatus:'正常', lock:'未上锁', src:'本系统' },
+    { org:'济南市市中区舜玉路社区卫生服务中心', name:'谭德顺', idcard:'370102195008195517', idType:'居民身份证', gender:'男', age:75, birth:'1950-08-19', phone:'15588860279', examType:'老年人健康体检', examDate:'2026-08-26', examOrg:'山东大学齐鲁医院', doctor:'敖鹏天', archDate:'2024-06-16', full:100, abnormal:'胸片：肺纹理增粗',                 address:'济南市市中区舜玉路112号',         archNo:'370102JM26022', region:'舜玉社区',   rStatus:'死亡', lock:'已上锁', src:'本系统' },
+    { org:'济南市历下区文化东路社区卫生服务中心', name:'邵玉洁', idcard:'370102197006084824', idType:'居民身份证', gender:'女', age:55, birth:'1970-06-08', phone:'15562593049', examType:'健康体检', examDate:'2026-08-22', examOrg:'山东大学齐鲁医院', doctor:'李蕾',   archDate:'2024-08-19', full:75,  abnormal:'',                          address:'济南市历下区文化东路51号',        archNo:'370102JM26027', region:'文化东路社区', rStatus:'正常', lock:'未上锁', src:'本系统' },
+    { org:'山东大学齐鲁医院', name:'周振华', idcard:'370102194910056317', idType:'居民身份证', gender:'男', age:76, birth:'1949-10-05', phone:'13583176094', examType:'老年人健康体检', examDate:'2026-08-18', examOrg:'济南市历下区千佛山社区卫生服务中心', doctor:'李蕾', archDate:'2024-04-27', full:90,  abnormal:'血压：偏高',                       address:'济南市历下区燕山小区东路18号',    archNo:'370102JM26009', region:'燕山社区',   rStatus:'正常', lock:'未上锁', src:'本系统' },
+    { org:'济南市市中区舜玉路社区卫生服务中心', name:'白淑珍', idcard:'370102194804304428', idType:'居民身份证', gender:'女', age:77, birth:'1948-04-30', phone:'13064019573', examType:'老年人健康体检', examDate:'2026-08-12', examOrg:'山东大学齐鲁医院', doctor:'敖鹏天', archDate:'2024-09-10', full:100, abnormal:'',                          address:'济南市市中区六里山南路20号',      archNo:'370103JM26029', region:'舜玉社区',   rStatus:'正常', lock:'未上锁', src:'本系统' },
+    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'罗建萍', idcard:'370102196303184426', idType:'居民身份证', gender:'女', age:62, birth:'1963-03-18', phone:'15806604013', examType:'糖尿病患者年度体检', examDate:'2026-08-05', examOrg:'山东大学齐鲁医院', doctor:'陆柳琳', archDate:'2024-10-08', full:70,  abnormal:'尿常规：尿糖阳性',                address:'济南市历下区甸柳新村二区4号楼',  archNo:'370102JM26031', region:'甸柳社区',   rStatus:'正常', lock:'未上锁', src:'外系统' },
+    { org:'山东大学齐鲁医院', name:'冯立军', idcard:'370102197706285516', idType:'居民身份证', gender:'男', age:48, birth:'1977-06-28', phone:'13791046538', examType:'健康体检', examDate:'2026-07-30', examOrg:'山东大学齐鲁医院', doctor:'朱劲松', archDate:'2024-05-09', full:60,  abnormal:'',                          address:'济南市历城区华信路3号',          archNo:'370102JM26016', region:'姚家社区',   rStatus:'正常', lock:'未上锁', src:'本系统' },
+    { org:'济南市历下区文化东路社区卫生服务中心', name:'万秀琴', idcard:'370103195505214824', idType:'居民身份证', gender:'女', age:70, birth:'1955-05-21', phone:'15165374029', examType:'老年人健康体检', examDate:'2026-07-24', examOrg:'山东大学齐鲁医院', doctor:'李蕾',   archDate:'2024-11-02', full:100, abnormal:'',                          address:'济南市历下区文化东路88号',        archNo:'370102JM26033', region:'文化东路社区', rStatus:'正常', lock:'未上锁', src:'本系统' },
+    { org:'济南市天桥区工人新村社区卫生服务中心', name:'尹桂芳', idcard:'370102196610154826', idType:'居民身份证', gender:'女', age:59, birth:'1966-10-15', phone:'15066651730', examType:'健康体检', examDate:'2026-07-16', examOrg:'山东大学齐鲁医院', doctor:'王盛',   archDate:'2024-11-28', full:100, abnormal:'',                          address:'济南市天桥区工人新村北街7号',    archNo:'370105JM26035', region:'工人新村社区', rStatus:'正常', lock:'未上锁', src:'本系统' },
+    { org:'山东大学齐鲁医院', name:'崔洪斌', idcard:'370102195609253719', idType:'居民身份证', gender:'男', age:69, birth:'1956-09-25', phone:'15589963027', examType:'高血压患者年度体检', examDate:'2026-07-08', examOrg:'济南市历下区文化东路社区卫生服务中心', doctor:'徐东升', archDate:'2024-08-28', full:100, abnormal:'尿酸：偏高',                       address:'济南市历下区窑头路7号',           archNo:'370102JM26028', region:'窑头社区',   rStatus:'正常', lock:'未上锁', src:'本系统' },
+    { org:'济南市市中区舜玉路社区卫生服务中心', name:'孙福禄', idcard:'370103195201275511', idType:'居民身份证', gender:'男', age:73, birth:'1952-01-27', phone:'15550062317', examType:'老年人健康体检', examDate:'2026-06-28', examOrg:'山东大学齐鲁医院', doctor:'敖鹏天', archDate:'2024-09-24', full:95,  abnormal:'',                          address:'济南市市中区七里山路15号',        archNo:'370103JM26030', region:'七里山社区', rStatus:'正常', lock:'未上锁', src:'本系统' },
+    { org:'济南市历下区千佛山社区卫生服务中心', name:'蒋春林', idcard:'370102195707065518', idType:'居民身份证', gender:'男', age:68, birth:'1957-07-06', phone:'13793167482', examType:'健康体检', examDate:'2026-06-20', examOrg:'山东大学齐鲁医院', doctor:'朱劲松', archDate:'2024-10-21', full:100, abnormal:'',                          address:'济南市历下区科院路19号',          archNo:'370102JM26032', region:'千佛山社区', rStatus:'正常', lock:'未上锁', src:'本系统' },
+    { org:'山东大学齐鲁医院', name:'顾长顺', idcard:'370102194912113317', idType:'居民身份证', gender:'男', age:76, birth:'1949-12-11', phone:'13064029581', examType:'老年人健康体检', examDate:'2026-06-11', examOrg:'山东大学齐鲁医院', doctor:'徐东升', archDate:'2024-11-15', full:100, abnormal:'腹部B超：脂肪肝',                 address:'济南市历下区和平路53号',          archNo:'370102JM26034', region:'解放路社区', rStatus:'正常', lock:'未上锁', src:'本系统' },
+    { org:'山东大学齐鲁医院', name:'韩淑芬', idcard:'370102195912034420', idType:'居民身份证', gender:'女', age:66, birth:'1959-12-03', phone:'13370583146', examType:'糖尿病患者年度体检', examDate:'2026-06-03', examOrg:'山东大学齐鲁医院', doctor:'陆柳琳', archDate:'2024-06-03', full:100, abnormal:'',                          address:'济南市历下区燕山小区南路8号',    archNo:'370102JM26021', region:'燕山社区',   rStatus:'正常', lock:'中断', src:'本系统' },
+    { org:'济南市市中区舜玉路社区卫生服务中心', name:'华凤英', idcard:'370102195808304420', idType:'居民身份证', gender:'女', age:67, birth:'1958-08-30', phone:'15562588107', examType:'老年人健康体检', examDate:'2026-05-26', examOrg:'山东大学齐鲁医院', doctor:'敖鹏天', archDate:'2024-12-23', full:90,  abnormal:'骨密度：骨质疏松',                 address:'济南市市中区玉函路39号',          archNo:'370103JM26037', region:'舜玉社区',   rStatus:'正常', lock:'未上锁', src:'本系统' },
+    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'尤德胜', idcard:'370102197202195513', idType:'居民身份证', gender:'男', age:53, birth:'1972-02-19', phone:'13176645908', examType:'健康体检', examDate:'2026-05-19', examOrg:'山东大学齐鲁医院', doctor:'陆柳琳', archDate:'2025-01-06', full:80,  abnormal:'',                          address:'济南市历下区甸柳新村八区2号楼',  archNo:'370102JM26038', region:'甸柳社区',   rStatus:'正常', lock:'未上锁', src:'本系统' },
+    { org:'济南市天桥区工人新村社区卫生服务中心', name:'汤玉珍', idcard:'370103195111234426', idType:'居民身份证', gender:'女', age:74, birth:'1951-11-23', phone:'15589917860', examType:'老年人健康体检', examDate:'2026-05-12', examOrg:'济南市天桥区工人新村社区卫生服务中心', doctor:'朱劲松', archDate:'2025-01-19', full:100, abnormal:'血压：偏高',                       address:'济南市天桥区济泺路130号',         archNo:'370105JM26039', region:'工人新村社区', rStatus:'正常', lock:'未上锁', src:'本系统' },
+    { org:'山东大学齐鲁医院', name:'严守成', idcard:'370102196004083311', idType:'居民身份证', gender:'男', age:66, birth:'1960-04-08', phone:'15806609742', examType:'高血压患者年度体检', examDate:'2026-05-06', examOrg:'山东大学齐鲁医院', doctor:'王盛',   archDate:'2024-12-10', full:100, abnormal:'',                          address:'济南市历下区姚家路118号',        archNo:'370102JM26036', region:'姚家社区',   rStatus:'正常', lock:'未上锁', src:'本系统' },
+    { org:'山东大学齐鲁医院', name:'贾世昌', idcard:'370102195310076311', idType:'居民身份证', gender:'男', age:72, birth:'1953-10-07', phone:'13006597582', examType:'健康体检', examDate:'2026-04-29', examOrg:'济南市历下区千佛山社区卫生服务中心', doctor:'徐东升', archDate:'2024-07-11', full:0,   abnormal:'',                          address:'济南市历下区姚家路29号',          archNo:'370102JM26024', region:'姚家社区',   rStatus:'正常', lock:'未上锁', src:'外系统' }
+  ];
+
+  /* ================= 工具函数 ================= */
+  function esc(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function $(id) { return document.getElementById(id); }
+
+  /* ================= 分页状态 ================= */
+  var PAGE_SIZE = 20;
+  var curPage = 1;
+  var lastList = [];
+
+  /* ================= 表格渲染（按筛选条件实时过滤 + 分页） ================= */
+  function renderTable() {
+    var org = $('fOrg').value, name = $('fName').value.trim(), idcard = $('fIdcard').value.trim();
+    var src = $('fSrc').value, lock = $('fLock').value;
+    var examType = $('fExamType').value, examOrg = $('fExamOrg').value, doctor = $('fDoctor').value.trim();
+    var gender = $('fGender').value, archNo = $('fArchNo').value.trim();
+    var phone = $('fPhone').value.trim(), address = $('fAddress').value.trim();
+    var birthStart = $('fBirthStart').value, birthEnd = $('fBirthEnd').value;
+    var archStart = $('fArchStart').value, archEnd = $('fArchEnd').value;
+    var examStart = $('fExamStart').value, examEnd = $('fExamEnd').value;
+    var rsSel = msValues();
+
+    lastList = examData.filter(function (r) {
+      if (org && r.org !== org) return false;
+      if (name && r.name.indexOf(name) === -1) return false;
+      if (idcard && r.idcard.indexOf(idcard) === -1) return false;
+      if (src && r.src !== src) return false;
+      if (lock && r.lock !== lock) return false;
+      if (rsSel.length && rsSel.indexOf(r.rStatus) === -1) return false;
+      if (examType && r.examType !== examType) return false;
+      if (examOrg && r.examOrg !== examOrg) return false;
+      if (doctor && r.doctor.indexOf(doctor) === -1) return false;
+      if (gender && r.gender !== gender) return false;
+      if (archNo && r.archNo.indexOf(archNo) === -1) return false;
+      if (phone && r.phone.indexOf(phone) === -1) return false;
+      if (address && r.address.indexOf(address) === -1) return false;
+      if (birthStart && r.birth < birthStart) return false;
+      if (birthEnd && r.birth > birthEnd) return false;
+      if (archStart && r.archDate < archStart) return false;
+      if (archEnd && r.archDate > archEnd) return false;
+      if (examStart && r.examDate < examStart) return false;
+      if (examEnd && r.examDate > examEnd) return false;
+      return true;
+    });
+
+    var total = Math.max(1, Math.ceil(lastList.length / PAGE_SIZE));
+    if (curPage > total) curPage = total;
+    var start = (curPage - 1) * PAGE_SIZE;
+    var slice = lastList.slice(start, start + PAGE_SIZE);
+
+    var html = '';
+    if (slice.length === 0) {
+      html = '<tr class="empty-row"><td colspan="22"><div class="ico">📭</div>暂无符合条件的体检记录</td></tr>';
+    } else {
+      slice.forEach(function (r, i) {
+        var fullCls = r.full >= 90 ? 'full-ok' : r.full >= 60 ? 'full-mid' : 'full-low';
+        var rsDot = r.rStatus === '正常' ? 'ok' : 'warn';
+        var lkDot = r.lock === '未上锁' ? 'ok' : 'warn';
+        var abnHtml = r.abnormal
+          ? '<span class="abn-info has" title="' + esc(r.abnormal) + '">' + esc(r.abnormal) + '</span>'
+          : '<span class="abn-info none">—</span>';
+        html += '<tr>'
+          + '<td class="center">' + (start + i + 1) + '</td>'
+          + '<td title="' + esc(r.org) + '"><span class="cell">' + esc(r.org) + '</span></td>'
+          + '<td><a class="op-link" onclick="viewExam(' + (start + i) + ')" title="查看居民体检档案">' + esc(r.name) + '</a></td>'
+          + '<td title="' + esc(r.idcard) + '"><span class="cell">' + esc(r.idcard) + '</span></td>'
+          + '<td>' + esc(r.idType) + '</td>'
+          + '<td class="center">' + esc(r.gender) + '</td>'
+          + '<td class="center">' + r.age + '</td>'
+          + '<td>' + esc(r.birth) + '</td>'
+          + '<td title="' + esc(r.phone) + '"><span class="cell">' + esc(r.phone) + '</span></td>'
+          + '<td>' + esc(r.examType) + '</td>'
+          + '<td>' + esc(r.examDate) + '</td>'
+          + '<td title="' + esc(r.examOrg) + '"><span class="cell">' + esc(r.examOrg) + '</span></td>'
+          + '<td>' + esc(r.doctor) + '</td>'
+          + '<td>' + esc(r.archDate) + '</td>'
+          + '<td class="center"><span class="' + fullCls + '">' + r.full + '</span></td>'
+          + '<td>' + abnHtml + '</td>'
+          + '<td title="' + esc(r.address) + '"><span class="cell">' + esc(r.address) + '</span></td>'
+          + '<td title="' + esc(r.archNo) + '"><span class="cell">' + esc(r.archNo) + '</span></td>'
+          + '<td>' + esc(r.region) + '</td>'
+          + '<td><span class="st-dot ' + rsDot + '"></span>' + esc(r.rStatus) + '</td>'
+          + '<td><span class="st-dot ' + lkDot + '"></span>' + esc(r.lock) + '</td>'
+          + '<td class="center">'
+          +   '<a class="op-link" onclick="viewExam(' + (start + i) + ')">查看</a>'
+          +   '<span class="op-gap"></span>'
+          +   '<a class="op-link" onclick="editExam(' + (start + i) + ')">编辑</a>'
+          +   '<span class="op-gap"></span>'
+          +   '<a class="op-link danger" onclick="openDel(' + (start + i) + ')">删除</a>'
+          + '</td>'
+          + '</tr>';
+      });
+    }
+    $('tbBody').innerHTML = html;
+    $('pgTotal').textContent = lastList.length;
+    renderPager(total);
+    $('pgJump').value = curPage;
+  }
+
+  /* ================= 分页器 ================= */
+  function renderPager(total) {
+    var nums = [];
+    if (total <= 7) {
+      for (var i = 1; i <= total; i++) nums.push(i);
+    } else {
+      nums.push(1);
+      if (curPage > 3) nums.push('…');
+      for (var j = Math.max(2, curPage - 1); j <= Math.min(total - 1, curPage + 1); j++) nums.push(j);
+      if (curPage < total - 2) nums.push('…');
+      nums.push(total);
+    }
+    var h = '<button class="pg-btn" onclick="gotoPage(' + (curPage - 1) + ')">‹</button>';
+    nums.forEach(function (n) {
+      h += n === '…'
+        ? '<span class="pg-ellipsis">…</span>'
+        : '<button class="pg-btn' + (n === curPage ? ' active' : '') + '" onclick="gotoPage(' + n + ')">' + n + '</button>';
+    });
+    h += '<button class="pg-btn" onclick="gotoPage(' + (curPage + 1) + ')">›</button>';
+    $('pgPager').innerHTML = h;
+  }
+
+  function gotoPage(p) {
+    var total = Math.max(1, Math.ceil(lastList.length / PAGE_SIZE));
+    if (p < 1) { toast('已是第一页', 'info'); return; }
+    if (p > total) { toast('已是最后一页', 'info'); return; }
+    if (p === curPage) { toast('已在第 ' + p + ' 页', 'info'); return; }
+    curPage = p;
+    renderTable();
+  }
+
+  function jumpPage() {
+    var v = parseInt($('pgJump').value, 10);
+    if (isNaN(v)) { toast('请输入页码', 'warning'); return; }
+    gotoPage(v);
+  }
+
+  /* ================= 居民状态多选 ================= */
+  function msValues() {
+    var arr = [];
+    $('msPanel').querySelectorAll('input[type=checkbox]').forEach(function (cb) {
+      if (cb.checked) arr.push(cb.value);
+    });
+    return arr;
+  }
+
+  function syncMsLabel() {
+    var arr = msValues();
+    var badge = $('msBadge');
+    if (arr.length) {
+      badge.style.display = 'inline-flex';
+      badge.textContent = '已选择(' + arr.length + ')';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  function toggleMsPanel(e) {
+    if (e) e.stopPropagation();
+    var wrap = $('msWrap');
+    wrap.classList.toggle('open');
+  }
+
+  document.addEventListener('click', function () {
+    $('msWrap').classList.remove('open');
+  });
+
+  /* ================= 交互 ================= */
+  function resetFilter() {
+    ['fName', 'fIdcard', 'fDoctor', 'fArchNo', 'fPhone', 'fAddress'].forEach(function (id) { $(id).value = ''; });
+    ['fOrg', 'fExamType', 'fExamOrg', 'fGender'].forEach(function (id) { $(id).value = ''; });
+    ['fBirthStart', 'fBirthEnd', 'fArchStart', 'fArchEnd', 'fExamStart', 'fExamEnd'].forEach(function (id) { var el = $(id); el.value = ''; el.type = 'text'; });
+    $('fSrc').value = '本系统';
+    $('fLock').value = '未上锁';
+    $('msPanel').querySelectorAll('input[type=checkbox]').forEach(function (cb) { cb.checked = cb.value === '正常'; });
+    syncMsLabel();
+    $('fMine').checked = false;
+    curPage = 1;
+    renderTable();
+    toast('筛选条件已重置', 'success');
+  }
+
+  function applyFilter() {
+    curPage = 1;
+    renderTable();
+    toast('查询完成，共 ' + $('pgTotal').textContent + ' 条记录', 'success');
+  }
+
+  function toggleExtra() {
+    var rows = document.querySelectorAll('.filter-row.extra');
+    var btn = $('btnExpand');
+    var show = !rows[0].classList.contains('show');
+    rows.forEach(function (row) { row.classList.toggle('show', show); });
+    btn.textContent = show ? '收起 ▲' : '展开 ▼';
+    /* 展开：按钮组移到最后一行筛选条件右侧；收起：移回第二行末尾 */
+    var btns = document.querySelector('.filter-panel .filter-btns');
+    var mainRows = document.querySelectorAll('.filter-panel .filter-row:not(.extra)');
+    if (show) {
+      rows[rows.length - 1].appendChild(btns);
+    } else {
+      mainRows[mainRows.length - 1].appendChild(btns);
+    }
+  }
+
+  /* ================= 查看 / 编辑 / 删除 ================= */
+  function getRow(i) {
+    return lastList[i];
+  }
+
+  function buildParams(r, readonly) {
+    var params = [
+      'view=healthCheckup',
+      'name=' + encodeURIComponent(r.name),
+      'gender=' + encodeURIComponent(r.gender === '男' ? '男性' : '女性'),
+      'idcard=' + encodeURIComponent(r.idcard),
+      'idType=' + encodeURIComponent(r.idType),
+      'archNo=' + encodeURIComponent(r.archNo),
+      'addr=' + encodeURIComponent(r.address || '')
+    ];
+    if (r.birth) params.push('birth=' + encodeURIComponent(r.birth));
+    if (r.phone) params.push('phone=' + encodeURIComponent(r.phone));
+    if (r.examDate) params.push('examDate=' + encodeURIComponent(r.examDate));
+    if (r.examOrg) params.push('examOrg=' + encodeURIComponent(r.examOrg));
+    if (r.doctor) params.push('doctor=' + encodeURIComponent(r.doctor));
+    params.push(readonly ? 'readonly=1' : 'edit=1');
+    return params;
+  }
+
+  function viewExam(i) {
+    var r = getRow(i);
+    if (!r) return;
+    location.href = '档案维护.html?' + buildParams(r, true).join('&');
+  }
+
+  function editExam(i) {
+    var r = getRow(i);
+    if (!r) return;
+    location.href = '档案维护.html?' + buildParams(r, false).join('&');
+  }
+
+  var delIdx = -1;
+  function openDel(i) {
+    var r = getRow(i);
+    if (!r) return;
+    delIdx = i;
+    $('delName').textContent = r.name;
+    $('delDate').textContent = r.examDate;
+    $('delModal').classList.add('show');
+  }
+
+  function closeDelModal() {
+    $('delModal').classList.remove('show');
+    delIdx = -1;
+  }
+
+  function submitDel() {
+    if (delIdx < 0) return;
+    var r = getRow(delIdx);
+    var name = r ? r.name : '';
+    var idx = examData.indexOf(r);
+    if (idx > -1) examData.splice(idx, 1);
+    closeDelModal();
+    renderTable();
+    toast('已删除 ' + name + ' 的体检记录', 'success');
+  }
+
+  /* ================= 筛选控件事件 ================= */
+  ['fName', 'fIdcard', 'fDoctor', 'fArchNo', 'fPhone', 'fAddress'].forEach(function (id) {
+    $(id).addEventListener('input', function () { curPage = 1; renderTable(); });
+  });
+  ['fOrg', 'fSrc', 'fLock', 'fExamType', 'fExamOrg', 'fGender'].forEach(function (id) {
+    $(id).addEventListener('change', function () { curPage = 1; renderTable(); });
+  });
+  ['fBirthStart', 'fBirthEnd', 'fArchStart', 'fArchEnd', 'fExamStart', 'fExamEnd'].forEach(function (id) {
+    $(id).addEventListener('change', function () { curPage = 1; renderTable(); });
+  });
+  $('msPanel').addEventListener('change', function () {
+    syncMsLabel();
+    curPage = 1;
+    renderTable();
+  });
+
+  renderTable();
+</script>
+</body>
+</html>

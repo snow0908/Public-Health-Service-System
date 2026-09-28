@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>健康宣教统计 - 业务统计</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}
+
+  /* ===== 页头 ===== */
+  .page-head .right .btn{height:30px;padding:0 14px;font-size:13px}
+
+  /* ===== 统计 TAB ===== */
+  .stat-tabs{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px 10px;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .stat-tab{height:30px;padding:0 16px;border-radius:15px;border:1px solid #DDE3EA;background:#fff;color:var(--text-secondary);font-size:13px;cursor:pointer;transition:all var(--transition-fast);display:inline-flex;align-items:center}
+  .stat-tab:hover{border-color:var(--primary);color:var(--primary)}
+  .stat-tab.active{background:var(--primary);border-color:var(--primary);color:#fff}
+
+  /* ===== 筛选区 ===== */
+  .filter-panel{padding:14px 16px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin-bottom:14px}
+  .filter-item{display:flex;align-items:center;gap:4px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .fi-select.is-placeholder{color:var(--text-placeholder)}
+  .fi-date{width:118px}
+  .fi-range{display:flex;align-items:center;gap:4px;color:var(--text-tertiary)}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+  /* ===== 数据表格 ===== */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+  .list-tbl th:last-child,.list-tbl td:last-child{position:sticky;right:0}
+  .list-tbl td:last-child{z-index:2;background-color:var(--bg-white)}
+  .list-tbl th:last-child{z-index:6}
+  .list-tbl{width:100%;min-width:1200px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:36px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:nth-child(even) td{background:var(--bg-table-even)}
+  .list-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .table-wrap.hs-scrolled .list-tbl thead th:last-child,
+  .table-wrap.hs-scrolled .list-tbl tbody tr td:last-child{
+    background-image:linear-gradient(to right,rgba(0,0,0,0.10),rgba(0,0,0,0));
+    background-repeat:no-repeat;background-size:9px 100%;background-position:left center;
+  }
+  .list-tbl .center{text-align:center}
+  .list-tbl .num{font-family:Consolas,'Microsoft YaHei',monospace;text-align:right}
+  .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px}
+  .op-link:hover{text-decoration:underline}
+  .op-gap{display:inline-block;width:8px}
+  .dash{color:var(--text-placeholder)}
+
+  /* 空状态 */
+  .empty-td{height:200px;text-align:center;color:var(--text-tertiary)}
+  .empty-box{display:inline-flex;flex-direction:column;align-items:center;gap:10px}
+  .empty-box svg{width:56px;height:56px;stroke:#C9CFD8;fill:none;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round}
+  .empty-box p{font-size:13px;color:var(--text-placeholder)}
+
+  /* ===== 分页 ===== */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:44px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 22px 0 8px;font-size:13px;color:var(--text-secondary);background:#fff;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-btn.disabled{color:var(--text-disabled);cursor:not-allowed;border-color:#EBEBEB}
+  .pg-jump input{width:40px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 6px;font-size:13px;text-align:center;color:var(--text-primary);outline:none}
+</style>
+</head>
+<body>
+
+<div class="main-area">
+
+  <div class="tabbar">
+    <div class="tab-item active">健康宣教统计</div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <div class="page-head">
+        <h1>健康宣教统计</h1>
+        <div class="right">
+          <button class="btn btn-default" onclick="toast('导出成功','success')">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            导出
+          </button>
+        </div>
+      </div>
+
+      <div class="stat-tabs" id="statTabs"></div>
+      <div class="filter-panel" id="filterPanel"></div>
+      <div class="table-wrap" id="tableWrap">
+        <table class="list-tbl" id="listTbl">
+          <colgroup id="colgroup"></colgroup>
+          <thead id="thead"></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="page-foot">
+        <div class="pg-total">共 <b id="total">0</b> 条</div>
+        <div class="pg-size">
+          <select>
+            <option>20 条/页</option>
+            <option>50 条/页</option>
+            <option>100 条/页</option>
+          </select>
+        </div>
+        <div class="pg-pager">
+          <button class="pg-btn disabled">&lt;</button>
+          <button class="pg-btn active">1</button>
+          <button class="pg-btn disabled">&gt;</button>
+        </div>
+        <div class="pg-jump">跳至 <input type="text" value="1"> 页</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="框架.js" data-page="health-edu-stat" data-embed="auto"></script>
+<script>
+  /* ================= 工具 ================= */
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function markSelect(el) { el.classList.toggle('is-placeholder', el.value === ''); }
+  function dash(v) { return (v === null || v === undefined || v === '') ? '<span class="dash">-</span>' : esc(v); }
+
+  var SRC  = ['请选择','本系统','外系统'];
+  var ORGS = ['请选择','扬州市江都区仙女镇','扬州市江都区大桥镇','大桥镇东园社区','大桥镇西园社区','仙女镇北苑社区','仙女镇东苑社区','仙女镇樊庄村卫生室','仙女镇黄阳社区','仙女镇江桥村卫生室','仙女镇孔庄村卫生室','仙女镇乐和社区','仙女镇龙城社区','仙女镇龙川社区','仙女镇龙溪社区','仙女镇明珠社区','仙女镇南吴村卫生室','仙女镇七闸村卫生室','仙女镇西苑社区卫生服务站','仙女镇仙女社区'];
+  var TPLS = ['请选择','高血压健康教育处方','糖尿病健康教育处方','慢阻肺健康教育处方','肺炎','急性胃肠炎','肩周炎','慢性胃炎','慢性支气管炎','上呼吸道感染','急性气管-支气管炎','痛风'];
+  var POP1 = ['请选择','高血压患者','糖尿病患者','慢阻肺患者','老年人','孕产妇','儿童'];
+  var POP2 = ['请选择','全部','规范管理','暂缓管理','退出管理'];
+
+  function opts(arr) {
+    return arr.map(function (o) { return '<option value="' + esc(o) + '">' + esc(o) + '</option>'; }).join('');
+  }
+
+  /* ================= 数据 ================= */
+  var ORG_ROWS = [
+    { org:'大桥镇东园社区', dept:'乡村医生,默认科室', total:1,   hyp:0,   dm:0,   copd:0 },
+    { org:'大桥镇西园社区', dept:'公卫科',             total:1,   hyp:1,   dm:1,   copd:0 },
+    { org:'仙女镇北苑社区', dept:'公卫科',             total:310, hyp:237, dm:48,  copd:0 },
+    { org:'仙女镇东苑社区', dept:'公卫科',             total:75,  hyp:63,  dm:34,  copd:3 },
+    { org:'仙女镇樊庄村卫生室', dept:'公卫科',         total:9,   hyp:8,   dm:2,   copd:0 },
+    { org:'仙女镇樊庄村卫生室', dept:'预防保健科,乡村医生', total:17, hyp:11, dm:4, copd:1 },
+    { org:'仙女镇黄阳社区', dept:'公卫科',             total:93,  hyp:51,  dm:85,  copd:0 },
+    { org:'仙女镇江桥村卫生室', dept:'公卫科',         total:478, hyp:373, dm:170, copd:2 },
+    { org:'仙女镇孔庄村卫生室', dept:'乡村医生',       total:130, hyp:58,  dm:33,  copd:1 },
+    { org:'仙女镇孔庄村卫生室', dept:'预防保健科,乡村医生', total:2, hyp:2, dm:1, copd:0 },
+    { org:'仙女镇乐和社区', dept:'公卫科',             total:316, hyp:128, dm:60,  copd:1 },
+    { org:'仙女镇龙城社区', dept:'公卫科',             total:4,   hyp:3,   dm:4,   copd:0 },
+    { org:'仙女镇龙川社区', dept:'公卫科',             total:92,  hyp:82,  dm:3,   copd:0 },
+    { org:'仙女镇龙溪社区', dept:'公卫科',             total:62,  hyp:32,  dm:54,  copd:1 },
+    { org:'仙女镇明珠社区', dept:'公卫科',             total:9,   hyp:9,   dm:1,   copd:0 },
+    { org:'仙女镇南吴村卫生室', dept:'公卫科',         total:320, hyp:193, dm:74,  copd:6 },
+    { org:'仙女镇七闸村卫生室', dept:'公卫科',         total:478, hyp:411, dm:214, copd:7 },
+    { org:'仙女镇七闸村卫生室', dept:'预防保健科,乡村医生', total:1, hyp:0, dm:0, copd:0 },
+    { org:'仙女镇西苑社区卫生服务站', dept:'公卫科',   total:1,   hyp:1,   dm:0,   copd:0 },
+    { org:'仙女镇仙女社区', dept:'公卫科',             total:9,   hyp:7,   dm:0,   copd:0 },
+    { org:'仙女镇新火村卫生室', dept:'公卫科',         total:42,  hyp:26,  dm:12,  copd:1 },
+    { org:'仙女镇周楼村卫生室', dept:'公卫科',         total:156, hyp:98,  dm:45,  copd:2 }
+  ];
+
+  var TPL_ROWS = [
+    { org:'扬州市江都区仙女镇樊庄村卫生室', dept:'公卫科', tpl:'高血压健康教育处方',   doc:'赵月红', total:162, hyp:162, dm:27,  copd:0 },
+    { org:'扬州市江都区大桥镇西园社区卫生服务站', dept:'公卫科', tpl:'糖尿病健康教育处方', doc:'李钦', total:88,  hyp:21,  dm:88,  copd:0 },
+    { org:'扬州市江都区仙女镇孔庄村卫生室', dept:'乡村医生', tpl:'高血压健康教育处方',  doc:'花时',  total:73,  hyp:73,  dm:15,  copd:0 },
+    { org:'扬州市江都区仙女镇东苑社区卫生服务站', dept:'公卫科', tpl:'慢阻肺健康教育处方', doc:'孔令怡', total:19, hyp:0, dm:0, copd:19 },
+    { org:'滨江人民医院', dept:'公卫科', tpl:'高血压健康教育处方', doc:'张三玲', total:126, hyp:126, dm:34, copd:0 },
+    { org:'滨江人民医院', dept:'公卫科', tpl:'糖尿病健康教育处方', doc:'李思静', total:97,  hyp:19,  dm:97,  copd:0 },
+    { org:'扬州市江都区仙女镇黄阳社区卫生服务站', dept:'公卫科', tpl:'肺炎', doc:'王蕾', total:11, hyp:0, dm:0, copd:0 },
+    { org:'扬州市江都区仙女镇南吴村卫生室', dept:'公卫科', tpl:'急性胃肠炎', doc:'仇兆霞', total:24, hyp:0, dm:0, copd:0 },
+    { org:'扬州市江都区仙女镇七闸村卫生室', dept:'公卫科', tpl:'高血压健康教育处方', doc:'解芳平', total:214, hyp:214, dm:52, copd:0 },
+    { org:'扬州市江都区仙女镇龙溪社区卫生服务站', dept:'公卫科', tpl:'糖尿病健康教育处方', doc:'滕国俊', total:54, hyp:12, dm:54, copd:0 },
+    { org:'扬州市江都区仙女镇乐和社区卫生服务站', dept:'公卫科', tpl:'肩周炎', doc:'钱丽颖', total:8, hyp:0, dm:0, copd:0 },
+    { org:'扬州市江都区仙女镇明珠社区卫生服务站', dept:'公卫科', tpl:'慢性胃炎', doc:'殷剑英', total:15, hyp:0, dm:0, copd:0 },
+    { org:'扬州市江都区仙女镇龙川社区卫生服务站', dept:'公卫科', tpl:'慢性支气管炎', doc:'孙莉', total:23, hyp:0, dm:0, copd:3 },
+    { org:'扬州市江都区仙女镇北苑社区卫生服务站', dept:'公卫科', tpl:'上呼吸道感染', doc:'张亚', total:31, hyp:0, dm:0, copd:0 },
+    { org:'扬州市江都区仙女镇仙女社区卫生服务站', dept:'公卫科', tpl:'高血压健康教育处方', doc:'黄飞', total:66, hyp:66, dm:14, copd:0 },
+    { org:'扬州市江都区仙女镇江桥村卫生室', dept:'公卫科', tpl:'痛风', doc:'赵月红', total:9, hyp:0, dm:0, copd:0 },
+    { org:'扬州市江都区仙女镇新火村卫生室', dept:'公卫科', tpl:'急性气管-支气管炎', doc:'李钦', total:17, hyp:0, dm:0, copd:0 },
+    { org:'扬州市江都区仙女镇周楼村卫生室', dept:'公卫科', tpl:'高血压健康教育处方', doc:'花时', total:45, hyp:45, dm:9, copd:0 },
+    { org:'扬州市江都区仙女镇七闸村卫生室', dept:'预防保健科,乡村医生', tpl:'肺炎', doc:'孔令怡', total:6, hyp:0, dm:0, copd:0 },
+    { org:'扬州市江都区仙女镇樊庄村卫生室', dept:'预防保健科,乡村医生', tpl:'糖尿病健康教育处方', doc:'张三玲', total:29, hyp:6, dm:29, copd:0 }
+  ];
+
+  var DETAIL_ROWS = [
+    { org:'扬州市江都区大桥镇白于村卫生室', dept:'公卫科', tpl:'肺炎',                    doc:'何海燕', rname:'于红凤', pop:'',      sex:'女', phone:'1512575****', id:'32108819520504****', idType:'居民身份证', edate:'2026-09-02' },
+    { org:'扬州市江都区大桥镇东园社区卫生服务站', dept:'公卫科', tpl:'高血压健康教育处方', doc:'胡小利', rname:'严永梅', pop:'高血压患者', sex:'女', phone:'1515275****', id:'32108819560612****', idType:'居民身份证', edate:'2026-09-02' },
+    { org:'扬州市江都区大桥镇西园社区卫生服务站', dept:'公卫科', tpl:'急性胃肠炎',        doc:'刘大明', rname:'邓向林', pop:'',      sex:'男', phone:'1852052****', id:'32108819620819****', idType:'常住', edate:'2026-09-03' },
+    { org:'扬州市江都区仙女镇樊庄村卫生室', dept:'公卫科', tpl:'糖尿病健康教育处方',     doc:'韩巧香', rname:'杨长娣', pop:'糖尿病患者', sex:'女', phone:'1385276****', id:'32108819590227****', idType:'居民身份证', edate:'2026-09-04' },
+    { org:'扬州市江都区仙女镇孔庄村卫生室', dept:'乡村医生', tpl:'高血压健康教育处方',    doc:'李林林', rname:'王长根', pop:'高血压患者', sex:'男', phone:'1395143****', id:'32108819600605****', idType:'居民身份证', edate:'2026-09-05' },
+    { org:'扬州市江都区仙女镇黄阳社区卫生服务站', dept:'公卫科', tpl:'慢性支气管-支气管炎', doc:'王有明', rname:'李秀英', pop:'',      sex:'女', phone:'1366523****', id:'32108819541116****', idType:'居民身份证', edate:'2026-09-05' },
+    { org:'扬州市江都区仙女镇乐和社区卫生服务站', dept:'公卫科', tpl:'上呼吸道感染',      doc:'韩永进', rname:'陈长贵', pop:'',      sex:'男', phone:'1505081****', id:'32108819610530****', idType:'常住', edate:'2026-09-06' },
+    { org:'扬州市江都区仙女镇龙川社区卫生服务站', dept:'公卫科', tpl:'痛风',              doc:'杨红琴', rname:'周玉兰', pop:'',      sex:'女', phone:'1333829****', id:'32108819630311****', idType:'流动人口', edate:'2026-09-07' },
+    { org:'扬州市江都区仙女镇江桥村卫生室', dept:'公卫科', tpl:'高血压健康教育处方',      doc:'王德凤', rname:'刘万山', pop:'高血压患者', sex:'男', phone:'1370523****', id:'32108819570823****', idType:'居民身份证', edate:'2026-09-08' },
+    { org:'扬州市江都区仙女镇南吴村卫生室', dept:'公卫科', tpl:'慢性支气管炎',            doc:'何海燕', rname:'吴桂英', pop:'',      sex:'女', phone:'1589611****', id:'32108819620815****', idType:'居民身份证', edate:'2026-09-09' },
+    { org:'扬州市江都区仙女镇七闸村卫生室', dept:'公卫科', tpl:'高血压健康教育处方',      doc:'胡小利', rname:'孙长林', pop:'高血压患者', sex:'男', phone:'1891436****', id:'32108819590102****', idType:'居民身份证', edate:'2026-09-10' },
+    { org:'扬州市江都区仙女镇龙溪社区卫生服务站', dept:'公卫科', tpl:'糖尿病健康教育处方', doc:'刘大明', rname:'朱文英', pop:'糖尿病患者', sex:'女', phone:'1340553****', id:'32108819600628****', idType:'居民身份证', edate:'2026-09-11' },
+    { org:'扬州市江都区仙女镇明珠社区卫生服务站', dept:'公卫科', tpl:'高血压健康教育处方', doc:'韩巧香', rname:'蒋德全', pop:'高血压患者', sex:'男', phone:'1595076****', id:'32108819561014****', idType:'常住', edate:'2026-09-12' },
+    { org:'扬州市江都区仙女镇新火村卫生室', dept:'公卫科', tpl:'急性气管-支气管炎',      doc:'李林林', rname:'徐秀兰', pop:'',      sex:'女', phone:'1377021****', id:'32108819630919****', idType:'居民身份证', edate:'2026-09-13' },
+    { org:'扬州市江都区仙女镇周楼村卫生室', dept:'公卫科', tpl:'高血压健康教育处方',      doc:'王有明', rname:'马长龙', pop:'高血压患者', sex:'男', phone:'1319660****', id:'32108819580305****', idType:'居民身份证', edate:'2026-09-14' },
+    { org:'扬州市江都区仙女镇仙女社区卫生服务站', dept:'公卫科', tpl:'肺炎',              doc:'韩永进', rname:'何玉珍', pop:'',      sex:'女', phone:'1395218****', id:'32108819610712****', idType:'流动人口', edate:'2026-09-15' },
+    { org:'扬州市江都区大桥镇西园社区卫生服务站', dept:'公卫科', tpl:'慢阻肺健康教育处方', doc:'杨红琴', rname:'钱长顺', pop:'慢阻肺患者', sex:'男', phone:'1586172****', id:'32108819550924****', idType:'居民身份证', edate:'2026-09-16' },
+    { org:'扬州市江都区仙女镇东苑社区卫生服务站', dept:'公卫科', tpl:'高血压健康教育处方', doc:'王德凤', rname:'沈秀芳', pop:'高血压患者', sex:'女', phone:'1865154****', id:'32108819620517****', idType:'居民身份证', edate:'2026-09-17' },
+    { org:'扬州市江都区仙女镇北苑社区卫生服务站', dept:'公卫科', tpl:'糖尿病健康教育处方', doc:'何海燕', rname:'梁长宝', pop:'糖尿病患者', sex:'男', phone:'1370528****', id:'32108819581209****', idType:'居民身份证', edate:'2026-09-18' },
+    { org:'扬州市江都区仙女镇西苑社区卫生服务站', dept:'公卫科', tpl:'高血压健康教育处方', doc:'胡小利', rname:'金桂兰', pop:'高血压患者', sex:'女', phone:'1515271****', id:'32108819601021****', idType:'常住', edate:'2026-09-19' }
+  ];
+
+  /* ================= TAB 配置 ================= */
+  var TABS = {
+    org: {
+      label: '按机构汇总',
+      rows: ORG_ROWS,
+      filters: [
+        { row: 1, items: [
+          { type: 'select', label: '数据来源', key: 'src', opts: SRC },
+          { type: 'select', label: '宣教机构', key: 'org', opts: ORGS },
+          { type: 'daterange', label: '宣教日期', key: 'date' }
+        ] }
+      ],
+      cols: [
+        { label: '序号', w: 52,  c: 1, t: function (r, i) { return i + 1; } },
+        { label: '宣教机构', w: 220, render: function (r) { return r.org; } },
+        { label: '宣教科室', w: 170, render: function (r) { return r.dept; } },
+        { label: '宣教合计', w: 96,  num: 1, render: function (r) { return r.total; } },
+        { label: '高血压患者数', w: 110, num: 1, render: function (r) { return r.hyp; } },
+        { label: '糖尿病患者数', w: 110, num: 1, render: function (r) { return r.dm; } },
+        { label: '慢阻肺患者数', w: 110, num: 1, render: function (r) { return r.copd; } },
+        { label: '操作', w: 80,  c: 1, render: function (r) { return '<a class="op-link" onclick="toast(\'查看 ' + esc(r.org) + ' 宣教汇总\',\'info\')">查看</a>'; } }
+      ]
+    },
+    tpl: {
+      label: '按模板汇总',
+      rows: TPL_ROWS,
+      filters: [
+        { row: 1, items: [
+          { type: 'select', label: '数据来源', key: 'src', opts: SRC },
+          { type: 'select', label: '宣教机构', key: 'org', opts: ORGS },
+          { type: 'input',  label: '宣教科室', key: 'dept', ph: '请输入' },
+          { type: 'daterange', label: '宣教日期', key: 'date' },
+          { type: 'select', label: '宣教模板', key: 'tpl', opts: TPLS },
+          { type: 'input',  label: '宣教医生', key: 'doc', ph: '请输入' }
+        ] },
+        { row: 2, items: [
+          { type: 'select', label: '重点人群类型', key: 'pop1', opts: POP1 },
+          { type: 'select', label: '重点人群类型', key: 'pop2', opts: POP2, noLabel: true }
+        ] }
+      ],
+      cols: [
+        { label: '序号', w: 52,  c: 1, t: function (r, i) { return i + 1; } },
+        { label: '宣教机构', w: 230, render: function (r) { return r.org; } },
+        { label: '宣教科室', w: 150, render: function (r) { return r.dept; } },
+        { label: '模板名称', w: 160, render: function (r) { return r.tpl; } },
+        { label: '宣教医生', w: 90,  render: function (r) { return r.doc; } },
+        { label: '宣教合计', w: 90,  num: 1, render: function (r) { return r.total; } },
+        { label: '高血压册数', w: 100, num: 1, render: function (r) { return r.hyp; } },
+        { label: '糖尿病患者数', w: 105, num: 1, render: function (r) { return r.dm; } },
+        { label: '慢阻肺患者数', w: 105, num: 1, render: function (r) { return r.copd; } },
+        { label: '操作', w: 80,  c: 1, render: function (r) { return '<a class="op-link" onclick="toast(\'查看 ' + esc(r.tpl) + ' 模板汇总\',\'info\')">查看</a>'; } }
+      ]
+    },
+    detail: {
+      label: '宣教明细',
+      rows: DETAIL_ROWS,
+      filters: [
+        { row: 1, items: [
+          { type: 'select', label: '数据来源', key: 'src', opts: SRC },
+          { type: 'select', label: '宣教机构', key: 'org', opts: ORGS },
+          { type: 'input',  label: '宣教科室', key: 'dept', ph: '请输入' },
+          { type: 'daterange', label: '宣教日期', key: 'date' },
+          { type: 'select', label: '宣教模板', key: 'tpl', opts: TPLS },
+          { type: 'input',  label: '宣教医生', key: 'doc', ph: '请输入' }
+        ] },
+        { row: 2, items: [
+          { type: 'select', label: '重点人群类型', key: 'pop1', opts: POP1 },
+          { type: 'select', label: '重点人群类型', key: 'pop2', opts: POP2, noLabel: true }
+        ] }
+      ],
+      cols: [
+        { label: '序号', w: 52,  c: 1, t: function (r, i) { return i + 1; } },
+        { label: '宣教机构', w: 230, render: function (r) { return r.org; } },
+        { label: '宣教科室', w: 120, render: function (r) { return r.dept; } },
+        { label: '模板名称', w: 150, render: function (r) { return r.tpl; } },
+        { label: '宣教医生', w: 84,  render: function (r) { return r.doc; } },
+        { label: '居民姓名', w: 84,  render: function (r) { return r.rname; } },
+        { label: '重点人群类型', w: 110, render: function (r) { return dash(r.pop); } },
+        { label: '居民性别', w: 84,  c: 1, render: function (r) { return r.sex; } },
+        { label: '居民电话', w: 120, render: function (r) { return r.phone; } },
+        { label: '证件号码', w: 160, render: function (r) { return r.id; } },
+        { label: '证件类型', w: 100, render: function (r) { return r.idType; } },
+        { label: '宣教日期', w: 108, render: function (r) { return r.edate; } },
+        { label: '操作', w: 80,  c: 1, render: function (r) { return '<a class="op-link" onclick="toast(\'查看 ' + esc(r.rname) + ' 宣教记录\',\'info\')">查看</a>'; } }
+      ]
+    }
+  };
+
+  /* ================= 渲染 ================= */
+  var curTab = 'org';
+  var curRows = [];
+
+  function renderTabs() {
+    $('statTabs').innerHTML = Object.keys(TABS).map(function (k) {
+      var t = TABS[k];
+      return '<span class="stat-tab' + (k === curTab ? ' active' : '') + '" onclick="switchTab(\'' + k + '\')">' + esc(t.label) + '</span>';
+    }).join('');
+  }
+
+  function filterItemHtml(f, idx) {
+    var ph = f.ph || '';
+    var label = f.noLabel ? '' : f.label + '：';
+    if (f.type === 'select') {
+      return '<div class="filter-item"><label>' + label + '</label><select class="fi-select is-placeholder" data-f="' + idx + '" onchange="markSelect(this);filterRows()">' + opts(f.opts) + '</select></div>';
+    }
+    if (f.type === 'daterange') {
+      return '<div class="filter-item"><label>' + f.label + '：</label><span class="fi-range"><input class="fi-ctl fi-date" value="2026-01-01" data-f="' + idx + '" oninput="filterRows()">~<input class="fi-ctl fi-date" value="2026-12-31" data-half="end" data-f="' + idx + '" oninput="filterRows()"></span></div>';
+    }
+    return '<div class="filter-item"><label>' + label + '</label><input class="fi-ctl" placeholder="' + ph + '" data-f="' + idx + '" oninput="filterRows()"></div>';
+  }
+
+  function renderFilter() {
+    var t = TABS[curTab];
+    var html = '';
+    var fidx = 0;
+    t.filters.forEach(function (rowDef, ri) {
+      html += '<div class="filter-row">';
+      rowDef.items.forEach(function (f) {
+        html += filterItemHtml(f, fidx);
+        fidx++;
+      });
+      if (ri === t.filters.length - 1) {
+        html += '<div class="filter-btns">'
+          + '<button class="btn btn-default" onclick="resetFilter()">重置</button>'
+          + '<button class="btn btn-primary" onclick="queryFilter()">查询</button></div>';
+      }
+      html += '</div>';
+    });
+    $('filterPanel').innerHTML = html;
+  }
+
+  function renderTable() {
+    var t = TABS[curTab];
+    var cols = t.cols;
+    var colgroup = cols.map(function (c) { return '<col style="width:' + c.w + 'px">'; }).join('');
+    var thead = '<tr>' + cols.map(function (c) {
+      return '<th class="' + (c.c ? 'center' : '') + '">' + esc(c.label) + '</th>';
+    }).join('') + '</tr>';
+
+    if (!curRows.length) {
+      $('colgroup').innerHTML = colgroup;
+      $('thead').innerHTML = thead;
+      $('tbody').innerHTML = '<tr><td class="empty-td" colspan="' + cols.length + '"><div class="empty-box">'
+        + '<svg viewBox="0 0 24 24"><path d="M21 8v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"/><path d="M3 8h18l-2.5-4h-13z"/><line x1="10" y1="12" x2="14" y2="12"/></svg>'
+        + '<p>暂无数据</p></div></td></tr>';
+      $('total').textContent = 0;
+      return;
+    }
+
+    var body = curRows.map(function (r, i) {
+      return '<tr>' + cols.map(function (c) {
+        var v = c.t ? c.t(r, i) : (c.render ? c.render(r) : '-');
+        var cls = c.c ? 'center' : (c.num ? 'num' : '');
+        return '<td class="' + cls + '">' + v + '</td>';
+      }).join('') + '</tr>';
+    }).join('');
+
+    $('colgroup').innerHTML = colgroup;
+    $('thead').innerHTML = thead;
+    $('tbody').innerHTML = body;
+    $('total').textContent = curRows.length;
+  }
+
+  function filterRows() {
+    var t = TABS[curTab];
+    var fields = $('filterPanel').querySelectorAll('[data-f]');
+    var arr = [];
+    fields.forEach(function (el) { arr.push(el.value ? el.value.trim().toLowerCase() : ''); });
+    var rowDefs = [];
+    t.filters.forEach(function (rd) { rd.items.forEach(function (f) { rowDefs.push(f); }); });
+    curRows = t.rows.filter(function (r) {
+      return rowDefs.every(function (f, i) {
+        var v = arr[i];
+        if (!v) return true;
+        var k = f.key;
+        if (k === 'date') return true;
+        if (k === 'pop2') return true;
+        var rv = r[k];
+        if (rv === undefined || rv === null) return true;
+        if (f.type === 'select') return String(rv) === v;
+        return String(rv).toLowerCase().indexOf(v) !== -1;
+      });
+    });
+    renderTable();
+  }
+
+  function resetFilter() {
+    $('filterPanel').querySelectorAll('[data-f]').forEach(function (el) {
+      if (el.tagName === 'SELECT') { el.value = ''; markSelect(el); }
+      else if (el.classList.contains('fi-date')) el.value = (el.getAttribute('data-half') === 'end') ? '2026-12-31' : '2026-01-01';
+      else el.value = '';
+    });
+    filterRows();
+    toast('已重置', 'info');
+  }
+
+  function queryFilter() {
+    filterRows();
+    toast('查询完成，共 ' + $('total').textContent + ' 条记录', 'success');
+  }
+
+  function switchTab(k) {
+    curTab = k;
+    curRows = TABS[k].rows.slice();
+    renderTabs();
+    renderFilter();
+    renderTable();
+    var wrap = $('tableWrap');
+    if (wrap.scrollLeft) { wrap.scrollLeft = 0; updShadow(); }
+  }
+
+  /* ================= 操作列冻结阴影 ================= */
+  function updShadow() {
+    var wrap = $('tableWrap');
+    wrap.classList.toggle('hs-scrolled', wrap.scrollLeft > 0);
+  }
+
+  /* ================= 初始化 ================= */
+  switchTab('org');
+  (function () {
+    var wrap = $('tableWrap');
+    wrap.addEventListener('scroll', updShadow, { passive: true });
+    window.addEventListener('resize', updShadow);
+    updShadow();
+  })();
+
+  /* 便于评审 / 截图：?tab=org|tpl|detail */
+  (function () {
+    var q = new URLSearchParams(location.search);
+    var t = q.get('tab');
+    if (t && TABS[t]) switchTab(t);
+  })();
+</script>
+
+</body>
+</html>

@@ -28,17 +28,28 @@
 
   /* ================= 菜单配置（改菜单只需改这里） ================= */
   var MENU = [
+    { key: 'dashboard', label: '首页', url: '首页.html',
+      icon: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' },
+    { type: 'divider' },
     { type: 'group', key: 'archives', label: '档案管理',
       icon: '<path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/><line x1="2" y1="11" x2="22" y2="11"/>',
       children: [
         { key: 'resident-archives',      label: '居民档案', url: '居民档案列表.html' },
         { key: 'family-archives',        label: '家庭档案', url: '家庭档案.html' },
+        { key: 'health-checkup',         label: '健康体检', url: '体检管理.html',
+          children: [
+        { key: 'exam-registration',      label: '体检登记', url: '体检登记.html' },
+        { key: 'exam-management',        label: '体检管理', url: '体检管理.html' }
+      ]
+         },
+        
+        { key: 'visit-tracking',         label: '就诊跟踪' },
         { key: 'disability-archives',    label: '残疾档案', url: '残疾档案.html' },
         { key: 'archive-migration',      label: '档案迁移' , url: '档案迁移.html'},
         { key: 'migration-review',       label: '迁移审核', url: '迁移审核.html' },
         { key: 'archive-recovery',       label: '档案恢复', url: '档案恢复.html' },
         { key: 'archive-access-records', label: '档案查阅记录', url: '档案查阅记录.html' },
-        { key: 'health-checkup',         label: '健康体检' }
+        { key: 'rehab-management',       label: '康复管理' }
       ] },
     { type: 'divider' },
     { type: 'group', key: 'plan-reminder', label: '计划提醒',
@@ -138,6 +149,15 @@
         { key: 'tb-query',               label: '肺结核查询' },
         { key: 'women-archive-query',    label: '妇女档案查询' }
       ] },
+    { type: 'group', key: 'bizstats', label: '业务统计',
+      icon: '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/>',
+      children: [
+        { key: 'personal-archive-stat',  label: '个人档案统计' },
+        { key: 'health-edu-stat',        label: '健康宣教统计', url: '健康宣教统计.html' },
+        { key: 'doctor-workload-stat',   label: '医生工作量统计', url: '医生工作量统计.html' },
+        { key: 'chronic-disease-stat',   label: '慢病统计' },
+        { key: 'biz-report',             label: '业务报表' }
+      ] },
     { type: 'divider' },
     { type: 'group', key: 'syssetting', label: '系统设置',
       icon: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>',
@@ -150,17 +170,22 @@
             { key: 'child-tcm-guide-template',    label: '儿童中医指导模板', url: '儿童中医指导模板.html' },
             { key: 'tcm-health-template',         label: '中医保健模板', url: '中医保健模板.html' }
           ] },
-        { key: 'jurisdiction-stats-maintenance', label: '辖区统计维护', url: '辖区统计维护.html' },
-        { key: 'sys-param-management',     label: '系统参数管理' },
+        
+        { key: 'sys-param-management',     label: '系统参数管理' ,
+          children: [
+            { key: 'jurisdiction-stats-maintenance', label: '辖区统计维护', url: '辖区统计维护.html' },
+            { key: 'form-maintenance',            label: '表单维护', url: '表单维护.html' }
+          ]
+        },
         { key: 'subsidy-management',       label: '补助管理' },
-        { key: 'disease-diagnosis-setting',label: '疾病诊疗设置' },
+        { key: 'disease-diagnosis-setting',label: '疾病诊疗设置', url: '疾病诊疗设置.html' },
         { key: 'basic-param-maintenance',  label: '基本参数维护' },
         { key: 'grid-management',          label: '网格化管理' },
         { key: 'grid-permission-mgmt',     label: '网格权限管理' },
         { key: 'archive-transfer-record',  label: '档案传输记录' },
         { key: 'operation-log',            label: '操作日志', url: '档案操作日志.html' },
-        { key: 'interface-address-mgmt',   label: '接口地址管理' },
-        { key: 'form-maintenance',         label: '表单维护', url: '表单维护.html' }
+        { key: 'interface-address-mgmt',   label: '接口地址管理' }
+       
       ] }
   ];
 

@@ -43,27 +43,33 @@
 
   /* ===== 数据表格 ===== */
   .table-wrap{flex:1;overflow:auto;min-height:0}
-  .fam-tbl{width:100%;min-width:1560px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .fam-tbl{width:100%;min-width:1576px;table-layout:fixed;border-collapse:collapse;font-size:13px}
   .fam-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
   .fam-tbl td{border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;padding:0 8px;height:36px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .fam-tbl th.center,.fam-tbl td.center{text-align:center}
   .fam-tbl tbody tr.fam-row:hover td{background:var(--primary-bg)}
   .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-  /* 家庭行 */
+  /* 家庭行：整行可点击，点击弹出底部成员浮层 */
+  .fam-tbl tr.fam-row{cursor:pointer}
   .fam-tbl tr.fam-row td{background:var(--bg-white)}
   .fam-tbl tr.fam-row.open td{background:#F0F7FF}
-  .fam-toggle{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border:none;background:none;color:var(--text-tertiary);cursor:pointer;user-select:none;vertical-align:middle;transition:all var(--transition-fast)}
-  .fam-toggle svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform var(--transition-fast)}
-  .fam-toggle:hover{color:var(--primary)}
-  .fam-row.open .fam-toggle{color:var(--primary)}
-  .fam-row.open .fam-toggle svg{transform:rotate(90deg)}
 
-  /* 成员嵌套块 */
-  tr.member-block > td{padding:0;border-bottom:none;background:var(--bg-white)}
+  /* ===== 成员列表底部浮层（抽屉）：仅覆盖内容区域，点击表格行后弹出 ===== */
+  .content .content-card{position:relative}
+  .member-drawer{position:absolute;left:0;right:0;bottom:0;z-index:60;background:var(--bg-white);border-top:1px solid #D6E4F7;box-shadow:0 -6px 18px rgba(0,0,0,0.10);border-radius:6px 6px 0 0;transform:translateY(100%);transition:transform .22s ease;display:flex;flex-direction:column;max-height:62vh}
+  .member-drawer.show{transform:translateY(0)}
+  .member-head{display:flex;align-items:center;height:40px;padding:0 16px;background:var(--primary-bg);border-bottom:1px solid #D6E4F7;border-radius:6px 6px 0 0;flex-shrink:0}
+  .member-head .ttl{font-size:13px;font-weight:var(--font-weight-medium);color:var(--text-primary)}
+  .member-head .fold{margin-left:auto;display:inline-flex;align-items:center;gap:4px;font-size:13px;color:var(--primary);cursor:pointer;user-select:none}
+  .member-head .fold:hover{text-decoration:underline}
+  .member-head .fold .tri{display:inline-block;font-size:10px;line-height:1;transition:transform var(--transition-fast)}
+  .member-drawer.folded .member-body{display:none}
+  .member-drawer.folded .fold .tri{transform:rotate(180deg)}
+  .member-body{overflow:auto;background:var(--bg-white)}
   .member-tbl{width:100%;table-layout:fixed;border-collapse:collapse;font-size:13px}
-  .member-tbl th{height:32px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED;border-top:1px solid #EEF0F4}
-  .member-tbl td{height:34px;padding:0 8px;color:var(--text-secondary);border-bottom:1px solid #F5F6FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .member-tbl th{height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:center;white-space:nowrap;border-bottom:1px solid #E4E7ED;position:sticky;top:0}
+  .member-tbl td{height:36px;padding:0 8px;color:var(--text-secondary);border-bottom:1px solid #F0F2F5;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .member-tbl th.center,.member-tbl td.center{text-align:center}
   .member-tbl tbody tr:hover td{background:var(--primary-bg)}
 
@@ -346,11 +352,11 @@
       <div class="table-wrap">
       <table class="fam-tbl">
         <colgroup>
-          <col style="width:40px"><col style="width:170px"><col style="width:90px"><col style="width:150px"><col style="width:90px"><col style="width:150px"><col style="width:100px"><col style="width:70px"><col style="width:140px"><col style="width:80px"><col style="width:90px"><col style="width:130px"><col style="width:150px">
+          <col style="width:56px"><col style="width:170px"><col style="width:90px"><col style="width:150px"><col style="width:90px"><col style="width:150px"><col style="width:100px"><col style="width:70px"><col style="width:140px"><col style="width:80px"><col style="width:90px"><col style="width:130px"><col style="width:150px">
         </colgroup>
         <thead>
           <tr>
-            <th class="center"></th>
+            <th class="center">序号</th>
             <th>管理机构</th>
             <th>户主姓名</th>
             <th>家庭档案编号</th>
@@ -393,6 +399,16 @@
       </div>
 
       </div><!-- /listView -->
+
+      <!-- 家庭成员列表：底部浮层抽屉（点击表格行弹出） -->
+      <div class="member-drawer" id="memberDrawer">
+        <div class="member-head">
+          <span class="ttl" id="drawerTtl">家庭成员列表</span>
+          <span class="fold" onclick="toggleMemberFold(this)"><span id="drawerFoldTxt">收起</span><span class="tri">▲</span></span>
+          <span class="fold" style="margin-left:16px" onclick="closeDrawer()">✕</span>
+        </div>
+        <div class="member-body" id="drawerBody"></div>
+      </div>
 
       <!-- 新建家庭档案视图 -->
       <div id="createView">
@@ -977,6 +993,9 @@
 
   /* ================= 渲染（按筛选条件实时过滤） ================= */
   function renderTable() {
+    /* 重渲染后行 id 已失效，同步关闭底部成员浮层 */
+    drawerFamId = null;
+    $('memberDrawer').classList.remove('show');
     var org = $('fOrg').value.trim(), owner = $('fOwner').value.trim();
     var idcard = $('fIdcard').value.trim(), famNo = $('fFamNo').value.trim();
     var dateStart = $('fDateStart').value, dateEnd = $('fDateEnd').value;
@@ -1008,8 +1027,8 @@
         var famId = 'fam_' + i;
         /* 家庭行（成员子表默认全部收起，点击箭头展开） */
         var open = false;
-        html += '<tr class="fam-row' + (open ? ' open' : '') + '" id="' + famId + '">'
-          + '<td class="center"><span class="fam-toggle" onclick="toggleFam(\'' + famId + '\',this)"><svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg></span></td>'
+        html += '<tr class="fam-row' + (open ? ' open' : '') + '" id="' + famId + '" onclick="toggleFam(\'' + famId + '\')">'
+          + '<td class="center">' + (i + 1) + '</td>'
           + '<td title="' + esc(r.org) + '"><span class="cell">' + esc(r.org) + '</span></td>'
           + '<td>' + esc(r.owner) + '</td>'
           + '<td>' + esc(r.famNo) + '</td>'
@@ -1022,48 +1041,16 @@
           + '<td class="center">' + esc(r.created) + '</td>'
           + '<td title="' + esc(r.buildOrg) + '"><span class="cell">' + esc(r.buildOrg) + '</span></td>'
           + '<td class="center">'
-          +   '<a class="op-link" onclick="editFamily(\'' + famId + '\')">编辑</a>'
+          +   '<a class="op-link" onclick="event.stopPropagation();editFamily(\'' + famId + '\')">编辑</a>'
           +   '<span class="op-gap"></span>'
-          +   '<a class="op-link" onclick="viewFamily(\'' + famId + '\')">查看</a>'
+          +   '<a class="op-link" onclick="event.stopPropagation();viewFamily(\'' + famId + '\')">查看</a>'
           +   '<span class="op-gap"></span>'
-          +   '<a class="op-link danger" onclick="deleteFamily(\'' + famId + '\')">删除</a>'
+          +   '<a class="op-link danger" onclick="event.stopPropagation();deleteFamily(\'' + famId + '\')">删除</a>'
           +   '<span class="op-gap"></span>'
-          +   '<a class="op-link" onclick="toast(\'查看家庭档案详情：' + esc(r.owner) + '\',\'info\')">家庭档案</a>'
+          +   '<a class="op-link" onclick="event.stopPropagation();toast(\'查看家庭档案详情：' + esc(r.owner) + '\',\'info\')">家庭档案</a>'
           + '</td>'
           + '</tr>';
-        /* 成员块（默认收起，首户默认展开） */
-        html += '<tr class="member-block" id="' + famId + '_members"' + (open ? ' style="display:table-row"' : ' style="display:none"') + '>'
-          + '<td colspan="13" style="padding:0">'
-          +   '<table class="member-tbl">'
-          +     '<colgroup>'
-          +       '<col style="width:64px"><col style="width:100px"><col style="width:110px"><col style="width:60px"><col style="width:100px"><col style="width:180px"><col style="width:120px"><col style="width:120px"><col style="width:220px"><col style="width:160px">'
-          +     '</colgroup>'
-          +     '<thead><tr>'
-          +       '<th class="center">序号</th><th>姓名</th><th>与户主关系</th><th class="center">性别</th><th>证件类型</th><th>证件号</th><th class="center">出生日期</th><th>电话</th><th>地址</th><th class="center">操作</th>'
-          +     '</tr></thead>'
-          +     '<tbody>';
-        (r.members || []).forEach(function (m, j) {
-          html += '<tr>'
-            + '<td class="center">' + (j + 1) + '</td>'
-            + '<td>' + esc(m.name) + '</td>'
-            + '<td>' + esc(m.rel) + '</td>'
-            + '<td class="center">' + esc(m.gender) + '</td>'
-            + '<td>' + esc(m.idType) + '</td>'
-            + '<td title="' + esc(m.idcard) + '"><span class="cell">' + esc(m.idcard) + '</span></td>'
-            + '<td class="center">' + esc(m.birth) + '</td>'
-            + '<td>' + esc(m.phone) + '</td>'
-            + '<td title="' + esc(m.addr) + '"><span class="cell">' + esc(m.addr) + '</span></td>'
-            + '<td class="center">'
-            +   '<a class="op-link" onclick="toast(\'查看成员：' + esc(m.name) + '\',\'info\')">查看</a>'
-            +   '<span class="op-gap"></span>'
-            +   '<a class="op-link" onclick="toast(\'编辑成员：' + esc(m.name) + '\',\'info\')">编辑</a>'
-            + '</td>'
-            + '</tr>';
-        });
-        html +=     '</tbody>'
-          +   '</table>'
-          + '</td>'
-          + '</tr>';
+        /* 成员列表改为底部浮层抽屉展示（见页面底部 #memberDrawer），此处不再内嵌渲染 */
       });
     }
     $('tbBody').innerHTML = html;
@@ -1093,12 +1080,69 @@
   }
 
   /* ================= 交互 ================= */
-  function toggleFam(famId, btn) {
-    var block = $(famId + '_members');
-    var row = $(famId);
-    var show = block.style.display === 'none';
-    block.style.display = show ? 'table-row' : 'none';
-    row.classList.toggle('open', show);
+  /* 点击表格行：打开底部成员浮层（再次点击同一行则关闭） */
+  var drawerFamId = null;
+  function toggleFam(famId) {
+    if (drawerFamId === famId) { closeDrawer(); return; }
+    var i = parseInt(famId.split('_')[1], 10);
+    var r = familyData[i];
+    if (!r) return;
+    /* 清除上一行高亮 */
+    if (drawerFamId) { var prev = $(drawerFamId); if (prev) prev.classList.remove('open'); }
+    drawerFamId = famId;
+    $(famId).classList.add('open');
+
+    /* 填充抽屉内容 */
+    var html = ''
+      + '<table class="member-tbl">'
+      +   '<colgroup>'
+      +     '<col style="width:64px"><col style="width:120px"><col style="width:130px"><col style="width:70px"><col style="width:120px"><col style="width:200px"><col style="width:130px"><col style="width:150px"><col style="width:220px"><col style="width:180px">'
+      +   '</colgroup>'
+      +   '<thead><tr>'
+      +     '<th>序号</th><th>姓名</th><th>与户主关系</th><th>性别</th><th>证件类型</th><th>证件号</th><th>出生日期</th><th>电话</th><th>地址</th><th>操作</th>'
+      +   '</tr></thead>'
+      +   '<tbody>';
+    (r.members || []).forEach(function (m, j) {
+      html += '<tr>'
+        + '<td>' + (j + 1) + '</td>'
+        + '<td>' + esc(m.name) + '</td>'
+        + '<td>' + esc(m.rel) + '</td>'
+        + '<td>' + esc(m.gender) + '</td>'
+        + '<td>' + esc(m.idType) + '</td>'
+        + '<td title="' + esc(m.idcard) + '"><span class="cell">' + esc(m.idcard) + '</span></td>'
+        + '<td>' + esc(m.birth) + '</td>'
+        + '<td>' + esc(m.phone) + '</td>'
+        + '<td title="' + esc(m.addr) + '"><span class="cell">' + esc(m.addr) + '</span></td>'
+        + '<td>'
+        +   '<a class="op-link" onclick="toast(\'查看成员：' + esc(m.name) + '\',\'info\')">查看</a>'
+        +   '<span class="op-gap"></span>'
+        +   '<a class="op-link" onclick="toast(\'编辑成员：' + esc(m.name) + '\',\'info\')">编辑</a>'
+        + '</td>'
+        + '</tr>';
+    });
+    html += '</tbody></table>';
+    $('drawerTtl').innerHTML = '家庭成员列表（' + (r.members || []).length + '人）· 户主：' + esc(r.owner);
+    $('drawerBody').innerHTML = html;
+
+    var drawer = $('memberDrawer');
+    drawer.classList.remove('folded');
+    $('drawerFoldTxt').textContent = '收起';
+    drawer.classList.add('show');
+  }
+
+  function closeDrawer() {
+    var drawer = $('memberDrawer');
+    drawer.classList.remove('show');
+    if (drawerFamId) { var row = $(drawerFamId); if (row) row.classList.remove('open'); }
+    drawerFamId = null;
+  }
+
+  /* 底部浮层内 收起/展开（仅折叠表格区域，标题栏保留） */
+  function toggleMemberFold(el) {
+    var panel = el.closest('.member-drawer');
+    if (!panel) return;
+    var folded = panel.classList.toggle('folded');
+    $('drawerFoldTxt').textContent = folded ? '展开' : '收起';
   }
 
   function toggleExtra() {

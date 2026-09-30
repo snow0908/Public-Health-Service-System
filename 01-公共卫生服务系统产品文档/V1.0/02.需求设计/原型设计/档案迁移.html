@@ -43,12 +43,28 @@
 
   /* ===== 数据表格 ===== */
   .table-wrap{flex:1;overflow:auto;min-height:0}
-  .list-tbl{width:100%;min-width:1580px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl{width:100%;min-width:2380px;table-layout:fixed;border-collapse:collapse;font-size:13px}
   .list-tbl th{position:sticky;top:0;z-index:5;height:38px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
   .list-tbl td{height:38px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .list-tbl tbody tr:hover td{background:var(--primary-bg)}
   .list-tbl th.center,.list-tbl td.center{text-align:center}
   .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* ===== 冻结列（前3列 + 操作列） ===== */
+  .list-tbl th.fx-l,.list-tbl td.fx-l{position:sticky;z-index:3}
+  .list-tbl th.fx-l{z-index:6}
+  .list-tbl tbody td.fx-l{background:var(--bg-white)}
+  .list-tbl tbody tr:nth-child(even) td.fx-l{background:var(--bg-table-even)}
+  .list-tbl tbody tr:hover td.fx-l{background:var(--primary-bg)}
+  .list-tbl td.c1,.list-tbl th.c1{left:0}
+  .list-tbl td.c2,.list-tbl th.c2{left:50px}
+  .list-tbl td.c3,.list-tbl th.c3{left:130px}
+  .list-tbl td.c3{box-shadow:inset -1px 0 0 #E4E7ED}
+  .list-tbl th.fx-r,.list-tbl td.fx-r{position:sticky;right:0;z-index:3}
+  .list-tbl th.fx-r{z-index:6}
+  .list-tbl tbody td.fx-r{background:var(--bg-white);box-shadow:inset 1px 0 0 #E4E7ED}
+  .list-tbl tbody tr:nth-child(even) td.fx-r{background:var(--bg-table-even)}
+  .list-tbl tbody tr:hover td.fx-r{background:var(--primary-bg)}
 
   /* 重点人群类型徽标 */
   .pop-tag{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 4px;border-radius:4px;font-size:12px;font-weight:var(--font-weight-medium)}
@@ -59,8 +75,17 @@
   /* 操作列 */
   .op-link{color:var(--primary);cursor:pointer;font-size:13px}
   .op-link:hover{text-decoration:underline}
+  .op-link.ok{color:var(--success)}
   .op-link.danger{color:var(--danger)}
   .op-gap{display:inline-block;width:8px}
+
+  /* 申请状态标签 */
+  .st-tag{display:inline-block;padding:1px 8px;border-radius:3px;font-size:12px;line-height:18px;white-space:nowrap}
+  .st-tag.pending{background:#FDF6EC;color:#E6A23C;border:1px solid #F5DAB1}
+  .st-tag.done{background:#F0F9EB;color:var(--success);border:1px solid #C2E7B0}
+  .st-tag.reject{background:#FEF0F0;color:var(--danger);border:1px solid #FBC4C4}
+  .lock-tag{color:var(--text-secondary)}
+  .lock-tag.on{color:var(--danger)}
 
   /* ===== 分页 ===== */
   .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:52px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
@@ -130,7 +155,14 @@
   .q-empty{padding:26px 0;text-align:center;color:var(--text-tertiary);font-size:13px}
 
   /* 弹框内分页栏 */
-  .q-pagefoot{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:12px 0 2px;font-size:13px;color:var(--text-secondary)}
+  .q-pagefoot{display:flex;align-items:center;justify-content:flex-end;gap:14px;padding:16px 2px 26px;font-size:13px;color:var(--text-secondary)}
+
+  /* 弹框内状态圆点 */
+  .st-dot{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+  .st-dot i{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+  .st-dot.green i{background:#52C41A}
+  .st-dot.orange i{background:#FAAD14}
+  .st-dot.red i{background:#FF4D4F}
 
   /* 导入迁移申请：步骤条 */
   .steps{display:flex;align-items:center;justify-content:center;gap:14px;padding:4px 0 14px}
@@ -209,7 +241,7 @@
                 <option value="" selected>请选择</option>
                 <option value="待审核">待审核</option>
                 <option value="已通过">已通过</option>
-                <option value="已拒绝">已拒绝</option>
+                <option value="已驳回">已驳回</option>
               </select>
             </div>
             <div class="filter-item"><label>居民状态</label>
@@ -264,13 +296,13 @@
         <div class="table-wrap">
           <table class="list-tbl">
             <colgroup>
-              <col style="width:50px"><col style="width:80px"><col style="width:150px"><col style="width:90px"><col style="width:46px"><col style="width:46px"><col style="width:100px"><col style="width:100px"><col style="width:100px"><col style="width:170px"><col style="width:80px"><col style="width:170px"><col style="width:70px"><col style="width:70px"><col style="width:110px">
+              <col style="width:50px"><col style="width:80px"><col style="width:150px"><col style="width:90px"><col style="width:46px"><col style="width:46px"><col style="width:100px"><col style="width:100px"><col style="width:80px"><col style="width:150px"><col style="width:80px"><col style="width:160px"><col style="width:70px"><col style="width:105px"><col style="width:160px"><col style="width:160px"><col style="width:80px"><col style="width:80px"><col style="width:80px"><col style="width:85px"><col style="width:170px">
             </colgroup>
             <thead>
               <tr>
-                <th class="center">序号</th>
-                <th>姓名</th>
-                <th>证件号</th>
+                <th class="center fx-l c1">序号</th>
+                <th class="fx-l c2">姓名</th>
+                <th class="fx-l c3">证件号</th>
                 <th>证件类型</th>
                 <th class="center">性别</th>
                 <th class="center">年龄</th>
@@ -281,8 +313,14 @@
                 <th>申请人</th>
                 <th>申请机构</th>
                 <th>申请原因</th>
-                <th>申请年</th>
-                <th class="center">操作</th>
+                <th>申请日期</th>
+                <th>迁出机构</th>
+                <th>迁入机构</th>
+                <th>申请类型</th>
+                <th>状态</th>
+                <th>居民状态</th>
+                <th>锁定状态</th>
+                <th class="fx-r">操作</th>
               </tr>
             </thead>
             <tbody id="tbBody"></tbody>
@@ -406,7 +444,7 @@
 
 <!-- ===== 申请迁移：查询居民弹框 ===== -->
 <div class="modal-overlay" id="applyModal">
-  <div class="modal" style="width:900px;max-width:94vw">
+  <div class="modal" style="width:1180px;max-width:96vw">
     <div class="modal-head">
       <h3 id="applyModalTitle">申请个档迁移</h3>
       <span class="modal-close" onclick="closeApplyModal()">×</span>
@@ -437,14 +475,16 @@
             <tr>
               <th style="width:46px" class="center">序号</th>
               <th style="width:150px">档案编号</th>
-              <th style="width:170px">管理机构</th>
+              <th style="width:175px">管理机构</th>
               <th style="width:80px">姓名</th>
               <th style="width:160px">身份证号</th>
               <th style="width:50px" class="center">性别</th>
               <th style="width:50px" class="center">年龄</th>
               <th style="width:100px">村(居)委会</th>
-              <th style="width:110px">现住址</th>
-              <th style="width:70px" class="center">操作</th>
+              <th style="width:120px">现住址</th>
+              <th style="width:90px">居民状态</th>
+              <th style="width:90px">锁定状态</th>
+              <th style="width:80px" class="center">操作</th>
             </tr>
           </thead>
           <tbody id="qTbody"></tbody>
@@ -534,20 +574,20 @@
 <script>
   /* ================= 模拟数据 ================= */
   var migData = [
-    { name:'马威威', idcard:'320381198310012424', idType:'居民身份证', gender:'女', birth:'1983-10-01', phone:'15015112599', group:'高', addr:'东兴组', village:'黄思社区', archiveNo:'32101210310300004', applicant:'柏红霞', org:'扬州市江都区仙女社区卫生服务中心', reason:'其他', year:'2021' },
-    { name:'蒋士祥', idcard:'32108819601026791X', idType:'身份证号', gender:'男', birth:'1960-10-26', phone:'13852749965', group:'老', addr:'三和薛庄', village:'五舍村', archiveNo:'32101210310300003', applicant:'尤林青', org:'扬州市江都区仙女社区卫生服务中心', reason:'-', year:'2021' },
-    { name:'朱玉兰', idcard:'321088195303167125', idType:'身份证号', gender:'女', birth:'1953-03-16', phone:'15852718792', group:'老', addr:'5组', village:'周西社区', archiveNo:'32101210310300002', applicant:'童飞', org:'扬州市江都区大桥镇昌西村卫生室', reason:'搬家', year:'2021' },
-    { name:'唐永年', idcard:'321088195908290855', idType:'身份证号', gender:'男', birth:'1959-08-29', phone:'18052714095', group:'老', addr:'江堤组', village:'善玉村', archiveNo:'32101210310300001', applicant:'田川', org:'扬州市江都区小纪中心卫生院', reason:'搬家', year:'2021' },
-    { name:'张凤山', idcard:'321088195407120858', idType:'身份证号', gender:'男', birth:'1954-07-12', phone:'13152713093', group:'老', addr:'江堤组', village:'东苑社区', archiveNo:'32101211811812487', applicant:'田川', org:'扬州市江都区小纪中心卫生院', reason:'搬家', year:'2021' },
-    { name:'陈锦泽', idcard:'32108120230826005x', idType:'居民身份证', gender:'男', birth:'2023-08-26', phone:'18203215535', group:'儿', addr:'吉港村一组', village:'吉港村', archiveNo:'32101210010000322', applicant:'徐桂芳', org:'扬州市江都区郭村镇吉港村卫生室', reason:'就学', year:'2021' },
-    { name:'刘文静', idcard:'321088199505221628', idType:'居民身份证', gender:'女', birth:'1995-05-22', phone:'13952716620', group:'高', addr:'三合村', village:'三合村', archiveNo:'32101210010000321', applicant:'周程', org:'扬州市江都区小纪中心卫生院', reason:'就业', year:'2021' },
-    { name:'王小刚', idcard:'321088198812030014', idType:'居民身份证', gender:'男', birth:'1988-12-03', phone:'18652719873', group:'慢', addr:'新桥村', village:'新桥村', archiveNo:'32101210010000320', applicant:'周程', org:'扬州市江都区小纪中心卫生院', reason:'搬家', year:'2021' },
-    { name:'何桂芳', idcard:'321088194402110026', idType:'身份证号', gender:'女', birth:'1944-02-11', phone:'13752710462', group:'老', addr:'立柱村', village:'立柱村', archiveNo:'32101210010000319', applicant:'田川', org:'扬州市江都区小纪中心卫生院', reason:'其他', year:'2021' },
-    { name:'袁永强', idcard:'321088197706091213', idType:'居民身份证', gender:'男', birth:'1977-06-09', phone:'15252718815', group:'高', addr:'新华村新北组', village:'新华村', archiveNo:'32101210010000318', applicant:'顾海燕', org:'扬州市江都区仙女社区卫生服务中心', reason:'搬家', year:'2021'  },
-    { name:'张晓晓', idcard:'321088202105150022', idType:'出生医学证明', gender:'女', birth:'2021-05-15', phone:'13952716620', group:'儿', addr:'五舍村3组', village:'五舍村', archiveNo:'32101210010000317', applicant:'刘文静', org:'扬州市江都区仙女社区卫生服务中心', reason:'搬家', year:'2021' },
-    { name:'李小明', idcard:'321088201903200011', idType:'居民身份证', gender:'男', birth:'2019-03-20', phone:'18652719873', group:'儿', addr:'东苑社区8栋2单元', village:'东苑社区', archiveNo:'32101210010000316', applicant:'王小刚', org:'扬州市江都区小纪中心卫生院', reason:'就学', year:'2021' },
-    { name:'王小红', idcard:'321088201811080044', idType:'居民身份证', gender:'女', birth:'2018-11-08', phone:'15852718792', group:'儿', addr:'周西社区12号', village:'周西社区', archiveNo:'32101210010000315', applicant:'朱玉兰', org:'扬州市江都区大桥镇昌西村卫生室', reason:'搬家', year:'2021' },
-    { name:'赵小宝', idcard:'321088202009120013', idType:'出生医学证明', gender:'男', birth:'2020-09-12', phone:'18052714095', group:'儿', addr:'善玉村二组', village:'善玉村', archiveNo:'32101210010000314', applicant:'唐永年', org:'扬州市江都区小纪中心卫生院', reason:'搬家', year:'2021' }
+    { name:'马威威', idcard:'320381198310012424', idType:'居民身份证', gender:'女', birth:'1983-10-01', phone:'15015112599', group:'高', addr:'东兴组', village:'黄思社区', archiveNo:'32101210310300004', applicant:'柏红霞', org:'扬州市江都区仙女社区卫生服务中心', reason:'其他', applyDate:'2026-09-26', inOrg:'扬州市江都区仙女镇新华村卫生室', applyType:'个档迁移', status:'待审核', residentStatus:'在档', lock:'未锁定' },
+    { name:'蒋士祥', idcard:'32108819601026791X', idType:'身份证号', gender:'男', birth:'1960-10-26', phone:'13852749965', group:'老', addr:'三和薛庄', village:'五舍村', archiveNo:'32101210310300003', applicant:'尤林青', org:'扬州市江都区仙女社区卫生服务中心', reason:'-', applyDate:'2026-09-20', inOrg:'扬州市江都区小纪中心卫生院', applyType:'个档迁移', status:'已通过', residentStatus:'迁出', lock:'未锁定' },
+    { name:'朱玉兰', idcard:'321088195303167125', idType:'身份证号', gender:'女', birth:'1953-03-16', phone:'15852718792', group:'老', addr:'5组', village:'周西社区', archiveNo:'32101210310300002', applicant:'童飞', org:'扬州市江都区大桥镇昌西村卫生室', reason:'搬家', applyDate:'2026-09-18', inOrg:'扬州市江都区仙女镇新华村卫生室', applyType:'个档迁移', status:'待审核', residentStatus:'在档', lock:'未锁定' },
+    { name:'唐永年', idcard:'321088195908290855', idType:'身份证号', gender:'男', birth:'1959-08-29', phone:'18052714095', group:'老', addr:'江堤组', village:'善玉村', archiveNo:'32101210310300001', applicant:'田川', org:'扬州市江都区小纪中心卫生院', reason:'搬家', applyDate:'2026-09-15', inOrg:'扬州市江都区郭村镇儿林村卫生室', applyType:'个档迁移', status:'待审核', residentStatus:'在档', lock:'未锁定' },
+    { name:'张凤山', idcard:'321088195407120858', idType:'身份证号', gender:'男', birth:'1954-07-12', phone:'13152713093', group:'老', addr:'江堤组', village:'东苑社区', archiveNo:'32101211811812487', applicant:'田川', org:'扬州市江都区小纪中心卫生院', reason:'搬家', applyDate:'2026-09-12', inOrg:'扬州市江都区大桥镇昌西村卫生室', applyType:'个档迁移', status:'已通过', residentStatus:'迁出', lock:'未锁定' },
+    { name:'陈锦泽', idcard:'32108120230826005x', idType:'居民身份证', gender:'男', birth:'2023-08-26', phone:'18203215535', group:'儿', addr:'吉港村一组', village:'吉港村', archiveNo:'32101210010000322', applicant:'徐桂芳', org:'扬州市江都区郭村镇吉港村卫生室', reason:'就学', applyDate:'2026-09-10', inOrg:'扬州市江都区小纪中心卫生院', applyType:'儿童迁移', status:'待审核', residentStatus:'在档', lock:'已锁定' },
+    { name:'刘文静', idcard:'321088199505221628', idType:'居民身份证', gender:'女', birth:'1995-05-22', phone:'13952716620', group:'高', addr:'三合村', village:'三合村', archiveNo:'32101210010000321', applicant:'周程', org:'扬州市江都区小纪中心卫生院', reason:'就业', applyDate:'2026-09-08', inOrg:'扬州市江都区仙女社区卫生服务中心', applyType:'个档迁移', status:'已驳回', residentStatus:'在档', lock:'已锁定' },
+    { name:'王小刚', idcard:'321088198812030014', idType:'居民身份证', gender:'男', birth:'1988-12-03', phone:'18652719873', group:'慢', addr:'新桥村', village:'新桥村', archiveNo:'32101210010000320', applicant:'周程', org:'扬州市江都区小纪中心卫生院', reason:'搬家', applyDate:'2026-09-06', inOrg:'扬州市江都区郭村镇儿林村卫生室', applyType:'个档迁移', status:'待审核', residentStatus:'在档', lock:'未锁定' },
+    { name:'何桂芳', idcard:'321088194402110026', idType:'身份证号', gender:'女', birth:'1944-02-11', phone:'13752710462', group:'老', addr:'立柱村', village:'立柱村', archiveNo:'32101210010000319', applicant:'田川', org:'扬州市江都区小纪中心卫生院', reason:'其他', applyDate:'2026-09-03', inOrg:'扬州市江都区仙女镇新华村卫生室', applyType:'个档迁移', status:'已通过', residentStatus:'迁出', lock:'未锁定' },
+    { name:'袁永强', idcard:'321088197706091213', idType:'居民身份证', gender:'男', birth:'1977-06-09', phone:'15252718815', group:'高', addr:'新华村新北组', village:'新华村', archiveNo:'32101210010000318', applicant:'顾海燕', org:'扬州市江都区仙女社区卫生服务中心', reason:'搬家', applyDate:'2026-08-28', inOrg:'扬州市江都区小纪中心卫生院', applyType:'个档迁移', status:'待审核', residentStatus:'在档', lock:'未锁定'  },
+    { name:'张晓晓', idcard:'321088202105150022', idType:'出生医学证明', gender:'女', birth:'2021-05-15', phone:'13952716620', group:'儿', addr:'五舍村3组', village:'五舍村', archiveNo:'32101210010000317', applicant:'刘文静', org:'扬州市江都区仙女社区卫生服务中心', reason:'搬家', applyDate:'2026-08-25', inOrg:'扬州市江都区郭村镇儿林村卫生室', applyType:'儿童迁移', status:'已驳回', residentStatus:'迁入', lock:'已锁定' },
+    { name:'李小明', idcard:'321088201903200011', idType:'居民身份证', gender:'男', birth:'2019-03-20', phone:'18652719873', group:'儿', addr:'东苑社区8栋2单元', village:'东苑社区', archiveNo:'32101210010000316', applicant:'王小刚', org:'扬州市江都区小纪中心卫生院', reason:'就学', applyDate:'2026-08-22', inOrg:'扬州市江都区仙女镇新华村卫生室', applyType:'儿童迁移', status:'待审核', residentStatus:'在档', lock:'未锁定' },
+    { name:'王小红', idcard:'321088201811080044', idType:'居民身份证', gender:'女', birth:'2018-11-08', phone:'15852718792', group:'儿', addr:'周西社区12号', village:'周西社区', archiveNo:'32101210010000315', applicant:'朱玉兰', org:'扬州市江都区大桥镇昌西村卫生室', reason:'搬家', applyDate:'2026-08-20', inOrg:'扬州市江都区小纪中心卫生院', applyType:'儿童迁移', status:'已通过', residentStatus:'迁出', lock:'未锁定' },
+    { name:'赵小宝', idcard:'321088202009120013', idType:'出生医学证明', gender:'男', birth:'2020-09-12', phone:'18052714095', group:'儿', addr:'善玉村二组', village:'善玉村', archiveNo:'32101210010000314', applicant:'唐永年', org:'扬州市江都区小纪中心卫生院', reason:'搬家', applyDate:'2026-08-18', inOrg:'扬州市江都区仙女社区卫生服务中心', applyType:'儿童迁移', status:'已驳回', residentStatus:'迁入', lock:'已锁定' }
   ];
 
   var mgmtOrgs = ['扬州市江都区仙女社区卫生服务中心','扬州市江都区小纪中心卫生院','扬州市江都区郭村镇卫生院','扬州市江都区大桥镇卫生院'];
@@ -576,6 +616,26 @@
     return p.slice(0, 3) + '****' + p.slice(p.length - 4);
   }
   var groupClasses = { '高':'hi', '老':'old', '儿':'cd', '慢':'cd' };
+  var statusClasses = { '待审核':'pending', '已通过':'done', '已驳回':'reject' };
+
+  /* 操作列：状态驱动按钮 */
+  function opButtons(r, idx) {
+    var link = function (text, cls, action) {
+      return '<a class="op-link' + (cls ? ' ' + cls : '') + '" onclick="' + action + '">' + text + '</a>';
+    };
+    var arr = [];
+    arr.push(link('查看', '', 'openApplyView(' + idx + ')'));
+    if (r.status === '待审核') {
+      arr.push(link('审核', 'ok', 'auditApply(' + idx + ')'));
+      arr.push(link('编辑', '', 'openApplyView(' + idx + ')'));
+      arr.push(link('撤销', 'danger', 'revokeApply(' + idx + ')'));
+    } else if (r.status === '已通过') {
+      arr.push(link('编辑', '', 'openApplyView(' + idx + ')'));
+    } else if (r.status === '已驳回') {
+      arr.push(link('重新申请', 'ok', 'reapplyApply(' + idx + ')'));
+    }
+    return arr.join('<span class="op-gap"></span>');
+  }
 
   /* ================= 主表渲染 ================= */
   function renderTable() {
@@ -590,20 +650,25 @@
       if (phone && r.phone.indexOf(phone) === -1) return false;
       if (applicant && r.applicant.indexOf(applicant) === -1) return false;
       if (district && r.org.indexOf(district) === -1) return false;
-      if (org && r.org !== org) return false;
+      if (org && r.org !== org && r.inOrg !== org) return false;
       if (status && r.status && r.status !== status) return false;
+      if (resident && r.residentStatus !== resident) return false;
+      if (ds && r.applyDate < ds) return false;
+      if (de && r.applyDate > de) return false;
       return true;
     });
 
     var html = '';
     if (list.length === 0) {
-      html = '<tr class="empty-row"><td colspan="15"><div class="ico" style="font-size:32px;margin-bottom:8px">📭</div>暂无符合条件的迁移申请</td></tr>';
+      html = '<tr class="empty-row"><td colspan="21"><div class="ico" style="font-size:32px;margin-bottom:8px">📭</div>暂无符合条件的迁移申请</td></tr>';
     } else {
       list.forEach(function (r, i) {
+        var idx = migData.indexOf(r);
+        var lockCls = r.lock === '已锁定' ? 'lock-tag on' : 'lock-tag';
         html += '<tr>'
-          + '<td class="center">' + (i + 1) + '</td>'
-          + '<td><a class="op-link" onclick="openApplyView(' + i + ')">' + esc(r.name) + '</a></td>'
-          + '<td title="' + esc(r.idcard) + '"><span class="cell">' + maskId(r.idcard) + '</span></td>'
+          + '<td class="center fx-l c1">' + (i + 1) + '</td>'
+          + '<td class="fx-l c2"><a class="op-link" onclick="openApplyView(' + idx + ')">' + esc(r.name) + '</a></td>'
+          + '<td class="fx-l c3" title="' + esc(r.idcard) + '"><span class="cell">' + maskId(r.idcard) + '</span></td>'
           + '<td>' + esc(r.idType) + '</td>'
           + '<td class="center">' + esc(r.gender) + '</td>'
           + '<td class="center">' + ageOf(r.birth) + '</td>'
@@ -614,8 +679,14 @@
           + '<td>' + esc(r.applicant) + '</td>'
           + '<td title="' + esc(r.org) + '"><span class="cell">' + esc(r.org) + '</span></td>'
           + '<td>' + esc(r.reason) + '</td>'
-          + '<td>' + esc(r.year) + '</td>'
-          + '<td class="center"><a class="op-link" onclick="openApplyView(' + i + ')">档案迁移</a></td>'
+          + '<td>' + esc(r.applyDate) + '</td>'
+          + '<td title="' + esc(r.org) + '"><span class="cell">' + esc(r.org) + '</span></td>'
+          + '<td title="' + esc(r.inOrg) + '"><span class="cell">' + esc(r.inOrg) + '</span></td>'
+          + '<td>' + esc(r.applyType) + '</td>'
+          + '<td><span class="st-tag ' + (statusClasses[r.status] || 'pending') + '">' + esc(r.status) + '</span></td>'
+          + '<td>' + esc(r.residentStatus) + '</td>'
+          + '<td class="' + lockCls + '">' + esc(r.lock) + '</td>'
+          + '<td class="fx-r">' + opButtons(r, idx) + '</td>'
           + '</tr>';
       });
     }
@@ -623,6 +694,11 @@
     $('pgTotal').textContent = list.length;
     renderPager();
   }
+
+  /* 操作按钮行为 */
+  function auditApply(idx) { toast('对「' + migData[idx].name + '」执行审核（原型演示）', 'info'); }
+  function revokeApply(idx) { toast('已撤销「' + migData[idx].name + '」的迁移申请', 'warning'); }
+  function reapplyApply(idx) { toast('「' + migData[idx].name + '」已重新发起申请（原型演示）', 'success'); }
 
   /* 分页（原型演示第 1 页） */
   function renderPager() {
@@ -769,13 +845,15 @@
   function doQuery() {
     var list = queryResidents();
     if (list.length === 0) {
-      $('qTbody').innerHTML = '<tr><td colspan="10" class="q-empty">未查询到符合条件的居民</td></tr>';
+      $('qTbody').innerHTML = '<tr><td colspan="12" class="q-empty">未查询到符合条件的居民</td></tr>';
       $('qTotal').textContent = '0';
       $('qPagerBox').innerHTML = '';
       return;
     }
     var html = '';
     list.forEach(function (r, i) {
+      var resCls = r.residentStatus === '在档' ? 'green' : (r.residentStatus === '迁出' ? 'orange' : 'red');
+      var lockCls = r.lock === '已锁定' ? 'red' : 'orange';
       html += '<tr>'
         + '<td class="center">' + (i + 1) + '</td>'
         + '<td>' + esc(r.archiveNo) + '</td>'
@@ -786,6 +864,8 @@
         + '<td class="center">' + ageOf(r.birth) + '</td>'
         + '<td>' + esc(r.village) + '</td>'
         + '<td title="' + esc(r.addr) + '"><span class="cell">' + esc(r.addr) + '</span></td>'
+        + '<td><span class="st-dot ' + resCls + '"><i></i>' + esc(r.residentStatus) + '</span></td>'
+        + '<td><span class="st-dot ' + lockCls + '"><i></i>' + esc(r.lock) + '</span></td>'
         + '<td class="center"><a class="op-link" onclick="pickResident(' + i + ')">档案迁移</a></td>'
         + '</tr>';
     });

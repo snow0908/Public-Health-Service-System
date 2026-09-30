@@ -46,10 +46,10 @@
         { key: 'visit-tracking',         label: '就诊跟踪' },
         { key: 'disability-archives',    label: '残疾档案', url: '残疾档案.html' },
         { key: 'archive-migration',      label: '档案迁移' , url: '档案迁移.html'},
-        { key: 'migration-review',       label: '迁移审核', url: '迁移审核.html' },
+        { key: 'migration-in',           label: '迁入审核', url: '迁入审核.html' },
+        { key: 'migration-out',          label: '迁出审核', url: '迁出审核.html' },
         { key: 'archive-recovery',       label: '档案恢复', url: '档案恢复.html' },
-        { key: 'archive-access-records', label: '档案查阅记录', url: '档案查阅记录.html' },
-        { key: 'rehab-management',       label: '康复管理' }
+        { key: 'archive-access-records', label: '档案查阅记录', url: '档案查阅记录.html' }
       ] },
     { type: 'divider' },
     { type: 'group', key: 'plan-reminder', label: '计划提醒',
@@ -69,9 +69,18 @@
         { key: 'cardio-cerebro-management', label: '心脑血管管理', url: '心脑血管管理.html' },
         { key: 'tumor-management',          label: '肿瘤管理', url: '肿瘤管理.html' },
         { key: 'highrisk-management',       label: '高危人群管理', url: '高危人群管理.html' },
-        { key: 'psychosis-management',      label: '重精管理', url: '重精管理.html' },
-        { key: 'tuberculosis-management',   label: '结核病管理', url: '结核病管理.html' }
+        // { key: 'psychosis-management',      label: '重精管理', url: '重精管理.html' },
+        // { key: 'tuberculosis-management',   label: '结核病管理', url: '结核病管理.html' }
       ] },
+    { type: 'divider' },
+    { key: 'psychosis-management', label: '重精管理', url: '重精管理.html',
+      icon: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' },
+    { type: 'divider' },
+    { key: 'tuberculosis-management', label: '结核病管理', url: '结核病管理.html',
+      icon: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' },
+    { type: 'divider' },
+    { key: 'elderly-management', label: '老年人管理', url: '老年人管理.html',
+      icon: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' },
     { type: 'divider' },
     { type: 'group', key: 'tcm', label: '中医管理',
       icon: '<path d="M11 20A7 7 0 019.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',
@@ -81,11 +90,6 @@
         { key: 'tcm-health-guidance',    label: '中医健康指导',   url: '中医健康指导.html' }
       ] },
     { type: 'divider' },
-    { type: 'group', key: 'elderly', label: '老年人管理',
-      icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
-      children: [
-        { key: 'elderly-management', label: '老年人管理', url: '老年人管理.html' }
-      ] },
     { type: 'group', key: 'women-child', label: '妇幼管理',
       icon: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/>',
       children: [
@@ -98,7 +102,13 @@
             { key: 'cervical-cancer-screening', label: '宫颈癌筛查', url: '宫颈癌筛查.html' },
             { key: 'breast-cancer-screening',   label: '乳腺癌筛查', url: '乳腺癌筛查.html' }
           ] },
-        { key: 'pmtct',                            label: '母婴阻断' },
+        { key: 'pmtct',                            label: '母婴阻断',
+          children: [
+            { key: 'hepatitis-b-management', label: '乙肝管理', url: '乙肝管理.html' },
+            { key: 'syphilis-management',    label: '梅毒管理', url: '梅毒管理.html' },
+            { key: 'aids-management',        label: '艾滋管理', url: '艾滋管理.html' },
+          ] 
+         },
         { key: 'child-health-care',                 label: '儿童保健', url: '儿童保健.html' },
         { key: 'maternal-health-care',             label: '孕产妇保健', url: '孕产妇保健.html' }
       ] },
@@ -117,10 +127,11 @@
     { type: 'group', key: 'supervision', label: '卫生监督',
       icon: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/>',
       children: [
-        { key: 'location-maintenance', label: '地点维护' },
-        { key: 'inspection-register',  label: '巡查登记' },
-        { key: 'event-report',         label: '事件报告' }
+        { key: 'location-maintenance', label: '地点维护', url: '地点维护.html' },
+        { key: 'inspection-register',  label: '巡查登记', url: '巡查登记.html' },
+        { key: 'event-report',         label: '事件报告', url: '事件报告.html' }
       ] },
+    { type: 'divider' },
     { type: 'group', key: 'three-network', label: '三网监测',
       icon: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
       children: [
@@ -138,31 +149,31 @@
         { key: 'chronic-report', label: '慢病报告卡', url: '慢病报告卡.html' }
       ] },
     { type: 'divider' },
-    { type: 'group', key: 'bizquery', label: '业务查询',
-      icon: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
-      children: [
-        { key: 'health-edu-track-query', label: '健教活动跟踪查询' },
-        { key: 'report-indicator-query', label: '报表指标查询' },
-        { key: 'duplicate-archive-screen', label: '重复档案筛查' },
-        { key: 'personal-archive-query', label: '个人档案查询' },
-        { key: 'chronic-disease-query',  label: '慢病查询' },
-        { key: 'tb-query',               label: '肺结核查询' },
-        { key: 'women-archive-query',    label: '妇女档案查询' }
-      ] },
+    // { type: 'group', key: 'bizquery', label: '业务查询',
+    //   icon: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+    //   children: [
+    //     { key: 'health-edu-track-query', label: '健教活动跟踪查询' },
+    //     { key: 'report-indicator-query', label: '报表指标查询' },
+    //     { key: 'duplicate-archive-screen', label: '重复档案筛查' },
+    //     { key: 'personal-archive-query', label: '个人档案查询' },
+    //     { key: 'chronic-disease-query',  label: '慢病查询' },
+    //     { key: 'tb-query',               label: '肺结核查询' },
+    //     { key: 'women-archive-query',    label: '妇女档案查询' }
+    //   ] },
     { type: 'group', key: 'bizstats', label: '业务统计',
       icon: '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/>',
       children: [
         { key: 'personal-archive-stat',  label: '个人档案统计' },
         { key: 'health-edu-stat',        label: '健康宣教统计', url: '健康宣教统计.html' },
         { key: 'doctor-workload-stat',   label: '医生工作量统计', url: '医生工作量统计.html' },
-        { key: 'chronic-disease-stat',   label: '慢病统计' },
-        { key: 'biz-report',             label: '业务报表' }
       ] },
     { type: 'divider' },
     { type: 'group', key: 'syssetting', label: '系统设置',
       icon: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>',
       children: [
         { key: 'jurisdiction-management',  label: '辖区管理', url: '辖区管理.html' },
+        { key: 'area-grid-management',    label: '网格化管理', url: '区域网格化管理.html' },
+        { key: 'area-grid-permission',    label: '网格化权限管理', url: '区域网格化权限管理.html' },
         { key: 'biz-template-management',  label: '业务模板管理',
           children: [
             { key: 'health-guidance-template',    label: '健康指导模板',       url: '健康指导模板.html' },
@@ -174,17 +185,13 @@
         { key: 'sys-param-management',     label: '系统参数管理' ,
           children: [
             { key: 'jurisdiction-stats-maintenance', label: '辖区统计维护', url: '辖区统计维护.html' },
-            { key: 'form-maintenance',            label: '表单维护', url: '表单维护.html' }
+            { key: 'form-maintenance',            label: '表单维护', url: '表单维护.html' },
+            { key: 'basic-param-maintenance',  label: '基本参数维护', url: '基本参数维护.html' },
           ]
         },
-        { key: 'subsidy-management',       label: '补助管理' },
+        // { key: 'subsidy-management',       label: '补助管理' },
         { key: 'disease-diagnosis-setting',label: '疾病诊疗设置', url: '疾病诊疗设置.html' },
-        { key: 'basic-param-maintenance',  label: '基本参数维护' },
-        { key: 'grid-management',          label: '网格化管理' },
-        { key: 'grid-permission-mgmt',     label: '网格权限管理' },
-        { key: 'archive-transfer-record',  label: '档案传输记录' },
-        { key: 'operation-log',            label: '操作日志', url: '档案操作日志.html' },
-        { key: 'interface-address-mgmt',   label: '接口地址管理' }
+        { key: 'operation-log',            label: '操作日志', url: '档案操作日志.html' }
        
       ] }
   ];

@@ -85,10 +85,11 @@
   .op-more .more-btn:hover{text-decoration:underline}
   .op-more .more-btn svg{transition:transform var(--transition-fast)}
   .op-more.open .more-btn svg{transform:rotate(180deg)}
-  .op-menu{position:absolute;top:calc(100% + 6px);right:-8px;min-width:96px;background:var(--bg-white);border:1px solid var(--color-neutral-200);border-radius:var(--r-sm);box-shadow:var(--shadow-md);padding:4px 0;display:none;z-index:30}
-  .op-more.open .op-menu{display:block}
-  .op-menu .mi{display:block;width:100%;text-align:left;padding:7px 14px;font-size:13px;color:var(--text-secondary);line-height:1.4}
-  .op-menu .mi:hover{background:var(--primary-bg);color:var(--primary)}
+  .op-menu-global{position:fixed;left:-9999px;top:-9999px;min-width:112px;background:#fff;border:1px solid #d9d9d9;border-radius:4px;box-shadow:0 6px 16px rgba(0,0,0,0.15);padding:4px 0;display:none;z-index:999999}
+  .op-menu-global .mi{display:block;width:100%;text-align:left;padding:7px 14px;font-size:13px;color:var(--text-secondary);line-height:1.4;background:none;border:none;cursor:pointer;font-family:inherit}
+  .op-menu-global .mi:hover{background:var(--primary-bg);color:var(--primary)}
+  .op-menu-global .mi.danger{color:#ff4d4f}
+  .op-menu-global .mi.danger:hover{color:#ff4d4f;background:#fff1f0}
 
   /* ===== 分页 ===== */
   .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:52px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
@@ -142,6 +143,29 @@
   .fm-addr-row{margin:14px 0 0}
   .fm-addr-row .fm-ctl-wrap{flex:1;min-width:0}
   .fm-addr-row .fm-ctl{width:100%}
+
+  /* ===== 居民状态管理弹框（两列 + 通栏文本域） ===== */
+  .stat-form{display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;padding:8px 4px 12px}
+  .stat-row{display:flex;align-items:center;gap:8px;min-width:0}
+  .stat-row-full{grid-column:1/-1}
+  .stat-form .stat-label{width:96px;text-align:right;font-size:14px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
+  .stat-form .stat-label i{color:var(--danger);font-style:normal;margin-right:2px}
+  .stat-form .fm-ctl,.stat-form .fm-select{width:calc(100% - 104px);min-width:0}
+  .stat-ctl-wrap{position:relative;width:calc(100% - 104px);min-width:0}
+  .stat-form .stat-ctl-wrap .fm-ctl{width:100%;padding-right:30px}
+  .stat-ctl-wrap .cal-ico{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;color:var(--text-placeholder);cursor:pointer;border-radius:var(--r-sm)}
+  .stat-ctl-wrap .cal-ico:hover{color:var(--primary);background:var(--primary-bg)}
+  .stat-radio{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;color:var(--text-primary);margin-right:18px}
+  .stat-radio input{display:none}
+  .stat-radio .rbox{width:16px;height:16px;border:1px solid var(--color-neutral-400);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background:#fff;transition:border-color var(--transition-fast)}
+  .stat-radio .rbox::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--primary);transform:scale(0);transition:transform var(--transition-fast)}
+  .stat-radio input:checked + .rbox{border-color:var(--primary)}
+  .stat-radio input:checked + .rbox::after{transform:scale(1)}
+  .stat-radio input:checked ~ .txt{color:var(--primary)}
+  .stat-remark-wrap{position:relative;width:calc(100% - 104px);min-width:0}
+  .stat-remark-wrap .stat-ta{width:100%;height:84px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:8px 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;resize:vertical;min-height:84px;box-sizing:border-box;font-family:inherit;transition:all var(--transition-fast)}
+  .stat-remark-wrap .stat-ta:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .stat-cnt{position:absolute;right:8px;bottom:6px;font-size:12px;color:var(--text-placeholder);pointer-events:none}
   .pv-row{display:flex;min-width:0}
   .pv-row.wide{grid-column:1 / -1}
   .pv-label{color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
@@ -420,6 +444,63 @@
   </div>
 </div>
 
+<!-- ===== 居民状态管理弹框 ===== -->
+<div class="modal-overlay" id="statModal">
+  <div class="modal" style="width:540px;max-width:94vw">
+    <div class="modal-head">
+      <h3>居民状态管理</h3>
+      <span class="modal-close" onclick="closeStatModal()">×</span>
+    </div>
+    <div class="modal-body">
+      <div class="stat-form">
+        <div class="stat-row">
+          <span class="stat-label"><i>*</i>居民状态：</span>
+          <label class="stat-radio"><input type="radio" name="stStatus" value="失访" checked><span class="rbox"></span><span class="txt">失访</span></label>
+          <label class="stat-radio"><input type="radio" name="stStatus" value="死亡"><span class="rbox"></span><span class="txt">死亡</span></label>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label"><i>*</i>失访日期：</span>
+          <div class="stat-ctl-wrap">
+            <input class="fm-ctl" id="stLost" type="text" placeholder="请选择日期"
+                   onfocus="if(this.type==='text')this.type='date'"
+                   onblur="if(!this.value){this.type='text'}">
+            <span class="cal-ico" onclick="pickDate('stLost',event)" title="选择日期"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+          </div>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label"><i>*</i>变更日期：</span>
+          <div class="stat-ctl-wrap">
+            <input class="fm-ctl" id="stDate" type="text" placeholder="请选择日期"
+                   onfocus="if(this.type==='text')this.type='date'"
+                   onblur="if(!this.value){this.type='text'}">
+            <span class="cal-ico" onclick="pickDate('stDate',event)" title="选择日期"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+          </div>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label"><i>*</i>变更医生：</span>
+          <select id="stDoctor" class="fm-select">
+            <option value="吕雪" selected>吕雪</option>
+            <option value="王芳">王芳</option>
+            <option value="张伟">张伟</option>
+            <option value="李静">李静</option>
+          </select>
+        </div>
+        <div class="stat-row stat-row-full">
+          <span class="stat-label"><i>*</i>变更说明：</span>
+          <div class="stat-remark-wrap">
+            <textarea id="stRemark" class="stat-ta" maxlength="200" placeholder="请输入"></textarea>
+            <span class="stat-cnt" id="cntRemark">0/200</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeStatModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveStat()">确定</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== 统一框架：顶部导航栏 + 左侧菜单栏（菜单配置见 框架.js） =====
      data-page    = 左侧菜单高亮项（独立打开时生效）
      data-embed   = "auto" 被壳子 iframe 内嵌时自动进入嵌入模式 -->
@@ -535,13 +616,8 @@
           +   '<a class="op-link" onclick="openArchive(' + srcIdx + ')">编辑</a>'
           +   '<span class="op-gap"></span>'
           +   '<span class="op-more">'
-          +     '<a class="more-btn" onclick="toggleOpMenu(this,event)">更多<svg viewBox="0 0 24 24" style="width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="6 9 12 15 18 9"/></svg></a>'
-          +     '<span class="op-menu">'
-          +       '<button class="mi" onclick="opAction(\'档案迁入\',\'' + esc(r.name) + '\')">档案迁入</button>'
-          +       '<button class="mi" onclick="opAction(\'档案迁出\',\'' + esc(r.name) + '\')">档案迁出</button>'
-          +       '<button class="mi" onclick="opAction(\'打印档案\',\'' + esc(r.name) + '\')">打印档案</button>'
-          +     '</span>'
-          +   '</span>'
+              +     '<a class="more-btn" onclick="showOpMenu(this,event,\'' + esc(r.name) + '\')">更多<svg viewBox="0 0 24 24" style="width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="6 9 12 15 18 9"/></svg></a>'
+              +   '</span>'
           + '</td>'
           + '</tr>';
       });
@@ -570,21 +646,66 @@
     btn.textContent = show ? '收起 −' : '展开 +';
   }
 
-  function toggleOpMenu(el, ev) {
+  function showOpMenu(el, ev, name) {
     if (ev) ev.stopPropagation();
-    var wrap = el.closest('.op-more');
-    var wasOpen = wrap.classList.contains('open');
     closeAllOpMenus();
-    if (!wasOpen) wrap.classList.add('open');
+    var m = $('opMenu');
+    m.innerHTML =
+      '<button class="mi" onclick="opAction(\'状态管理\',\'' + name + '\')">状态管理</button>' +
+      '<button class="mi" onclick="opAction(\'上锁\',\'' + name + '\')">上锁</button>' +
+      '<button class="mi danger" onclick="opAction(\'注销\',\'' + name + '\')">注销</button>';
+    m.style.display = 'block';
+    var r = el.getBoundingClientRect();
+    var gap = 6;
+    var top = r.bottom + gap;
+    var left = r.right - m.offsetWidth;
+    if (left < 8) left = r.left;
+    if (left + m.offsetWidth > window.innerWidth - 8) left = window.innerWidth - m.offsetWidth - 8;
+    m.style.top = top + 'px';
+    m.style.left = left + 'px';
   }
 
   function closeAllOpMenus() {
-    document.querySelectorAll('.op-more.open').forEach(function (m) { m.classList.remove('open'); });
+    var m = $('opMenu');
+    if (m) { m.style.display = 'none'; m.innerHTML = ''; }
   }
 
   function opAction(action, name) {
     closeAllOpMenus();
+    if (action === '状态管理') { openStatModal(name); return; }
     toast(action + '：' + name + '（功能建设中）', 'info');
+  }
+
+  /* ===== 居民状态管理弹框 ===== */
+  function openStatModal(name) {
+    $('stRemark').value = '';
+    $('cntRemark').textContent = '0/200';
+    var st = document.querySelector('input[name="stStatus"]:checked');
+    if (st) st.checked = true;
+    $('statModal').classList.add('show');
+  }
+  function closeStatModal() {
+    $('statModal').classList.remove('show');
+  }
+  function pickDate(id, ev) {
+    if (ev) ev.stopPropagation();
+    var el = $(id);
+    el.type = 'date';
+    el.focus();
+    if (el.showPicker) { try { el.showPicker(); } catch (e) {} }
+  }
+  function saveStat() {
+    var status = (document.querySelector('input[name="stStatus"]:checked') || {}).value;
+    var lost = $('stLost').value;
+    var date = $('stDate').value;
+    var doctor = $('stDoctor').value;
+    var remark = $('stRemark').value;
+    if (status === '失访' && !lost) return toast('请填写失访日期', 'warning');
+    if (!date) return toast('请填写变更日期', 'warning');
+    if (!doctor) return toast('请选择变更医生', 'warning');
+    if (!remark.trim()) return toast('请填写变更说明', 'warning');
+    closeStatModal();
+    toast('居民状态变更已保存', 'success');
   }
 
   document.addEventListener('click', function (e) {
@@ -724,9 +845,17 @@
     renderPreview();
   });
 
+  /* 状态管理：变更说明字符计数 */
+  $('stRemark').addEventListener('input', function () {
+    $('cntRemark').textContent = this.value.length + '/200';
+  });
+
   /* 初始渲染 */
   renderTable();
 </script>
+
+<!-- 更多操作全局浮层 -->
+<div id="opMenu" class="op-menu-global"></div>
 
 </body>
 </html>

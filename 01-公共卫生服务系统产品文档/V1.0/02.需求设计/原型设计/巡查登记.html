@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>巡查登记 - 卫生监督</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}
+
+  /* ===== 页头 ===== */
+  .page-head .right .btn{height:30px;padding:0 14px;font-size:13px}
+
+  /* ===== 筛选区 ===== */
+  .filter-panel{padding:14px 16px;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px}
+  .filter-item{display:flex;align-items:center;gap:4px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .fi-select.is-placeholder{color:var(--text-placeholder)}
+  .fi-date{width:118px}
+  .fi-range{display:flex;align-items:center;gap:4px;color:var(--text-tertiary)}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+  /* ===== 数据表格 ===== */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+  .list-tbl th:last-child,.list-tbl td:last-child{position:sticky;right:0}
+  .list-tbl td:last-child{z-index:2;background-color:var(--bg-white)}
+  .list-tbl th:last-child{z-index:6}
+  .list-tbl{width:100%;min-width:1500px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:36px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:nth-child(even) td{background:var(--bg-table-even)}
+  .list-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .list-tbl .center{text-align:center}
+  .num{font-family:Consolas,'Microsoft YaHei',monospace}
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px}
+  .op-link:hover{text-decoration:underline}
+  .op-link.danger{color:var(--danger)}
+  .op-gap{display:inline-block;width:8px}
+  .tbl-empty{padding:50px 20px;text-align:center;color:var(--text-placeholder);font-size:13px}
+  .tbl-empty svg{width:44px;height:44px;stroke:var(--color-neutral-300);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:10px}
+
+  /* ===== 分页 ===== */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:44px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size{display:flex;align-items:center;gap:6px}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);padding:0 6px;background:#fff;outline:none;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-btn.disabled{color:var(--text-disabled);cursor:not-allowed;border-color:#EBEBEB}
+  .pg-jump{display:flex;align-items:center;gap:4px}
+  .pg-jump input{width:44px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);text-align:center;font-size:13px;color:var(--text-primary);outline:none}
+  .pg-jump input:focus{border-color:var(--primary)}
+
+  /* ===== 视图容器 ===== */
+  .view-page{display:none;flex:1;min-height:0;min-width:0;flex-direction:column}
+  .view-page.active{display:flex}
+
+  /* ===== 整页表单 / 详情 ===== */
+  .form-page{flex:1;overflow:auto;padding:18px 22px 30px;background:#F7F8FA}
+  .fv-card{background:var(--bg-white);border:1px solid #E8EDF3;border-radius:8px;overflow:hidden}
+  .fv-head{display:flex;align-items:center;gap:6px;height:42px;padding:0 16px;border-bottom:1px solid #E8EDF3;background:#FAFBFC}
+  .fv-head::before{content:"";width:3px;height:14px;border-radius:2px;background:var(--primary)}
+  .fv-head h3{font-size:14px;font-weight:var(--font-weight-semibold);color:var(--text-primary)}
+  .fv-body{padding:20px 24px}
+  .f-grid{display:grid;grid-template-columns:1fr 1fr;column-gap:24px;row-gap:0}
+  .f-grid .full{grid-column:1 / -1}
+  .f-row{display:flex;align-items:flex-start;margin-bottom:18px}
+  .f-row label{flex:none;width:148px;min-height:32px;display:flex;align-items:center;justify-content:flex-end;padding:0 10px;background:#F0F5FF;border:1px solid #E3ECFA;font-size:13px;color:var(--text-primary);box-sizing:border-box;position:relative}
+  .f-row label .req{position:absolute;left:6px;color:var(--danger);font-style:normal}
+  .f-row .f-ctl-box{flex:1;min-width:0;display:flex;align-items:center;gap:8px}
+  .f-row .f-ctl{flex:1;min-width:0;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);box-sizing:border-box}
+  .f-row .f-ctl:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .f-row .f-ctl.is-placeholder{color:var(--text-placeholder)}
+  .f-row select.f-ctl{padding-right:26px;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+  .f-row .f-ctl[readonly]{background:#F5F7FA;color:var(--text-secondary)}
+  .f-row textarea.f-ctl{height:88px;padding:8px 10px;resize:vertical;line-height:1.6}
+  .f-row .f-count{flex:none;font-size:12px;color:var(--text-tertiary)}
+  .f-row .f-count b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .f-row .f-date{width:160px;flex:none}
+
+  /* ---- 富文本编辑器 ---- */
+  .rte{border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);overflow:hidden;flex:1;min-width:0;background:var(--bg-white)}
+  .rte:focus-within{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .rte-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:2px;padding:6px 8px;border-bottom:1px solid #E8E8E8;background:#FAFBFC}
+  .rte-btn{min-width:26px;height:26px;padding:0 5px;border:none;background:transparent;border-radius:4px;font-size:13px;color:var(--text-secondary);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+  .rte-btn:hover{background:#EEF2F7;color:var(--primary)}
+  .rte-btn.b{font-weight:700}
+  .rte-btn.i{font-style:italic}
+  .rte-btn.u{text-decoration:underline}
+  .rte-btn.s{text-decoration:line-through}
+  .rte-btn.sep{width:1px;height:16px;background:#E4E7ED;margin:0 4px}
+  .rte-area{min-height:120px;max-height:280px;overflow:auto;padding:10px 12px;font-size:14px;line-height:1.7;color:var(--text-primary);outline:none}
+  .rte-area:empty::before{content:attr(data-ph);color:var(--text-placeholder)}
+  .rte-area img{max-width:100%}
+
+  /* ---- 详情展示 ---- */
+  .d-grid{display:grid;grid-template-columns:1fr 1fr;column-gap:24px;row-gap:0}
+  .d-grid .full{grid-column:1 / -1}
+  .d-row{display:flex;align-items:flex-start;margin-bottom:18px}
+  .d-row .k{flex:none;width:148px;min-height:32px;display:flex;align-items:center;justify-content:flex-end;padding:0 10px;background:#F0F5FF;border:1px solid #E3ECFA;font-size:13px;color:var(--text-primary);box-sizing:border-box}
+  .d-row .v{flex:1;min-width:0;padding:6px 10px;font-size:14px;color:var(--text-primary);word-break:break-word;line-height:1.6;border-bottom:1px solid #F0F2F5}
+  .d-row .v.empty{color:var(--text-placeholder)}
+  .d-row .v .num{font-family:Consolas,'Microsoft YaHei',monospace}
+
+  /* ===== 居中确认弹窗 ===== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .modal-overlay.show{opacity:1;pointer-events:auto}
+  .modal{position:fixed;left:50%;top:50%;width:400px;max-width:92vw;background:var(--bg-white);border-radius:8px;box-shadow:0 12px 40px rgba(0,0,0,0.2);transform:translate(-50%,-50%) scale(.96);opacity:0;pointer-events:none;transition:all var(--transition-normal);z-index:calc(var(--z-modal) + 1)}
+  .modal-overlay.show .modal{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+  .modal-body{display:flex;gap:12px;align-items:flex-start;padding:24px 20px 6px}
+  .modal-body .w-ico{flex:none;width:36px;height:36px;border-radius:50%;background:var(--warning-bg);display:flex;align-items:center;justify-content:center}
+  .modal-body .w-ico svg{width:18px;height:18px;stroke:var(--warning);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .cfm-txt{font-size:14px;color:var(--text-primary);line-height:1.8}
+  .modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:12px 20px;border-top:1px solid #E8E8E8}
+</style>
+</head>
+<body>
+
+<div class="main-area">
+
+  <div class="tabbar">
+    <div class="tab-item active">巡查登记</div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <!-- ===== 视图一：列表页 ===== -->
+      <div class="view-page active" id="viewList">
+        <div class="page-head">
+          <h1>巡查登记</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="printList()">打印</button>
+            <button class="btn btn-default" onclick="exportList()">导出</button>
+            <button class="btn btn-primary" onclick="openForm()">新增</button>
+          </div>
+        </div>
+
+        <div class="filter-panel">
+          <div class="filter-row">
+            <div class="filter-item">
+              <label>巡查机构：</label>
+              <select class="fi-select is-placeholder" id="qOrg" onchange="markSelect(this)">
+                <option value="">请选择</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>巡查人：</label>
+              <input class="fi-ctl" id="qInspector" placeholder="请输入">
+            </div>
+            <div class="filter-item">
+              <label>巡查日期：</label>
+              <span class="fi-range">
+                <input class="fi-ctl fi-date" id="qDateStart" type="date" placeholder="开始日期">
+                <span>~</span>
+                <input class="fi-ctl fi-date" id="qDateEnd" type="date" placeholder="结束日期">
+              </span>
+            </div>
+            <div class="filter-item">
+              <label>巡查类别：</label>
+              <select class="fi-select is-placeholder" id="qCategory" onchange="markSelect(this)">
+                <option value="">请选择</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>巡查地点：</label>
+              <select class="fi-select is-placeholder" id="qLocation" onchange="markSelect(this)">
+                <option value="">请选择</option>
+              </select>
+            </div>
+            <div class="filter-btns">
+              <button class="btn btn-default" onclick="resetFilter()">重置</button>
+              <button class="btn btn-primary" onclick="queryFilter()">查询</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrap" id="tableWrap"></div>
+        <div class="page-foot" id="pageFoot"></div>
+      </div>
+
+      <!-- ===== 视图二：新建 / 编辑整页表单 ===== -->
+      <div class="view-page" id="viewForm">
+        <div class="page-head">
+          <h1 id="formTitle">新建卫监巡检档案维护</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="backToList()">返回</button>
+            <button class="btn btn-primary" onclick="saveForm()">保存</button>
+          </div>
+        </div>
+        <div class="form-page">
+          <div class="fv-card">
+            <div class="fv-head"><h3>巡查基本信息</h3></div>
+            <div class="fv-body">
+              <div class="f-grid">
+                <div class="f-row">
+                  <label><i class="req">*</i>巡查机构</label>
+                  <div class="f-ctl-box">
+                    <select class="f-ctl is-placeholder" id="fOrg" onchange="onOrgChange(this)">
+                      <option value="">请选择</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="f-row">
+                  <label><i class="req">*</i>巡查地点</label>
+                  <div class="f-ctl-box">
+                    <select class="f-ctl is-placeholder" id="fLocation" onchange="onLocationChange(this)">
+                      <option value="">请选择</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="f-row">
+                  <label><i class="req">*</i>巡查地点联系人</label>
+                  <div class="f-ctl-box">
+                    <input class="f-ctl" id="fContact" placeholder="请输入">
+                  </div>
+                </div>
+                <div class="f-row">
+                  <label><i class="req">*</i>巡查地点联系人电话</label>
+                  <div class="f-ctl-box">
+                    <input class="f-ctl" id="fPhone" placeholder="请输入">
+                  </div>
+                </div>
+                <div class="f-row">
+                  <label><i class="req">*</i>巡查类别</label>
+                  <div class="f-ctl-box">
+                    <select class="f-ctl is-placeholder" id="fCategory" onchange="markSelect(this)">
+                      <option value="">请选择</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="f-row">
+                  <label><i class="req">*</i>巡查日期</label>
+                  <div class="f-ctl-box">
+                    <input class="f-ctl f-date" id="fDate" type="date">
+                  </div>
+                </div>
+                <div class="f-row full">
+                  <label><i class="req">*</i>活动内容</label>
+                  <div class="rte">
+                    <div class="rte-toolbar" id="rteToolbar"></div>
+                    <div class="rte-area" id="rteArea" contenteditable="true" data-ph="请输入活动内容"></div>
+                  </div>
+                </div>
+                <div class="f-row full">
+                  <label><i class="req">*</i>发现的主要问题</label>
+                  <div class="f-ctl-box">
+                    <textarea class="f-ctl" id="fIssues" placeholder="请输入" maxlength="200" oninput="syncCount('fIssues','cIssues')"></textarea>
+                    <span class="f-count"><b id="cIssues">0</b>/200</span>
+                  </div>
+                </div>
+                <div class="f-row full">
+                  <label>备注</label>
+                  <div class="f-ctl-box">
+                    <textarea class="f-ctl" id="fRemark" placeholder="请输入" maxlength="200" oninput="syncCount('fRemark','cRemark')"></textarea>
+                    <span class="f-count"><b id="cRemark">0</b>/200</span>
+                  </div>
+                </div>
+                <div class="f-row">
+                  <label>巡查人员</label>
+                  <div class="f-ctl-box">
+                    <select class="f-ctl" id="fInspector"></select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 视图三：查看详情 ===== -->
+      <div class="view-page" id="viewDetail">
+        <div class="page-head">
+          <h1>卫监巡检档案维护详情</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="backToList()">返回</button>
+          </div>
+        </div>
+        <div class="form-page">
+          <div class="fv-card">
+            <div class="fv-head"><h3>巡查记录详情</h3></div>
+            <div class="fv-body">
+              <div class="d-grid" id="detailGrid"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== 居中确认弹窗 ===== -->
+<div class="modal-overlay" id="cfmOverlay">
+  <div class="modal">
+    <div class="modal-body">
+      <div class="w-ico">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="cfm-txt" id="cfmTxt"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeCfm()">取消</button>
+      <button class="btn btn-primary" id="cfmOk">确定</button>
+    </div>
+  </div>
+</div>
+
+<script src="框架.js" data-page="inspection-register" data-embed="auto"></script>
+<script>
+'use strict';
+
+/* ================= 基础数据 ================= */
+var ORGS = [
+  '扬州市江都区滨江人民医院',
+  '扬州市江都区大桥镇高巷村卫生室',
+  '扬州市江都区大桥镇花荡村卫生室',
+  '扬州市江都区大桥镇顾巷村卫生室',
+  '扬州市江都区仙女镇卫生院',
+  '扬州市江都区樊川镇卫生院'
+];
+var CATEGORIES = ['公共场所', '医疗机构', '学校卫生', '生活饮用水', '职业卫生', '餐饮服务'];
+var INSPECTORS = ['朱劲松', '吕雪', '宋劲松', '高素芹'];
+
+/* 巡查地点库：机构 -> 地点（含联系人 / 电话，与 地点维护 数据联动） */
+var LOCATION_POOL = {
+  '扬州市江都区滨江人民医院': [
+    { name: '滨江公园广场', contact: '王建国', phone: '13601455678' },
+    { name: '滨江街道菜场', contact: '刘德海', phone: '13901455678' },
+    { name: '滨江影剧院', contact: '赵文华', phone: '13801345678' }
+  ],
+  '扬州市江都区大桥镇高巷村卫生室': [
+    { name: '香王村', contact: '高素芹', phone: '13101010101' },
+    { name: '高巷村卫生室', contact: '高素芹', phone: '13101010101' }
+  ],
+  '扬州市江都区大桥镇花荡村卫生室': [
+    { name: '花荡村', contact: '吕雪', phone: '13905141234' },
+    { name: '花荡村小学', contact: '吕雪', phone: '13905141234' }
+  ],
+  '扬州市江都区大桥镇顾巷村卫生室': [
+    { name: '顾巷村', contact: '高家芹', phone: '13805216789' },
+    { name: '顾巷村文化室', contact: '高家芹', phone: '13805216789' }
+  ],
+  '扬州市江都区仙女镇卫生院': [
+    { name: '仙女农贸市场', contact: '张秀兰', phone: '13505132345' },
+    { name: '仙女镇文化站', contact: '周玉兰', phone: '13705234567' },
+    { name: '仙女中学', contact: '吴志明', phone: '13505131234' }
+  ],
+  '扬州市江都区樊川镇卫生院': [
+    { name: '樊川敬老院', contact: '李秀英', phone: '13805164567' },
+    { name: '樊川小学', contact: '孙建国', phone: '13601456789' },
+    { name: '樊川中心市场', contact: '钱桂芳', phone: '13901452345' }
+  ]
+};
+
+/* ================= 巡查记录数据 ================= */
+var INSPECTIONS = [
+  { id: 'I20220911001', org: '扬州市江都区大桥镇高巷村卫生室', location: '香王村', contact: '高素芹', phone: '13101010101', category: '公共场所', activity: '对村内公共场所进行例行卫生巡查。', issues: '正常', remark: '', date: '2022-09-11', inspector: '高素芹', entryUser: '朱劲松', entryDate: '2022-09-11' },
+  { id: 'I20220902001', org: '扬州市江都区滨江人民医院', location: '滨江公园广场', contact: '王建国', phone: '13601455678', category: '公共场所', activity: '检查广场环境卫生及公共设施消毒情况。', issues: '广场垃圾桶未及时清运，已现场督促整改。', remark: '整改完成后复查', date: '2022-09-02', inspector: '吕雪', entryUser: '朱劲松', entryDate: '2022-09-02' },
+  { id: 'I20220826001', org: '扬州市江都区大桥镇花荡村卫生室', location: '花荡村小学', contact: '吕雪', phone: '13905141234', category: '学校卫生', activity: '开学前学校卫生专项巡查，检查教室通风、饮用水安全。', issues: '正常', remark: '', date: '2022-08-26', inspector: '宋劲松', entryUser: '宋劲松', entryDate: '2022-08-26' },
+  { id: 'I20220815001', org: '扬州市江都区大桥镇顾巷村卫生室', location: '顾巷村', contact: '高家芹', phone: '13805216789', category: '生活饮用水', activity: '检查村供水点水质消毒记录及储水设施卫生状况。', issues: '供水点消毒记录缺失近一周，已要求补齐。', remark: '', date: '2022-08-15', inspector: '高素芹', entryUser: '朱劲松', entryDate: '2022-08-15' },
+  { id: 'I20220730001', org: '扬州市江都区滨江人民医院', location: '滨江影剧院', contact: '赵文华', phone: '13801345678', category: '公共场所', activity: '影剧院集中空调通风系统卫生检查。', issues: '正常', remark: '', date: '2022-07-30', inspector: '吕雪', entryUser: '吕雪', entryDate: '2022-07-30' },
+  { id: 'I20220718001', org: '扬州市江都区仙女镇卫生院', location: '仙女农贸市场', contact: '张秀兰', phone: '13505132345', category: '职业卫生', activity: '市场内职业防护与病媒生物防制检查。', issues: '部分摊贩防蝇设施不到位，已现场指导。', remark: '一周内复查', date: '2022-07-18', inspector: '宋劲松', entryUser: '宋劲松', entryDate: '2022-07-18' },
+  { id: 'I20220628001', org: '扬州市江都区樊川镇卫生院', location: '樊川敬老院', contact: '李秀英', phone: '13805164567', category: '医疗机构', activity: '敬老院医务室院感防控与消毒隔离检查。', issues: '正常', remark: '', date: '2022-06-28', inspector: '朱劲松', entryUser: '朱劲松', entryDate: '2022-06-28' },
+  { id: 'I20220612001', org: '扬州市江都区大桥镇高巷村卫生室', location: '高巷村卫生室', contact: '高素芹', phone: '13101010101', category: '医疗机构', activity: '村卫生室依法执业与医疗废物处置检查。', issues: '正常', remark: '', date: '2022-06-12', inspector: '高素芹', entryUser: '吕雪', entryDate: '2022-06-12' },
+  { id: 'I20220520001', org: '扬州市江都区滨江人民医院', location: '滨江街道菜场', contact: '刘德海', phone: '13901455678', category: '餐饮服务', activity: '菜场餐饮摊点食品安全与健康证检查。', issues: '2名从业人员健康证过期，已要求限期补办。', remark: '2022-05-27复查', date: '2022-05-20', inspector: '吕雪', entryUser: '朱劲松', entryDate: '2022-05-20' },
+  { id: 'I20220508001', org: '扬州市江都区仙女镇卫生院', location: '仙女中学', contact: '吴志明', phone: '13505131234', category: '学校卫生', activity: '中考前考点学校卫生保障巡查。', issues: '正常', remark: '', date: '2022-05-08', inspector: '宋劲松', entryUser: '宋劲松', entryDate: '2022-05-08' },
+  { id: 'I20220425001', org: '扬州市江都区樊川镇卫生院', location: '樊川中心市场', contact: '钱桂芳', phone: '13901452345', category: '公共场所', activity: '市场公共区域卫生与通风检查。', issues: '正常', remark: '', date: '2022-04-25', inspector: '朱劲松', entryUser: '吕雪', entryDate: '2022-04-25' },
+  { id: 'I20220411001', org: '扬州市江都区大桥镇花荡村卫生室', location: '花荡村', contact: '吕雪', phone: '13905141234', category: '生活饮用水', activity: '村自来水站水质余氯检测。', issues: '余氯检测值偏低，已通知供水站调整。', remark: '次日复查正常', date: '2022-04-11', inspector: '高素芹', entryUser: '朱劲松', entryDate: '2022-04-11' }
+];
+var inspSeq = 13;
+
+/* ================= 页面状态 ================= */
+var curPage = 1;
+var PAGE_SIZE = 20;
+var editId = '';           // 编辑中的记录 id（'' 表示新建）
+var cfmCb = null;
+
+function $(id) { return document.getElementById(id); }
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function toastMsg(msg, type) {
+  if (typeof window.toast === 'function') { window.toast(msg, type); return; }
+  var box = document.createElement('div');
+  box.className = 'toast show' + (type ? ' ' + type : '');
+  box.textContent = msg;
+  box.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);padding:10px 18px;background:#fff;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:9999;font-size:14px';
+  document.body.appendChild(box);
+  setTimeout(function () { box.remove(); }, 2400);
+}
+function markSelect(el) { el.classList.toggle('is-placeholder', !el.value); }
+function todayStr() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+/* ================= 视图切换 ================= */
+function showView(name) {
+  ['viewList', 'viewForm', 'viewDetail'].forEach(function (id) {
+    $(id).classList.toggle('active', id === 'view' + name.charAt(0).toUpperCase() + name.slice(1));
+  });
+}
+
+/* ================= 筛选 ================= */
+function resetFilter() {
+  ['qOrg', 'qCategory', 'qLocation'].forEach(function (id) {
+    $(id).value = '';
+    markSelect($(id));
+  });
+  $('qInspector').value = '';
+  $('qDateStart').value = '';
+  $('qDateEnd').value = '';
+  curPage = 1;
+  renderTable();
+  toastMsg('筛选条件已重置');
+}
+function queryFilter() { curPage = 1; renderTable(); toastMsg('查询完成'); }
+
+function filtered() {
+  var org = $('qOrg').value, ins = $('qInspector').value.trim();
+  var cat = $('qCategory').value, loc = $('qLocation').value;
+  var ds = $('qDateStart').value, de = $('qDateEnd').value;
+  return INSPECTIONS.filter(function (r) {
+    if (org && r.org !== org) return false;
+    if (ins && r.inspector.indexOf(ins) < 0) return false;
+    if (cat && r.category !== cat) return false;
+    if (loc && r.location !== loc) return false;
+    if (ds && r.date < ds) return false;
+    if (de && r.date > de) return false;
+    return true;
+  });
+}
+
+/* ================= 表格渲染 ================= */
+function renderTable() {
+  var rows = filtered();
+  var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  if (curPage > totalPages) curPage = totalPages;
+  var pageRows = rows.slice((curPage - 1) * PAGE_SIZE, curPage * PAGE_SIZE);
+
+  var html = '<table class="list-tbl"><colgroup>'
+    + '<col style="width:52px"><col><col style="width:110px"><col style="width:90px">'
+    + '<col style="width:150px"><col style="width:100px"><col style="width:80px"><col style="width:120px">'
+    + '<col style="width:96px"><col style="width:80px"><col style="width:130px">'
+    + '</colgroup><thead><tr>'
+    + '<th>序号</th><th>巡查机构</th><th>巡查地点</th><th>巡查类别</th><th>发现的主要问题</th>'
+    + '<th>巡查日期</th><th>巡查人</th><th>备注</th><th>录入日期</th><th>录入人员</th><th>操作</th>'
+    + '</tr></thead><tbody>';
+
+  if (!pageRows.length) {
+    html += '<tr><td colspan="11"><div class="tbl-empty">'
+      + '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
+      + '<div>暂无巡查记录，点击右上角「新增」登记巡查</div></div></td></tr>';
+  } else {
+    pageRows.forEach(function (r, i) {
+      var base = (curPage - 1) * PAGE_SIZE + i + 1;
+      var issueCls = r.issues === '正常' ? '' : ' style="color:#D9822B"';
+      html += '<tr>';
+      html += '<td class="center">' + base + '</td>';
+      html += '<td title="' + esc(r.org) + '">' + esc(r.org) + '</td>';
+      html += '<td>' + esc(r.location) + '</td>';
+      html += '<td>' + esc(r.category) + '</td>';
+      html += '<td title="' + esc(r.issues) + '"' + issueCls + '>' + esc(r.issues) + '</td>';
+      html += '<td class="num">' + esc(r.date) + '</td>';
+      html += '<td>' + esc(r.inspector) + '</td>';
+      html += '<td title="' + esc(r.remark) + '">' + (r.remark ? esc(r.remark) : '<span style="color:var(--text-placeholder)">—</span>') + '</td>';
+      html += '<td class="num">' + esc(r.entryDate) + '</td>';
+      html += '<td>' + esc(r.entryUser) + '</td>';
+      html += '<td>'
+        + '<span class="op-link" onclick="openForm(\'' + r.id + '\')">编辑</span>'
+        + '<span class="op-gap"></span>'
+        + '<span class="op-link" onclick="openDetail(\'' + r.id + '\')">查看</span>'
+        + '<span class="op-gap"></span>'
+        + '<span class="op-link danger" onclick="removeInsp(\'' + r.id + '\')">删除</span>'
+        + '</td>';
+      html += '</tr>';
+    });
+  }
+  html += '</tbody></table>';
+  $('tableWrap').innerHTML = html;
+  renderFoot(rows.length, totalPages);
+}
+
+function renderFoot(total, totalPages) {
+  if (!total) { $('pageFoot').innerHTML = ''; return; }
+  var html = '<span class="pg-total">共 <b>' + total + '</b> 条</span>';
+  html += '<span class="pg-size">每页<select onchange="changeSize(this.value)">'
+    + ['20', '50', '100'].map(function (n) { return '<option' + (PAGE_SIZE === +n ? ' selected' : '') + '>' + n + '</option>'; }).join('')
+    + '</select>条</span>';
+  html += '<div class="pg-pager">';
+  html += '<span class="pg-btn' + (curPage <= 1 ? ' disabled' : '') + '" onclick="goPage(' + (curPage - 1) + ')">‹</span>';
+  for (var p = 1; p <= totalPages; p++) {
+    if (totalPages > 7 && p > 3 && p < totalPages - 1 && Math.abs(p - curPage) > 1) {
+      if (p === 4) html += '<span style="padding:0 4px;color:var(--text-tertiary)">…</span>';
+      continue;
+    }
+    html += '<span class="pg-btn' + (p === curPage ? ' active' : '') + '" onclick="goPage(' + p + ')">' + p + '</span>';
+  }
+  html += '<span class="pg-btn' + (curPage >= totalPages ? ' disabled' : '') + '" onclick="goPage(' + (curPage + 1) + ')" style="margin-left:4px">›</span>';
+  html += '</div>';
+  html += '<span class="pg-jump">跳至第<input id="pgJump" onkeydown="if(event.key===\'Enter\')jumpPage()">页</span>';
+  $('pageFoot').innerHTML = html;
+}
+
+function goPage(p) {
+  var rows = filtered();
+  var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  if (p < 1 || p > totalPages || p === curPage) return;
+  curPage = p;
+  renderTable();
+}
+function changeSize(n) { PAGE_SIZE = +n; curPage = 1; renderTable(); }
+function jumpPage() {
+  var v = parseInt($('pgJump').value, 10);
+  if (v) goPage(v);
+}
+
+/* ================= 新建 / 编辑 ================= */
+function openForm(id) {
+  editId = id || '';
+  $('formTitle').textContent = editId ? '编辑卫监巡检档案维护' : '新建卫监巡检档案维护';
+  $('fOrg').value = '';
+  $('fLocation').value = '';
+  $('fContact').value = '';
+  $('fPhone').value = '';
+  $('fCategory').value = '';
+  $('fIssues').value = '';
+  $('fRemark').value = '';
+  $('fDate').value = todayStr();
+  $('fInspector').value = '吕雪';
+  setRteHtml('');
+  fillLocOptions('');
+  syncCount('fIssues', 'cIssues');
+  syncCount('fRemark', 'cRemark');
+  markSelect($('fOrg'));
+  markSelect($('fLocation'));
+  markSelect($('fCategory'));
+
+  if (editId) {
+    var r = findInsp(editId);
+    if (r) {
+      $('fOrg').value = r.org;
+      fillLocOptions(r.location);
+      $('fLocation').value = r.location;
+      $('fContact').value = r.contact;
+      $('fPhone').value = r.phone;
+      $('fCategory').value = r.category;
+      $('fIssues').value = r.issues;
+      $('fRemark').value = r.remark;
+      $('fDate').value = r.date;
+      $('fInspector').value = r.inspector;
+      setRteHtml(r.activity);
+      markSelect($('fOrg'));
+      markSelect($('fLocation'));
+      markSelect($('fCategory'));
+      syncCount('fIssues', 'cIssues');
+      syncCount('fRemark', 'cRemark');
+    }
+  }
+  showView('form');
+}
+
+function backToList() { showView('list'); renderTable(); }
+
+function onOrgChange(sel) {
+  markSelect(sel);
+  $('fLocation').value = '';
+  $('fContact').value = '';
+  $('fPhone').value = '';
+  fillLocOptions('');
+  markSelect($('fLocation'));
+}
+
+function fillLocOptions(sel) {
+  var org = $('fOrg').value;
+  var html = '<option value="">请选择</option>';
+  if (org && LOCATION_POOL[org]) {
+    LOCATION_POOL[org].forEach(function (p) {
+      html += '<option' + (p.name === sel ? ' selected' : '') + '>' + esc(p.name) + '</option>';
+    });
+  }
+  $('fLocation').innerHTML = html;
+}
+
+function onLocationChange(sel) {
+  markSelect(sel);
+  var org = $('fOrg').value, name = sel.value;
+  if (org && name && LOCATION_POOL[org]) {
+    var hit = LOCATION_POOL[org].filter(function (p) { return p.name === name; })[0];
+    if (hit) { $('fContact').value = hit.contact; $('fPhone').value = hit.phone; }
+  } else {
+    $('fContact').value = '';
+    $('fPhone').value = '';
+  }
+}
+
+function syncCount(inpId, cntId) {
+  $('#' + cntId) && ($('#' + cntId).textContent = $('#' + inpId).value.length);
+}
+
+function saveForm() {
+  var org = $('fOrg').value, loc = $('fLocation').value;
+  var contact = $('fContact').value.trim(), phone = $('fPhone').value.trim();
+  var cat = $('fCategory').value, date = $('fDate').value;
+  var activity = $('rteArea').innerHTML.trim();
+  var issues = $('fIssues').value.trim(), remark = $('fRemark').value.trim();
+  var inspector = $('fInspector').value;
+
+  if (!org) { toastMsg('请选择巡查机构', 'warning'); return; }
+  if (!loc) { toastMsg('请选择巡查地点', 'warning'); return; }
+  if (!contact) { toastMsg('请输入巡查地点联系人', 'warning'); return; }
+  if (!/^1\d{10}$/.test(phone)) { toastMsg('请输入正确的11位联系电话', 'warning'); return; }
+  if (!cat) { toastMsg('请选择巡查类别', 'warning'); return; }
+  if (!activity || activity === '<br>') { toastMsg('请输入活动内容', 'warning'); return; }
+  if (!issues) { toastMsg('请输入发现的主要问题', 'warning'); return; }
+  if (!date) { toastMsg('请选择巡查日期', 'warning'); return; }
+
+  var ds = todayStr();
+  if (editId) {
+    var r = findInsp(editId);
+    if (r) {
+      r.org = org; r.location = loc; r.contact = contact; r.phone = phone;
+      r.category = cat; r.activity = activity; r.issues = issues; r.remark = remark;
+      r.date = date; r.inspector = inspector;
+    }
+    toastMsg('巡查记录修改成功', 'success');
+  } else {
+    INSPECTIONS.unshift({
+      id: 'I' + date.replace(/-/g, '') + String(inspSeq++).padStart(3, '0'),
+      org: org, location: loc, contact: contact, phone: phone, category: cat,
+      activity: activity, issues: issues, remark: remark,
+      date: date, inspector: inspector, entryUser: '朱劲松', entryDate: ds
+    });
+    toastMsg('巡查登记保存成功', 'success');
+  }
+  showView('list');
+  curPage = 1;
+  renderTable();
+}
+
+/* ================= 查看详情 ================= */
+function openDetail(id) {
+  var r = findInsp(id);
+  if (!r) return;
+  $('detailGrid').innerHTML =
+    '<div class="d-row"><span class="k">巡查机构</span><span class="v">' + esc(r.org) + '</span></div>'
+    + '<div class="d-row"><span class="k">巡查地点</span><span class="v">' + esc(r.location) + '</span></div>'
+    + '<div class="d-row"><span class="k">巡查地点联系人</span><span class="v">' + esc(r.contact) + '</span></div>'
+    + '<div class="d-row"><span class="k">巡查地点联系人电话</span><span class="v num">' + esc(r.phone) + '</span></div>'
+    + '<div class="d-row"><span class="k">巡查类别</span><span class="v">' + esc(r.category) + '</span></div>'
+    + '<div class="d-row"><span class="k">巡查日期</span><span class="v num">' + esc(r.date) + '</span></div>'
+    + '<div class="d-row full"><span class="k">活动内容</span><span class="v">' + (r.activity ? r.activity : '<span class="empty">—</span>') + '</span></div>'
+    + '<div class="d-row full"><span class="k">发现的主要问题</span><span class="v">' + (r.issues ? esc(r.issues) : '<span class="empty">—</span>') + '</span></div>'
+    + '<div class="d-row full"><span class="k">备注</span><span class="v">' + (r.remark ? esc(r.remark) : '<span class="empty">—</span>') + '</span></div>'
+    + '<div class="d-row"><span class="k">巡查人员</span><span class="v">' + esc(r.inspector) + '</span></div>'
+    + '<div class="d-row"><span class="k">录入人员</span><span class="v">' + esc(r.entryUser) + '</span></div>';
+  showView('detail');
+}
+
+/* ================= 删除 ================= */
+function findInsp(id) {
+  for (var i = 0; i < INSPECTIONS.length; i++) if (INSPECTIONS[i].id === id) return INSPECTIONS[i];
+  return null;
+}
+
+function removeInsp(id) {
+  var r = findInsp(id);
+  if (!r) return;
+  openCfm('确定删除巡查记录（<b>' + esc(r.location) + ' · ' + esc(r.date) + '</b>）吗？', function () {
+    var idx = INSPECTIONS.indexOf(r);
+    if (idx >= 0) INSPECTIONS.splice(idx, 1);
+    renderTable();
+    toastMsg('巡查记录已删除', 'success');
+  });
+}
+
+/* ================= 打印 / 导出 ================= */
+function printList() {
+  toastMsg('已生成打印预览，共 ' + filtered().length + ' 条巡查记录', 'success');
+}
+function exportList() {
+  toastMsg('导出成功，共 ' + filtered().length + ' 条巡查记录', 'success');
+}
+
+/* ================= 富文本编辑器 ================= */
+var RTE_CMDS = [
+  { cmd: 'bold', cls: 'b', label: 'B', tip: '加粗' },
+  { cmd: 'italic', cls: 'i', label: 'I', tip: '斜体' },
+  { cmd: 'underline', cls: 'u', label: 'U', tip: '下划线' },
+  { cmd: 'strikeThrough', cls: 's', label: 'S', tip: '删除线' },
+  { cmd: 'sep' },
+  { cmd: 'foreColor', color: '#d9822b', label: 'A', tip: '字体颜色' },
+  { cmd: 'hiliteColor', color: '#f6c445', label: 'A', tip: '背景颜色' },
+  { cmd: 'sep' },
+  { cmd: 'createLink', label: '链接', tip: '插入链接' },
+  { cmd: 'unlink', label: '取消链接', tip: '取消链接' },
+  { cmd: 'insertImage', label: '图片', tip: '插入图片' },
+  { cmd: 'sep' },
+  { cmd: 'undo', label: '⟲', tip: '撤销' },
+  { cmd: 'redo', label: '⟳', tip: '重做' }
+];
+
+function initRte() {
+  var html = '';
+  RTE_CMDS.forEach(function (c) {
+    if (c.cmd === 'sep') { html += '<span class="rte-btn sep"></span>'; return; }
+    var style = c.color ? ' style="color:' + c.color + '"' : '';
+    html += '<button type="button" class="rte-btn ' + (c.cls || '') + '" title="' + c.tip + '"' + style + ' data-cmd="' + c.cmd + '">' + c.label + '</button>';
+  });
+  $('rteToolbar').innerHTML = html;
+  $('rteToolbar').addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-cmd]');
+    if (!btn) return;
+    var cmd = btn.getAttribute('data-cmd');
+    if (cmd === 'createLink') {
+      var url = prompt('请输入链接地址：', 'http://');
+      if (url) document.execCommand('createLink', false, url);
+    } else if (cmd === 'insertImage') {
+      var imgUrl = prompt('请输入图片地址：', 'https://');
+      if (imgUrl) document.execCommand('insertImage', false, imgUrl);
+    } else {
+      document.execCommand(cmd, false, null);
+    }
+    $('rteArea').focus();
+  });
+}
+
+function setRteHtml(html) { $('rteArea').innerHTML = html; }
+
+/* ================= 确认弹窗 ================= */
+function openCfm(html, onOk) {
+  $('cfmTxt').innerHTML = html;
+  cfmCb = onOk;
+  $('cfmOverlay').classList.add('show');
+}
+function closeCfm() {
+  $('cfmOverlay').classList.remove('show');
+  cfmCb = null;
+}
+$('cfmOk').onclick = function () {
+  var cb = cfmCb;
+  closeCfm();
+  if (cb) cb();
+};
+
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape' && $('cfmOverlay').classList.contains('show')) closeCfm();
+});
+
+/* ================= 初始化 ================= */
+(function init() {
+  var orgHtml = ORGS.map(function (o) { return '<option>' + esc(o) + '</option>'; }).join('');
+  $('qOrg').innerHTML = '<option value="">请选择</option>' + orgHtml;
+  $('fOrg').innerHTML = '<option value="">请选择</option>' + orgHtml;
+  var catHtml = CATEGORIES.map(function (c) { return '<option>' + esc(c) + '</option>'; }).join('');
+  $('qCategory').innerHTML = '<option value="">请选择</option>' + catHtml;
+  $('fCategory').innerHTML = '<option value="">请选择</option>' + catHtml;
+  var locSet = {};
+  INSPECTIONS.forEach(function (r) { locSet[r.location] = 1; });
+  $('qLocation').innerHTML = '<option value="">请选择</option>' + Object.keys(locSet).map(function (n) { return '<option>' + esc(n) + '</option>'; }).join('');
+  $('fInspector').innerHTML = INSPECTORS.map(function (u) { return '<option>' + esc(u) + '</option>'; }).join('');
+  $('fInspector').value = '吕雪';
+  initRte();
+  renderTable();
+})();
+</script>
+</body>
+</html>

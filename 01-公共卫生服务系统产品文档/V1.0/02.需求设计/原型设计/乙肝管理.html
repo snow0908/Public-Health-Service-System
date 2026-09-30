@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>乙肝管理 - 母婴阻断</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}
+
+  /* ===== 页头 ===== */
+  .page-head .right .btn{height:30px;padding:0 14px;font-size:13px}
+
+  /* ===== 筛选区 ===== */
+  .filter-panel{padding:14px 16px;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin-bottom:12px}
+  .filter-row:last-child{margin-bottom:0}
+  .filter-item{display:flex;align-items:center;gap:4px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .filter-item .ck{display:inline-flex;align-items:center;gap:5px;font-size:14px;color:var(--text-secondary);cursor:pointer;user-select:none}
+  .filter-item .ck input{width:14px;height:14px;accent-color:var(--primary);cursor:pointer}
+  .fi-ctl{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .fi-select.is-placeholder{color:var(--text-placeholder)}
+  .fi-date{width:118px}
+  .fi-range{display:flex;align-items:center;gap:4px;color:var(--text-tertiary)}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+  /* ===== 数据表格 ===== */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+  .list-tbl th:last-child,.list-tbl td:last-child{position:sticky;right:0}
+  .list-tbl td:last-child{z-index:2;background-color:var(--bg-white)}
+  .list-tbl th:last-child{z-index:6}
+  .list-tbl{width:100%;min-width:1560px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:36px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:nth-child(even) td{background:var(--bg-table-even)}
+  .list-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .list-tbl .center{text-align:center}
+  .num{font-family:Consolas,'Microsoft YaHei',monospace}
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px}
+  .op-link:hover{text-decoration:underline}
+  .op-link.danger{color:var(--danger)}
+  .op-gap{display:inline-block;width:8px}
+  .tbl-empty{padding:50px 20px;text-align:center;color:var(--text-placeholder);font-size:13px}
+  .tbl-empty svg{width:44px;height:44px;stroke:var(--color-neutral-300);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:10px}
+  .lock-dot{display:inline-flex;align-items:center;gap:5px}
+  .lock-dot::before{content:"";width:7px;height:7px;border-radius:50%;background:#F5A623}
+  .lock-dot.locked::before{background:#3DBD7D}
+  .lock-dot.locked{color:var(--text-primary)}
+  .exp-row td{background:#F8FAFD !important}
+  .exp-cell{padding:10px 16px !important;white-space:normal !important}
+  .sub-title{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-primary);margin-bottom:8px}
+  .sub-title b{font-weight:var(--font-weight-medium)}
+  .sub-tbl{width:100%;min-width:860px;border-collapse:collapse;font-size:13px;border:1px solid #E4E7ED;border-radius:4px;overflow:hidden}
+  .sub-tbl th{height:32px;padding:0 8px;background:#EAF2FF;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #DCE6F5}
+  .sub-tbl td{height:32px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);white-space:nowrap}
+  .sub-tbl tbody tr:nth-child(even) td{background:#FAFBFD}
+
+  /* ===== 分页 ===== */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:44px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size{display:flex;align-items:center;gap:6px}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);padding:0 6px;background:#fff;outline:none;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-btn.disabled{color:var(--text-disabled);cursor:not-allowed;border-color:#EBEBEB}
+  .pg-jump{display:flex;align-items:center;gap:4px}
+  .pg-jump input{width:44px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);text-align:center;font-size:13px;color:var(--text-primary);outline:none}
+  .pg-jump input:focus{border-color:var(--primary)}
+
+  /* ===== 视图容器 ===== */
+  .view-page{display:none;flex:1;min-height:0;min-width:0;flex-direction:column}
+  .view-page.active{display:flex}
+
+  /* ===== 患者信息条（表单头部，样式保留） ===== */
+  .patient-strip{display:flex;align-items:center;gap:10px;padding:12px 16px;margin-bottom:14px;background:linear-gradient(90deg,#EAF2FF,#F7FAFF);border:1px solid #D8E6FA;border-radius:8px}
+  .patient-strip .p-ico{width:34px;height:34px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex:none}
+  .patient-strip .p-info{display:flex;flex-direction:column;gap:2px}
+  .patient-strip .p-name{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--text-primary)}
+  .patient-strip .p-no{font-size:12px;color:var(--text-tertiary)}
+  .patient-strip .p-tag{margin-left:auto;font-size:12px;color:var(--primary);background:#fff;border:1px solid #BFD9FF;border-radius:12px;padding:2px 10px;flex:none}
+
+  /* ===== 新建专项表单（表格网格版式，对齐设计稿） =====
+     量测来源：设计稿 1920×1080，表格 x 236–1899
+     行高 33、标签列 220（竖排段拆 48+171）、标签底 --primary-header、边框 --primary-border
+     输入框高 28、宽 174、边框 --color-neutral-300、距单元格左缘 10 */
+  .hb-page{flex:1;overflow:auto;background:var(--bg-white);padding:2px 12px 30px}
+  .hb-pinfo{display:flex;align-items:center;height:46px;font-size:14px;color:#181818;flex-shrink:0}
+  .hb-pinfo b{font-weight:var(--font-weight-medium);color:#181818}
+  .hb-pinfo .num{margin-left:auto;font-family:Consolas,'Microsoft YaHei',monospace}
+  .hb-tbl{width:100%;border-collapse:collapse;table-layout:fixed}
+  .hb-tbl td{height:33px;border:1px solid var(--primary-border);padding:0 10px;vertical-align:middle;background:var(--bg-white);color:#404040;font-size:13px}
+  .hb-tbl td.lab{background:var(--primary-header);color:#181818;font-size:14px;text-align:center;white-space:nowrap;padding:0 4px}
+  .hb-tbl td.lab .req{color:var(--danger);font-style:normal;font-family:SimSun,serif;font-size:13px;margin-right:1px}
+  .hb-tbl td.vlab{padding:0 2px;text-align:center;white-space:normal}
+  .hb-tbl .vtxt{display:inline-block;width:1em;line-height:21px;word-break:break-all;text-align:center;font-size:14px;color:#181818;white-space:normal}
+  .hb-inp{height:28px;border:1px solid var(--color-neutral-300);border-radius:2px;padding:0 8px;font-size:13px;color:var(--text-primary);outline:none;background:var(--bg-white);box-sizing:border-box;vertical-align:middle}
+  .hb-inp:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .hb-inp::placeholder{color:var(--text-placeholder)}
+  select.hb-inp{padding-right:22px;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .hb-inp.date{padding-right:26px;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .w152{width:152px}.w174{width:174px}.w190{width:190px}.w200{width:200px}
+  .hb-unit{margin-left:8px;color:var(--text-tertiary);font-size:13px}
+  .hb-radio{display:flex;flex-wrap:wrap;align-items:center;gap:6px 20px;min-height:28px}
+  .hb-radio label{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:#404040;cursor:pointer;white-space:nowrap}
+  .hb-radio label:has(input:checked){color:var(--primary)}
+  .hb-radio input{width:14px;height:14px;accent-color:var(--primary);cursor:pointer;margin:0}
+  /* 妊娠及所生婴儿情况表单（表格网格版式，对齐设计稿）
+     量测来源：设计稿 1920×1080，表格 x 236–1880，行高 33
+     标签列 240（竖排段拆 28+22+80+110）、右侧标签列 240、边框 --primary-border */
+  .hb-checks{display:flex;flex-wrap:wrap;align-items:center;gap:6px 20px;min-height:28px}
+  .hb-checks label{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:#404040;cursor:pointer;white-space:nowrap}
+  .hb-checks label:has(input:checked){color:var(--primary)}
+  .hb-checks label:has(input:disabled){color:var(--text-disabled);cursor:not-allowed}
+  .hb-checks input{width:14px;height:14px;accent-color:var(--primary);cursor:pointer;margin:0}
+  .hb-grid{display:flex;flex-wrap:wrap;align-items:center;gap:6px 30px;min-height:28px}
+  .hb-item{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .hb-item .hb-it{font-size:13px;color:#404040;flex:none}
+  .hb-item .hb-radio{min-height:0;gap:4px 12px}
+  .hb-vtitle{display:inline-block;line-height:21px;text-align:center;font-size:14px;color:#181818}
+  .w70{width:70px}
+
+  /* ===== 居中弹窗（选人 / 确认） ===== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .modal-overlay.show{opacity:1;pointer-events:auto}
+  .modal{position:fixed;left:50%;top:50%;width:960px;max-width:94vw;max-height:90vh;background:var(--bg-white);border-radius:8px;box-shadow:0 12px 40px rgba(0,0,0,0.2);display:flex;flex-direction:column;transform:translate(-50%,-50%) scale(.96);opacity:0;pointer-events:none;transition:all var(--transition-normal);z-index:calc(var(--z-modal) + 1)}
+  .modal-overlay.show .modal{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+  .modal-head{height:44px;display:flex;align-items:center;padding:0 16px;flex-shrink:0;border-bottom:1px solid #E8E8E8;background:#F0F5FF}
+  .modal-head h3{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+  .modal-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:18px;line-height:1}
+  .modal-close:hover{background:var(--primary-bg);color:var(--primary)}
+  .modal-body{flex:1;min-height:0;display:flex;flex-direction:column;padding:14px 16px}
+  .modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:12px 16px;border-top:1px solid #E8E8E8;flex-shrink:0}
+  .pick-tbl{width:100%;min-width:900px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .pick-tbl th{height:34px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .pick-tbl td{height:34px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pick-tbl tbody tr:nth-child(even) td{background:var(--bg-table-even)}
+  .pick-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .pick-wrap{flex:1;overflow:auto;border:1px solid #E8E8E8;border-radius:4px;min-height:0}
+  .pick-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:42px;padding:0 2px;font-size:13px;color:var(--text-secondary);flex-shrink:0}
+  .pick-foot b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-mini{display:flex;align-items:center;gap:4px}
+  .f-expand{display:flex;align-items:center;gap:6px;margin:10px 0 0;padding:8px 10px;font-size:13px;color:var(--primary);cursor:pointer;user-select:none;background:#F7FAFF;border:1px dashed #BFD9FF;border-radius:4px}
+  .f-expand:hover{background:#EFF5FF}
+  .cfm-txt{font-size:14px;color:var(--text-primary);line-height:1.8}
+</style>
+</head>
+<body>
+
+<div class="main-area">
+
+  <div class="tabbar">
+    <div class="tab-item active">乙肝管理</div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <!-- ===== 视图一：列表页 ===== -->
+      <div class="view-page active" id="viewList">
+        <div class="page-head">
+          <h1>乙肝管理</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="exportList()">导出</button>
+            <button class="btn btn-primary" onclick="openPick()">新建</button>
+          </div>
+        </div>
+
+        <div class="filter-panel">
+          <div class="filter-row">
+            <div class="filter-item">
+              <label>管理机构：</label>
+              <select class="fi-select is-placeholder" id="qOrg" onchange="markSelect(this)">
+                <option value="">请选择</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>姓名：</label>
+              <input class="fi-ctl" id="qName" placeholder="请输入">
+            </div>
+            <div class="filter-item">
+              <label>证件号：</label>
+              <input class="fi-ctl" id="qIdcard" placeholder="请输入">
+            </div>
+            <div class="filter-item">
+              <label>建档日期：</label>
+              <span class="fi-range">
+                <input class="fi-ctl fi-date" id="qArcStart" type="date">
+                <span>~</span>
+                <input class="fi-ctl fi-date" id="qArcEnd" type="date">
+              </span>
+            </div>
+            <div class="filter-item">
+              <label>详细地址：</label>
+              <input class="fi-ctl" id="qAddr" placeholder="请输入">
+            </div>
+          </div>
+          <div class="filter-row">
+            <div class="filter-item">
+              <label>管理行政区：</label>
+              <select class="fi-select is-placeholder" id="qDistrict" onchange="markSelect(this)">
+                <option value="">请选择</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>锁定状态：</label>
+              <select class="fi-select is-placeholder" id="qLock" onchange="markSelect(this)">
+                <option value="">请选择</option>
+                <option>未上锁</option>
+                <option>已上锁</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label class="ck"><input type="checkbox" id="qOnlyMe">只看个人管理档案</label>
+            </div>
+            <div class="filter-btns">
+              <button class="btn btn-default" onclick="resetFilter()">重置</button>
+              <button class="btn btn-primary" onclick="queryFilter()">查询</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrap" id="tableWrap"></div>
+        <div class="page-foot" id="pageFoot"></div>
+      </div>
+
+      <!-- ===== 视图二：新建孕产妇乙肝基本信息（表格网格版式，对齐设计稿） ===== -->
+      <div class="view-page" id="viewBasic">
+        <div class="page-head">
+          <h1 id="basicTitle">新建孕产妇乙肝基本信息</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="backToList()">返回</button>
+            <button class="btn btn-primary" onclick="saveBasic()">保存</button>
+          </div>
+        </div>
+        <div class="hb-page">
+          <div class="hb-pinfo"><span>姓名：<b id="hbName">--</b></span><span class="num">编号：<b id="hbNo">--</b></span></div>
+          <table class="hb-tbl">
+            <colgroup>
+              <col style="width:48px"><col style="width:171px"><col><col style="width:220px"><col>
+            </colgroup>
+            <tbody>
+              <tr>
+                <td class="lab" colspan="2">身高</td>
+                <td><input class="hb-inp w174" id="bHeight" placeholder="请输入"><span class="hb-unit">cm</span></td>
+                <td class="lab">体重</td>
+                <td><input class="hb-inp w174" id="bWeight" placeholder="请输入"><span class="hb-unit">cm</span></td>
+              </tr>
+              <tr>
+                <td class="lab" colspan="2">出生日期</td>
+                <td colspan="3"><span class="num" id="bBirth">--</span></td>
+              </tr>
+              <tr>
+                <td class="lab" colspan="2"><i class="req">*</i>婚姻状况</td>
+                <td colspan="3"><span class="hb-radio" id="bMarry"></span></td>
+              </tr>
+              <tr>
+                <td class="lab" colspan="2"><i class="req">*</i>联系电话</td>
+                <td><input class="hb-inp w174" id="bPhone" placeholder="请输入"></td>
+                <td class="lab">孕产情况</td>
+                <td>孕次：1 产次：1 现有子女数：1</td>
+              </tr>
+              <tr>
+                <td class="lab" colspan="2"><i class="req">*</i>病例来源</td>
+                <td colspan="3">
+                  <select class="hb-inp w174" id="bSource">
+                    <option>孕检</option><option>产检</option><option>门诊</option><option>其他</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td class="lab" colspan="2"><i class="req">*</i>现住址</td>
+                <td colspan="3">
+                  <select class="hb-inp w152" id="bRegion">
+                    <option>江都区</option><option>邗江区</option><option>广陵区</option>
+                  </select>
+                  <input class="hb-inp w200" id="bAddr" placeholder="请输入" style="margin-left:8px">
+                </td>
+              </tr>
+              <tr>
+                <td class="lab" colspan="2">既往不良妊娠结局</td>
+                <td colspan="3"><span class="hb-radio" id="bBadOutcome"></span></td>
+              </tr>
+              <tr>
+                <td class="lab" colspan="2"><i class="req">*</i>本次妊娠末次月经时间</td>
+                <td><input class="hb-inp date w174" id="bLmp" type="text" placeholder="选择日期"
+                           onfocus="this.type='date';try{this.showPicker()}catch(e){}"
+                           onblur="if(!this.value){this.type='text'}"></td>
+                <td class="lab">预产期</td>
+                <td><input class="hb-inp date w174" id="bEdd" type="text" placeholder="选择日期"
+                           onfocus="this.type='date';try{this.showPicker()}catch(e){}"
+                           onblur="if(!this.value){this.type='text'}"></td>
+              </tr>
+              <tr>
+                <td class="lab" colspan="2">初检孕周</td>
+                <td colspan="3"><input class="hb-inp w174" id="bGestWeek" placeholder="请输入"><span class="hb-unit">周</span></td>
+              </tr>
+              <tr>
+                <td class="lab vlab" rowspan="5"><span class="vtxt">乙肝五项检测</span></td>
+                <td class="lab"><i class="req">*</i>乙肝表面抗原(HBsAg)</td>
+                <td colspan="3"><span class="hb-radio" id="bHbsag"></span></td>
+              </tr>
+              <tr>
+                <td class="lab"><i class="req">*</i>乙肝表面抗体(抗-HBs)</td>
+                <td colspan="3"><span class="hb-radio" id="bHbsab"></span></td>
+              </tr>
+              <tr>
+                <td class="lab"><i class="req">*</i>乙肝e抗原(HBeAg)</td>
+                <td colspan="3"><span class="hb-radio" id="bHbeag"></span></td>
+              </tr>
+              <tr>
+                <td class="lab"><i class="req">*</i>乙肝e抗体(抗-HBe)</td>
+                <td colspan="3"><span class="hb-radio" id="bHbeab"></span></td>
+              </tr>
+              <tr>
+                <td class="lab"><i class="req">*</i>乙肝核心抗体(抗-HBc)</td>
+                <td colspan="3"><span class="hb-radio" id="bHbcab"></span></td>
+              </tr>
+              <tr>
+                <td class="lab" colspan="2">HBV-DNA</td>
+                <td><input class="hb-inp w174" id="bDna" placeholder="请输入"></td>
+                <td class="lab">建档机构</td>
+                <td><select class="hb-inp w190" id="bArcOrg"></select></td>
+              </tr>
+              <tr>
+                <td class="lab" colspan="2">建档医生</td>
+                <td><select class="hb-inp w174" id="bArcDoctor"></select></td>
+                <td class="lab">建档日期</td>
+                <td><input class="hb-inp date w174" id="bArcDate" type="text" placeholder="选择日期"
+                           onfocus="this.type='date';try{this.showPicker()}catch(e){}"
+                           onblur="if(!this.value){this.type='text'}"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== 视图三：新建乙肝感染妇女妊娠及所生婴儿情况（表格网格版式，对齐设计稿） ===== -->
+      <div class="view-page" id="viewInfant">
+        <div class="page-head">
+          <h1>新建乙肝感染妇女妊娠及所生婴儿情况</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="backToList()">返回</button>
+            <button class="btn btn-primary" onclick="saveInfant()">保存</button>
+          </div>
+        </div>
+        <div class="hb-page">
+          <div class="patient-strip" id="infantStrip"></div>
+          <table class="hb-tbl">
+            <colgroup>
+              <col style="width:28px"><col style="width:22px"><col style="width:80px"><col style="width:110px"><col><col style="width:240px"><col>
+            </colgroup>
+            <tbody>
+              <tr>
+                <td class="lab" colspan="4"><i class="req">*</i>末次孕检孕周</td>
+                <td colspan="3"><input class="hb-inp w174" id="iLastCheckWeek" placeholder="请输入"><span class="hb-unit">周</span><input class="hb-inp w174" id="iLastCheckDay" placeholder="请输入" style="margin-left:12px"><span class="hb-unit">天</span></td>
+              </tr>
+              <tr>
+                <td class="lab" colspan="4"><i class="req">*</i>孕产期异常情况</td>
+                <td colspan="3"><span class="hb-checks" id="iAbnormal"></span></td>
+              </tr>
+              <tr>
+                <td class="lab" colspan="4">分娩方式</td>
+                <td><span class="hb-radio" id="iDeliveryMode"></span></td>
+                <td class="lab">分娩日期</td>
+                <td><input class="hb-inp date w174" id="iDelivDate" type="text" placeholder="选择日期"
+                           onfocus="this.type='date';try{this.showPicker()}catch(e){}"
+                           onblur="if(!this.value){this.type='text'}"></td>
+              </tr>
+              <tr>
+                <td class="lab" colspan="4">分娩孕周</td>
+                <td><input class="hb-inp w70" id="iDelivWeek" placeholder="请输入"><span class="hb-unit">周</span><input class="hb-inp w70" id="iDelivDay" placeholder="请输入" style="margin-left:12px"><span class="hb-unit">天</span></td>
+                <td class="lab">分娩总产程</td>
+                <td><input class="hb-inp w70" id="iLaborHour" placeholder="请输入"><span class="hb-unit">小时</span><input class="hb-inp w70" id="iLaborMin" placeholder="请输入" style="margin-left:12px"><span class="hb-unit">分钟</span></td>
+              </tr>
+              <tr>
+                <td class="lab" colspan="4">分娩地点</td>
+                <td colspan="3"><span class="hb-radio" id="iDeliveryPlace"></span></td>
+              </tr>
+              <tr>
+                <td class="lab" colspan="4">分娩机构</td>
+                <td colspan="3"><input class="hb-inp w174" id="iDeliveryOrg" placeholder="请输入"></td>
+              </tr>
+              <tr>
+                <td class="lab" colspan="4">产科操作</td>
+                <td colspan="3"><input class="hb-inp w174" id="iObstetric" placeholder="请输入"></td>
+              </tr>
+              <tr>
+                <td class="lab" colspan="4">分娩胎数</td>
+                <td colspan="3">
+                  <select class="hb-inp w174" id="iFetus">
+                    <option>1胎</option><option>双胎</option><option>多胎</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td class="lab" colspan="4"><i class="req">*</i>孕产妇结局</td>
+                <td colspan="3"><span class="hb-radio" id="iMaternalOutcome"></span></td>
+              </tr>
+              <tr style="height:46px">
+                <td class="lab" rowspan="2" colspan="4" style="vertical-align:middle">相关检测</td>
+                <td colspan="3" style="height:46px">
+                  <div class="hb-grid">
+                    <span class="hb-item"><span class="hb-it">孕周：</span><input class="hb-inp w174" id="iTestWeek" placeholder="请输入"></span>
+                    <span class="hb-item"><span class="hb-it">孕天：</span><input class="hb-inp w174" id="iTestDay" placeholder="请输入"></span>
+                    <span class="hb-item"><span class="hb-it">乙肝表面抗原(HBsAg)：</span><span class="hb-radio" id="iHbsag"></span></span>
+                    <span class="hb-item"><span class="hb-it">乙肝表面抗体(抗-HBs)：</span><span class="hb-radio" id="iHbsab"></span></span>
+                  </div>
+                </td>
+              </tr>
+              <tr style="height:46px">
+                <td colspan="3" style="height:46px">
+                  <div class="hb-grid">
+                    <span class="hb-item"><span class="hb-it">乙肝e抗原(HBeAg)：</span><span class="hb-radio" id="iHbeag"></span></span>
+                    <span class="hb-item"><span class="hb-it">乙肝e抗体(抗-HBe)：</span><span class="hb-radio" id="iHbeab"></span></span>
+                    <span class="hb-item"><span class="hb-it">乙肝核心抗体(抗-HBc)：</span><span class="hb-radio" id="iHbcab"></span></span>
+                    <span class="hb-item"><span class="hb-it">HBV-DNA：</span><input class="hb-inp w174" id="iDna" placeholder="请输入"></span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td class="lab vlab" rowspan="3" colspan="3"><span class="hb-vtitle">孕产妇孕期接受抗病毒治疗情况</span></td>
+                <td class="lab"><i class="req">*</i>是否用药</td>
+                <td colspan="3"><span class="hb-radio" id="iAntiUse"></span></td>
+              </tr>
+              <tr>
+                <td class="lab">开始用药时间</td>
+                <td colspan="3"><input class="hb-inp w174" id="iAntiWeek" placeholder="请输入"><span class="hb-unit">孕周</span><input class="hb-inp w174" id="iAntiDay" placeholder="请输入" style="margin-left:12px"><span class="hb-unit">天</span></td>
+              </tr>
+              <tr>
+                <td class="lab">药物</td>
+                <td colspan="3"><span class="hb-checks" id="iAntiDrug"></span></td>
+              </tr>
+              <tr>
+                <td class="lab vlab" rowspan="12"><span class="vtxt">新生婴儿情况</span></td>
+                <td class="lab vlab" rowspan="12"><span class="vtxt">新生儿</span></td>
+                <td class="lab" colspan="2"><i class="req">*</i>围产儿转归</td>
+                <td colspan="3"><span class="hb-radio" id="iPeriOutcome"></span></td>
+              </tr>
+              <tr>
+                <td class="lab" colspan="2">围产儿异常情况</td>
+                <td colspan="3"><span class="hb-checks" id="iPeriAbnormal"></span></td>
+              </tr>
+              <tr>
+                <td class="lab" colspan="2">姓名</td>
+                <td><input class="hb-inp w174" id="iBabyName" placeholder="请输入"></td>
+                <td class="lab">性别</td>
+                <td><span class="hb-radio" id="iBabyGender"></span></td>
+              </tr>
+              <tr>
+                <td class="lab" colspan="2">出生日期</td>
+                <td><input class="hb-inp date w174" id="iBabyBirth" type="text" placeholder="选择日期"
+                           onfocus="this.type='date';try{this.showPicker()}catch(e){}"
+                           onblur="if(!this.value){this.type='text'}"></td>
+                <td class="lab">出生体重</td>
+                <td><input class="hb-inp w70" id="iBabyWeight" placeholder="请输入"><span class="hb-unit">kg</span></td>
+              </tr>
+              <tr>
+                <td class="lab" colspan="2">出生身长</td>
+                <td colspan="3"><input class="hb-inp w70" id="iBabyHeight" placeholder="请输入"><span class="hb-unit">cm</span></td>
+              </tr>
+              <tr>
+                <td class="lab vlab" rowspan="4"><span class="hb-vtitle">第一针乙肝疫苗接种情况</span></td>
+                <td class="lab"><i class="req">*</i>是否接种</td>
+                <td colspan="3"><span class="hb-radio" id="iVaccUse"></span></td>
+              </tr>
+              <tr>
+                <td class="lab">接种时间</td>
+                <td colspan="3"><input class="hb-inp date w174" id="iVaccTime" type="text" placeholder="选择日期"
+                           onfocus="this.type='date';try{this.showPicker()}catch(e){}"
+                           onblur="if(!this.value){this.type='text'}"></td>
+              </tr>
+              <tr>
+                <td class="lab">疫苗种类</td>
+                <td colspan="3"><span class="hb-radio" id="iVaccType"></span></td>
+              </tr>
+              <tr>
+                <td class="lab">接种剂量</td>
+                <td colspan="3"><span class="hb-radio" id="iVaccDose"></span></td>
+              </tr>
+              <tr>
+                <td class="lab vlab" rowspan="3"><span class="hb-vtitle">乙肝免疫球蛋白注射情况</span></td>
+                <td class="lab"><i class="req">*</i>是否注射</td>
+                <td colspan="3"><span class="hb-radio" id="iHbigUse"></span></td>
+              </tr>
+              <tr>
+                <td class="lab"><i class="req">*</i>注射时间</td>
+                <td colspan="3"><input class="hb-inp date w174" id="iHbigTime" type="text" placeholder="选择日期"
+                           onfocus="this.type='date';try{this.showPicker()}catch(e){}"
+                           onblur="if(!this.value){this.type='text'}"></td>
+              </tr>
+              <tr>
+                <td class="lab"><i class="req">*</i>注射剂量</td>
+                <td colspan="3"><span class="hb-radio" id="iHbigDose"></span></td>
+              </tr>
+              <tr>
+                <td class="lab" colspan="4">建档机构</td>
+                <td><select class="hb-inp w190" id="iArcOrg"></select></td>
+                <td class="lab">建档医生</td>
+                <td><select class="hb-inp w174" id="iArcDoctor"></select></td>
+              </tr>
+              <tr>
+                <td class="lab" colspan="4">建档日期</td>
+                <td colspan="3"><input class="hb-inp date w174" id="iArcDate" type="text" placeholder="选择日期"
+                           onfocus="this.type='date';try{this.showPicker()}catch(e){}"
+                           onblur="if(!this.value){this.type='text'}"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== 居中弹窗：新建孕产妇乙肝专项（选人） ===== -->
+<div class="modal-overlay" id="pickOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>新建孕产妇乙肝专项</h3>
+      <div class="modal-close" onclick="closePick()">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="filter-panel" style="border:none;padding:0 0 12px">
+        <div class="filter-row" style="margin-bottom:10px">
+          <div class="filter-item">
+            <label>姓名：</label>
+            <input class="fi-ctl" id="pName" placeholder="请输入" oninput="renderPick()">
+          </div>
+          <div class="filter-item">
+            <label>证件类型：</label>
+            <select class="fi-select" id="pIdType" onchange="renderPick()">
+              <option>居民身份证</option><option>军官证</option><option>护照</option><option>其他</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>证件号：</label>
+            <input class="fi-ctl" id="pIdcard" placeholder="请输入" oninput="renderPick()">
+          </div>
+          <div class="filter-item">
+            <label>管理机构：</label>
+            <select class="fi-select is-placeholder" id="pOrg" onchange="markSelect(this);renderPick()">
+              <option value="">请选择</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>管辖网格：</label>
+            <select class="fi-select is-placeholder" id="pGrid" onchange="markSelect(this);renderPick()">
+              <option value="">请选择</option>
+            </select>
+          </div>
+          <div class="filter-btns">
+            <button class="btn btn-default" onclick="resetPick()">重置</button>
+            <button class="btn btn-primary" onclick="renderPick()">查询</button>
+          </div>
+        </div>
+        <div class="f-expand" id="pickMoreBtn" onclick="togglePickMore()">展开 ▼ 更多筛选条件</div>
+        <div class="filter-row" id="pickMoreRow" style="display:none;margin-top:10px">
+          <div class="filter-item">
+            <label>性别：</label>
+            <select class="fi-select is-placeholder" id="pGender" onchange="markSelect(this);renderPick()">
+              <option value="">请选择</option><option>女</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>出生日期：</label>
+            <span class="fi-range">
+              <input class="fi-ctl fi-date" id="pBirthStart" type="date">
+              <span>~</span>
+              <input class="fi-ctl fi-date" id="pBirthEnd" type="date">
+            </span>
+          </div>
+          <div class="filter-item">
+            <label>管理行政区：</label>
+            <select class="fi-select is-placeholder" id="pDistrict" onchange="markSelect(this);renderPick()">
+              <option value="">请选择</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="pick-wrap">
+        <table class="pick-tbl">
+          <colgroup>
+            <col style="width:48px"><col style="width:110px"><col style="width:80px"><col style="width:44px">
+            <col style="width:50px"><col style="width:90px"><col style="width:150px"><col style="width:70px"><col><col style="width:150px">
+          </colgroup>
+          <thead>
+            <tr><th>序号</th><th>档案编号</th><th>姓名</th><th>性别</th><th>年龄</th><th>证件类型</th><th>证件号</th><th>孕产妇类型</th><th>管辖行政区</th><th>操作</th></tr>
+          </thead>
+          <tbody id="pickBody"></tbody>
+        </table>
+      </div>
+      <div class="pick-foot">
+        <span>共 <b id="pickTotal">0</b> 条</span>
+        <div class="pg-mini">
+          <span class="pg-btn" id="pickPrev" onclick="pickGo(-1)">‹</span>
+          <span class="pg-btn active" id="pickCur">1</span>
+          <span class="pg-btn" id="pickNext" onclick="pickGo(1)">›</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closePick()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 居中确认弹窗 ===== -->
+<div class="modal-overlay" id="cfmOverlay">
+  <div class="modal" style="width:420px">
+    <div class="modal-body" style="display:flex;gap:12px;align-items:flex-start;padding:24px 20px 6px">
+      <div style="flex:none;width:36px;height:36px;border-radius:50%;background:var(--warning-bg);display:flex;align-items:center;justify-content:center">
+        <svg width="18" height="18" viewBox="0 0 24 24" style="stroke:var(--warning);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="cfm-txt" id="cfmTxt"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeCfm()">取消</button>
+      <button class="btn btn-primary" id="cfmOk">确定</button>
+    </div>
+  </div>
+</div>
+
+<script src="框架.js" data-page="hepatitis-b-management" data-embed="auto"></script>
+<script>
+'use strict';
+
+/* ================= 基础数据 ================= */
+var ORGS = ['扬州市江都区滨江人民医院', '扬州市江都区大桥镇高巷村卫生室', '扬州市江都区仙女镇卫生院', '扬州市江都区樊川镇卫生院'];
+var DISTRICTS = ['北街社区', '韩阳村', '高巷村', '香王村', '仙女社区', '樊川社区'];
+var GRIDS = ['北街社区第一网格', '北街社区第二网格', '韩阳村网格', '高巷村网格', '香王村网格', '仙女社区第一网格', '樊川社区网格'];
+var DOCTORS = ['李磊', '吕雪', '朱劲松', '宋劲松', '高素芹'];
+var ID_TYPES = ['居民身份证', '军官证', '护照', '其他'];
+
+function todayStr() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function calcAge(birth) {
+  if (!birth) return '';
+  var b = new Date(birth), now = new Date();
+  var age = now.getFullYear() - b.getFullYear();
+  if (now.getMonth() < b.getMonth() || (now.getMonth() === b.getMonth() && now.getDate() < b.getDate())) age--;
+  return Math.max(age, 0);
+}
+function maskIdcard(idc) {
+  if (!idc) return '';
+  if (idc.length <= 10) return idc;
+  return idc.slice(0, 6) + '****' + idc.slice(-4);
+}
+
+/* ================= 产妇档案数据 ================= */
+var MOTHERS = [
+  {
+    id: 'M001', archNo: '16429030358836381234', name: '小山东高速', gender: '女', idType: '居民身份证',
+    idcard: '510123199001010106', birth: '1990-01-01', phone: '13812345678',
+    addr: '滨江街道北街社区1212号', district: '北街社区', grid: '北街社区第一网格',
+    org: '扬州市江都区滨江人民医院', arcDoctor: '李磊', arcDate: '2023-04-13',
+    arcOrg: '扬州市江都区滨江人民医院', lock: false, type: '产妇', hasSpecial: true,
+    newborns: [
+      { name: '李航', relation: '子', gender: '男', birth: '2023-04-01', periStatus: '活产', survival: '存活' }
+    ]
+  },
+  {
+    id: 'M002', archNo: '15687870922831057823', name: '夏余兰', gender: '女', idType: '居民身份证',
+    idcard: '321068195803137723', birth: '1958-03-13', phone: '13912345678',
+    addr: '仙女镇韩阳村6组', district: '韩阳村', grid: '韩阳村网格',
+    org: '扬州市江都区仙女镇卫生院', arcDoctor: '高素芹', arcDate: '2023-05-20',
+    arcOrg: '扬州市江都区仙女镇卫生院', lock: true, type: '产妇', hasSpecial: false,
+    newborns: []
+  },
+  {
+    id: 'M003', archNo: '16452012938475621091', name: '王秀芳', gender: '女', idType: '居民身份证',
+    idcard: '320102198805172826', birth: '1988-05-17', phone: '13678901234',
+    addr: '大桥镇高巷村3组', district: '高巷村', grid: '高巷村网格',
+    org: '扬州市江都区大桥镇高巷村卫生室', arcDoctor: '朱劲松', arcDate: '2023-02-11',
+    arcOrg: '扬州市江都区大桥镇高巷村卫生室', lock: false, type: '产妇', hasSpecial: true,
+    newborns: [
+      { name: '王梓涵', relation: '女', gender: '女', birth: '2023-03-02', periStatus: '活产', survival: '存活' },
+      { name: '王梓轩', relation: '子', gender: '男', birth: '2023-03-02', periStatus: '活产', survival: '存活' }
+    ]
+  },
+  {
+    id: 'M004', archNo: '16410293847562103982', name: '张丽华', gender: '女', idType: '居民身份证',
+    idcard: '321088199209093420', birth: '1992-09-09', phone: '13789012345',
+    addr: '樊川镇樊川社区15号', district: '樊川社区', grid: '樊川社区网格',
+    org: '扬州市江都区樊川镇卫生院', arcDoctor: '宋劲松', arcDate: '2022-11-08',
+    arcOrg: '扬州市江都区樊川镇卫生院', lock: false, type: '产妇', hasSpecial: false,
+    newborns: []
+  },
+  {
+    id: 'M005', archNo: '16483726194735281036', name: '刘翠兰', gender: '女', idType: '居民身份证',
+    idcard: '321088196607154627', birth: '1966-07-15', phone: '13123456789',
+    addr: '仙女镇仙女社区8号', district: '仙女社区', grid: '仙女社区第一网格',
+    org: '扬州市江都区仙女镇卫生院', arcDoctor: '吕雪', arcDate: '2022-09-26',
+    arcOrg: '扬州市江都区仙女镇卫生院', lock: true, type: '产妇', hasSpecial: true,
+    newborns: [
+      { name: '刘明', relation: '子', gender: '男', birth: '2022-10-01', periStatus: '活产', survival: '存活' }
+    ]
+  }
+];
+
+/* ================= 页面状态 ================= */
+var curPage = 1;
+var PAGE_SIZE = 20;
+var cfmCb = null;
+var editId = '';           // 当前操作产妇 id
+var expandedId = '';       // 展开行的产妇 id
+var curM = null;           // 当前表单对应产妇对象引用
+var pickPage = 1;
+var pickPageSize = 6;
+var pickExpanded = false;
+
+function $(id) { return document.getElementById(id); }
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function toastMsg(msg, type) {
+  if (typeof window.toast === 'function') { window.toast(msg, type); return; }
+  var box = document.createElement('div');
+  box.className = 'toast show' + (type ? ' ' + type : '');
+  box.textContent = msg;
+  box.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);padding:10px 18px;background:#fff;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:9999;font-size:14px';
+  document.body.appendChild(box);
+  setTimeout(function () { box.remove(); }, 2400);
+}
+function markSelect(el) { el.classList.toggle('is-placeholder', !el.value); }
+
+/* ================= 视图切换 ================= */
+function showView(name) {
+  ['viewList', 'viewBasic', 'viewInfant'].forEach(function (id) {
+    $(id).classList.toggle('active', id === 'view' + name.charAt(0).toUpperCase() + name.slice(1));
+  });
+}
+function backToList() { showView('list'); renderTable(); }
+
+/* ================= 筛选 ================= */
+function resetFilter() {
+  ['qOrg', 'qDistrict', 'qLock'].forEach(function (id) { $(id).value = ''; markSelect($(id)); });
+  ['qName', 'qIdcard', 'qAddr'].forEach(function (id) { $(id).value = ''; });
+  $('qArcStart').value = '';
+  $('qArcEnd').value = '';
+  $('qOnlyMe').checked = false;
+  curPage = 1;
+  renderTable();
+  toastMsg('筛选条件已重置');
+}
+function queryFilter() { curPage = 1; renderTable(); toastMsg('查询完成'); }
+
+function filtered() {
+  var org = $('qOrg').value, name = $('qName').value.trim(), idc = $('qIdcard').value.trim();
+  var addr = $('qAddr').value.trim(), dist = $('qDistrict').value, lock = $('qLock').value;
+  var as = $('qArcStart').value, ae = $('qArcEnd').value;
+  return MOTHERS.filter(function (m) {
+    if (org && m.org !== org) return false;
+    if (name && m.name.indexOf(name) < 0) return false;
+    if (idc && m.idcard.indexOf(idc) < 0) return false;
+    if (addr && m.addr.indexOf(addr) < 0) return false;
+    if (dist && m.district !== dist) return false;
+    if (lock && (lock === '已上锁' ? !m.lock : m.lock)) return false;
+    if (as && m.arcDate < as) return false;
+    if (ae && m.arcDate > ae) return false;
+    return true;
+  });
+}
+
+/* ================= 主表渲染 ================= */
+function renderTable() {
+  var rows = filtered();
+  var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  if (curPage > totalPages) curPage = totalPages;
+  var pageRows = rows.slice((curPage - 1) * PAGE_SIZE, curPage * PAGE_SIZE);
+
+  var html = '<table class="list-tbl"><colgroup>'
+    + '<col style="width:48px"><col><col style="width:100px"><col style="width:90px"><col style="width:120px">'
+    + '<col style="width:96px"><col><col style="width:80px"><col style="width:96px"><col><col style="width:90px"><col style="width:220px">'
+    + '</colgroup><thead><tr>'
+    + '<th>序号</th><th>管理机构</th><th>产妇姓名</th><th>产妇证件类型</th><th>产妇证件号码</th>'
+    + '<th>产妇出生日期</th><th>详细地址</th><th>建档医生</th><th>建档日期</th><th>建档机构</th><th>锁定状态</th><th>操作</th>'
+    + '</tr></thead><tbody>';
+
+  if (!pageRows.length) {
+    html += '<tr><td colspan="12"><div class="tbl-empty">'
+      + '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
+      + '<div>暂无乙肝管理记录，点击右上角「新建」选择产妇建档</div></div></td></tr>';
+  } else {
+    pageRows.forEach(function (m, i) {
+      var base = (curPage - 1) * PAGE_SIZE + i + 1;
+      html += '<tr>';
+      html += '<td class="center">' + base + '</td>';
+      html += '<td title="' + esc(m.org) + '">' + esc(m.org) + '</td>';
+      html += '<td>' + esc(m.name) + '</td>';
+      html += '<td>' + esc(m.idType) + '</td>';
+      html += '<td class="num">' + esc(maskIdcard(m.idcard)) + '</td>';
+      html += '<td class="num">' + esc(m.birth) + '</td>';
+      html += '<td title="' + esc(m.addr) + '">' + esc(m.addr) + '</td>';
+      html += '<td>' + esc(m.arcDoctor) + '</td>';
+      html += '<td class="num">' + esc(m.arcDate) + '</td>';
+      html += '<td title="' + esc(m.arcOrg) + '">' + esc(m.arcOrg) + '</td>';
+      html += '<td><span class="lock-dot' + (m.lock ? ' locked' : '') + '">' + (m.lock ? '已上锁' : '未上锁') + '</span></td>';
+      html += '<td>'
+        + '<span class="op-link" onclick="openInfant(\'' + m.id + '\')">新建新生儿</span>'
+        + '<span class="op-gap"></span>'
+        + '<span class="op-link" onclick="openBasic(\'' + m.id + '\')">编辑</span>'
+        + '<span class="op-gap"></span>'
+        + '<span class="op-link" onclick="toggleExpand(\'' + m.id + '\')">' + (expandedId === m.id ? '收起 ▲' : '更多 ▼') + '</span>'
+        + '</td>';
+      html += '</tr>';
+      if (expandedId === m.id) {
+        html += '<tr class="exp-row"><td colspan="12"><div class="exp-cell">';
+        html += '<div class="sub-title"><b>所生婴儿信息</b><span style="color:var(--text-tertiary);font-weight:normal">（共 ' + m.newborns.length + ' 名）</span>'
+          + '<span style="margin-left:auto"><span class="op-link" onclick="openInfant(\'' + m.id + '\')">+ 新建新生儿</span></span></div>';
+        if (!m.newborns.length) {
+          html += '<div style="padding:18px 0;text-align:center;color:var(--text-placeholder);font-size:13px;border:1px dashed #E4E7ED;border-radius:4px">暂无新生儿信息，点击「新建新生儿」登记</div>';
+        } else {
+          html += '<table class="sub-tbl"><thead><tr><th style="width:60px">姓名</th><th style="width:90px">与产妇关系</th><th style="width:60px">性别</th><th style="width:110px">出生日期</th><th style="width:100px">围产儿状态</th><th>存活情况</th></tr></thead><tbody>';
+          m.newborns.forEach(function (b) {
+            html += '<tr><td>' + esc(b.name) + '</td><td>' + esc(b.relation) + '</td><td>' + esc(b.gender) + '</td><td class="num">' + esc(b.birth) + '</td><td>' + esc(b.periStatus) + '</td><td>' + esc(b.survival) + '</td></tr>';
+          });
+          html += '</tbody></table>';
+        }
+        html += '</div></td></tr>';
+      }
+    });
+  }
+  html += '</tbody></table>';
+  $('tableWrap').innerHTML = html;
+  renderFoot(rows.length, totalPages);
+}
+
+function toggleExpand(id) {
+  expandedId = (expandedId === id ? '' : id);
+  renderTable();
+}
+
+function renderFoot(total, totalPages) {
+  if (!total) { $('pageFoot').innerHTML = ''; return; }
+  var html = '<span class="pg-total">共 <b>' + total + '</b> 条</span>';
+  html += '<span class="pg-size">每页<select onchange="changeSize(this.value)">'
+    + ['20', '50', '100'].map(function (n) { return '<option' + (PAGE_SIZE === +n ? ' selected' : '') + '>' + n + '</option>'; }).join('')
+    + '</select>条</span>';
+  html += '<div class="pg-pager">';
+  html += '<span class="pg-btn' + (curPage <= 1 ? ' disabled' : '') + '" onclick="goPage(' + (curPage - 1) + ')">‹</span>';
+  for (var p = 1; p <= totalPages; p++) {
+    if (totalPages > 7 && p > 3 && p < totalPages - 1 && Math.abs(p - curPage) > 1) {
+      if (p === 4) html += '<span style="padding:0 4px;color:var(--text-tertiary)">…</span>';
+      continue;
+    }
+    html += '<span class="pg-btn' + (p === curPage ? ' active' : '') + '" onclick="goPage(' + p + ')">' + p + '</span>';
+  }
+  html += '<span class="pg-btn' + (curPage >= totalPages ? ' disabled' : '') + '" onclick="goPage(' + (curPage + 1) + ')" style="margin-left:4px">›</span>';
+  html += '</div>';
+  html += '<span class="pg-jump">跳至第<input id="pgJump" onkeydown="if(event.key===\'Enter\')jumpPage()">页</span>';
+  $('pageFoot').innerHTML = html;
+}
+
+function goPage(p) {
+  var rows = filtered();
+  var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  if (p < 1 || p > totalPages || p === curPage) return;
+  curPage = p;
+  renderTable();
+}
+function changeSize(n) { PAGE_SIZE = +n; curPage = 1; renderTable(); }
+function jumpPage() {
+  var v = parseInt($('pgJump').value, 10);
+  if (v) goPage(v);
+}
+
+function exportList() {
+  toastMsg('导出成功，共 ' + filtered().length + ' 条乙肝管理记录', 'success');
+}
+
+/* ================= 选人弹窗 ================= */
+function openPick() {
+  $('pName').value = '';
+  $('pIdcard').value = '';
+  $('pOrg').value = '';
+  $('pGrid').value = '';
+  $('pGender').value = '';
+  $('pBirthStart').value = '';
+  $('pBirthEnd').value = '';
+  $('pDistrict').value = '';
+  markSelect($('pOrg'));
+  markSelect($('pGrid'));
+  markSelect($('pGender'));
+  markSelect($('pDistrict'));
+  pickPage = 1;
+  renderPick();
+  $('pickOverlay').classList.add('show');
+}
+function closePick() { $('pickOverlay').classList.remove('show'); }
+
+function togglePickMore() {
+  pickExpanded = !pickExpanded;
+  $('pickMoreRow').style.display = pickExpanded ? 'flex' : 'none';
+  $('pickMoreBtn').textContent = pickExpanded ? '收起 ▲ 收起更多条件' : '展开 ▼ 更多筛选条件';
+}
+
+function pickFiltered() {
+  var name = $('pName').value.trim(), idc = $('pIdcard').value.trim();
+  var org = $('pOrg').value, grid = $('pGrid').value;
+  var gender = $('pGender').value, dist = $('pDistrict').value;
+  var bs = $('pBirthStart').value, be = $('pBirthEnd').value;
+  return MOTHERS.filter(function (m) {
+    if (name && m.name.indexOf(name) < 0) return false;
+    if (idc && m.idcard.indexOf(idc) < 0) return false;
+    if (org && m.org !== org) return false;
+    if (grid && m.grid !== grid) return false;
+    if (gender && m.gender !== gender) return false;
+    if (dist && m.district !== dist) return false;
+    if (bs && m.birth < bs) return false;
+    if (be && m.birth > be) return false;
+    return true;
+  });
+}
+
+function renderPick() {
+  var rows = pickFiltered();
+  var totalPages = Math.max(1, Math.ceil(rows.length / pickPageSize));
+  if (pickPage > totalPages) pickPage = totalPages;
+  var pageRows = rows.slice((pickPage - 1) * pickPageSize, pickPage * pickPageSize);
+
+  var html = '';
+  if (!pageRows.length) {
+    html = '<tr><td colspan="10"><div class="tbl-empty">'
+      + '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
+      + '<div>暂无匹配的孕产妇档案</div></div></td></tr>';
+  } else {
+    pageRows.forEach(function (m, i) {
+      var base = (pickPage - 1) * pickPageSize + i + 1;
+      html += '<tr>';
+      html += '<td class="center">' + base + '</td>';
+      html += '<td class="num">' + esc(m.archNo) + '</td>';
+      html += '<td>' + esc(m.name) + '</td>';
+      html += '<td>' + esc(m.gender) + '</td>';
+      html += '<td class="center">' + calcAge(m.birth) + '</td>';
+      html += '<td>' + esc(m.idType) + '</td>';
+      html += '<td class="num">' + esc(maskIdcard(m.idcard)) + '</td>';
+      html += '<td>' + esc(m.type) + '</td>';
+      html += '<td>' + esc(m.district) + '</td>';
+      html += '<td>';
+      if (m.hasSpecial) {
+        html += '<span class="op-link" onclick="enterSpecial(\'' + m.id + '\')">进入专项</span>';
+      } else {
+        html += '<span class="op-link" onclick="newSpecial(\'' + m.id + '\')">新建专项</span>';
+      }
+      html += '</td>';
+      html += '</tr>';
+    });
+  }
+  $('pickBody').innerHTML = html;
+  $('pickTotal').textContent = rows.length;
+  var cur = $('pickCur');
+  cur.textContent = totalPages ? pickPage : 0;
+  cur.className = 'pg-btn active';
+  $('pickPrev').className = 'pg-btn' + (pickPage <= 1 ? ' disabled' : '');
+  $('pickNext').className = 'pg-btn' + (pickPage >= totalPages ? ' disabled' : '');
+}
+
+function pickGo(d) {
+  var rows = pickFiltered();
+  var totalPages = Math.max(1, Math.ceil(rows.length / pickPageSize));
+  var np = pickPage + d;
+  if (np < 1 || np > totalPages) return;
+  pickPage = np;
+  renderPick();
+}
+
+function resetPick() {
+  $('pName').value = '';
+  $('pIdcard').value = '';
+  $('pOrg').value = '';
+  $('pGrid').value = '';
+  $('pGender').value = '';
+  $('pBirthStart').value = '';
+  $('pBirthEnd').value = '';
+  $('pDistrict').value = '';
+  ['pOrg', 'pGrid', 'pGender', 'pDistrict'].forEach(markSelect);
+  pickPage = 1;
+  renderPick();
+}
+
+function enterSpecial(id) { openBasic(id); }
+function newSpecial(id) { openBasic(id); }
+
+/* ================= 基本信息表单 ================= */
+function initRadio(name, opts, val) {
+  var html = '';
+  opts.forEach(function (o) {
+    html += '<label><input type="radio" name="' + name + '" value="' + esc(o) + '"' + (o === val ? ' checked' : '') + '>' + esc(o) + '</label>';
+  });
+  return html;
+}
+function initChecks(name, opts, sel) {
+  var html = '';
+  opts.forEach(function (o) {
+    html += '<label><input type="checkbox" name="' + name + '" value="' + esc(o) + '"' + (sel.indexOf(o) >= 0 ? ' checked' : '') + '>' + esc(o) + '</label>';
+  });
+  return html;
+}
+function radioVal(name) {
+  var el = document.querySelector('input[name="' + name + '"]:checked');
+  return el ? el.value : '';
+}
+function checkVals(name) {
+  var out = [];
+  document.querySelectorAll('input[name="' + name + '"]:checked').forEach(function (el) { out.push(el.value); });
+  return out;
+}
+function setRadioDisabled(name, disabled) {
+  document.querySelectorAll('input[name="' + name + '"]').forEach(function (el) { el.disabled = disabled; });
+}
+function setChecksDisabled(name, disabled) {
+  document.querySelectorAll('input[name="' + name + '"]').forEach(function (el) { el.disabled = disabled; });
+}
+
+var MARRY_OPTS = ['未婚', '已婚', '初婚', '再婚', '复婚', '丧偶', '离婚', '未说明的婚姻状况'];
+var BAD_OUTCOME_OPTS = ['无', '自然流产', '死胎死产', '早产', '出生缺陷', '其他'];
+var NO_POS_OPTS = ['阴性', '阳性'];
+var ABNORMAL_OPTS = ['未发生', '早产', '中重度贫血', '妊娠高血压疾病', '胎膜早破', '活跃期停滞', '产后出血', '妊娠合并糖尿病', '妊娠合并心脏病', '妊娠合并乙肝', '妊娠合并丙肝', '妊娠梅毒', '其他'];
+var DELIVERY_MODE_OPTS = ['阴道自然分娩', '剖宫产', '阴道助产', '其他'];
+var DELIVERY_PLACE_OPTS = ['市级以上助产机构', '县(区)级助产机构', '乡(街道)级助产机构', '家中', '其他'];
+var MATERNAL_OUTCOME_OPTS = ['存活', '死亡', '不详'];
+var PERI_OUTCOME_OPTS = ['活产', '死胎死产', '七天内死亡', '不详'];
+var PERI_ABNORMAL_OPTS = ['无', '早产或低出生体', '新生儿肺炎', '新生儿窒息', '出生缺陷', '其他'];
+var ANTI_DRUG_OPTS = ['替诺福韦', '替比夫定', '拉米夫定', '其他'];
+var GENDER_OPTS = ['男', '女'];
+var VACC_TYPE_OPTS = ['重组酵母', '重组CHO'];
+var VACC_DOSE_OPTS = ['10μg', '20μg', '其他'];
+var HBIG_DOSE_OPTS = ['100IU', '其他'];
+var HBIG_INJECT_OPTS = ['12小时内注射', '12小时后注射', '未注射'];
+
+function findMother(id) {
+  for (var i = 0; i < MOTHERS.length; i++) if (MOTHERS[i].id === id) return MOTHERS[i];
+  return null;
+}
+
+function openBasic(id) {
+  editId = id;
+  curM = findMother(id);
+  if (!curM) return;
+  /* 由产妇列表弹框进入表单时，先关闭弹框 */
+  closePick();
+  $('basicTitle').textContent = '新建孕产妇乙肝基本信息';
+  $('hbName').textContent = curM.name;
+  $('hbNo').textContent = curM.archNo;
+
+  $('bHeight').value = '';
+  $('bWeight').value = '';
+  $('bBirth').textContent = curM.birth;
+  $('bPhone').value = curM.phone;
+  $('bSource').value = '孕检';
+  $('bRegion').value = '江都区';
+  $('bAddr').value = curM.addr.replace(/^(滨江街道|仙女镇|大桥镇|樊川镇)[^\d]*/, '');
+  $('bLmp').value = '';
+  $('bEdd').value = '';
+  $('bGestWeek').value = '';
+  $('bDna').value = '';
+  /* 按设计稿：勾选项默认全部不选中 */
+  $('bMarry').innerHTML = initRadio('bMarry', MARRY_OPTS, '');
+  $('bHbsag').innerHTML = initRadio('bHbsag', NO_POS_OPTS, '');
+  $('bHbsab').innerHTML = initRadio('bHbsab', NO_POS_OPTS, '');
+  $('bHbeag').innerHTML = initRadio('bHbeag', NO_POS_OPTS, '');
+  $('bHbeab').innerHTML = initRadio('bHbeab', NO_POS_OPTS, '');
+  $('bHbcab').innerHTML = initRadio('bHbcab', NO_POS_OPTS, '');
+  $('bBadOutcome').innerHTML = initChecks('bBadOutcome', BAD_OUTCOME_OPTS, []);
+  $('bArcOrg').value = curM.arcOrg;
+  $('bArcDoctor').value = curM.arcDoctor;
+  $('bArcDate').value = todayStr();
+  showView('basic');
+}
+
+function saveBasic() {
+  /* 必填项与设计稿红星一致 */
+  var missing = [];
+  if (!radioVal('bMarry')) missing.push('婚姻状况');
+  if (!$('bPhone').value.trim()) missing.push('联系电话');
+  if (!$('bAddr').value.trim()) missing.push('现住址');
+  if (!$('bLmp').value) missing.push('本次妊娠末次月经时间');
+  var FIVE = [['bHbsag', '乙肝表面抗原(HBsAg)'], ['bHbsab', '乙肝表面抗体(抗-HBs)'], ['bHbeag', '乙肝e抗原(HBeAg)'], ['bHbeab', '乙肝e抗体(抗-HBe)'], ['bHbcab', '乙肝核心抗体(抗-HBc)']];
+  FIVE.forEach(function (it) { if (!radioVal(it[0])) missing.push(it[1]); });
+  if (missing.length) { toastMsg('请完善必填项：' + missing.join('、'), 'warning'); return; }
+  if (curM) {
+    curM.phone = $('bPhone').value.trim() || curM.phone;
+    curM.hasSpecial = true;
+  }
+  expandedId = curM ? curM.id : '';
+  closePick();
+  showView('list');
+  renderTable();
+  toastMsg('孕产妇乙肝基本信息保存成功', 'success');
+}
+
+/* ================= 妊娠及所生婴儿情况表单 ================= */
+function openInfant(id) {
+  editId = id;
+  curM = findMother(id);
+  if (!curM) return;
+  $('infantStrip').innerHTML =
+    '<div class="p-ico">' + esc(curM.name.charAt(0)) + '</div>'
+    + '<div class="p-info"><span class="p-name">' + esc(curM.name) + '</span><span class="p-no">编号：' + esc(curM.archNo) + '</span></div>'
+    + '<span class="p-tag">新生儿登记</span>';
+
+  ['iLastCheckWeek', 'iLastCheckDay', 'iDelivWeek', 'iDelivDay', 'iLaborHour', 'iLaborMin', 'iDeliveryOrg', 'iObstetric',
+   'iTestWeek', 'iTestDay', 'iDna', 'iAntiWeek', 'iAntiDay', 'iBabyName', 'iBabyBirth',
+   'iBabyWeight', 'iBabyHeight', 'iVaccTime', 'iHbigTime'].forEach(function (id) { $(id).value = ''; });
+  $('iDelivDate').value = '';
+  $('iFetus').value = '1胎';
+  $('iAbnormal').innerHTML = initChecks('iAbnormal', ABNORMAL_OPTS, []);
+  $('iDeliveryMode').innerHTML = initRadio('iDeliveryMode', DELIVERY_MODE_OPTS, '');
+  $('iDeliveryPlace').innerHTML = initRadio('iDeliveryPlace', DELIVERY_PLACE_OPTS, '');
+  $('iMaternalOutcome').innerHTML = initRadio('iMaternalOutcome', MATERNAL_OUTCOME_OPTS, '');
+  $('iHbsag').innerHTML = initRadio('iHbsag', NO_POS_OPTS, '');
+  $('iHbsab').innerHTML = initRadio('iHbsab', NO_POS_OPTS, '');
+  $('iHbeag').innerHTML = initRadio('iHbeag', NO_POS_OPTS, '');
+  $('iHbeab').innerHTML = initRadio('iHbeab', NO_POS_OPTS, '');
+  $('iHbcab').innerHTML = initRadio('iHbcab', NO_POS_OPTS, '');
+  $('iAntiUse').innerHTML = initRadio('iAntiUse', ['用药', '未用药'], '');
+  $('iAntiDrug').innerHTML = initChecks('iAntiDrug', ANTI_DRUG_OPTS, []);
+  $('iPeriOutcome').innerHTML = initRadio('iPeriOutcome', PERI_OUTCOME_OPTS, '');
+  $('iPeriAbnormal').innerHTML = initChecks('iPeriAbnormal', PERI_ABNORMAL_OPTS, []);
+  $('iBabyGender').innerHTML = initRadio('iBabyGender', GENDER_OPTS, '');
+  $('iVaccUse').innerHTML = initRadio('iVaccUse', ['接种', '未接种'], '');
+  $('iVaccType').innerHTML = initRadio('iVaccType', VACC_TYPE_OPTS, '');
+  $('iVaccDose').innerHTML = initRadio('iVaccDose', VACC_DOSE_OPTS, '');
+  $('iHbigUse').innerHTML = initRadio('iHbigUse', HBIG_INJECT_OPTS, '');
+  $('iHbigDose').innerHTML = initRadio('iHbigDose', HBIG_DOSE_OPTS, '');
+  $('iArcOrg').value = curM.arcOrg;
+  $('iArcDoctor').value = curM.arcDoctor;
+  $('iArcDate').value = todayStr();
+  syncAntiState();
+  showView('infant');
+}
+
+function syncAntiState() {
+  var used = radioVal('iAntiUse') === '用药';
+  ['iAntiWeek', 'iAntiDay'].forEach(function (id) { $(id).disabled = !used; });
+  setChecksDisabled('iAntiDrug', !used);
+}
+$('iAntiUse') && $('iAntiUse').addEventListener('change', syncAntiState);
+
+function saveInfant() {
+  if (!curM) return;
+  /* 必填项与设计稿红星一致 */
+  var missing = [];
+  if (!$('iLastCheckWeek').value && !$('iLastCheckDay').value) missing.push('末次孕检孕周');
+  if (!document.querySelector('input[name="iAbnormal"]:checked')) missing.push('孕产期异常情况');
+  if (!radioVal('iMaternalOutcome')) missing.push('孕产妇结局');
+  if (!radioVal('iAntiUse')) missing.push('是否用药');
+  if (!radioVal('iPeriOutcome')) missing.push('围产儿转归');
+  if (!radioVal('iVaccUse')) missing.push('是否接种');
+  if (!radioVal('iHbigUse')) missing.push('是否注射');
+  if (!$('iHbigTime').value) missing.push('注射时间');
+  if (!radioVal('iHbigDose')) missing.push('注射剂量');
+  if (missing.length) { toastMsg('请完善必填项：' + missing.join('、'), 'warning'); return; }
+  if (!$('iBabyName').value.trim()) { toastMsg('请输入新生儿姓名', 'warning'); return; }
+  if (!radioVal('iBabyGender')) { toastMsg('请选择新生儿性别', 'warning'); return; }
+  if (!$('iBabyBirth').value) { toastMsg('请选择新生儿出生日期', 'warning'); return; }
+  var w = parseFloat($('iBabyWeight').value);
+  if (!$('iBabyWeight').value || isNaN(w) || w < 0.5 || w > 8) { toastMsg('请输入正确的出生体重（0.5-8kg）', 'warning'); return; }
+  var h = parseFloat($('iBabyHeight').value);
+  if (!$('iBabyHeight').value || isNaN(h) || h < 20 || h > 70) { toastMsg('请输入正确的出生身长（20-70cm）', 'warning'); return; }
+
+  curM.newborns.push({
+    name: $('iBabyName').value.trim(),
+    relation: radioVal('iBabyGender') === '男' ? '子' : '女',
+    gender: radioVal('iBabyGender'),
+    birth: $('iBabyBirth').value,
+    periStatus: radioVal('iPeriOutcome'),
+    survival: radioVal('iPeriOutcome') === '活产' ? '存活' : '已死亡'
+  });
+  expandedId = curM.id;
+  showView('list');
+  renderTable();
+  toastMsg('新生儿信息保存成功', 'success');
+}
+
+/* ================= 确认弹窗 ================= */
+function openCfm(html, onOk) {
+  $('cfmTxt').innerHTML = html;
+  cfmCb = onOk;
+  $('cfmOverlay').classList.add('show');
+}
+function closeCfm() {
+  $('cfmOverlay').classList.remove('show');
+  cfmCb = null;
+}
+$('cfmOk').onclick = function () {
+  var cb = cfmCb;
+  closeCfm();
+  if (cb) cb();
+};
+
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Escape') return;
+  if ($('cfmOverlay').classList.contains('show')) { closeCfm(); return; }
+  if ($('pickOverlay').classList.contains('show')) closePick();
+});
+
+/* ================= 初始化 ================= */
+(function init() {
+  var orgHtml = ORGS.map(function (o) { return '<option>' + esc(o) + '</option>'; }).join('');
+  $('qOrg').innerHTML = '<option value="">请选择</option>' + orgHtml;
+  $('pOrg').innerHTML = '<option value="">请选择</option>' + orgHtml;
+  var distHtml = DISTRICTS.map(function (d) { return '<option>' + esc(d) + '</option>'; }).join('');
+  $('qDistrict').innerHTML = '<option value="">请选择</option>' + distHtml;
+  $('pDistrict').innerHTML = '<option value="">请选择</option>' + distHtml;
+  var gridHtml = GRIDS.map(function (g) { return '<option>' + esc(g) + '</option>'; }).join('');
+  $('pGrid').innerHTML = '<option value="">请选择</option>' + gridHtml;
+  $('bArcOrg').innerHTML = orgHtml;
+  $('iArcOrg').innerHTML = orgHtml;
+  var docHtml = DOCTORS.map(function (d) { return '<option>' + esc(d) + '</option>'; }).join('');
+  $('bArcDoctor').innerHTML = docHtml;
+  $('iArcDoctor').innerHTML = docHtml;
+  $('bArcDate').value = todayStr();
+  $('iArcDate').value = todayStr();
+  renderTable();
+})();
+</script>
+</body>
+</html>

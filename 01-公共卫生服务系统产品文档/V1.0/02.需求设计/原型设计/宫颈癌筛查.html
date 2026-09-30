@@ -640,7 +640,7 @@
           '<td class="center">' + esc(r.examDate) + '</td>' +
           '<td><span class="st-dot ' + (r.mirror === '已上镜' ? 'ok' : 'warn') + '"></span>' + esc(r.mirror) + '</td>' +
           '<td class="center">' +
-            '<span class="op-link" onclick="openEditModal(' + (start + i) + ')">编辑</span>' +
+            '<span class="op-link" onclick="goCervicalRecord(' + (start + i) + ')">编辑</span>' +
             '<span class="op-gap"></span>' +
             '<span class="op-link" onclick="openViewModal(' + (start + i) + ')">查看</span>' +
             '<span class="op-gap"></span>' +
@@ -716,7 +716,7 @@
           '<td>' + esc(r.idcard) + '</td>' +
           '<td>' + esc(r.region) + '</td>' +
           '<td><span class="cell" title="' + esc(r.org) + '">' + esc(r.org) + '</span></td>' +
-          '<td class="center"><span class="op-create" onclick="enterArchive(' + i + ')">选择</span></td>' +
+          '<td class="center"><span class="op-create" onclick="goCervicalSelect(' + i + ')">新建档案</span></td>' +
         '</tr>';
       });
     }
@@ -725,6 +725,31 @@
     $('sfPager').innerHTML = '<span class="pg-btn active">1</span>';
   }
   function openSelectModal() { $('selectModal').classList.add('show'); renderSelectTable(); }
+  function goCervicalSelect(i) {
+    var r = sfList[i];
+    if (!r) return;
+    closeSelectModal();
+    goCervicalUrl(r);
+  }
+  /* 列表「编辑」：从当前筛查记录跳往档案维护·宫颈癌检查填报表单 */
+  function goCervicalRecord(idx) {
+    var r = screeningData[idx];
+    if (!r) return;
+    goCervicalUrl(r);
+  }
+  /* 统一跳转：档案维护.html 宫颈癌检查登记表（带患者信息预填） */
+  function goCervicalUrl(r) {
+    var params = [
+      'view=cervical',
+      'name=' + encodeURIComponent(r.name),
+      'gender=' + encodeURIComponent(r.gender === '男' ? '男性' : '女性'),
+      'idcard=' + encodeURIComponent(r.idcard),
+      'archNo=' + encodeURIComponent(r.archNo)
+    ];
+    if (r.region) params.push('addr=' + encodeURIComponent(r.region));
+    if (r.org) params.push('specOrg=' + encodeURIComponent(r.org));
+    location.href = '档案维护.html?' + params.join('&');
+  }
   function closeSelectModal() { $('selectModal').classList.remove('show'); }
   function resetSelectFilter() { $('sfName').value = ''; $('sfIdcard').value = ''; $('sfOrg').value = ''; renderSelectTable(); }
   function applySelectFilter() { renderSelectTable(); }

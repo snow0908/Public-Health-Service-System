@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地点维护 - 卫生监督</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}
+
+  /* ===== 页头 ===== */
+  .page-head .right .btn{height:30px;padding:0 14px;font-size:13px}
+
+  /* ===== 筛选区 ===== */
+  .filter-panel{padding:14px 16px;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px}
+  .filter-item{display:flex;align-items:center;gap:4px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .fi-select.is-placeholder{color:var(--text-placeholder)}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+  /* ===== 数据表格 ===== */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+  .list-tbl th:last-child,.list-tbl td:last-child{position:sticky;right:0}
+  .list-tbl td:last-child{z-index:2;background-color:var(--bg-white)}
+  .list-tbl th:last-child{z-index:6}
+  .list-tbl{width:100%;min-width:1400px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:36px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:nth-child(even) td{background:var(--bg-table-even)}
+  .list-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .list-tbl .center{text-align:center}
+  .num{font-family:Consolas,'Microsoft YaHei',monospace}
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px}
+  .op-link:hover{text-decoration:underline}
+  .op-link.danger{color:var(--danger)}
+  .op-gap{display:inline-block;width:8px}
+  .tbl-empty{padding:50px 20px;text-align:center;color:var(--text-placeholder);font-size:13px}
+  .tbl-empty svg{width:44px;height:44px;stroke:var(--color-neutral-300);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:10px}
+
+  /* ===== 分页 ===== */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:44px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size{display:flex;align-items:center;gap:6px}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);padding:0 6px;background:#fff;outline:none;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-btn.disabled{color:var(--text-disabled);cursor:not-allowed;border-color:#EBEBEB}
+  .pg-jump{display:flex;align-items:center;gap:4px}
+  .pg-jump input{width:44px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);text-align:center;font-size:13px;color:var(--text-primary);outline:none}
+  .pg-jump input:focus{border-color:var(--primary)}
+
+  /* ===== 居中弹窗（新建/编辑/查看） ===== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .modal-overlay.show{opacity:1;pointer-events:auto}
+  .modal{position:fixed;left:50%;top:50%;width:620px;max-width:92vw;max-height:90vh;background:var(--bg-white);border-radius:8px;box-shadow:0 12px 40px rgba(0,0,0,0.2);display:flex;flex-direction:column;transform:translate(-50%,-50%) scale(.96);opacity:0;pointer-events:none;transition:all var(--transition-normal);z-index:calc(var(--z-modal) + 1)}
+  .modal-overlay.show .modal{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+  .modal-head{height:44px;display:flex;align-items:center;padding:0 16px;flex-shrink:0;border-bottom:1px solid #E8E8E8}
+  .modal-head h3{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+  .modal-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:18px;line-height:1}
+  .modal-close:hover{background:var(--primary-bg);color:var(--primary)}
+  .modal-body{flex:1;min-height:0;overflow:auto;padding:20px 24px}
+  .modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:12px 24px;border-top:1px solid #E8E8E8;flex-shrink:0}
+
+  /* ---- 表单 ---- */
+  .f-item{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+  .f-item label{flex:none;width:92px;font-size:14px;color:var(--text-secondary);text-align:right;position:relative}
+  .f-item label .req{position:absolute;right:-4px;top:1px;color:var(--danger);font-style:normal}
+  .f-item label.required::before{content:"*";position:absolute;left:-8px;top:1px;color:var(--danger)}
+  .f-item .f-ctl{flex:1;min-width:0;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .f-item .f-ctl:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .f-item .f-ctl.is-placeholder{color:var(--text-placeholder)}
+  .f-item select.f-ctl{width:auto;flex:1;padding-right:26px;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+  .f-item .f-ctl[readonly]{background:#F5F7FA;color:var(--text-secondary)}
+  .f-tip{font-size:12px;color:var(--text-tertiary);margin-top:4px;padding-left:100px}
+
+  /* ---- 查看弹窗 ---- */
+  .view-grid{display:grid;grid-template-columns:1fr 1fr;column-gap:24px;row-gap:14px}
+  .view-row{display:flex;font-size:13px;line-height:1.7}
+  .view-row .k{flex:none;width:76px;color:var(--text-tertiary)}
+  .view-row .v{flex:1;min-width:0;color:var(--text-primary);word-break:break-all}
+  .view-row.full{grid-column:1 / -1}
+</style>
+</head>
+<body>
+
+<div class="main-area">
+
+  <div class="tabbar">
+    <div class="tab-item active">地点维护</div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <div class="page-head">
+        <h1>地点维护</h1>
+        <div class="right">
+          <button class="btn btn-default" onclick="exportList()">导出</button>
+          <button class="btn btn-primary" onclick="openForm()">新建</button>
+        </div>
+      </div>
+
+      <div class="filter-panel">
+        <div class="filter-row">
+          <div class="filter-item">
+            <label>联系机构：</label>
+            <select class="fi-select is-placeholder" id="qOrg" onchange="markSelect(this)">
+              <option value="">请选择</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>地点名称：</label>
+            <input class="fi-ctl" id="qName" placeholder="请输入">
+          </div>
+          <div class="filter-item">
+            <label>联系人：</label>
+            <input class="fi-ctl" id="qContact" placeholder="请输入">
+          </div>
+          <div class="filter-btns">
+            <button class="btn btn-default" onclick="resetFilter()">重置</button>
+            <button class="btn btn-primary" onclick="queryFilter()">查询</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" id="tableWrap"></div>
+      <div class="page-foot" id="pageFoot"></div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== 居中弹窗：新建 / 编辑巡查地点 ===== -->
+<div class="modal-overlay" id="formOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="formTitle">新建巡查地点</h3>
+      <div class="modal-close" onclick="closeForm()">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="f-item">
+        <label class="required">联系机构</label>
+        <select class="f-ctl is-placeholder" id="fOrg" onchange="markSelect(this)">
+          <option value="">请选择</option>
+        </select>
+      </div>
+      <div class="f-item">
+        <label class="required">地点名称</label>
+        <input class="f-ctl" id="fName" placeholder="请输入地点名称">
+      </div>
+      <div class="f-item">
+        <label class="required">联系人</label>
+        <input class="f-ctl" id="fContact" placeholder="请输入联系人姓名">
+      </div>
+      <div class="f-item">
+        <label class="required">联系人电话</label>
+        <input class="f-ctl" id="fPhone" placeholder="请输入11位手机号码">
+      </div>
+      <div class="f-item">
+        <label>录入机构</label>
+        <select class="f-ctl" id="fEntryOrg">
+          <option>扬州市江都区滨江人民医院</option>
+          <option>山东大学齐鲁医院</option>
+          <option>扬州市江都区仙女镇卫生院</option>
+          <option>扬州市江都区樊川镇卫生院</option>
+        </select>
+      </div>
+      <div class="f-item">
+        <label>录入人员</label>
+        <select class="f-ctl" id="fEntryUser">
+          <option>朱劲松</option>
+          <option>吕雪</option>
+          <option>宋劲松</option>
+          <option>高素芹</option>
+        </select>
+      </div>
+      <div class="f-tip">联系机构、地点名称、联系人、联系人电话为必填项；录入机构与录入人员默认取当前登录用户信息，可修改。</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeForm()">取消</button>
+      <button class="btn btn-primary" onclick="saveForm()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 居中弹窗：查看巡查地点 ===== -->
+<div class="modal-overlay" id="viewOverlay">
+  <div class="modal" style="width:560px">
+    <div class="modal-head">
+      <h3>查看巡查地点</h3>
+      <div class="modal-close" onclick="closeView()">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="view-grid" id="viewGrid"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" onclick="closeView()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 居中确认弹窗 ===== -->
+<div class="modal-overlay" id="cfmOverlay">
+  <div class="modal" style="width:400px">
+    <div class="modal-body" style="display:flex;gap:12px;align-items:flex-start;padding:24px 20px 6px">
+      <div style="flex:none;width:36px;height:36px;border-radius:50%;background:var(--warning-bg);display:flex;align-items:center;justify-content:center">
+        <svg width="18" height="18" viewBox="0 0 24 24" style="stroke:var(--warning);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="cfm-txt" id="cfmTxt"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeCfm()">取消</button>
+      <button class="btn btn-primary" id="cfmOk">确定</button>
+    </div>
+  </div>
+</div>
+
+<script src="框架.js" data-page="location-maintenance" data-embed="auto"></script>
+<script>
+'use strict';
+
+/* ================= 基础数据 ================= */
+var ORGS = [
+  '扬州市江都区滨江人民医院',
+  '扬州市江都区大桥镇高巷村卫生室',
+  '扬州市江都区大桥镇花荡村卫生室',
+  '扬州市江都区大桥镇顾巷村卫生室',
+  '扬州市江都区大桥镇香王村卫生室',
+  '扬州市江都区仙女镇卫生院',
+  '扬州市江都区樊川镇卫生院'
+];
+
+/* ================= 地点数据 ================= */
+var LOCATIONS = [
+  { id: '1568847873397805058', org: '扬州市江都区大桥镇高巷村卫生室', name: '香王村', contact: '高素芹', phone: '13101010101', entryOrg: '扬州市江都区滨江人民医院', entryUser: '朱劲松', date: '2022-09-11' },
+  { id: '1558847873397805059', org: '扬州市江都区大桥镇花荡村卫生室', name: '花荡村', contact: '吕雪',   phone: '13905141234', entryOrg: '扬州市江都区滨江人民医院', entryUser: '宋劲松', date: '2022-08-26' },
+  { id: '1568847873397805060', org: '扬州市江都区大桥镇顾巷村卫生室', name: '顾巷村', contact: '高家芹', phone: '13805216789', entryOrg: '扬州市江都区滨江人民医院', entryUser: '朱劲松', date: '2022-08-15' },
+  { id: '1568847873397805061', org: '扬州市江都区滨江人民医院',       name: '滨江公园广场', contact: '王建国', phone: '13601455678', entryOrg: '扬州市江都区滨江人民医院', entryUser: '吕雪',   date: '2022-07-30' },
+  { id: '1568847873397805062', org: '扬州市江都区仙女镇卫生院',       name: '仙女农贸市场', contact: '张秀兰', phone: '13505132345', entryOrg: '扬州市江都区仙女镇卫生院', entryUser: '宋劲松', date: '2022-07-18' },
+  { id: '1568847873397805063', org: '扬州市江都区大桥镇香王村卫生室', name: '香王村小学',   contact: '陈志强', phone: '13705234567', entryOrg: '扬州市江都区滨江人民医院', entryUser: '朱劲松', date: '2022-06-28' },
+  { id: '1568847873397805064', org: '扬州市江都区樊川镇卫生院',       name: '樊川敬老院',   contact: '李秀英', phone: '13805164567', entryOrg: '扬州市江都区樊川镇卫生院', entryUser: '吕雪',   date: '2022-06-12' },
+  { id: '1568847873397805065', org: '扬州市江都区滨江人民医院',       name: '滨江街道菜场', contact: '刘德海', phone: '13901455678', entryOrg: '扬州市江都区滨江人民医院', entryUser: '宋劲松', date: '2022-05-20' },
+  { id: '1568847873397805066', org: '扬州市江都区大桥镇高巷村卫生室', name: '高巷村卫生室', contact: '高素芹', phone: '13101010101', entryOrg: '扬州市江都区滨江人民医院', entryUser: '朱劲松', date: '2022-05-08' },
+  { id: '1568847873397805067', org: '扬州市江都区仙女镇卫生院',       name: '仙女镇文化站', contact: '周玉兰', phone: '13705234567', entryOrg: '扬州市江都区仙女镇卫生院', entryUser: '吕雪',   date: '2022-04-25' },
+  { id: '1568847873397805068', org: '扬州市江都区樊川镇卫生院',       name: '樊川小学',     contact: '孙建国', phone: '13601456789', entryOrg: '扬州市江都区樊川镇卫生院', entryUser: '宋劲松', date: '2022-04-11' },
+  { id: '1568847873397805069', org: '扬州市江都区大桥镇花荡村卫生室', name: '花荡村小学',   contact: '吕雪',   phone: '13905141234', entryOrg: '扬州市江都区滨江人民医院', entryUser: '朱劲松', date: '2022-03-29' },
+  { id: '1568847873397805070', org: '扬州市江都区滨江人民医院',       name: '滨江影剧院',   contact: '赵文华', phone: '13801345678', entryOrg: '扬州市江都区滨江人民医院', entryUser: '吕雪',   date: '2022-03-15' },
+  { id: '1568847873397805071', org: '扬州市江都区大桥镇顾巷村卫生室', name: '顾巷村文化室', contact: '高家芹', phone: '13805216789', entryOrg: '扬州市江都区滨江人民医院', entryUser: '宋劲松', date: '2022-03-02' },
+  { id: '1568847873397805072', org: '扬州市江都区仙女镇卫生院',       name: '仙女中学',     contact: '吴志明', phone: '13505131234', entryOrg: '扬州市江都区仙女镇卫生院', entryUser: '朱劲松', date: '2022-02-18' },
+  { id: '1568847873397805073', org: '扬州市江都区樊川镇卫生院',       name: '樊川中心市场', contact: '钱桂芳', phone: '13901452345', entryOrg: '扬州市江都区樊川镇卫生院', entryUser: '吕雪',   date: '2022-02-06' }
+];
+
+/* ================= 页面状态 ================= */
+var curPage = 1;
+var PAGE_SIZE = 20;
+var editId = '';           // 编辑中的地点 id（'' 表示新建）
+var cfmCb = null;
+
+function $(id) { return document.getElementById(id); }
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function toastMsg(msg, type) {
+  if (typeof window.toast === 'function') { window.toast(msg, type); return; }
+  var box = document.createElement('div');
+  box.className = 'toast show' + (type ? ' ' + type : '');
+  box.textContent = msg;
+  box.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);padding:10px 18px;background:#fff;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:9999;font-size:14px';
+  document.body.appendChild(box);
+  setTimeout(function () { box.remove(); }, 2400);
+}
+function markSelect(el) { el.classList.toggle('is-placeholder', !el.value); }
+
+/* ================= 筛选 ================= */
+function resetFilter() {
+  $('qOrg').value = '';
+  $('qName').value = '';
+  $('qContact').value = '';
+  markSelect($('qOrg'));
+  curPage = 1;
+  renderTable();
+  toastMsg('筛选条件已重置');
+}
+function queryFilter() { curPage = 1; renderTable(); toastMsg('查询完成'); }
+
+function filtered() {
+  var org = $('qOrg').value, name = $('qName').value.trim(), contact = $('qContact').value.trim();
+  return LOCATIONS.filter(function (r) {
+    if (org && r.org !== org) return false;
+    if (name && r.name.indexOf(name) < 0) return false;
+    if (contact && r.contact.indexOf(contact) < 0) return false;
+    return true;
+  });
+}
+
+/* ================= 表格渲染 ================= */
+function renderTable() {
+  var rows = filtered();
+  var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  if (curPage > totalPages) curPage = totalPages;
+  var pageRows = rows.slice((curPage - 1) * PAGE_SIZE, curPage * PAGE_SIZE);
+
+  var html = '<table class="list-tbl"><colgroup>'
+    + '<col style="width:52px"><col><col style="width:180px"><col style="width:110px">'
+    + '<col style="width:80px"><col style="width:120px"><col style="width:80px"><col>'
+    + '<col style="width:96px"><col style="width:130px">'
+    + '</colgroup><thead><tr>'
+    + '<th>序号</th><th>联系机构</th><th>地点编号</th><th>地点名称</th><th>联系人</th>'
+    + '<th>联系人电话</th><th>录入人员</th><th>录入机构</th><th>录入日期</th><th>操作</th>'
+    + '</tr></thead><tbody>';
+
+  if (!pageRows.length) {
+    html += '<tr><td colspan="10"><div class="tbl-empty">'
+      + '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
+      + '<div>暂无地点数据，点击右上角「新建」添加巡查地点</div></div></td></tr>';
+  } else {
+    pageRows.forEach(function (r, i) {
+      var base = (curPage - 1) * PAGE_SIZE + i + 1;
+      html += '<tr>';
+      html += '<td class="center">' + base + '</td>';
+      html += '<td title="' + esc(r.org) + '">' + esc(r.org) + '</td>';
+      html += '<td class="num">' + esc(r.id) + '</td>';
+      html += '<td>' + esc(r.name) + '</td>';
+      html += '<td>' + esc(r.contact) + '</td>';
+      html += '<td class="num">' + esc(r.phone) + '</td>';
+      html += '<td>' + esc(r.entryUser) + '</td>';
+      html += '<td title="' + esc(r.entryOrg) + '">' + esc(r.entryOrg) + '</td>';
+      html += '<td class="num">' + esc(r.date) + '</td>';
+      html += '<td>'
+        + '<span class="op-link" onclick="openView(\'' + r.id + '\')">查看</span>'
+        + '<span class="op-gap"></span>'
+        + '<span class="op-link" onclick="openForm(\'' + r.id + '\')">编辑</span>'
+        + '<span class="op-gap"></span>'
+        + '<span class="op-link danger" onclick="removeLoc(\'' + r.id + '\')">删除</span>'
+        + '</td>';
+      html += '</tr>';
+    });
+  }
+  html += '</tbody></table>';
+  $('tableWrap').innerHTML = html;
+  renderFoot(rows.length, totalPages);
+}
+
+function renderFoot(total, totalPages) {
+  if (!total) { $('pageFoot').innerHTML = ''; return; }
+  var html = '<span class="pg-total">共 <b>' + total + '</b> 条</span>';
+  html += '<span class="pg-size">每页<select onchange="changeSize(this.value)">'
+    + ['20', '50', '100'].map(function (n) { return '<option' + (PAGE_SIZE === +n ? ' selected' : '') + '>' + n + '</option>'; }).join('')
+    + '</select>条</span>';
+  html += '<div class="pg-pager">';
+  html += '<span class="pg-btn' + (curPage <= 1 ? ' disabled' : '') + '" onclick="goPage(' + (curPage - 1) + ')">‹</span>';
+  for (var p = 1; p <= totalPages; p++) {
+    if (totalPages > 7 && p > 3 && p < totalPages - 1 && Math.abs(p - curPage) > 1) {
+      if (p === 4) html += '<span style="padding:0 4px;color:var(--text-tertiary)">…</span>';
+      continue;
+    }
+    html += '<span class="pg-btn' + (p === curPage ? ' active' : '') + '" onclick="goPage(' + p + ')">' + p + '</span>';
+  }
+  html += '<span class="pg-btn' + (curPage >= totalPages ? ' disabled' : '') + '" onclick="goPage(' + (curPage + 1) + ')" style="margin-left:4px">›</span>';
+  html += '</div>';
+  html += '<span class="pg-jump">跳至第<input id="pgJump" onkeydown="if(event.key===\'Enter\')jumpPage()">页</span>';
+  $('pageFoot').innerHTML = html;
+}
+
+function goPage(p) {
+  var rows = filtered();
+  var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  if (p < 1 || p > totalPages || p === curPage) return;
+  curPage = p;
+  renderTable();
+}
+function changeSize(n) { PAGE_SIZE = +n; curPage = 1; renderTable(); }
+function jumpPage() {
+  var v = parseInt($('pgJump').value, 10);
+  if (v) goPage(v);
+}
+
+/* ================= 新建 / 编辑 ================= */
+function openForm(id) {
+  editId = id || '';
+  $('formTitle').textContent = editId ? '编辑巡查地点' : '新建巡查地点';
+  $('fOrg').value = '';
+  $('fName').value = '';
+  $('fContact').value = '';
+  $('fPhone').value = '';
+  $('fEntryOrg').value = '扬州市江都区滨江人民医院';
+  $('fEntryUser').value = '朱劲松';
+  if (editId) {
+    var r = findLoc(editId);
+    if (r) {
+      $('fOrg').value = r.org;
+      $('fName').value = r.name;
+      $('fContact').value = r.contact;
+      $('fPhone').value = r.phone;
+      $('fEntryOrg').value = r.entryOrg;
+      $('fEntryUser').value = r.entryUser;
+    }
+  }
+  markSelect($('fOrg'));
+  $('formOverlay').classList.add('show');
+}
+function closeForm() { $('formOverlay').classList.remove('show'); }
+
+function saveForm() {
+  var org = $('fOrg').value, name = $('fName').value.trim();
+  var contact = $('fContact').value.trim(), phone = $('fPhone').value.trim();
+  if (!org) { toastMsg('请选择联系机构', 'warning'); return; }
+  if (!name) { toastMsg('请输入地点名称', 'warning'); return; }
+  if (!contact) { toastMsg('请输入联系人姓名', 'warning'); return; }
+  if (!/^1\d{10}$/.test(phone)) { toastMsg('请输入正确的11位手机号码', 'warning'); return; }
+
+  var today = new Date();
+  var ds = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+
+  if (editId) {
+    var r = findLoc(editId);
+    if (r) {
+      r.org = org; r.name = name; r.contact = contact; r.phone = phone;
+      r.entryOrg = $('fEntryOrg').value; r.entryUser = $('fEntryUser').value;
+    }
+    toastMsg('地点「' + name + '」修改成功', 'success');
+  } else {
+    LOCATIONS.unshift({
+      id: genId(), org: org, name: name, contact: contact, phone: phone,
+      entryOrg: $('fEntryOrg').value, entryUser: $('fEntryUser').value, date: ds
+    });
+    toastMsg('地点「' + name + '」新建成功', 'success');
+  }
+  closeForm();
+  curPage = 1;
+  renderTable();
+}
+
+function genId() {
+  var t = Date.now();
+  var rnd = Math.floor(Math.random() * 9000 + 1000);
+  return String(t) + String(rnd);
+}
+
+/* ================= 查看 ================= */
+function openView(id) {
+  var r = findLoc(id);
+  if (!r) return;
+  $('viewGrid').innerHTML =
+    '<div class="view-row"><span class="k">联系机构</span><span class="v">' + esc(r.org) + '</span></div>'
+    + '<div class="view-row"><span class="k">地点名称</span><span class="v">' + esc(r.name) + '</span></div>'
+    + '<div class="view-row"><span class="k">联系人</span><span class="v">' + esc(r.contact) + '</span></div>'
+    + '<div class="view-row"><span class="k">联系电话</span><span class="v num">' + esc(r.phone) + '</span></div>'
+    + '<div class="view-row"><span class="k">地点编号</span><span class="v num">' + esc(r.id) + '</span></div>'
+    + '<div class="view-row"><span class="k">录入日期</span><span class="v num">' + esc(r.date) + '</span></div>'
+    + '<div class="view-row full"><span class="k">录入机构</span><span class="v">' + esc(r.entryOrg) + '</span></div>'
+    + '<div class="view-row full"><span class="k">录入人员</span><span class="v">' + esc(r.entryUser) + '</span></div>';
+  $('viewOverlay').classList.add('show');
+}
+function closeView() { $('viewOverlay').classList.remove('show'); }
+
+/* ================= 删除 ================= */
+function findLoc(id) {
+  for (var i = 0; i < LOCATIONS.length; i++) if (LOCATIONS[i].id === id) return LOCATIONS[i];
+  return null;
+}
+
+function removeLoc(id) {
+  var r = findLoc(id);
+  if (!r) return;
+  openCfm('确定删除巡查地点 <b>「' + esc(r.name) + '」</b> 吗？<br><span style="font-size:12px;color:var(--text-tertiary)">删除后该地点的巡查记录将无法关联，请谨慎操作。</span>', function () {
+    var idx = LOCATIONS.indexOf(r);
+    if (idx >= 0) LOCATIONS.splice(idx, 1);
+    renderTable();
+    toastMsg('巡查地点「' + r.name + '」已删除', 'success');
+  });
+}
+
+/* ================= 导出 ================= */
+function exportList() {
+  toastMsg('导出成功，共 ' + filtered().length + ' 条地点数据', 'success');
+}
+
+/* ================= 确认弹窗 ================= */
+function openCfm(html, onOk) {
+  $('cfmTxt').innerHTML = html;
+  cfmCb = onOk;
+  $('cfmOverlay').classList.add('show');
+}
+function closeCfm() {
+  $('cfmOverlay').classList.remove('show');
+  cfmCb = null;
+}
+$('cfmOk').onclick = function () {
+  var cb = cfmCb;
+  closeCfm();
+  if (cb) cb();
+};
+
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Escape') return;
+  if ($('cfmOverlay').classList.contains('show')) { closeCfm(); return; }
+  if ($('viewOverlay').classList.contains('show')) { closeView(); return; }
+  if ($('formOverlay').classList.contains('show')) closeForm();
+});
+
+/* ================= 初始化 ================= */
+(function init() {
+  var orgs = ORGS.map(function (o) { return '<option>' + esc(o) + '</option>'; }).join('');
+  $('qOrg').innerHTML = '<option value="">请选择</option>' + orgs;
+  $('fOrg').innerHTML = '<option value="">请选择</option>' + orgs;
+  renderTable();
+})();
+</script>
+</body>
+</html>

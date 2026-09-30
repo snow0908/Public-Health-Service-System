@@ -1517,6 +1517,8 @@
         <div class="nav-sub-item nav-followup-hidden" id="navFolicAcid" onclick="switchView('folicAcid')">叶酸登记</div>
         <div class="nav-sub-item nav-followup-hidden" id="navPrePregnancy" onclick="switchView('prePregnancy')">孕前医学检查</div>
         <div class="nav-sub-item nav-followup-hidden" id="navWomanDisease" onclick="switchView('womanDisease')">常见妇女病检查</div>
+          <div class="nav-sub-item nav-followup-hidden" id="navCervical" onclick="switchView('cervical')">宫颈癌检查</div>
+          <div class="nav-sub-item nav-followup-hidden" id="navBreast" onclick="switchView('breast')">乳腺癌检查</div>
       </div>
     </div>
     <div class="nav-group" id="navMsGroup">
@@ -9683,6 +9685,233 @@
                 </td>
                 <td class="lb"></td>
                 <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 视图：宫颈癌检查登记表（妇幼 · 宫颈癌筛查） ===== -->
+    <div class="pv-view hidden" id="viewCervical">
+      <div class="hp-card" id="cxCard">
+        <div class="hp-head">
+          <div class="wm-head-top">
+            <h3>宫颈癌检查登记表</h3>
+            <div class="hp-actions">
+              <button class="btn btn-primary" onclick="saveCervical()">保存</button>
+            </div>
+          </div>
+          <div class="wm-head-sub">
+            <span>姓名：<b id="cxNameTxt">--</b></span>
+            <span>档案编号：<b id="cxArchNo">--</b></span>
+          </div>
+        </div>
+        <div class="wm-body">
+          <table class="wm-tbl">
+            <colgroup><col style="width:75px"><col style="width:59px"><col style="width:65px"><col><col style="width:200px"><col></colgroup>
+            <tbody>
+              <tr>
+                <td class="lb" colspan="3">证件号</td>
+                <td class="txt" id="cxIdcard">--</td>
+                <td class="lb">年龄</td>
+                <td class="txt" id="cxAge">--</td>
+              </tr>
+              <tr>
+                <td class="lb" colspan="3">性别</td>
+                <td class="txt" id="cxGender">--</td>
+                <td class="lb">民族</td>
+                <td class="txt" id="cxNation">--</td>
+              </tr>
+              <tr>
+                <td class="lb">检查日期<span style="color:#FF4D4F">*</span></td>
+                <td class="ctr" colspan="2"><input class="ctl" id="cxDate" type="date"></td>
+                <td class="lb">检查机构<span style="color:#FF4D4F">*</span></td>
+                <td class="ctr" colspan="2"><input class="ctl" id="cxOrg" maxlength="40"></td>
+              </tr>
+              <tr>
+                <td class="lb">检查医生<span style="color:#FF4D4F">*</span></td>
+                <td class="ctr" colspan="2"><input class="ctl" id="cxDoc" maxlength="20"></td>
+                <td class="lb">联系电话</td>
+                <td class="ctr" colspan="2"><input class="ctl" id="cxPhone" maxlength="11"></td>
+              </tr>
+              <tr>
+                <td colspan="6" style="background:#f0f4ff;color:#1f6cff;font-weight:600;">宫颈涂片（TCT）检查</td>
+              </tr>
+              <tr>
+                <td class="lb">TCT结果<span style="color:#FF4D4F">*</span></td>
+                <td class="ctr" colspan="2">
+                  <select class="ctl" id="cxTctResult">
+                    <option value="">请选择</option>
+                    <option value="未见上皮内病变或恶性细胞">未见上皮内病变或恶性细胞</option>
+                    <option value="ASC-US">ASC-US（意义不明确的不典型鳞状细胞）</option>
+                    <option value="LSIL">LSIL（低度鳞状上皮内病变）</option>
+                    <option value="HSIL">HSIL（高度鳞状上皮内病变）</option>
+                    <option value="AGC">AGC（非典型腺细胞）</option>
+                    <option value="恶性细胞">恶性细胞</option>
+                  </select>
+                </td>
+                <td class="lb">细胞病理诊断</td>
+                <td class="ctr" colspan="2"><input class="ctl" id="cxTctDiag" maxlength="50"></td>
+              </tr>
+              <tr>
+                <td colspan="6" style="background:#f0f4ff;color:#1f6cff;font-weight:600;">HPV 检测</td>
+              </tr>
+              <tr>
+                <td class="lb">HPV结果<span style="color:#FF4D4F">*</span></td>
+                <td class="ctr" colspan="2">
+                  <select class="ctl" id="cxHpvResult">
+                    <option value="">请选择</option>
+                    <option value="阴性">阴性</option>
+                    <option value="高危阳性">高危阳性</option>
+                    <option value="低危阳性">低危阳性</option>
+                  </select>
+                </td>
+                <td class="lb">分型</td>
+                <td class="ctr" colspan="2"><input class="ctl" id="cxHpvType" maxlength="50" placeholder="如 16/18/52/58"></td>
+              </tr>
+              <tr>
+                <td colspan="6" style="background:#f0f4ff;color:#1f6cff;font-weight:600;">阴道镜检查（必要时）</td>
+              </tr>
+              <tr>
+                <td class="lb">阴道镜结果</td>
+                <td class="ctr" colspan="2"><input class="ctl" id="cxColRes" maxlength="50"></td>
+                <td class="lb">转化区</td>
+                <td class="ctr" colspan="2">
+                  <select class="ctl" id="cxColZone">
+                    <option value="">请选择</option>
+                    <option value="完全可见">完全可见</option>
+                    <option value="部分可见">部分可见</option>
+                    <option value="不可见">不可见</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="6" style="background:#f0f4ff;color:#1f6cff;font-weight:600;">组织病理诊断（必要时）</td>
+              </tr>
+              <tr>
+                <td class="lb">病理结果</td>
+                <td class="ctr" colspan="2"><input class="ctl" id="cxPath" maxlength="50"></td>
+                <td class="lb">最终诊断</td>
+                <td class="ctr" colspan="2"><input class="ctl" id="cxDiag" maxlength="60"></td>
+              </tr>
+              <tr>
+                <td class="lb">处理意见</td>
+                <td class="ctr" colspan="5"><input class="ctl w100" id="cxAdvice" maxlength="100"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 视图：乳腺癌检查登记表（妇幼 · 乳腺癌筛查） ===== -->
+    <div class="pv-view hidden" id="viewBreast">
+      <div class="hp-card" id="btCard">
+        <div class="hp-head">
+          <div class="wm-head-top">
+            <h3>乳腺癌检查登记表</h3>
+            <div class="hp-actions">
+              <button class="btn btn-primary" onclick="saveBreast()">保存</button>
+            </div>
+          </div>
+          <div class="wm-head-sub">
+            <span>姓名：<b id="btNameTxt">--</b></span>
+            <span>档案编号：<b id="btArchNo">--</b></span>
+          </div>
+        </div>
+        <div class="wm-body">
+          <table class="wm-tbl">
+            <colgroup><col style="width:75px"><col style="width:59px"><col style="width:65px"><col><col style="width:200px"><col></colgroup>
+            <tbody>
+              <tr>
+                <td class="lb" colspan="3">证件号</td>
+                <td class="txt" id="btIdcard">--</td>
+                <td class="lb">年龄</td>
+                <td class="txt" id="btAge">--</td>
+              </tr>
+              <tr>
+                <td class="lb" colspan="3">性别</td>
+                <td class="txt" id="btGender">--</td>
+                <td class="lb">民族</td>
+                <td class="txt" id="btNation">--</td>
+              </tr>
+              <tr>
+                <td class="lb">检查日期<span style="color:#FF4D4F">*</span></td>
+                <td class="ctr" colspan="2"><input class="ctl" id="btDate" type="date"></td>
+                <td class="lb">检查机构<span style="color:#FF4D4F">*</span></td>
+                <td class="ctr" colspan="2"><input class="ctl" id="btOrg" maxlength="40"></td>
+              </tr>
+              <tr>
+                <td class="lb">检查医生<span style="color:#FF4D4F">*</span></td>
+                <td class="ctr" colspan="2"><input class="ctl" id="btDoc" maxlength="20"></td>
+                <td class="lb">联系电话</td>
+                <td class="ctr" colspan="2"><input class="ctl" id="btPhone" maxlength="11"></td>
+              </tr>
+              <tr>
+                <td colspan="6" style="background:#f0f4ff;color:#1f6cff;font-weight:600;">临床触诊</td>
+              </tr>
+              <tr>
+                <td class="lb">左乳触诊</td>
+                <td class="ctr" colspan="2">
+                  <select class="ctl" id="btTouchL">
+                    <option value="">请选择</option>
+                    <option value="未触及肿块">未触及肿块</option>
+                    <option value="触及肿块">触及肿块</option>
+                  </select>
+                </td>
+                <td class="lb">右乳触诊</td>
+                <td class="ctr" colspan="2">
+                  <select class="ctl" id="btTouchR">
+                    <option value="">请选择</option>
+                    <option value="未触及肿块">未触及肿块</option>
+                    <option value="触及肿块">触及肿块</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="6" style="background:#f0f4ff;color:#1f6cff;font-weight:600;">乳腺超声检查</td>
+              </tr>
+              <tr>
+                <td class="lb">左乳B超</td>
+                <td class="ctr" colspan="2">
+                  <select class="ctl" id="btUsL">
+                    <option value="">请选择</option>
+                    <option value="未见异常">未见异常</option>
+                    <option value="BI-RADS 0类">BI-RADS 0类</option>
+                    <option value="BI-RADS 2类">BI-RADS 2类</option>
+                    <option value="BI-RADS 3类">BI-RADS 3类</option>
+                    <option value="BI-RADS 4类">BI-RADS 4类</option>
+                  </select>
+                </td>
+                <td class="lb">右乳B超</td>
+                <td class="ctr" colspan="2">
+                  <select class="ctl" id="btUsR">
+                    <option value="">请选择</option>
+                    <option value="未见异常">未见异常</option>
+                    <option value="BI-RADS 0类">BI-RADS 0类</option>
+                    <option value="BI-RADS 2类">BI-RADS 2类</option>
+                    <option value="BI-RADS 3类">BI-RADS 3类</option>
+                    <option value="BI-RADS 4类">BI-RADS 4类</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td class="lb">乳腺钼靶（必要时）</td>
+                <td class="ctr" colspan="5"><input class="ctl" id="btMammo" maxlength="50"></td>
+              </tr>
+              <tr>
+                <td colspan="6" style="background:#f0f4ff;color:#1f6cff;font-weight:600;">组织病理诊断（必要时）</td>
+              </tr>
+              <tr>
+                <td class="lb">病理结果</td>
+                <td class="ctr" colspan="2"><input class="ctl" id="btPath" maxlength="50"></td>
+                <td class="lb">最终诊断</td>
+                <td class="ctr" colspan="2"><input class="ctl" id="btDiag" maxlength="60"></td>
+              </tr>
+              <tr>
+                <td class="lb">处理意见</td>
+                <td class="ctr" colspan="5"><input class="ctl w100" id="btAdvice" maxlength="100"></td>
               </tr>
             </tbody>
           </table>
@@ -19590,7 +19819,7 @@
   function wmToastSaved(msg) { toast(msg, 'success'); }
   /* 妇女档案保存成功后开放：婚前医学检查 / 叶酸登记 / 孕前医学检查 / 常见妇女病检查 四个业务目录 */
   function revealWomanModules() {
-    ['navPreMarital', 'navFolicAcid', 'navPrePregnancy', 'navWomanDisease'].forEach(function (id) {
+    ['navPreMarital', 'navFolicAcid', 'navPrePregnancy', 'navWomanDisease', 'navCervical', 'navBreast'].forEach(function (id) {
       var el = $(id);
       if (el) el.classList.remove('nav-followup-hidden');
     });
@@ -20088,6 +20317,8 @@
     var isFa = name === 'folicAcid';
     var isPpg = name === 'prePregnancy';
     var isWd = name === 'womanDisease';
+    var isCx = name === 'cervical';
+    var isBt = name === 'breast';
     var isCh = name === 'childArchive';
     var isCbc = name === 'childBirthCert';
     var isCnv = name === 'childNewbornVisit';
@@ -20160,6 +20391,8 @@
     $('viewFolicAcid').classList.toggle('hidden', !isFa);
     $('viewPrePregnancy').classList.toggle('hidden', !isPpg);
     $('viewWomanDisease').classList.toggle('hidden', !isWd);
+    $('viewCervical').classList.toggle('hidden', !isCx);
+    $('viewBreast').classList.toggle('hidden', !isBt);
     $('viewChildArchive').classList.toggle('hidden', !isCh);
     $('viewChildBirthCert').classList.toggle('hidden', !isCbc);
     $('viewChildNewbornVisit').classList.toggle('hidden', !isCnv);
@@ -20222,6 +20455,8 @@
     $('navFolicAcid').classList.toggle('active', isFa);
     $('navPrePregnancy').classList.toggle('active', isPpg);
     $('navWomanDisease').classList.toggle('active', isWd);
+    $('navCervical').classList.toggle('active', isCx);
+    $('navBreast').classList.toggle('active', isBt);
     $('navChildArchive').classList.toggle('active', isCh);
     $('navChildBirthCert').classList.toggle('active', isCbc);
     $('navChildNbVisit').classList.toggle('active', isCnv);
@@ -21365,6 +21600,43 @@
     });
     setRadio('ppgRecheck', '否');
     pickSel('ppgDoctor');
+  }
+  function mockBreast() {
+    wmFillIdentity('bt', P.address || '江苏省扬州市江都区武坚镇闸西社区0000');
+    wmSetTxt('btNameTxt', P.name);
+    wmSetTxt('btArchNo', P.archNo || QS.get('archNo') || QS.get('idcard') || '');
+    setVal('btOrg', QS.get('specOrg') || P.specOrg || '扬州市江都区滨江人民医院');
+    setVal('btDoc', QS.get('specDoc') || P.specDoc || '吕雪');
+    setVal('btDate', '2026-09-20');
+    setVal('btTouchL', '未触及肿块');
+    setVal('btTouchR', '未触及肿块');
+    setVal('btUsL', '未见异常');
+    setVal('btUsR', '未见异常');
+  }
+  function saveBreast() {
+    if (!$('btDate').value) { toast('请填写检查日期', 'warning'); return; }
+    if (!$('btOrg').value.trim()) { toast('请填写检查机构', 'warning'); return; }
+    if (!$('btDoc').value.trim()) { toast('请填写检查医生', 'warning'); return; }
+    toast('乳腺癌检查登记表已保存', 'success');
+  }
+  function mockCervical() {
+    wmFillIdentity('cx', P.address || '江苏省扬州市江都区武坚镇闸西社区0000');
+    wmSetTxt('cxNameTxt', P.name);
+    wmSetTxt('cxArchNo', P.archNo || QS.get('archNo') || QS.get('idcard') || '');
+    setVal('cxOrg', QS.get('specOrg') || P.specOrg || '扬州市江都区滨江人民医院');
+    setVal('cxDoc', QS.get('specDoc') || P.specDoc || '吕雪');
+    setVal('cxDate', '2026-09-20');
+    setVal('cxTctResult', '未见上皮内病变或恶性细胞');
+    setVal('cxHpvResult', '阴性');
+    setVal('cxColZone', '完全可见');
+  }
+  function saveCervical() {
+    if (!$('cxDate').value) { toast('请填写检查日期', 'warning'); return; }
+    if (!$('cxOrg').value.trim()) { toast('请填写检查机构', 'warning'); return; }
+    if (!$('cxDoc').value.trim()) { toast('请填写检查医生', 'warning'); return; }
+    if (!$('cxTctResult').value) { toast('请选择TCT结果', 'warning'); return; }
+    if (!$('cxHpvResult').value) { toast('请选择HPV结果', 'warning'); return; }
+    toast('宫颈癌检查登记表已保存', 'success');
   }
   function mockWomanDisease() {
     wmFillIdentity('wd', '江苏省扬州市江都区武坚镇闸西社区0000');
@@ -22671,6 +22943,8 @@
       switchView('hypertension');
     } else if (initView === 'basic') {
       switchView('basic');
+    } else if (initView === 'disability') {
+      switchView('disability');
     } else if (initView === 'followup') {
       switchView('followup');
     } else if (initView === 'assessment') {
@@ -22748,6 +23022,12 @@
     } else if (initView === 'womanDisease') {
       revealWomanModules();
       switchView('womanDisease');
+    } else if (initView === 'cervical') {
+      revealWomanModules();
+      switchView('cervical');
+    } else if (initView === 'breast') {
+      revealWomanModules();
+      switchView('breast');
     } else if (initView === 'childArchive') {
       switchView('childArchive');
     } else if (initView === 'childBirthCert') {
@@ -22832,6 +23112,8 @@
       else if (initView === 'folicAcid') { mockFolicAcid(); }
       else if (initView === 'prePregnancy') { mockPrePregnancy(); }
       else if (initView === 'womanDisease') { mockWomanDisease(); }
+      else if (initView === 'cervical') { mockCervical(); }
+      else if (initView === 'breast') { mockBreast(); }
       else if (initView === 'childArchive') {
         /* 已有儿童档案：模拟填全 + 分配档案编号 + 开放「结案」 */
         mockChildArchive();

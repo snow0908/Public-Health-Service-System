@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>区域网格化管理 - 系统设置</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}
+
+  /* ===== 布局：左树 + 右表 ===== */
+  .split{flex:1;min-height:0;display:flex}
+  .tree-panel{flex:none;width:320px;border-right:1px solid #E8E8E8;display:flex;flex-direction:column;background:var(--bg-white);min-height:0}
+  .grid-panel{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg-white);min-height:0}
+
+  /* ---- 拉取条 ---- */
+  .pull-bar{padding:12px;border-bottom:1px solid #E8E8E8;flex-shrink:0}
+  .pull-row{display:flex;gap:8px;align-items:center}
+  .pull-row .p-select{flex:1;min-width:0;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;transition:all var(--transition-fast)}
+  .pull-row .p-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .pull-row .p-select.is-placeholder{color:var(--text-placeholder)}
+  .btn-pull{flex:none;height:32px;padding:0 14px;border-radius:var(--r-sm);border:1px solid var(--primary);background:var(--primary);color:#fff;font-size:13px;font-weight:var(--font-weight-medium);display:inline-flex;align-items:center;gap:6px;cursor:pointer;transition:all var(--transition-fast)}
+  .btn-pull:hover{background:var(--primary-hover)}
+  .btn-pull:disabled{background:var(--color-neutral-300);border-color:var(--color-neutral-300);cursor:not-allowed}
+  .btn-pull svg{width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .btn-pull.loading svg{animation:spin 0.9s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ---- 树搜索 ---- */
+  .tree-search{padding:10px 12px;border-bottom:1px solid #F0F2F5;flex-shrink:0}
+  .ts-box{position:relative}
+  .ts-box svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;stroke:var(--text-placeholder);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .ts-box input{width:100%;height:30px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px 0 28px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .ts-box input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .ts-box input::placeholder{color:var(--text-placeholder)}
+
+  /* ---- 树 ---- */
+  .tree-body{flex:1;min-height:0;overflow:auto;padding:6px 6px 12px}
+  .tnode{display:flex;align-items:center;gap:6px;height:32px;padding:0 8px;border-radius:var(--r-sm);cursor:pointer;font-size:13px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;transition:background var(--transition-fast);user-select:none}
+  .tnode:hover{background:#F5F7FA}
+  .tnode.selected{background:#E8F0FE;color:var(--primary);font-weight:var(--font-weight-medium)}
+  .tnode .tw{flex:none;width:14px;height:14px;display:flex;align-items:center;justify-content:center;color:var(--text-tertiary);transition:transform var(--transition-fast)}
+  .tnode .tw svg{width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .tnode .tw.expanded svg{transform:rotate(90deg)}
+  .tnode .tw.leaf{visibility:hidden}
+  .tnode .t-ico{flex:none;width:16px;height:16px;display:flex;align-items:center;justify-content:center}
+  .tnode .t-ico svg{width:14px;height:14px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .ico-region{stroke:#4A7DFF}
+  .ico-town{stroke:#D9822B}
+  .ico-village{stroke:#52B61A}
+  .tnode .t-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .tnode .t-name b{color:var(--danger);font-weight:var(--font-weight-medium)}
+  .tnode .t-meta{flex:none;font-size:12px;color:var(--text-tertiary);background:#F0F2F5;border-radius:8px;padding:0 7px;height:17px;line-height:17px}
+  .tnode.selected .t-meta{background:#D6E3FD;color:var(--primary)}
+  .tchildren{margin-left:18px;border-left:1px dashed #E4E7ED;padding-left:4px}
+
+  /* ---- 树空态 ---- */
+  .tree-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--text-placeholder);font-size:13px;padding:30px 20px;text-align:center;line-height:1.7}
+  .tree-empty svg{width:52px;height:52px;stroke:var(--color-neutral-300);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+  /* ===== 右侧：面包屑 ===== */
+  .crumb-bar{display:flex;align-items:center;height:44px;padding:0 16px;border-bottom:1px solid #E8E8E8;flex-shrink:0;gap:4px}
+  .crumb-bar .c-ico{width:15px;height:15px;flex:none;stroke:var(--primary);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px}
+  .crumb-seg{font-size:13px;color:var(--text-secondary);cursor:pointer;white-space:nowrap}
+  .crumb-seg:hover{color:var(--primary)}
+  .crumb-seg.cur{color:var(--primary);font-weight:var(--font-weight-medium);cursor:default}
+  .crumb-sep{font-size:12px;color:var(--text-placeholder)}
+  .crumb-bar .btn{height:30px;padding:0 14px;font-size:13px;margin-left:auto}
+
+  /* ===== 统计条 ===== */
+  .stat-strip{display:flex;align-items:stretch;gap:12px;padding:12px 16px;border-bottom:1px solid #E8E8E8;flex-shrink:0;flex-wrap:wrap}
+  .stat-chip{flex:1;min-width:140px;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px}
+  .stat-chip .s-ico{flex:none;width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center}
+  .stat-chip .s-ico svg{width:16px;height:16px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .stat-chip .s-txt .s-num{font-size:18px;font-weight:var(--font-weight-semibold);line-height:1.2}
+  .stat-chip .s-txt .s-lbl{font-size:12px;color:var(--text-tertiary);margin-top:2px}
+  .sc-blue{background:#F0F5FF}
+  .sc-blue .s-ico{background:#DCE7FF}
+  .sc-blue .s-num{color:#3D6FE0}
+  .sc-blue svg{stroke:#3D6FE0}
+  .sc-green{background:#F0FAE9}
+  .sc-green .s-ico{background:#E3F4D4}
+  .sc-green .s-num{color:#52B61A}
+  .sc-green svg{stroke:#52B61A}
+  .sc-orange{background:#FDF7EE}
+  .sc-orange .s-ico{background:#FBE8CD}
+  .sc-orange .s-num{color:#D9822B}
+  .sc-orange svg{stroke:#D9822B}
+  .sc-purple{background:#F7F2FE}
+  .sc-purple .s-ico{background:#EADCFF}
+  .sc-purple .s-num{color:#8551E0}
+  .sc-purple svg{stroke:#8551E0}
+
+  /* ===== 表格 ===== */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+  .list-tbl th:last-child,.list-tbl td:last-child{position:sticky;right:0}
+  .list-tbl td:last-child{z-index:2;background-color:var(--bg-white)}
+  .list-tbl th:last-child{z-index:6}
+  .list-tbl{width:100%;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:36px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:nth-child(even) td{background:var(--bg-table-even)}
+  .list-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .list-tbl .center{text-align:center}
+  .num{font-family:Consolas,'Microsoft YaHei',monospace}
+  .dash{color:var(--text-placeholder)}
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px}
+  .op-link:hover{text-decoration:underline}
+  .op-link.danger{color:var(--danger)}
+  .op-gap{display:inline-block;width:8px}
+  .vill-link{color:var(--text-secondary)}
+  .tbl-empty{padding:50px 20px;text-align:center;color:var(--text-placeholder);font-size:13px}
+  .tbl-empty svg{width:44px;height:44px;stroke:var(--color-neutral-300);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:10px}
+  .tbl-empty .sub{margin-top:6px;color:var(--text-placeholder)}
+  .st-tag{display:inline-flex;align-items:center;gap:5px;font-size:12px}
+  .st-tag i{width:6px;height:6px;border-radius:50%}
+  .st-on{color:#52B61A}
+  .st-on i{background:#52B61A}
+  .st-off{color:var(--text-tertiary)}
+  .st-off i{background:#C0C6CF}
+
+  /* ===== 分页 ===== */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:44px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-btn.disabled{color:var(--text-disabled);cursor:not-allowed;border-color:#EBEBEB}
+
+  /* ===== 右侧抽屉（新增/编辑组） ===== */
+  .drawer-mask{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:var(--z-modal);opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .drawer-mask.show{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:620px;max-width:96vw;background:var(--bg-white);box-shadow:-8px 0 30px rgba(0,0,0,0.15);display:flex;flex-direction:column;z-index:calc(var(--z-modal) + 1);transform:translateX(100%);transition:transform var(--transition-normal)}
+  .drawer.show{transform:translateX(0)}
+  .drawer-head{height:44px;flex-shrink:0;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid #E8E8E8}
+  .drawer-head h3{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+  .drawer-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:18px;line-height:1}
+  .drawer-close:hover{background:var(--primary-bg);color:var(--primary)}
+  .drawer-body{flex:1;min-height:0;overflow:auto;padding:18px 20px}
+  .drawer-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:12px 20px;border-top:1px solid #E8E8E8;flex-shrink:0}
+
+  .g-item{display:flex;align-items:flex-start;gap:6px;margin-bottom:16px;min-width:0}
+  .g-item>label{flex:none;width:88px;font-size:13px;color:var(--text-secondary);text-align:right;padding-top:6px;white-space:nowrap}
+  .g-item>label.required::before{content:"*";color:var(--danger);margin-right:2px}
+  .g-item>label.plain{padding-top:0;height:32px;display:flex;align-items:center}
+  .g-ctl{flex:1;min-width:0;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .g-ctl:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .g-ctl::placeholder{color:var(--text-placeholder)}
+  .g-ctl[readonly]{background:#F5F5F5;color:var(--text-secondary);cursor:default}
+  .g-textarea{flex:1;min-width:0;height:88px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:8px 10px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;resize:vertical;font-family:inherit;transition:all var(--transition-fast)}
+  .g-textarea:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .radio-line{display:flex;align-items:center;gap:18px;height:32px}
+  .radio-line label{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-primary);cursor:pointer}
+  .radio-line input{width:14px;height:14px;accent-color:var(--primary);cursor:pointer}
+  .g-err{flex:none;width:88px}
+  .g-tip{font-size:12px;color:var(--text-tertiary);line-height:1.6;padding-top:7px;flex:none;width:100%}
+
+  /* ---- 新增组：所属村级联选择（单输入框 + 级联面板） ---- */
+  .cas-wrap{position:relative;flex:1;min-width:0}
+  .cas-box{display:flex;align-items:center;gap:6px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 8px;background:var(--bg-white);cursor:pointer;transition:all var(--transition-fast)}
+  .cas-box:hover,.cas-box.open{border-color:var(--primary)}
+  .cas-seg{flex:1;min-width:0;display:flex;align-items:center;gap:6px;overflow:hidden;font-size:13px}
+  .cas-tag{flex:none;display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:11px;background:var(--primary-bg);color:var(--primary);font-size:12px;white-space:nowrap}
+  .cas-ph{color:var(--text-placeholder);white-space:nowrap;font-size:13px}
+  .cas-arrow{flex:none;width:14px;height:14px;display:flex;align-items:center;justify-content:center;color:var(--text-tertiary)}
+  .cas-arrow svg{width:10px;height:6px;transition:transform var(--transition-fast)}
+  .cas-box.open .cas-arrow svg{transform:rotate(180deg)}
+  .cas-panel{position:absolute;top:36px;left:0;width:100%;min-width:420px;background:var(--bg-white);border:1px solid #E4E7ED;border-radius:6px;box-shadow:0 8px 28px rgba(0,0,0,0.16);display:none;z-index:calc(var(--z-modal) + 2)}
+  .cas-panel.open{display:flex}
+  .cas-col{flex:1;min-width:0;max-height:240px;overflow:auto;padding:4px 0}
+  .cas-col + .cas-col{border-left:1px solid #F0F2F5}
+  .cas-col-title{padding:6px 12px;font-size:12px;color:var(--text-tertiary);border-bottom:1px solid #F0F2F5}
+  .cas-opt{display:flex;align-items:center;height:30px;padding:0 12px;font-size:13px;color:var(--text-secondary);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cas-opt:hover{background:#F5F7FA}
+  .cas-opt.sel{background:var(--primary-bg);color:var(--primary);font-weight:var(--font-weight-medium)}
+  .cas-empty{padding:14px 12px;font-size:13px;color:var(--text-placeholder)}
+
+  /* ===== 居中确认弹窗 ===== */
+  .cfm-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:calc(var(--z-modal) + 3);opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .cfm-overlay.show{opacity:1;pointer-events:auto}
+  .cfm{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.96);width:400px;max-width:92vw;background:var(--bg-white);border-radius:8px;box-shadow:0 12px 40px rgba(0,0,0,0.2);z-index:calc(var(--z-modal) + 4);opacity:0;pointer-events:none;transition:all var(--transition-normal);display:flex;flex-direction:column}
+  .cfm-overlay.show .cfm{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+  .cfm-body{padding:24px 20px 6px;display:flex;gap:12px;align-items:flex-start}
+  .cfm-ico{flex:none;width:36px;height:36px;border-radius:50%;background:var(--warning-bg);display:flex;align-items:center;justify-content:center}
+  .cfm-ico svg{width:18px;height:18px;stroke:var(--warning);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .cfm-txt{font-size:14px;color:var(--text-primary);line-height:1.7;padding-top:5px}
+  .cfm-txt b{color:var(--danger)}
+  .cfm-foot{display:flex;justify-content:flex-end;gap:8px;padding:16px 20px}
+</style>
+</head>
+<body>
+
+<div class="main-area">
+
+  <div class="tabbar">
+    <div class="tab-item active">区域网格化管理</div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <div class="page-head">
+        <h1>区域网格化管理</h1>
+      </div>
+
+      <div class="split">
+
+        <!-- ===== 左侧：区域树 ===== -->
+        <div class="tree-panel">
+          <div class="pull-bar">
+            <div class="pull-row">
+              <select class="p-select is-placeholder" id="regionSel" onchange="onRegionChange(this)">
+                <option value="">请选择区域</option>
+                <option>江都区</option>
+                <option>邗江区</option>
+                <option>广陵区</option>
+              </select>
+              <button class="btn-pull" id="btnPull" onclick="pullAdmin()">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span id="btnPullTxt">拉取行政区划</span>
+              </button>
+            </div>
+          </div>
+          <div class="tree-search" id="treeSearchBox" style="display:none">
+            <div class="ts-box">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input id="treeKw" placeholder="搜索镇 / 村名称" oninput="renderTree()">
+            </div>
+          </div>
+          <div class="tree-body" id="treeBody">
+            <div class="tree-empty">
+              <svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9h.01M9 12h.01M9 15h.01M9 18h.01"/></svg>
+              <div>请选择区域<br>点击「拉取行政区划」获取层级结构</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== 右侧：组信息 ===== -->
+        <div class="grid-panel">
+          <div class="crumb-bar" id="crumbBar"></div>
+          <div class="stat-strip" id="statStrip" style="display:none"></div>
+          <div class="table-wrap" id="tableWrap"></div>
+          <div class="page-foot" id="pageFoot" style="display:none"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 抽屉：新增 / 编辑组 ===== -->
+<div class="drawer-mask" id="drawerMask" onclick="closeDrawer()"></div>
+<div class="drawer" id="groupDrawer">
+  <div class="drawer-head">
+    <h3 id="drawerTitle">新增组</h3>
+    <div class="drawer-close" onclick="closeDrawer()">✕</div>
+  </div>
+  <div class="drawer-body">
+    <div class="g-item">
+      <label class="required">所属村</label>
+      <input class="g-ctl" id="gVillage" readonly style="display:none">
+      <div class="cas-wrap" id="casWrap" style="display:none">
+        <div class="cas-box" id="casBox" onclick="toggleCasPanel(event)">
+          <span class="cas-seg" id="casSegs"></span>
+          <span class="cas-arrow"><svg viewBox="0 0 10 6" fill="none" stroke="#8c8c8c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l4 4 4-4"/></svg></span>
+        </div>
+        <div class="cas-panel" id="casPanel">
+          <div class="cas-col">
+            <div class="cas-col-title">镇</div>
+            <div id="casTownCol"></div>
+          </div>
+          <div class="cas-col">
+            <div class="cas-col-title">村</div>
+            <div id="casVilCol"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="g-item">
+      <label class="required">组名</label>
+      <input class="g-ctl" id="gName" maxlength="20" placeholder="请输入组名，如：第一组">
+    </div>
+    <div class="g-item">
+      <label>组长</label>
+      <input class="g-ctl" id="gLeader" maxlength="10" placeholder="请输入组长姓名">
+    </div>
+    <div class="g-item">
+      <label>联系电话</label>
+      <input class="g-ctl" id="gPhone" maxlength="11" placeholder="请输入 11 位手机号">
+    </div>
+    <div class="g-item">
+      <label>组员数</label>
+      <input class="g-ctl" id="gMembers" type="number" min="0" placeholder="请输入组员数">
+    </div>
+    <div class="g-item">
+      <label>覆盖户数</label>
+      <input class="g-ctl" id="gHouseholds" type="number" min="0" placeholder="请输入覆盖户数">
+    </div>
+    <div class="g-item">
+      <label class="plain">状态</label>
+      <div class="radio-line">
+        <label><input type="radio" name="gStatus" value="启用" checked>启用</label>
+        <label><input type="radio" name="gStatus" value="停用">停用</label>
+      </div>
+    </div>
+    <div class="g-item">
+      <label class="plain" style="align-items:flex-start;padding-top:6px">备注</label>
+      <textarea class="g-textarea" id="gNote" maxlength="100" placeholder="请输入备注信息"></textarea>
+    </div>
+  </div>
+  <div class="drawer-foot">
+    <button class="btn btn-default" onclick="closeDrawer()">取消</button>
+    <button class="btn btn-primary" onclick="saveGroup()">保存</button>
+  </div>
+</div>
+
+<!-- ===== 居中确认弹窗 ===== -->
+<div class="cfm-overlay" id="cfmOverlay">
+  <div class="cfm">
+    <div class="cfm-body">
+      <div class="cfm-ico">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="cfm-txt" id="cfmTxt"></div>
+    </div>
+    <div class="cfm-foot">
+      <button class="btn btn-default" onclick="closeCfm()">取消</button>
+      <button class="btn btn-primary" id="cfmOk">确定</button>
+    </div>
+  </div>
+</div>
+
+<script src="框架.js" data-page="area-grid-management" data-embed="auto"></script>
+<script>
+'use strict';
+
+/* ================= 行政区划数据（拉取来源，按区域划分） ================= */
+  var ADMIN = {
+    '江都区': [
+      { t: '仙女镇', v: ['双沟村', '三荡村', '民和村', '樊庄村', '正谊村'] },
+      { t: '樊川镇', v: ['永安村', '聚丰村', '圣禾村', '东汇村'] },
+      { t: '大桥镇', v: ['昌西村', '松山村', '童兴村', '六河村'] },
+      { t: '丁伙镇', v: ['新庄村', '高桥村', '锦东村', '丁伙村'] },
+      { t: '郭村镇', v: ['东进村', '邠州村', '汤营村', '五和村'] },
+      { t: '邵伯镇', v: ['崔桥村', '许庄村', '昭关坝村', '南渡村'] },
+      { t: '小纪镇', v: ['纪西村', '吉东村', '宗村', '蒲塘村'] }
+    ],
+    '邗江区': [
+      { t: '瓜洲镇', v: ['军桥村', '冻青村'] },
+      { t: '槐泗镇', v: ['槐二村', '林桥村', '酒甸村'] }
+    ],
+    '广陵区': [
+      { t: '湾头镇', v: ['万福村', '田庄村'] },
+      { t: '头桥镇', v: ['头桥村', '九圣村', '红平村'] }
+    ]
+  };
+
+  /* ================= 组信息数据（key = 区/镇/村） ================= */
+  var GROUPS = {
+    '江都区/仙女镇/双沟村': [
+      { id: 1, name: '第一组', leader: '张建国', phone: '13805271234', members: 46, households: 38, status: '启用', note: '含原东片区' },
+      { id: 2, name: '第二组', leader: '李秀芳', phone: '13905275678', members: 52, households: 45, status: '启用', note: '' },
+      { id: 3, name: '第三组', leader: '王德海', phone: '13705279012', members: 35, households: 30, status: '停用', note: '并入第二组待调整' }
+    ],
+    '江都区/樊川镇/永安村': [
+      { id: 4, name: '永安一组', leader: '赵永康', phone: '13605273345', members: 40, households: 33, status: '启用', note: '' },
+      { id: 5, name: '永安二组', leader: '陈玉梅', phone: '13505276789', members: 37, households: 29, status: '启用', note: '沿河片区' }
+    ]
+  };
+  var gSeq = 6;
+
+  /* ================= 页面状态 ================= */
+  var pulled = false;          // 是否已拉取
+  var curRegion = '';          // 当前区域
+  var selKey = '';             // 当前选中节点（区/镇/村 key）
+  var EXPANDED = {};           // 树展开状态
+  var curPage = 1;
+  var PAGE_SIZE = 10;
+  var editIdx = -1;            // 抽屉编辑下标（-1 = 新增）
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function markSelect(el) { el.classList.toggle('is-placeholder', !el.value); }
+
+  /* ================= 区域选择 / 拉取 ================= */
+  function onRegionChange(sel) {
+    markSelect(sel);
+    if (sel.value && sel.value !== curRegion && pulled) {
+      openCfm('切换区域将清空当前树结构（组信息不受影响），是否继续？<br><span style="font-size:12px;color:var(--text-tertiary)">一次性拉取所选区域下辖的区、镇、村三级行政区划，已维护的组信息不受影响。</span>', function () {
+        doPull(sel.value);
+      }, function () {
+        sel.value = curRegion;
+        markSelect(sel);
+      });
+      return;
+    }
+    if (sel.value && !pulled) { pullAdmin(); }
+  }
+
+  function pullAdmin() {
+    var region = $('regionSel').value;
+    if (!region) { toast('请先选择区域', 'warning'); return; }
+    if (pulled) {
+      openCfm('重新拉取将刷新区 / 镇 / 村结构，已维护的组信息不受影响，是否继续？', function () {
+        doPull(region);
+      });
+      return;
+    }
+    doPull(region);
+  }
+
+  function doPull(region) {
+    var btn = $('btnPull');
+    btn.disabled = true;
+    btn.classList.add('loading');
+    $('btnPullTxt').textContent = '拉取中…';
+    setTimeout(function () {
+      curRegion = region;
+      pulled = true;
+      EXPANDED = {};
+      EXPANDED[region] = true;              // 默认展开区节点
+      selKey = region;                       // 拉取后默认选中区节点
+      curPage = 1;
+      btn.disabled = false;
+      btn.classList.remove('loading');
+      $('btnPullTxt').textContent = '重新拉取';
+      $('treeSearchBox').style.display = '';
+      $('treeKw').value = '';
+      renderTree();
+      renderRight();
+      var towns = ADMIN[region], vcnt = 0;
+      towns.forEach(function (r) { vcnt += r.v.length; });
+      toast('行政区划拉取成功：1 个区、' + towns.length + ' 个镇、' + vcnt + ' 个村', 'success');
+    }, 900);
+  }
+
+  /* ================= 树渲染 ================= */
+  var ICONS = {
+    region: '<svg class="ico-region" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>',
+    town: '<svg class="ico-town" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M6 21V8h8v13"/><path d="M14 12h4v9"/><path d="M9 11h.01M9 14h.01M9 17h.01"/></svg>',
+    village: '<svg class="ico-village" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V10l7-5 7 5v11"/><path d="M9 21v-4h6v4"/><path d="M12 9h.01"/></svg>'
+  };
+
+  function villageKey(region, town, vil) { return region + '/' + town + '/' + vil; }
+  function groupCountOf(key) { return (GROUPS[key] || []).length; }
+
+  function hlText(name, kw) {
+    if (!kw) return esc(name);
+    var i = name.indexOf(kw);
+    if (i < 0) return esc(name);
+    return esc(name.slice(0, i)) + '<b>' + esc(kw) + '</b>' + esc(name.slice(i + kw.length));
+  }
+
+  function renderTree() {
+    if (!pulled) return;
+    var kw = ($('treeKw').value || '').trim();
+    var html = '<div class="tnode' + (selKey === curRegion ? ' selected' : '') + '" onclick="selectNode(\'' + esc(curRegion) + '\')">'
+      + '<span class="tw' + (EXPANDED[curRegion] ? ' expanded' : '') + '" onclick="event.stopPropagation();toggleExpand(\'' + esc(curRegion) + '\')">'
+      + '<svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>'
+      + '<span class="t-ico">' + ICONS.region + '</span>'
+      + '<span class="t-name">' + hlText(curRegion, kw) + '</span>'
+      + '<span class="t-meta">' + ADMIN[curRegion].length + ' 镇</span>'
+      + '</div>';
+    html += buildTownHtml(ADMIN[curRegion], curRegion, kw);
+    $('treeBody').innerHTML = html;
+  }
+
+  function buildTownHtml(towns, region, kw) {
+    var html = '';
+    towns.forEach(function (r) {
+      var tk = region + '/' + r.t;
+      var townHit = !kw || r.t.indexOf(kw) >= 0 || r.v.some(function (v) { return v.indexOf(kw) >= 0; });
+      if (kw && !townHit) return;
+      var expand = !!EXPANDED[tk] || (!!kw && r.v.some(function (v) { return v.indexOf(kw) >= 0; }));
+      var vHit = kw ? r.v.filter(function (v) { return v.indexOf(kw) >= 0; }) : r.v;
+      var vlist = kw ? vHit : r.v;
+      var vgs = 0;
+      r.v.forEach(function (v) { vgs += groupCountOf(villageKey(region, r.t, v)); });
+      html += '<div class="tnode' + (selKey === tk ? ' selected' : '') + '" onclick="selectNode(\'' + esc(tk) + '\')">'
+        + '<span class="tw' + (expand ? ' expanded' : '') + '" onclick="event.stopPropagation();toggleExpand(\'' + esc(tk) + '\')">'
+        + '<svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>'
+        + '<span class="t-ico">' + ICONS.town + '</span>'
+        + '<span class="t-name">' + hlText(r.t, kw) + '</span>'
+        + '<span class="t-meta">' + r.v.length + ' 村 · ' + vgs + ' 组</span>'
+        + '</div>';
+      if (expand) {
+        html += '<div class="tchildren">';
+        vlist.forEach(function (v) {
+          var vk = villageKey(region, r.t, v);
+          var gc = groupCountOf(vk);
+          html += '<div class="tnode' + (selKey === vk ? ' selected' : '') + '" onclick="selectNode(\'' + esc(vk) + '\')">'
+            + '<span class="tw leaf"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>'
+            + '<span class="t-ico">' + ICONS.village + '</span>'
+            + '<span class="t-name">' + hlText(v, kw) + '</span>'
+            + '<span class="t-meta">' + gc + ' 组</span>'
+            + '</div>';
+        });
+        html += '</div>';
+      }
+    });
+    return html;
+  }
+
+  function toggleExpand(key) {
+    EXPANDED[key] = !EXPANDED[key];
+    renderTree();
+  }
+
+  function selectNode(key) {
+    selKey = key;
+    curPage = 1;
+    renderTree();
+    renderRight();
+  }
+
+  /* ================= 右侧渲染 ================= */
+  function parseSel() {
+    var parts = selKey.split('/');
+    return {
+      level: parts.length === 1 ? 'region' : (parts.length === 2 ? 'town' : 'village'),
+      region: parts[0],
+      town: parts[1] || '',
+      village: parts[2] || '',
+      key: selKey
+    };
+  }
+
+  function viewRows(sel) {
+    var rows = [];
+    var towns = ADMIN[sel.region] || [];
+    towns.forEach(function (r) {
+      if (sel.level === 'town' && r.t !== sel.town) return;
+      r.v.forEach(function (v) {
+        var gs = GROUPS[villageKey(sel.region, r.t, v)] || [];
+        gs.forEach(function (g) {
+          rows.push({ village: v, town: r.t, g: g });
+        });
+      });
+    });
+    return rows;
+  }
+
+  function renderRight() {
+    if (!selKey) {
+      $('crumbBar').innerHTML = '<span style="font-size:13px;color:var(--text-tertiary)">暂未选择节点</span>'
+        + '<button class="btn btn-primary" onclick="openDrawer(-1)">新增组</button>';
+      $('statStrip').style.display = 'none';
+      $('pageFoot').style.display = 'none';
+      $('tableWrap').innerHTML = '<div class="tbl-empty">'
+        + '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
+        + '<div>请在左侧选择区 / 镇 / 村节点</div><div class="sub">选择村节点后可维护该村组信息</div></div>';
+      return;
+    }
+    var sel = parseSel();
+    var segs = [{ txt: sel.region, key: sel.region }];
+    if (sel.town) segs.push({ txt: sel.town, key: sel.region + '/' + sel.town });
+    if (sel.village) segs.push({ txt: sel.village, key: sel.key });
+    var html = '<svg class="c-ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
+    segs.forEach(function (s, i) {
+      html += '<span class="crumb-seg' + (i === segs.length - 1 ? ' cur' : '') + '" onclick="selectNode(\'' + esc(s.key) + '\')">' + esc(s.txt) + '</span>';
+      if (i < segs.length - 1) html += '<span class="crumb-sep">/</span>';
+    });
+    html += '<button class="btn btn-primary" onclick="openDrawer(-1)">新增组</button>';
+    $('crumbBar').innerHTML = html;
+
+    renderStats(sel);
+    renderTable(sel);
+  }
+
+  function renderStats(sel) {
+    var rows = viewRows(sel);
+    var total = rows.length;
+    var hh = 0, leaders = 0, on = 0;
+    rows.forEach(function (r) {
+      hh += (+r.g.households || 0);
+      if (r.g.leader) leaders++;
+      if (r.g.status === '启用') on++;
+    });
+    var lbl = sel.level === 'village' ? '该村' : (sel.level === 'town' ? '该镇' : '全区');
+    var cfg = [
+      { cls: 'sc-blue', ico: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>', num: total, name: '组总数' },
+      { cls: 'sc-green', ico: '<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>', num: hh, name: '覆盖户数' },
+      { cls: 'sc-orange', ico: '<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>', num: leaders, name: '组长已配置' },
+      { cls: 'sc-purple', ico: '<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>', num: on, name: '启用组数' }
+    ];
+    $('statStrip').innerHTML = cfg.map(function (c) {
+      return '<div class="stat-chip ' + c.cls + '"><span class="s-ico">' + c.ico + '</span>'
+        + '<span class="s-txt"><div class="s-num">' + c.num + '</div><div class="s-lbl">' + lbl + ' · ' + c.name + '</div></span></div>';
+    }).join('');
+    $('statStrip').style.display = 'flex';
+  }
+
+  function renderTable(sel) {
+    var rows = viewRows(sel);
+    var isVillage = sel.level === 'village';
+    var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+    if (curPage > totalPages) curPage = totalPages;
+    var pageRows = rows.slice((curPage - 1) * PAGE_SIZE, curPage * PAGE_SIZE);
+
+    var cols = [{ w: 52, h: '序号' }];
+    if (!isVillage) cols.push({ w: 110, h: '所属村' });
+    cols = cols.concat([
+      { w: 120, h: '组名' }, { w: 90, h: '组长' }, { w: 120, h: '联系电话' },
+      { w: 70, h: '组员数' }, { w: 80, h: '覆盖户数' }, { w: 70, h: '状态' },
+      { flex: true, h: '备注' }, { w: 110, h: '操作' }
+    ]);
+    var minWidth = isVillage ? 1000 : 1120;
+    var html = '<table class="list-tbl" style="min-width:' + minWidth + 'px"><colgroup>';
+    cols.forEach(function (c) { html += '<col' + (c.flex ? '' : ' style="width:' + c.w + 'px"') + '>'; });
+    html += '</colgroup><thead><tr>';
+    cols.forEach(function (c) { html += '<th>' + esc(c.h) + '</th>'; });
+    html += '</tr></thead><tbody>';
+
+    if (!pageRows.length) {
+      var span = cols.length;
+      var tip = isVillage
+        ? '当前村尚未维护组信息，点击右上角「新增组」开始维护'
+        : (sel.level === 'town' ? '该镇各村尚未维护组信息' : '全区各村尚未维护组信息');
+      html += '<tr><td colspan="' + span + '"><div class="tbl-empty">'
+        + '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>'
+        + '<div>' + tip + '</div></div></td></tr>';
+    } else {
+      pageRows.forEach(function (r, i) {
+        var g = r.g;
+        var base = (curPage - 1) * PAGE_SIZE + i + 1;
+        html += '<tr>';
+        html += '<td class="center">' + base + '</td>';
+        if (!isVillage) {
+          html += '<td><span class="op-link vill-link" onclick="jumpVillage(\'' + esc(villageKey(sel.region, r.town, r.village)) + '\')">' + esc(r.village) + '</span></td>';
+        }
+        html += '<td>' + esc(g.name) + '</td>';
+        html += '<td>' + (g.leader ? esc(g.leader) : '<span class="dash">—</span>') + '</td>';
+        html += '<td class="num">' + (g.phone ? esc(g.phone) : '<span class="dash">—</span>') + '</td>';
+        html += '<td class="center num">' + (g.members != null ? g.members : '<span class="dash">—</span>') + '</td>';
+        html += '<td class="center num">' + (g.households != null ? g.households : '<span class="dash">—</span>') + '</td>';
+        html += '<td><span class="st-tag ' + (g.status === '启用' ? 'st-on' : 'st-off') + '"><i></i>' + esc(g.status) + '</span></td>';
+        html += '<td title="' + esc(g.note || '') + '">' + (g.note ? esc(g.note) : '<span class="dash">—</span>') + '</td>';
+        html += '<td>'
+          + '<span class="op-link" onclick="toggleStatus(' + g.id + ')">' + (g.status === '启用' ? '停用' : '启用') + '</span>'
+          + '<span class="op-gap"></span>'
+          + '<span class="op-link" onclick="openDrawer(' + g.id + ')">编辑</span>'
+          + '<span class="op-gap"></span>'
+          + '<span class="op-link danger" onclick="delGroup(' + g.id + ')">删除</span>'
+          + '</td>';
+        html += '</tr>';
+      });
+    }
+    html += '</tbody></table>';
+    $('tableWrap').innerHTML = html;
+    renderFoot(rows.length, totalPages);
+  }
+
+  function renderFoot(total, totalPages) {
+    if (!total) { $('pageFoot').style.display = 'none'; return; }
+    var html = '<span class="pg-total">共 <b>' + total + '</b> 条</span><div class="pg-pager">';
+    html += '<span class="pg-btn' + (curPage <= 1 ? ' disabled' : '') + '" onclick="goPage(' + (curPage - 1) + ')">‹</span>';
+    for (var p = 1; p <= totalPages; p++) {
+    if (totalPages > 7 && p > 3 && p < totalPages - 1 && Math.abs(p - curPage) > 1) {
+      if (p === 4) html += '<span style="padding:0 4px;color:var(--text-tertiary)">…</span>';
+      continue;
+    }
+      html += '<span class="pg-btn' + (p === curPage ? ' active' : '') + '" onclick="goPage(' + p + ')">' + p + '</span>';
+    }
+    html += '<span class="pg-btn' + (curPage >= totalPages ? ' disabled' : '') + '" onclick="goPage(' + (curPage + 1) + ')" style="margin-left:4px">›</span>';
+    html += '</div>';
+    $('pageFoot').innerHTML = html;
+    $('pageFoot').style.display = 'flex';
+  }
+
+  function goPage(p) {
+    var rows = viewRows(parseSel());
+    var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+    if (p < 1 || p > totalPages || p === curPage) return;
+    curPage = p;
+    renderTable(parseSel());
+  }
+
+  function jumpVillage(vk) { selectNode(vk); }
+
+  /* ================= 组维护：所属村级联选择 ================= */
+  var drawerTown = '', drawerVillage = '';
+
+  function renderCasBox() {
+    var html = '<span class="cas-tag">' + esc(curRegion) + '</span>';
+    html += drawerTown
+      ? '<span class="cas-tag">' + esc(drawerTown) + '</span>'
+      : '<span class="cas-ph">请选择镇</span>';
+    html += drawerVillage
+      ? '<span class="cas-tag">' + esc(drawerVillage) + '</span>'
+      : '<span class="cas-ph">请选择村</span>';
+    $('casSegs').innerHTML = html;
+    renderCasPanel();
+  }
+
+  function renderCasPanel() {
+    var th = '';
+    ADMIN[curRegion].forEach(function (r) {
+      th += '<div class="cas-opt' + (r.t === drawerTown ? ' sel' : '') + '" onclick="event.stopPropagation();pickCasTown(\'' + esc(r.t) + '\')">' + esc(r.t) + '</div>';
+    });
+    $('casTownCol').innerHTML = th;
+    var vh = '';
+    if (drawerTown) {
+      var hit = ADMIN[curRegion].filter(function (r) { return r.t === drawerTown; })[0];
+      if (hit) hit.v.forEach(function (v) {
+        vh += '<div class="cas-opt' + (v === drawerVillage ? ' sel' : '') + '" onclick="event.stopPropagation();pickCasVillage(\'' + esc(v) + '\')">' + esc(v) + '</div>';
+      });
+    } else {
+      vh = '<div class="cas-empty">请先选择镇</div>';
+    }
+    $('casVilCol').innerHTML = vh;
+  }
+
+  function toggleCasPanel(e) {
+    e.stopPropagation();
+    $('casPanel').classList.toggle('open');
+    $('casBox').classList.toggle('open');
+  }
+
+  function closeCasPanel() {
+    $('casPanel').classList.remove('open');
+    $('casBox').classList.remove('open');
+  }
+
+  function pickCasTown(t) {
+    drawerTown = t;
+    drawerVillage = '';
+    renderCasBox();
+  }
+
+  function pickCasVillage(v) {
+    drawerVillage = v;
+    renderCasBox();
+    closeCasPanel();
+  }
+
+  document.addEventListener('click', function () { closeCasPanel(); });
+
+  function findGroup(id) {
+    for (var k in GROUPS) {
+      for (var i = 0; i < GROUPS[k].length; i++) {
+        if (GROUPS[k][i].id === id) return { key: k, idx: i, g: GROUPS[k][i] };
+      }
+    }
+    return null;
+  }
+
+  function openDrawer(id) {
+    var g;
+    if (id == null || id < 0) {
+      if (!pulled) { toast('请先选择区域并拉取行政区划', 'warning'); return; }
+      editIdx = -1;
+      $('drawerTitle').textContent = '新增组';
+      /* 未选村节点时：单个级联输入框自行选择镇 / 村 */
+      var sel = parseSel();
+      $('gVillage').style.display = 'none';
+      $('casWrap').style.display = '';
+      drawerTown = sel.town || '';
+      drawerVillage = sel.village || '';
+      renderCasBox();
+      closeCasPanel();
+      $('gName').value = '';
+      $('gLeader').value = '';
+      $('gPhone').value = '';
+      $('gMembers').value = '';
+      $('gHouseholds').value = '';
+      $('gNote').value = '';
+      var radios = document.getElementsByName('gStatus');
+      for (var i = 0; i < radios.length; i++) radios[i].checked = radios[i].value === '启用';
+    } else {
+      var hit = findGroup(id);
+      if (!hit) return;
+      g = hit.g;
+      editIdx = id;
+      $('drawerTitle').textContent = '编辑组';
+      $('gVillage').style.display = '';
+      $('casWrap').style.display = 'none';
+      closeCasPanel();
+      var parts = hit.key.split('/');
+      $('gVillage').value = parts[2];
+      $('gName').value = g.name;
+      $('gLeader').value = g.leader || '';
+      $('gPhone').value = g.phone || '';
+      $('gMembers').value = g.members != null ? g.members : '';
+      $('gHouseholds').value = g.households != null ? g.households : '';
+      $('gNote').value = g.note || '';
+      var rs = document.getElementsByName('gStatus');
+      for (var j = 0; j < rs.length; j++) rs[j].checked = rs[j].value === g.status;
+    }
+    $('drawerMask').classList.add('show');
+    $('groupDrawer').classList.add('show');
+    setTimeout(function () { $('gName').focus(); }, 220);
+  }
+
+  function closeDrawer() {
+    $('drawerMask').classList.remove('show');
+    $('groupDrawer').classList.remove('show');
+  }
+
+  function statusVal() {
+    var rs = document.getElementsByName('gStatus');
+    for (var i = 0; i < rs.length; i++) if (rs[i].checked) return rs[i].value;
+    return '启用';
+  }
+
+  function saveGroup() {
+    var name = $('gName').value.trim();
+    if (!name) { toast('请输入组名', 'warning'); $('gName').focus(); return; }
+    var phone = $('gPhone').value.trim();
+    if (phone && !/^1[3-9]\d{9}$/.test(phone)) { toast('联系电话格式不正确，请输入 11 位手机号', 'warning'); $('gPhone').focus(); return; }
+    var members = $('gMembers').value === '' ? null : Math.max(0, +$('gMembers').value || 0);
+    var households = $('gHouseholds').value === '' ? null : Math.max(0, +$('gHouseholds').value || 0);
+
+    if (editIdx < 0) {
+      var town = drawerTown, vil = drawerVillage;
+      if (!town) { toast('请选择所属镇', 'warning'); return; }
+      if (!vil) { toast('请选择所属村', 'warning'); return; }
+      var vk = villageKey(curRegion, town, vil);
+      var dup = (GROUPS[vk] || []).some(function (x) { return x.name === name; });
+      if (dup) { toast('该村已存在同名组：「' + name + '」', 'warning'); return; }
+      (GROUPS[vk] = GROUPS[vk] || []).push({
+        id: gSeq++, name: name, leader: $('gLeader').value.trim(),
+        phone: phone, members: members, households: households,
+        status: statusVal(), note: $('gNote').value.trim()
+      });
+      toast('新增组「' + name + '」成功', 'success');
+      /* 保存后自动定位到该村节点，便于查看刚维护的组 */
+      selKey = vk;
+      EXPANDED[curRegion] = true;
+      EXPANDED[curRegion + '/' + town] = true;
+      curPage = 1;
+    } else {
+      var hit = findGroup(editIdx);
+      if (!hit) return;
+      var dup2 = GROUPS[hit.key].some(function (x, i) { return x.name === name && i !== hit.idx; });
+      if (dup2) { toast('该村已存在同名组：「' + name + '」', 'warning'); return; }
+      hit.g.name = name;
+      hit.g.leader = $('gLeader').value.trim();
+      hit.g.phone = phone;
+      hit.g.members = members;
+      hit.g.households = households;
+      hit.g.status = statusVal();
+      hit.g.note = $('gNote').value.trim();
+      toast('组「' + name + '」保存成功', 'success');
+    }
+    closeDrawer();
+    renderTree();
+    renderRight();
+  }
+
+  function toggleStatus(id) {
+    var hit = findGroup(id);
+    if (!hit) return;
+    hit.g.status = hit.g.status === '启用' ? '停用' : '启用';
+    toast('组「' + hit.g.name + '」已' + hit.g.status, 'success');
+    renderTree();
+    renderRight();
+  }
+
+  function delGroup(id) {
+    var hit = findGroup(id);
+    if (!hit) return;
+    openCfm('确定删除组 <b>「' + esc(hit.g.name) + '」</b> 吗？删除后不可恢复。', function () {
+      GROUPS[hit.key].splice(hit.idx, 1);
+      if (!GROUPS[hit.key].length) delete GROUPS[hit.key];
+      toast('组「' + hit.g.name + '」已删除', 'success');
+      renderTree();
+      renderRight();
+    });
+  }
+
+  /* ================= 居中确认弹窗 ================= */
+  var cfmCb = null;
+  function openCfm(html, onOk, onCancel) {
+    $('cfmTxt').innerHTML = html;
+    cfmCb = onOk || null;
+    $('cfmOverlay').classList.add('show');
+    $('cfmOverlay').__cancel = onCancel || null;
+  }
+  function closeCfm() {
+    var ov = $('cfmOverlay');
+    ov.classList.remove('show');
+    if (ov.__cancel) { ov.__cancel(); ov.__cancel = null; }
+    cfmCb = null;
+  }
+  $('cfmOk').onclick = function () {
+    var cb = cfmCb;
+    $('cfmOverlay').classList.remove('show');
+    $('cfmOverlay').__cancel = null;
+    cfmCb = null;
+    if (cb) cb();
+  };
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if ($('cfmOverlay').classList.contains('show')) { $('cfmOverlay').__cancel = null; $('cfmOverlay').classList.remove('show'); cfmCb = null; return; }
+    if ($('groupDrawer').classList.contains('show')) closeDrawer();
+  });
+
+  /* ================= 初始化：默认直接展示江都区数据，无需拉取 ================= */
+  markSelect($('regionSel'));
+  (function initDefault() {
+    var sel = $('regionSel');
+    sel.value = '江都区';
+    markSelect(sel);
+    curRegion = '江都区';
+    pulled = true;
+    EXPANDED = {};
+    EXPANDED[curRegion] = true;
+    selKey = curRegion;
+    curPage = 1;
+    $('btnPull').disabled = false;
+    $('btnPullTxt').textContent = '重新拉取';
+    $('treeSearchBox').style.display = '';
+    $('treeKw').value = '';
+    renderTree();
+    renderRight();
+  })();
+</script>
+</body>
+</html>

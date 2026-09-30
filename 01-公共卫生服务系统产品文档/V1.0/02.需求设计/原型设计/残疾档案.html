@@ -59,6 +59,8 @@
   .st-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:middle}
   .st-dot.unlock{background:#FF9500}
   .st-dot.lock{background:var(--danger)}
+  .st-dot.ok{background:#07c160}
+  .pg-ellipsis{padding:0 4px;color:var(--text-tertiary)}
 
   /* 操作列 */
   .op-link{color:var(--primary);cursor:pointer;font-size:13px}
@@ -89,6 +91,33 @@
   .modal-body{padding:16px 16px 4px}
   .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
   .modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:18px 20px 20px}
+
+  /* ===== 新建残疾人专项（选人查询弹窗） ===== */
+  .modal-select{width:1080px;max-width:96vw}
+  .sel-query{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 22px;padding:2px 0 14px}
+  .sel-item{display:flex;align-items:center;gap:8px;min-width:0}
+  .sel-item label{width:62px;text-align:right;font-size:13px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
+  .sel-item .fi-ctl,.sel-item .fi-select{flex:1;min-width:0}
+  .sel-btns{grid-column:1/-1;display:flex;justify-content:flex-end;gap:8px;padding-top:8px}
+  .sel-wrap{max-height:46vh;overflow:auto}
+  .sel-foot{border-top:1px solid var(--color-neutral-200);padding-top:12px}
+
+  /* ===== 弹窗表格：固定列宽 + 冻结前2列与操作列 ===== */
+  .table-wrap.sel-wrap .list-tbl{table-layout:fixed;width:1122px}
+  .table-wrap.sel-wrap .list-tbl th{position:sticky;top:0;z-index:5}
+  .table-wrap.sel-wrap .list-tbl th.fx-l,.table-wrap.sel-wrap .list-tbl td.fx-l{position:sticky;z-index:3}
+  .table-wrap.sel-wrap .list-tbl th.fx-l{z-index:6}
+  .table-wrap.sel-wrap .list-tbl tbody td.fx-l{background:var(--bg-white)}
+  .table-wrap.sel-wrap .list-tbl tbody tr:nth-child(even) td.fx-l{background:var(--bg-table-even)}
+  .table-wrap.sel-wrap .list-tbl tbody tr:hover td.fx-l{background:var(--primary-bg)}
+  .table-wrap.sel-wrap .list-tbl td.f0,.table-wrap.sel-wrap .list-tbl th.f0{left:0}
+  .table-wrap.sel-wrap .list-tbl td.f1,.table-wrap.sel-wrap .list-tbl th.f1{left:44px}
+  .table-wrap.sel-wrap .list-tbl td.f1{box-shadow:inset -1px 0 0 #E4E7ED}
+  .table-wrap.sel-wrap .list-tbl th.fx-r,.table-wrap.sel-wrap .list-tbl td.fx-r{position:sticky;right:0;z-index:3}
+  .table-wrap.sel-wrap .list-tbl th.fx-r{z-index:6}
+  .table-wrap.sel-wrap .list-tbl tbody td.fx-r{background:var(--bg-white);box-shadow:inset 1px 0 0 #E4E7ED}
+  .table-wrap.sel-wrap .list-tbl tbody tr:nth-child(even) td.fx-r{background:var(--bg-table-even)}
+  .table-wrap.sel-wrap .list-tbl tbody tr:hover td.fx-r{background:var(--primary-bg)}
 
   .fm-row{display:flex;align-items:center;gap:8px;margin-bottom:14px}
   .fm-row label{width:88px;text-align:right;font-size:14px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
@@ -132,7 +161,7 @@
         <div class="right">
           <button class="btn btn-default" onclick="toast('导出功能建设中','info')">导出</button>
           <button class="btn btn-default" onclick="toast('请连接身份证读卡器','info')">身份证读卡</button>
-          <button class="btn btn-primary" onclick="openCreateModal()">新建</button>
+          <button class="btn btn-primary" onclick="openSelectModal()">新建</button>
         </div>
       </div>
 
@@ -248,100 +277,85 @@
   </div>
 </div>
 
-<!-- ===== 新建残疾档案弹框 ===== -->
-<div class="modal-overlay" id="createModal">
-  <div class="modal">
+<!-- ===== 新建残疾人专项（选人查询弹窗） ===== -->
+<div class="modal-overlay" id="selectModal">
+  <div class="modal modal-select">
     <div class="modal-head">
-      <h3>新建残疾档案</h3>
-      <span class="modal-close" onclick="closeCreateModal()">×</span>
+      <h3>新建残疾人专项</h3>
+      <span class="modal-close" onclick="closeSelectModal()">×</span>
     </div>
     <div class="modal-body">
-      <div class="modal-grid">
-        <div class="fm-row">
-          <label><i>*</i>管理机构：</label>
-          <select id="cmOrg" class="fm-select">
+      <div class="sel-query">
+        <div class="sel-item"><label>姓名</label><input id="sqName" class="fi-ctl" placeholder="请输入"></div>
+        <div class="sel-item"><label>证件类型</label>
+          <select id="sqIdType" class="fi-select">
+            <option value="" selected>请选择</option>
+            <option value="居民身份证">居民身份证</option>
+            <option value="居民户口簿">居民户口簿</option>
+            <option value="护照">护照</option>
+            <option value="港澳居民来往内地通行证">港澳居民来往内地通行证</option>
+          </select>
+        </div>
+        <div class="sel-item"><label>证件号</label><input id="sqIdcard" class="fi-ctl" placeholder="请输入"></div>
+        <div class="sel-item"><label>管理机构</label>
+          <select id="sqOrg" class="fi-select">
             <option value="" selected>请选择</option>
             <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
             <option value="扬州市江都区郭村镇卫生院">扬州市江都区郭村镇卫生院</option>
             <option value="扬州市江都区滨江人民医院">扬州市江都区滨江人民医院</option>
           </select>
         </div>
-        <div class="fm-row">
-          <label><i>*</i>姓名：</label>
-          <div class="fm-ctl-wrap">
-            <input id="cmName" class="fm-ctl has-cnt" maxlength="20" placeholder="请输入">
-            <span class="cnt" id="cntName">0/20</span>
-          </div>
-        </div>
-        <div class="fm-row">
-          <label><i>*</i>性别：</label>
-          <select id="cmGender" class="fm-select">
+        <div class="sel-item"><label>管理网格</label>
+          <select id="sqGrid" class="fi-select">
             <option value="" selected>请选择</option>
-            <option value="男">男</option>
-            <option value="女">女</option>
+            <option value="黄思社区网格">黄思社区网格</option>
+            <option value="五舍村网格">五舍村网格</option>
+            <option value="周西社区网格">周西社区网格</option>
+            <option value="东苑社区网格">东苑社区网格</option>
+            <option value="龙川社区网格">龙川社区网格</option>
           </select>
         </div>
-        <div class="fm-row">
-          <label><i>*</i>出生日期：</label>
-          <input id="cmBirth" class="fm-ctl" type="text" placeholder="请选择日期"
-                 onfocus="this.type='date';try{this.showPicker()}catch(e){}"
-                 onblur="if(!this.value){this.type='text'}">
-        </div>
-        <div class="fm-row">
-          <label><i>*</i>证件类型：</label>
-          <select id="cmIdType" class="fm-select">
-            <option value="居民身份证" selected>居民身份证</option>
-            <option value="居民户口簿">居民户口簿</option>
-            <option value="护照">护照</option>
-            <option value="港澳居民来往内地通行证">港澳居民来往内地通行证</option>
-            <option value="台湾居民来往大陆通行证">台湾居民来往大陆通行证</option>
-          </select>
-        </div>
-        <div class="fm-row">
-          <label><i>*</i>证件号：</label>
-          <div class="fm-ctl-wrap" style="display:flex;gap:6px;align-items:center">
-            <input id="cmIdcard" class="fm-ctl has-cnt" maxlength="18" placeholder="请输入证件号" style="flex:1">
-            <span class="cnt" id="cntIdcard" style="position:static">0/18</span>
-          </div>
-        </div>
-        <div class="fm-row">
-          <label>婚姻状况：</label>
-          <select id="cmMarital" class="fm-select">
-            <option value="" selected>请选择</option>
-            <option value="未婚">未婚</option>
-            <option value="已婚">已婚</option>
-            <option value="离异">离异</option>
-            <option value="丧偶">丧偶</option>
-          </select>
-        </div>
-        <div class="fm-row">
-          <label>筛查结果：</label>
-          <select id="cmScreen" class="fm-select">
-            <option value="" selected>请选择</option>
-            <option value="阴性">阴性</option>
-            <option value="阳性">阳性</option>
-          </select>
-        </div>
-        <div class="fm-row">
-          <label>是否领取低保：</label>
-          <select id="cmWelfare" class="fm-select">
-            <option value="" selected>请选择</option>
-            <option value="未领取">未领取</option>
-            <option value="已领取">已领取</option>
-          </select>
-        </div>
-        <div class="fm-row">
-          <label>锁定状态：</label>
-          <select id="cmLock" class="fm-select">
-            <option value="未上锁" selected>未上锁</option>
-            <option value="已锁定">已锁定</option>
-          </select>
+        <div class="sel-item"><label>档案编号</label><input id="sqArch" class="fi-ctl" placeholder="请输入"></div>
+        <div class="sel-btns">
+          <button class="btn btn-default" onclick="selReset()">重置</button>
+          <button class="btn btn-primary" onclick="selQuery()">查询</button>
         </div>
       </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-primary" onclick="submitCreate()">保存</button>
-      <button class="btn btn-default" onclick="closeCreateModal()">取消</button>
+
+      <div class="table-wrap sel-wrap">
+        <table class="list-tbl">
+          <colgroup>
+            <col style="width:44px"><col style="width:176px"><col style="width:90px"><col style="width:150px"><col style="width:160px"><col style="width:190px"><col style="width:96px"><col style="width:96px"><col style="width:120px">
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="center fx-l f0">序号</th>
+              <th class="fx-l f1">档案编号</th>
+              <th>姓名</th>
+              <th>人群类型</th>
+              <th>管辖行政村</th>
+              <th>管理机构</th>
+              <th class="center">居民状态</th>
+              <th class="center">锁定状态</th>
+              <th class="center fx-r">操作</th>
+            </tr>
+          </thead>
+          <tbody id="selBody"></tbody>
+        </table>
+      </div>
+
+      <div class="page-foot sel-foot">
+        <span class="pg-total">共 <b id="selTotal">0</b> 条</span>
+        <span class="pg-size">
+          <select id="selSizeSel" onchange="selSize=parseInt(this.value)||20;selPage=1;renderSel()">
+            <option value="20" selected>20条/页</option>
+            <option value="50">50条/页</option>
+            <option value="100">100条/页</option>
+          </select>
+        </span>
+        <span class="pg-pager" id="selPager"></span>
+        <span class="pg-jump">跳至第 <input id="selJump" value="1" onkeydown="if(event.key==='Enter'){var p=parseInt(this.value);if(p>0)selGo(p)}"> 页</span>
+      </div>
     </div>
   </div>
 </div>
@@ -450,56 +464,145 @@
     $(id).addEventListener('change', renderTable);
   });
 
-  /* ================= 新建残疾档案弹框 ================= */
-  function openCreateModal() {
-    $('cmOrg').value = '';
-    $('cmName').value = ''; $('cntName').textContent = '0/20';
-    $('cmGender').value = '';
-    var birth = $('cmBirth'); birth.type = 'text'; birth.value = '';
-    $('cmIdType').value = '居民身份证';
-    $('cmIdcard').value = ''; $('cntIdcard').textContent = '0/18';
-    $('cmMarital').value = '';
-    $('cmScreen').value = '';
-    $('cmWelfare').value = '';
-    $('cmLock').value = '未上锁';
-    $('createModal').classList.add('show');
-  }
+  /* ================= 新建残疾人专项（选人查询弹窗） ================= */
+  var SEL_NAMES = ['卢钢呀', '张晓晓', '张喜喜', '王海云', '李大海', '李文顺', '王秀英', '赵德明', '孙丽华', '周建国',
+    '吴桂芳', '郑玉兰', '钱志强', '冯春梅', '蒋永福', '沈美珍', '韩淑芬', '杨国栋', '朱小兰', '胡长青',
+    '何建军', '高素芹', '林凤英', '罗永强', '梁秀珍', '宋国庆', '唐雅琴', '许建军', '邓桂芝', '马文斌',
+    '方秀兰', '崔国强', '潘新华', '曹国庆', '袁秀英', '邓丽华', '彭永平', '苏桂香', '蒋海燕', '蔡永康'];
+  var SEL_ORG = ['山东大学齐鲁医院', '扬州市江都区郭村镇卫生院', '扬州市江都区滨江人民医院'];
+  var SEL_GRID = ['黄思社区网格', '五舍村网格', '周西社区网格', '东苑社区网格', '龙川社区网格'];
+  var SEL_VILLAGE = ['黄思社区', '五舍村', '周西社区', '善玉村', '东苑社区', '龙川社区', '孔庄村', '三周村'];
+  var SEL_CROWD = ['残疾人', '重度残疾人', '老年人 残疾人', '高血压 残疾人', '糖尿病 残疾人', '精神障碍 残疾人'];
 
-  function closeCreateModal() {
-    $('createModal').classList.remove('show');
-  }
-
-  /* 证件号满 18 位：自动解析出生日期与性别 */
-  function parseIdcard() {
-    var v = $('cmIdcard').value.trim();
-    if (!/^\d{17}[\dXx]$/.test(v)) return;
-    $('cmBirth').value = v.slice(6, 10) + '-' + v.slice(10, 12) + '-' + v.slice(12, 14);
-    $('cmGender').value = (parseInt(v[16], 10) % 2 === 1) ? '男' : '女';
-    toast('已根据证件号自动填充出生日期与性别', 'success');
-  }
-
-  function submitCreate() {
-    var missing = [];
-    if (!$('cmOrg').value) missing.push('管理机构');
-    if (!$('cmName').value.trim()) missing.push('姓名');
-    if (!$('cmGender').value) missing.push('性别');
-    if (!$('cmBirth').value) missing.push('出生日期');
-    if (!$('cmIdType').value) missing.push('证件类型');
-    var idcard = $('cmIdcard').value.trim();
-    if (!idcard) missing.push('证件号');
-    else if (!/^\d{17}[\dXx]$/.test(idcard)) { toast('证件号格式不正确，需为 18 位', 'warning'); return; }
-    if (missing.length) { toast('请完善必填项：' + missing.join('、'), 'warning'); return; }
-    closeCreateModal();
-    toast('残疾档案创建成功（原型演示）', 'success');
-  }
-
-  /* 弹框联动事件 */
-  $('cmIdcard').addEventListener('input', function () {
-    $('cntIdcard').textContent = this.value.length + '/18';
-    if (this.value.length === 18) parseIdcard();
+  /* 生成候选居民（选人查询） */
+  var candRows = SEL_NAMES.map(function (nm, i) {
+    var id = '[' + String(i + 1).padStart(2, '0') + ']' + (32101210310300004 + i * 137);
+    var birth = (1973 + (i % 34)) + '-' + String((i % 12) + 1).padStart(2, '0') + '-' + String((i % 28) + 1).padStart(2, '0');
+    return {
+      name: nm,
+      idcard: '370623' + birth.replace(/-/g, '') + String((1000 + i * 73) % 1000).padStart(3, '0') + ((i % 2) ? 'X' : String((i * 7 + 3) % 10)),
+      birth: birth,
+      age: 2026 - parseInt(birth.slice(0, 4), 10),
+      gender: (i % 2) ? '女' : '男',
+      phone: '13' + String((i * 79 + 33) % 90 + 10).padStart(2, '0') + '1234567',
+      idType: '居民身份证',
+      archNo: '3210121021032' + String(40000 + i * 91),
+      crowd: SEL_CROWD[i % SEL_CROWD.length],
+      grid: SEL_GRID[i % SEL_GRID.length],
+      village: SEL_VILLAGE[i % SEL_VILLAGE.length],
+      org: SEL_ORG[i % SEL_ORG.length]
+    };
   });
-  $('cmName').addEventListener('input', function () {
-    $('cntName').textContent = this.value.length + '/20';
+  var selFiltered = [], selPage = 1, selSize = 20;
+
+  function openSelectModal() {
+    selFiltered = candRows.slice();
+    selPage = 1;
+    renderSel();
+    $('selectModal').classList.add('show');
+  }
+  function closeSelectModal() {
+    $('selectModal').classList.remove('show');
+  }
+  function renderSel() {
+    var i, start = (selPage - 1) * selSize, end = Math.min(start + selSize, selFiltered.length);
+    var html = '';
+    if (selFiltered.length === 0) {
+      html = '<tr class="empty-row"><td colspan="9"><div class="ico" style="font-size:32px;margin-bottom:8px">📭</div>暂无符合条件的人员</td></tr>';
+    } else {
+      for (i = start; i < end; i++) {
+        var r = selFiltered[i];
+        html += '<tr>'
+          + '<td class="center fx-l f0">' + (i + 1) + '</td>'
+          + '<td class="fx-l f1" title="' + esc(r.archNo) + '"><span class="cell">' + esc(r.archNo) + '</span></td>'
+          + '<td>' + esc(r.name) + '</td>'
+          + '<td title="' + esc(r.crowd) + '"><span class="cell">' + esc(r.crowd) + '</span></td>'
+          + '<td>' + esc(r.village) + '</td>'
+          + '<td title="' + esc(r.org) + '"><span class="cell">' + esc(r.org) + '</span></td>'
+          + '<td class="center"><span class="st-dot ok"></span>正常</td>'
+          + '<td class="center"><span class="st-dot unlock"></span>未上锁</td>'
+          + '<td class="center fx-r"><a class="op-link" onclick="newService(' + i + ')">新建服务</a></td>'
+          + '</tr>';
+      }
+    }
+    $('selBody').innerHTML = html;
+    $('selTotal').textContent = selFiltered.length;
+    renderSelPager();
+  }
+  function renderSelPager() {
+    var total = selFiltered.length, pages = Math.max(1, Math.ceil(total / selSize));
+    if (selPage > pages) selPage = pages;
+    var out = '';
+    if (pages === 0) pages = 1;
+    out += '<button class="pg-btn" onclick="selPage=Math.max(1,selPage-1);renderSel()">‹</button>';
+    var win = [];
+    for (var p = 1; p <= pages; p++) {
+      if (p === 1 || p === pages || (p >= selPage - 1 && p <= selPage + 1)) win.push(p);
+      else if (win[win.length - 1] !== '…') win.push('…');
+    }
+    win.forEach(function (p) {
+      if (p === '…') out += '<span class="pg-ellipsis">…</span>';
+      else out += '<button class="pg-btn' + (p === selPage ? ' active' : '') + '" onclick="selPage=' + p + ';renderSel()">' + p + '</button>';
+    });
+    out += '<button class="pg-btn" onclick="selPage=Math.min(pages,selPage+1);renderSel()">›</button>';
+    $('selPager').innerHTML = out;
+    $('selJump').value = selPage;
+  }
+  function selGo(p) {
+    var pages = Math.max(1, Math.ceil(selFiltered.length / selSize));
+    if (p < 1) p = 1;
+    if (p > pages) p = pages;
+    selPage = p;
+    renderSel();
+  }
+  function selReset() {
+    $('sqName').value = ''; $('sqIdType').value = ''; $('sqIdcard').value = '';
+    $('sqOrg').value = ''; $('sqGrid').value = ''; $('sqArch').value = '';
+    selFiltered = candRows.slice();
+    selPage = 1;
+    renderSel();
+    toast('查询条件已重置', 'success');
+  }
+  function selQuery() {
+    var kw = $('sqName').value.trim(), it = $('sqIdType').value, ic = $('sqIdcard').value.trim();
+    var org = $('sqOrg').value, grid = $('sqGrid').value, arch = $('sqArch').value.trim();
+    selFiltered = candRows.filter(function (r) {
+      if (kw && r.name.indexOf(kw) === -1) return false;
+      if (it && r.idType.indexOf(it) === -1) return false;
+      if (ic && r.idcard.indexOf(ic) === -1) return false;
+      if (org && r.org !== org) return false;
+      if (grid && r.grid !== grid) return false;
+      if (arch && r.archNo.indexOf(arch) === -1) return false;
+      return true;
+    });
+    if (selFiltered.length) {
+      /* 仅一条时直接进入填报页 */
+      if (selFiltered.length === 1) { newService(0); return; }
+      selPage = 1;
+      renderSel();
+      toast('查询完成，共 ' + selFiltered.length + ' 条记录', 'success');
+    } else {
+      selPage = 1;
+      renderSel();
+      toast('未查询到符合条件的居民', 'warning');
+    }
+  }
+  function newService(idx) {
+    var r = selFiltered[idx];
+    if (!r) { toast('请选择人员', 'warning'); return; }
+    closeSelectModal();
+    var url = '档案维护.html?view=disability'
+      + '&name=' + encodeURIComponent(r.name)
+      + '&idcard=' + encodeURIComponent(r.idcard)
+      + '&birth=' + encodeURIComponent(r.birth)
+      + '&phone=' + encodeURIComponent(r.phone)
+      + '&archNo=' + encodeURIComponent(r.archNo);
+    window.location.href = url;
+  }
+
+  /* 查询输入即时过滤 */
+  ['sqName', 'sqIdcard', 'sqArch'].forEach(function (id) {
+    $(id).addEventListener('input', renderSel);
   });
 
   /* 初始渲染 */

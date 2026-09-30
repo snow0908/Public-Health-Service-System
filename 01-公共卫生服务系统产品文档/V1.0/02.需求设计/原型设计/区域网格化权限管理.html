@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>区域网格化权限管理 - 系统设置</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}
+
+  /* ===== 页头 ===== */
+  .page-head .right .btn{height:30px;padding:0 14px;font-size:13px}
+
+  /* ===== 筛选区 ===== */
+  .filter-panel{padding:14px 16px;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px}
+  .filter-item{display:flex;align-items:center;gap:4px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .fi-select.is-placeholder{color:var(--text-placeholder)}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+  /* ===== 数据表格 ===== */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+  .list-tbl th:last-child,.list-tbl td:last-child{position:sticky;right:0}
+  .list-tbl td:last-child{z-index:2;background-color:var(--bg-white)}
+  .list-tbl th:last-child{z-index:6}
+  .list-tbl{width:100%;min-width:1420px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:36px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:nth-child(even) td{background:var(--bg-table-even)}
+  .list-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .list-tbl .center{text-align:center}
+  .num{font-family:Consolas,'Microsoft YaHei',monospace}
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px}
+  .op-link:hover{text-decoration:underline}
+  .op-link.danger{color:var(--danger)}
+  .op-gap{display:inline-block;width:8px}
+  .tbl-empty{padding:50px 20px;text-align:center;color:var(--text-placeholder);font-size:13px}
+  .tbl-empty svg{width:44px;height:44px;stroke:var(--color-neutral-300);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:10px}
+
+  /* 管辖网格标签 */
+  .grid-tags{display:flex;align-items:center;gap:4px;overflow:hidden}
+  .grid-tag{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:10px;background:var(--primary-bg);color:var(--primary);font-size:12px;white-space:nowrap;flex:none}
+  .grid-more{font-size:12px;color:var(--text-tertiary);flex:none}
+  .grid-none{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#D9822B}
+  .grid-none i{width:6px;height:6px;border-radius:50%;background:#D9822B}
+
+  /* ===== 分页 ===== */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:44px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-btn.disabled{color:var(--text-disabled);cursor:not-allowed;border-color:#EBEBEB}
+
+  /* ===== 居中弹窗（导入医生用户 / 确认） ===== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .modal-overlay.show{opacity:1;pointer-events:auto}
+  .modal{position:fixed;left:50%;top:50%;width:860px;max-width:94vw;max-height:90vh;background:var(--bg-white);border-radius:8px;box-shadow:0 12px 40px rgba(0,0,0,0.2);display:flex;flex-direction:column;transform:translate(-50%,-50%) scale(.96);opacity:0;pointer-events:none;transition:all var(--transition-normal);z-index:calc(var(--z-modal) + 1)}
+  .modal-overlay.show .modal{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+  .modal-head{height:44px;display:flex;align-items:center;padding:0 16px;flex-shrink:0;border-bottom:1px solid #E8E8E8}
+  .modal-head h3{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+  .modal-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:18px;line-height:1}
+  .modal-close:hover{background:var(--primary-bg);color:var(--primary)}
+  .modal-body{flex:1;min-height:0;overflow:auto;padding:16px 20px}
+  .modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:12px 20px;border-top:1px solid #E8E8E8;flex-shrink:0}
+
+  /* ---- 导入弹窗 ---- */
+  .imp-tip{display:flex;gap:8px;align-items:flex-start;background:#F0F5FF;border:1px solid #D6E3FD;border-radius:6px;padding:10px 12px;font-size:12px;color:var(--text-secondary);line-height:1.7;margin-bottom:14px}
+  .imp-tip svg{flex:none;width:14px;height:14px;margin-top:2px;stroke:#3D6FE0;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .imp-filter{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin-bottom:12px}
+  .imp-result{display:flex;gap:10px;margin:12px 0 10px}
+  .imp-res-chip{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 12px;border-radius:13px;font-size:12px}
+  .irc-blue{background:#F0F5FF;color:#3D6FE0}
+  .irc-green{background:#F0FAE9;color:#52B61A}
+  .irc-grey{background:#F0F2F5;color:var(--text-tertiary)}
+  .imp-tbl-wrap{border:1px solid #E4E7ED;border-radius:6px;overflow:auto;max-height:280px}
+  .imp-tbl{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+  .imp-tbl th{position:sticky;top:0;height:32px;padding:0 10px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .imp-tbl td{height:34px;padding:0 10px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .imp-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .imp-tbl input[type=checkbox]{width:14px;height:14px;accent-color:var(--primary);cursor:pointer}
+  .imp-tbl input[type=checkbox]:disabled{cursor:not-allowed}
+  .st-normal{color:#52B61A}
+  .st-dup{color:var(--text-placeholder)}
+
+  /* ===== 右侧抽屉（配置管辖网格） ===== */
+  .drawer-mask{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:var(--z-modal);opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .drawer-mask.show{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:620px;max-width:96vw;background:var(--bg-white);box-shadow:-8px 0 30px rgba(0,0,0,0.15);display:flex;flex-direction:column;z-index:calc(var(--z-modal) + 1);transform:translateX(100%);transition:transform var(--transition-normal)}
+  .drawer.show{transform:translateX(0)}
+  .drawer-head{height:44px;flex-shrink:0;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid #E8E8E8}
+  .drawer-head h3{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+  .drawer-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:18px;line-height:1}
+  .drawer-close:hover{background:var(--primary-bg);color:var(--primary)}
+  .drawer-body{flex:1;min-height:0;overflow:auto;padding:16px 20px}
+  .drawer-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:12px 20px;border-top:1px solid #E8E8E8;flex-shrink:0}
+
+  /* ---- 医生信息卡 ---- */
+  .doc-card{background:#F7F9FC;border:1px solid #E8EDF3;border-radius:8px;padding:14px 16px;margin-bottom:18px}
+  .doc-card .dc-title{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:var(--font-weight-semibold);color:var(--text-primary);margin-bottom:12px}
+  .doc-card .dc-title::before{content:"";width:3px;height:13px;border-radius:2px;background:var(--primary)}
+  .dc-grid{display:grid;grid-template-columns:1fr 1fr;column-gap:18px;row-gap:10px}
+  .dc-row{display:flex;font-size:13px;line-height:1.6}
+  .dc-row .k{flex:none;width:70px;color:var(--text-tertiary)}
+  .dc-row .v{flex:1;min-width:0;color:var(--text-primary);word-break:break-all}
+
+  /* ---- 管辖网格区 ---- */
+  .sec-title{display:flex;align-items:center;gap:6px;margin:0 0 12px;font-size:13px;font-weight:var(--font-weight-semibold);color:var(--text-primary)}
+  .sec-title::before{content:"";width:3px;height:13px;border-radius:2px;background:var(--primary)}
+  .sec-title .cnt{font-weight:var(--font-weight-medium);color:var(--primary)}
+
+  /* 级联多选（区 / 镇 / 村） */
+  .cas-wrap{position:relative;flex:1;min-width:0}
+  .cas-row{display:flex;gap:8px;align-items:flex-start}
+  .cas-box{flex:1;display:flex;align-items:center;gap:6px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 8px;background:var(--bg-white);cursor:pointer;transition:all var(--transition-fast)}
+  .cas-box:hover,.cas-box.open{border-color:var(--primary)}
+  .cas-seg{flex:1;min-width:0;display:flex;align-items:center;gap:6px;overflow:hidden;font-size:13px}
+  .cas-tag{flex:none;display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:11px;background:var(--primary-bg);color:var(--primary);font-size:12px;white-space:nowrap}
+  .cas-more{flex:none;height:22px;padding:0 7px;border-radius:11px;background:#F0F2F5;color:var(--text-secondary);font-size:12px;display:inline-flex;align-items:center;white-space:nowrap}
+  .cas-count{flex:none;font-size:12px;color:var(--text-tertiary);white-space:nowrap}
+  .cas-ph{color:var(--text-placeholder);white-space:nowrap;font-size:13px}
+  .cas-arrow{flex:none;width:14px;height:14px;display:flex;align-items:center;justify-content:center;color:var(--text-tertiary)}
+  .cas-arrow svg{width:10px;height:6px;transition:transform var(--transition-fast)}
+  .cas-box.open .cas-arrow svg{transform:rotate(180deg)}
+  .cas-panel{position:absolute;top:36px;left:0;right:0;min-width:560px;background:var(--bg-white);border:1px solid #E4E7ED;border-radius:6px;box-shadow:0 8px 28px rgba(0,0,0,0.16);display:none;z-index:calc(var(--z-modal) + 2)}
+  .cas-panel.open{display:flex}
+  .cas-col{flex:1;min-width:0;max-height:240px;overflow:auto;padding:4px 0}
+  .cas-col + .cas-col{border-left:1px solid #F0F2F5}
+  .cas-col-title{padding:6px 12px;font-size:12px;color:var(--text-tertiary);border-bottom:1px solid #F0F2F5}
+  .cas-opt{display:flex;align-items:center;gap:8px;height:30px;padding:0 12px;font-size:13px;color:var(--text-secondary);white-space:nowrap}
+  .cas-opt:hover{background:#F5F7FA}
+  .cas-opt input[type=checkbox]{flex:none;width:14px;height:14px;accent-color:var(--primary);cursor:pointer}
+  .cas-opt .lbl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+  .cas-opt.leaf{cursor:pointer}
+  .cas-opt.leaf.sel,.cas-opt .lbl:hover{color:var(--primary)}
+  .cas-empty{padding:14px 12px;font-size:13px;color:var(--text-placeholder)}
+  .btn-add-grid{flex:none;height:32px;padding:0 16px;border-radius:var(--r-sm);border:1px solid var(--primary);background:var(--primary);color:#fff;font-size:13px;font-weight:var(--font-weight-medium);cursor:pointer;transition:all var(--transition-fast)}
+  .btn-add-grid:hover{background:var(--primary-hover)}
+  .btn-add-grid:disabled{background:var(--color-neutral-300);border-color:var(--color-neutral-300);cursor:not-allowed}
+
+  /* 已配置网格列表 */
+  .grid-list-tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .grid-list-tbl th{height:32px;padding:0 10px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .grid-list-tbl td{height:34px;padding:0 10px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .grid-list-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .grid-list-empty{padding:22px 10px;text-align:center;font-size:12px;color:var(--text-placeholder)}
+</style>
+</head>
+<body>
+
+<div class="main-area">
+
+  <div class="tabbar">
+    <div class="tab-item active">区域网格化权限管理</div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <div class="page-head">
+        <h1>区域网格化权限管理</h1>
+        <div class="right">
+          <button class="btn btn-primary" onclick="openImport()">导入医生用户</button>
+          <button class="btn btn-default" onclick="toastMsg('导出成功','success')">导出</button>
+        </div>
+      </div>
+
+      <div class="filter-panel">
+        <div class="filter-row">
+          <div class="filter-item">
+            <label>所属机构：</label>
+            <select class="fi-select is-placeholder" id="qOrg" onchange="markSelect(this)">
+              <option value="">请选择</option>
+              <option>滨江社区卫生服务中心</option>
+              <option>温江区第一人民医院</option>
+              <option>仙女镇卫生院</option>
+              <option>樊川镇卫生院</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>姓名：</label>
+            <input class="fi-ctl" id="qName" placeholder="请输入姓名">
+          </div>
+          <div class="filter-item">
+            <label>身份证号：</label>
+            <input class="fi-ctl" id="qIdcard" placeholder="请输入身份证号">
+          </div>
+          <div class="filter-item">
+            <label>用户名：</label>
+            <input class="fi-ctl" id="qUser" placeholder="请输入用户名">
+          </div>
+          <div class="filter-item">
+            <label>网格配置：</label>
+            <select class="fi-select is-placeholder" id="qGrid" onchange="markSelect(this)">
+              <option value="">请选择</option>
+              <option>已配置</option>
+              <option>未配置</option>
+            </select>
+          </div>
+          <div class="filter-btns">
+            <button class="btn btn-default" onclick="resetFilter()">重置</button>
+            <button class="btn btn-primary" onclick="queryFilter()">查询</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" id="tableWrap"></div>
+      <div class="page-foot" id="pageFoot"></div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== 居中弹窗：导入医生用户（列表选取） ===== -->
+<div class="modal-overlay" id="impOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>导入医生用户</h3>
+      <div class="modal-close" onclick="closeImport()">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="imp-tip">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span>从下方医生用户列表中勾选待导入的医生，确认后导入系统；已存在相同身份证号的用户将自动跳过。</span>
+      </div>
+      <div class="imp-filter">
+        <div class="filter-item">
+          <label>姓名：</label>
+          <input class="fi-ctl" id="iName" placeholder="请输入姓名" oninput="renderImportList()">
+        </div>
+        <div class="filter-item">
+          <label>身份证号：</label>
+          <input class="fi-ctl" id="iIdcard" placeholder="请输入身份证号" oninput="renderImportList()">
+        </div>
+        <div class="filter-item">
+          <label>所属机构：</label>
+          <select class="fi-select is-placeholder" id="iOrg" onchange="renderImportList()">
+            <option value="">请选择</option>
+            <option>滨江社区卫生服务中心</option>
+            <option>温江区第一人民医院</option>
+            <option>仙女镇卫生院</option>
+            <option>樊川镇卫生院</option>
+          </select>
+        </div>
+        <div class="filter-btns">
+          <button class="btn btn-default" onclick="resetImpFilter()">重置</button>
+        </div>
+      </div>
+      <div class="imp-result" id="impResult"></div>
+      <div class="imp-tbl-wrap">
+        <table class="imp-tbl">
+          <colgroup>
+            <col style="width:40px"><col style="width:80px"><col style="width:50px">
+            <col style="width:180px"><col style="width:110px"><col><col style="width:70px">
+          </colgroup>
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="impAll" onchange="toggleImpAll(this)"></th>
+              <th>姓名</th><th>性别</th><th>身份证号</th><th>用户名</th><th>所属机构</th><th>状态</th>
+            </tr>
+          </thead>
+          <tbody id="impBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeImport()">取消</button>
+      <button class="btn btn-primary" id="impOkBtn" onclick="doImport()" disabled>确认导入</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 右侧抽屉：配置管辖网格 ===== -->
+<div class="drawer-mask" id="drawerMask" onclick="closeDrawer()"></div>
+<div class="drawer" id="gridDrawer">
+  <div class="drawer-head">
+    <h3>配置管辖网格</h3>
+    <div class="drawer-close" onclick="closeDrawer()">✕</div>
+  </div>
+  <div class="drawer-body">
+    <div class="doc-card">
+      <div class="dc-title">医生信息</div>
+      <div class="dc-grid" id="docInfo"></div>
+    </div>
+    <div class="sec-title">管辖网格 <span class="cnt" id="gridCnt"></span></div>
+    <div class="cas-row">
+      <div class="cas-wrap">
+        <div class="cas-box" id="casBox" onclick="toggleCasPanel(event)">
+          <span class="cas-seg" id="casSegs"></span>
+          <span class="cas-arrow"><svg viewBox="0 0 10 6" fill="none" stroke="#8c8c8c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l4 4 4-4"/></svg></span>
+        </div>
+        <div class="cas-panel" id="casPanel">
+          <div class="cas-col">
+            <div class="cas-col-title">区</div>
+            <div id="casRegionCol"></div>
+          </div>
+          <div class="cas-col">
+            <div class="cas-col-title">镇</div>
+            <div id="casTownCol"></div>
+          </div>
+          <div class="cas-col">
+            <div class="cas-col-title">村</div>
+            <div id="casVilCol"></div>
+          </div>
+        </div>
+      </div>
+      <button class="btn-add-grid" id="btnAddGrid" onclick="addGrid()" disabled>添加所选</button>
+    </div>
+    <div style="font-size:12px;color:var(--text-tertiary);line-height:1.6;margin-top:6px">勾选区或镇可一次性选中其下辖所有村，支持跨区 / 跨镇多选，勾选后点击「添加所选」加入管辖网格。</div>
+    <div style="margin-top:14px">
+      <table class="grid-list-tbl">
+        <colgroup><col style="width:46px"><col style="width:110px"><col style="width:130px"><col><col style="width:60px"></colgroup>
+        <thead><tr><th>序号</th><th>区</th><th>镇</th><th>村</th><th>操作</th></tr></thead>
+        <tbody id="gridBody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="drawer-foot">
+    <button class="btn btn-default" onclick="closeDrawer()">取消</button>
+    <button class="btn btn-primary" onclick="saveGrids()">保存</button>
+  </div>
+</div>
+
+<!-- ===== 居中确认弹窗 ===== -->
+<div class="modal-overlay" id="cfmOverlay">
+  <div class="modal" style="width:400px">
+    <div class="modal-body" style="display:flex;gap:12px;align-items:flex-start;padding:24px 20px 6px">
+      <div style="flex:none;width:36px;height:36px;border-radius:50%;background:var(--warning-bg);display:flex;align-items:center;justify-content:center">
+        <svg width="18" height="18" viewBox="0 0 24 24" style="stroke:var(--warning);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="cfm-txt" id="cfmTxt"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeCfm()">取消</button>
+      <button class="btn btn-primary" id="cfmOk">确定</button>
+    </div>
+  </div>
+</div>
+
+<script src="框架.js" data-page="area-grid-permission" data-embed="auto"></script>
+<script>
+'use strict';
+
+/* ================= 行政区划数据（与区域网格化管理一致） ================= */
+var ADMIN = {
+  '江都区': [
+    { t: '仙女镇', v: ['双沟村', '三荡村', '民和村', '樊庄村', '正谊村'] },
+    { t: '樊川镇', v: ['永安村', '聚丰村', '圣禾村', '东汇村'] },
+    { t: '大桥镇', v: ['昌西村', '松山村', '童兴村', '六河村'] },
+    { t: '丁伙镇', v: ['新庄村', '高桥村', '锦东村', '丁伙村'] },
+    { t: '郭村镇', v: ['东进村', '邠州村', '汤营村', '五和村'] },
+    { t: '邵伯镇', v: ['崔桥村', '许庄村', '昭关坝村', '南渡村'] },
+    { t: '小纪镇', v: ['纪西村', '吉东村', '宗村', '蒲塘村'] }
+  ],
+  '邗江区': [
+    { t: '瓜洲镇', v: ['军桥村', '冻青村'] },
+    { t: '槐泗镇', v: ['槐二村', '林桥村', '酒甸村'] }
+  ],
+  '广陵区': [
+    { t: '湾头镇', v: ['万福村', '田庄村'] },
+    { t: '头桥镇', v: ['头桥村', '九圣村', '红平村'] }
+  ]
+};
+var REGIONS = ['江都区', '邗江区', '广陵区'];
+
+/* ================= 医生用户数据 ================= */
+var DOCTORS = [
+  { id: 1,  name: '张伟',   gender: '男', idcard: '320102198501120318', username: 'zhangwei',   org: '滨江社区卫生服务中心', grids: [{ r: '江都区', t: '仙女镇', v: '双沟村' }, { r: '江都区', t: '仙女镇', v: '三荡村' }], time: '2026-09-12' },
+  { id: 2,  name: '李娜',   gender: '女', idcard: '320102199002156822', username: 'lina',       org: '滨江社区卫生服务中心', grids: [], time: '' },
+  { id: 3,  name: '王强',   gender: '男', idcard: '320103198803224716', username: 'wangqiang',  org: '温江区第一人民医院',   grids: [{ r: '江都区', t: '樊川镇', v: '永安村' }], time: '2026-09-15' },
+  { id: 4,  name: '刘洋',   gender: '男', idcard: '320104199110058319', username: 'liuyang',    org: '仙女镇卫生院',         grids: [], time: '' },
+  { id: 5,  name: '陈静',   gender: '女', idcard: '320102198706304426', username: 'chenjing',   org: '滨江社区卫生服务中心', grids: [{ r: '江都区', t: '仙女镇', v: '民和村' }, { r: '江都区', t: '大桥镇', v: '昌西村' }, { r: '江都区', t: '丁伙镇', v: '新庄村' }], time: '2026-09-18' },
+  { id: 6,  name: '赵敏',   gender: '女', idcard: '320105199309177220', username: 'zhaomin',    org: '樊川镇卫生院',         grids: [], time: '' },
+  { id: 7,  name: '孙浩然', gender: '男', idcard: '320103198204119512', username: 'sunhaoran',  org: '温江区第一人民医院',   grids: [{ r: '邗江区', t: '瓜洲镇', v: '军桥村' }], time: '2026-09-20' },
+  { id: 8,  name: '周琳',   gender: '女', idcard: '320106199505236428', username: 'zhoulin',     org: '仙女镇卫生院',         grids: [], time: '' },
+  { id: 9,  name: '吴刚',   gender: '男', idcard: '320102198312089317', username: 'wugang',     org: '滨江社区卫生服务中心', grids: [{ r: '江都区', t: '邵伯镇', v: '崔桥村' }, { r: '江都区', t: '小纪镇', v: '纪西村' }], time: '2026-09-22' },
+  { id: 10, name: '郑雪梅', gender: '女', idcard: '320104199208196824', username: 'zhengxuemei', org: '温江区第一人民医院',  grids: [], time: '' }
+];
+var docSeq = 11;
+
+/* ================= 导入候选池（列表选取） ================= */
+var CANDIDATES = [
+  { name: '冯建军', gender: '男', idcard: '320102198607251517', username: 'fengjianjun', org: '滨江社区卫生服务中心' },
+  { name: '韩笑',   gender: '女', idcard: '320105199404028326', username: 'hanxiao',     org: '仙女镇卫生院' },
+  { name: '曹志远', gender: '男', idcard: '320103198911305319', username: 'caozhiyuan', org: '温江区第一人民医院' },
+  { name: '谢文静', gender: '女', idcard: '320106199606175420', username: 'xiewenjing', org: '樊川镇卫生院' },
+  { name: '罗大勇', gender: '男', idcard: '320102198501120318', username: 'luodayong',  org: '滨江社区卫生服务中心' },
+  { name: '邓丽君', gender: '女', idcard: '320104199709097622', username: 'denglijun',  org: '仙女镇卫生院' },
+  { name: '蒋春华', gender: '男', idcard: '320103198205166415', username: 'jiangchunhua', org: '温江区第一人民医院' },
+  { name: '宋雅琪', gender: '女', idcard: '320105199812213827', username: 'songyaqi',   org: '滨江社区卫生服务中心' },
+  { name: '杜文博', gender: '男', idcard: '320102199003158312', username: 'duwenbo',    org: '樊川镇卫生院' },
+  { name: '林晓峰', gender: '男', idcard: '320103199510306411', username: 'linxiaofeng', org: '仙女镇卫生院' },
+  { name: '何雨欣', gender: '女', idcard: '320106199206114826', username: 'heyuxin',    org: '温江区第一人民医院' },
+  { name: '高志强', gender: '男', idcard: '320102198808227419', username: 'gaozhiqiang', org: '滨江社区卫生服务中心' },
+  { name: '秦岚',   gender: '女', idcard: '320105199111275423', username: 'qinlan',     org: '仙女镇卫生院' },
+  { name: '侯明轩', gender: '男', idcard: '320104198409199316', username: 'houmingxuan', org: '樊川镇卫生院' }
+];
+
+/* ================= 页面状态 ================= */
+var curPage = 1;
+var PAGE_SIZE = 10;
+var impSelected = {};      // 导入列表勾选（idcard -> true）
+var editId = -1;          // 抽屉编辑的医生 id
+var drawerGrids = [];     // 抽屉编辑中的网格列表
+var cfmCb = null;
+
+function $(id) { return document.getElementById(id); }
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function toastMsg(msg, type) {
+  if (typeof window.toast === 'function') { window.toast(msg, type); return; }
+  var box = document.createElement('div');
+  box.className = 'toast show' + (type ? ' ' + type : '');
+  box.textContent = msg;
+  box.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);padding:10px 18px;background:#fff;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:9999;font-size:14px';
+  document.body.appendChild(box);
+  setTimeout(function () { box.remove(); }, 2400);
+}
+function markSelect(el) { el.classList.toggle('is-placeholder', !el.value); }
+
+/* ================= 筛选 ================= */
+function resetFilter() {
+  ['qOrg', 'qName', 'qIdcard', 'qUser', 'qGrid'].forEach(function (id) {
+    $(id).value = '';
+    if ($(id).tagName === 'SELECT') markSelect($(id));
+  });
+  curPage = 1;
+  renderTable();
+  toastMsg('筛选条件已重置');
+}
+function queryFilter() { curPage = 1; renderTable(); toastMsg('查询完成'); }
+
+function filtered() {
+  var org = $('qOrg').value, name = $('qName').value.trim();
+  var idc = $('qIdcard').value.trim(), user = $('qUser').value.trim();
+  var grid = $('qGrid').value;
+  return DOCTORS.filter(function (d) {
+    if (org && d.org !== org) return false;
+    if (name && d.name.indexOf(name) < 0) return false;
+    if (idc && d.idcard.indexOf(idc) < 0) return false;
+    if (user && d.username.indexOf(user) < 0) return false;
+    if (grid === '已配置' && !d.grids.length) return false;
+    if (grid === '未配置' && d.grids.length) return false;
+    return true;
+  });
+}
+
+/* ================= 表格渲染 ================= */
+function renderTable() {
+  var rows = filtered();
+  var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  if (curPage > totalPages) curPage = totalPages;
+  var pageRows = rows.slice((curPage - 1) * PAGE_SIZE, curPage * PAGE_SIZE);
+
+  var html = '<table class="list-tbl"><colgroup>'
+    + '<col style="width:52px"><col style="width:90px"><col style="width:50px"><col style="width:180px">'
+    + '<col style="width:120px"><col style="width:220px"><col><col style="width:100px"><col style="width:150px">'
+    + '</colgroup><thead><tr>'
+    + '<th>序号</th><th>姓名</th><th>性别</th><th>身份证号</th><th>用户名</th><th>所属机构</th><th>管辖网格</th><th>配置时间</th><th>操作</th>'
+    + '</tr></thead><tbody>';
+
+  if (!pageRows.length) {
+    html += '<tr><td colspan="9"><div class="tbl-empty">'
+      + '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
+      + '<div>暂无医生用户数据，点击右上角「导入医生用户」开始导入</div></div></td></tr>';
+  } else {
+    pageRows.forEach(function (d, i) {
+      var base = (curPage - 1) * PAGE_SIZE + i + 1;
+      html += '<tr>';
+      html += '<td class="center">' + base + '</td>';
+      html += '<td>' + esc(d.name) + '</td>';
+      html += '<td class="center">' + esc(d.gender) + '</td>';
+      html += '<td class="num">' + esc(d.idcard) + '</td>';
+      html += '<td class="num">' + esc(d.username) + '</td>';
+      html += '<td title="' + esc(d.org) + '">' + esc(d.org) + '</td>';
+      /* 管辖网格列 */
+      if (d.grids.length) {
+        var tags = '<span class="grid-tag">' + esc(d.grids[0].t) + '·' + esc(d.grids[0].v) + '</span>';
+        if (d.grids.length > 1) tags += '<span class="grid-tag">' + esc(d.grids[1].t) + '·' + esc(d.grids[1].v) + '</span>';
+        if (d.grids.length > 2) tags += '<span class="grid-more">等 ' + d.grids.length + ' 个</span>';
+        html += '<td><span class="grid-tags">' + tags + '</span></td>';
+        html += '<td class="num">' + esc(d.time || '—') + '</td>';
+      } else {
+        html += '<td><span class="grid-none"><i></i>未配置</span></td>';
+        html += '<td class="num" style="color:var(--text-placeholder)">—</td>';
+      }
+      html += '<td>'
+        + '<span class="op-link" onclick="openDrawer(' + d.id + ')">配置网格</span>'
+        + '<span class="op-gap"></span>'
+        + '<span class="op-link danger" onclick="removeDoctor(' + d.id + ')">移除</span>'
+        + '</td>';
+      html += '</tr>';
+    });
+  }
+  html += '</tbody></table>';
+  $('tableWrap').innerHTML = html;
+  renderFoot(rows.length, totalPages);
+}
+
+function renderFoot(total, totalPages) {
+  if (!total) { $('pageFoot').innerHTML = ''; return; }
+  var html = '<span class="pg-total">共 <b>' + total + '</b> 条</span><div class="pg-pager">';
+  html += '<span class="pg-btn' + (curPage <= 1 ? ' disabled' : '') + '" onclick="goPage(' + (curPage - 1) + ')">‹</span>';
+  for (var p = 1; p <= totalPages; p++) {
+    if (totalPages > 7 && p > 3 && p < totalPages - 1 && Math.abs(p - curPage) > 1) {
+      if (p === 4) html += '<span style="padding:0 4px;color:var(--text-tertiary)">…</span>';
+      continue;
+    }
+    html += '<span class="pg-btn' + (p === curPage ? ' active' : '') + '" onclick="goPage(' + p + ')">' + p + '</span>';
+  }
+  html += '<span class="pg-btn' + (curPage >= totalPages ? ' disabled' : '') + '" onclick="goPage(' + (curPage + 1) + ')" style="margin-left:4px">›</span>';
+  html += '</div>';
+  $('pageFoot').innerHTML = html;
+}
+
+function goPage(p) {
+  var rows = filtered();
+  var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  if (p < 1 || p > totalPages || p === curPage) return;
+  curPage = p;
+  renderTable();
+}
+
+/* ================= 导入医生用户（列表选取） ================= */
+function openImport() {
+  $('iName').value = '';
+  $('iIdcard').value = '';
+  $('iOrg').value = '';
+  markSelect($('iOrg'));
+  impSelected = {};
+  renderImportList();
+  $('impOverlay').classList.add('show');
+}
+function closeImport() { $('impOverlay').classList.remove('show'); }
+
+function isDupIdcard(idc) {
+  return DOCTORS.some(function (d) { return d.idcard === idc; });
+}
+
+function resetImpFilter() {
+  $('iName').value = '';
+  $('iIdcard').value = '';
+  $('iOrg').value = '';
+  markSelect($('iOrg'));
+  renderImportList();
+}
+
+function importListFiltered() {
+  var name = $('iName').value.trim(), idc = $('iIdcard').value.trim(), org = $('iOrg').value;
+  return CANDIDATES.filter(function (c) {
+    if (name && c.name.indexOf(name) < 0) return false;
+    if (idc && c.idcard.indexOf(idc) < 0) return false;
+    if (org && c.org !== org) return false;
+    return true;
+  });
+}
+
+function renderImportList() {
+  var rows = importListFiltered();
+  var dup = rows.filter(function (c) { return isDupIdcard(c.idcard); }).length;
+  var can = rows.length - dup;
+  $('impResult').innerHTML =
+    '<span class="imp-res-chip irc-blue">当前列表 ' + rows.length + ' 条</span>'
+    + '<span class="imp-res-chip irc-green">可导入 ' + can + ' 条</span>'
+    + (dup ? '<span class="imp-res-chip irc-grey">已存在（跳过）' + dup + ' 条</span>' : '');
+
+  var html = '';
+  if (!rows.length) {
+    html = '<tr><td colspan="7" style="text-align:center;color:var(--text-placeholder);padding:24px 10px">无匹配的医生用户</td></tr>';
+  } else {
+    rows.forEach(function (c) {
+      var dupRow = isDupIdcard(c.idcard);
+      var ck = !!impSelected[c.idcard];
+      html += '<tr>'
+        + '<td><input type="checkbox"' + (dupRow ? ' disabled' : '') + (ck ? ' checked' : '') + ' onchange="toggleImpOne(\'' + c.idcard + '\',this.checked)"></td>'
+        + '<td>' + esc(c.name) + '</td>'
+        + '<td>' + esc(c.gender) + '</td>'
+        + '<td class="num">' + esc(c.idcard) + '</td>'
+        + '<td class="num">' + esc(c.username) + '</td>'
+        + '<td>' + esc(c.org) + '</td>'
+        + '<td>' + (dupRow ? '<span class="st-dup">已存在</span>' : '<span class="st-normal">正常</span>') + '</td>'
+        + '</tr>';
+    });
+  }
+  $('impBody').innerHTML = html;
+
+  var canRows = rows.filter(function (c) { return !isDupIdcard(c.idcard); });
+  var sel = canRows.filter(function (c) { return impSelected[c.idcard]; }).length;
+  var all = $('impAll');
+  all.checked = canRows.length > 0 && sel === canRows.length;
+  all.indeterminate = sel > 0 && sel < canRows.length;
+  refreshImportBtn();
+}
+
+function toggleImpAll(cb) {
+  importListFiltered().forEach(function (c) {
+    if (!isDupIdcard(c.idcard)) impSelected[c.idcard] = cb.checked;
+  });
+  renderImportList();
+}
+
+function toggleImpOne(idcard, on) {
+  if (on) impSelected[idcard] = true; else delete impSelected[idcard];
+  renderImportList();
+}
+
+function refreshImportBtn() {
+  var n = Object.keys(impSelected).filter(function (k) { return impSelected[k]; }).length;
+  $('impOkBtn').disabled = n === 0;
+  $('impOkBtn').textContent = n ? '确认导入（' + n + '）' : '确认导入';
+}
+
+function doImport() {
+  var picked = Object.keys(impSelected).filter(function (k) { return impSelected[k]; });
+  if (!picked.length) return;
+  var cnt = 0;
+  picked.forEach(function (idc) {
+    var c = CANDIDATES.filter(function (x) { return x.idcard === idc; })[0];
+    if (!c || isDupIdcard(idc)) return;
+    DOCTORS.push({
+      id: docSeq++, name: c.name, gender: c.gender, idcard: c.idcard,
+      username: c.username, org: c.org, grids: [], time: ''
+    });
+    cnt++;
+  });
+  closeImport();
+  renderTable();
+  toastMsg('成功导入 ' + cnt + ' 个医生用户', 'success');
+}
+
+/* ================= 配置管辖网格（抽屉） ================= */
+function findDoc(id) {
+  for (var i = 0; i < DOCTORS.length; i++) if (DOCTORS[i].id === id) return DOCTORS[i];
+  return null;
+}
+
+function openDrawer(id) {
+  var d = findDoc(id);
+  if (!d) return;
+  editId = id;
+  drawerGrids = d.grids.map(function (g) { return { r: g.r, t: g.t, v: g.v }; });
+  $('docInfo').innerHTML =
+    '<div class="dc-row"><span class="k">姓名</span><span class="v">' + esc(d.name) + '</span></div>'
+    + '<div class="dc-row"><span class="k">性别</span><span class="v">' + esc(d.gender) + '</span></div>'
+    + '<div class="dc-row"><span class="k">身份证号</span><span class="v num">' + esc(d.idcard) + '</span></div>'
+    + '<div class="dc-row"><span class="k">用户名</span><span class="v num">' + esc(d.username) + '</span></div>'
+    + '<div class="dc-row"><span class="k">所属机构</span><span class="v">' + esc(d.org) + '</span></div>'
+    + '<div class="dc-row"><span class="k">已配网格</span><span class="v">' + d.grids.length + ' 个</span></div>';
+  casSel = {};
+  /* 回选：将已配置网格在级联多选中勾选回显，便于查看与追加 */
+  d.grids.forEach(function (g) { casSel[gkey(g.r, g.t, g.v)] = true; });
+  casFocusRegion = d.grids.length ? d.grids[0].r : REGIONS[0];
+  casFocusTown = d.grids.length ? d.grids[0].t : '';
+  renderCasBox();
+  closeCasPanel();
+  renderGridList();
+  $('drawerMask').classList.add('show');
+  $('gridDrawer').classList.add('show');
+}
+
+function closeDrawer() {
+  $('drawerMask').classList.remove('show');
+  $('gridDrawer').classList.remove('show');
+}
+
+/* ---- 级联多选（区 / 镇 / 村），勾选上级一次性选中全部下级 ---- */
+var casSel = {};               // 'r/t/v' -> true（待添加的勾选集）
+var casFocusRegion = '', casFocusTown = '';
+
+function gkey(r, t, v) { return r + '/' + t + '/' + v; }
+function selCount() { return Object.keys(casSel).length; }
+
+function regionKeys(rg) {
+  var ks = [];
+  ADMIN[rg].forEach(function (x) { x.v.forEach(function (v) { ks.push(gkey(rg, x.t, v)); }); });
+  return ks;
+}
+function townKeys(rg, t) {
+  var hit = ADMIN[rg].filter(function (x) { return x.t === t; })[0];
+  var ks = [];
+  if (hit) hit.v.forEach(function (v) { ks.push(gkey(rg, t, v)); });
+  return ks;
+}
+function allSelected(ks) { return ks.length > 0 && ks.every(function (k) { return casSel[k]; }); }
+function someSelected(ks) { return ks.some(function (k) { return casSel[k]; }); }
+
+function setKeys(ks, on) {
+  ks.forEach(function (k) { if (on) casSel[k] = true; else delete casSel[k]; });
+  renderCasBox();
+}
+function toggleRegion(rg) { setKeys(regionKeys(rg), !allSelected(regionKeys(rg))); }
+function toggleTown(rg, t) { setKeys(townKeys(rg, t), !allSelected(townKeys(rg, t))); }
+function toggleVillage(r, t, v) {
+  var k = gkey(r, t, v);
+  if (casSel[k]) delete casSel[k]; else casSel[k] = true;
+  renderCasBox();
+}
+function focusRegion(rg) { casFocusRegion = rg; casFocusTown = ''; renderCasBox(); }
+function focusTown(t) { casFocusTown = t; renderCasBox(); }
+
+function renderCasBox() {
+  var n = selCount(), html = '';
+  if (n) {
+    Object.keys(casSel).slice(0, 2).forEach(function (k) {
+      var p = k.split('/');
+      html += '<span class="cas-tag">' + esc(p[1]) + '·' + esc(p[2]) + '</span>';
+    });
+    if (n > 2) html += '<span class="cas-more">+' + (n - 2) + '</span>';
+    html += '<span class="cas-count">已选 ' + n + ' 个</span>';
+  } else {
+    html = '<span class="cas-ph">请选择管辖网格（支持多选）</span>';
+  }
+  $('casSegs').innerHTML = html;
+  renderCasPanel();
+  $('btnAddGrid').disabled = n === 0;
+}
+
+function renderCasPanel() {
+  var rh = '';
+  REGIONS.forEach(function (rg) {
+    var rks = regionKeys(rg);
+    var ck = allSelected(rks), ind = !ck && someSelected(rks);
+    rh += '<div class="cas-opt">'
+      + '<input type="checkbox"' + (ck ? ' checked' : '') + (ind ? ' data-ind="1"' : '')
+      + ' onclick="event.stopPropagation();toggleRegion(\'' + esc(rg) + '\')">'
+      + '<span class="lbl" onclick="event.stopPropagation();focusRegion(\'' + esc(rg) + '\')">' + esc(rg) + '</span>'
+      + '</div>';
+  });
+  $('casRegionCol').innerHTML = rh;
+
+  var th = '';
+  if (casFocusRegion) {
+    ADMIN[casFocusRegion].forEach(function (x) {
+      var tks = townKeys(casFocusRegion, x.t);
+      var ck = allSelected(tks), ind = !ck && someSelected(tks);
+      th += '<div class="cas-opt">'
+        + '<input type="checkbox"' + (ck ? ' checked' : '') + (ind ? ' data-ind="1"' : '')
+        + ' onclick="event.stopPropagation();toggleTown(\'' + esc(casFocusRegion) + '\',\'' + esc(x.t) + '\')">'
+        + '<span class="lbl" onclick="event.stopPropagation();focusTown(\'' + esc(x.t) + '\')">' + esc(x.t) + '</span>'
+        + '</div>';
+    });
+  } else {
+    th = '<div class="cas-empty">点击区名称查看下辖镇</div>';
+  }
+  $('casTownCol').innerHTML = th;
+
+  var vh = '';
+  if (casFocusRegion && casFocusTown) {
+    var hit = ADMIN[casFocusRegion].filter(function (x) { return x.t === casFocusTown; })[0];
+    if (hit) hit.v.forEach(function (v) {
+      var k = gkey(casFocusRegion, casFocusTown, v);
+      var tog = 'toggleVillage(\'' + esc(casFocusRegion) + '\',\'' + esc(casFocusTown) + '\',\'' + esc(v) + '\')';
+      vh += '<div class="cas-opt leaf' + (casSel[k] ? ' sel' : '') + '" onclick="event.stopPropagation();' + tog + '">'
+        + '<input type="checkbox"' + (casSel[k] ? ' checked' : '') + ' onclick="event.stopPropagation();' + tog + '">'
+        + '<span class="lbl">' + esc(v) + '</span>'
+        + '</div>';
+    });
+  } else {
+    vh = '<div class="cas-empty">点击镇名称查看下辖村</div>';
+  }
+  $('casVilCol').innerHTML = vh;
+
+  var inds = $('casPanel').querySelectorAll('input[data-ind]');
+  Array.prototype.forEach.call(inds, function (inp) { inp.indeterminate = true; });
+}
+
+function toggleCasPanel(e) {
+  e.stopPropagation();
+  $('casPanel').classList.toggle('open');
+  $('casBox').classList.toggle('open');
+}
+function closeCasPanel() {
+  $('casPanel').classList.remove('open');
+  $('casBox').classList.remove('open');
+}
+
+document.addEventListener('click', function () { closeCasPanel(); });
+
+/* ---- 网格列表 ---- */
+function renderGridList() {
+  $('gridCnt').textContent = '（已配置 ' + drawerGrids.length + ' 个）';
+  if (!drawerGrids.length) {
+    $('gridBody').innerHTML = '<tr><td colspan="5"><div class="grid-list-empty">暂未配置管辖网格，请在上方勾选区 / 镇 / 村后点击「添加所选」</div></td></tr>';
+    return;
+  }
+  var html = '';
+  drawerGrids.forEach(function (g, i) {
+    html += '<tr>'
+      + '<td>' + (i + 1) + '</td>'
+      + '<td>' + esc(g.r) + '</td>'
+      + '<td>' + esc(g.t) + '</td>'
+      + '<td>' + esc(g.v) + '</td>'
+      + '<td><span class="op-link danger" onclick="removeGrid(' + i + ')">移除</span></td>'
+      + '</tr>';
+  });
+  $('gridBody').innerHTML = html;
+}
+
+function addGrid() {
+  var keys = Object.keys(casSel);
+  if (!keys.length) return;
+  var added = 0, dup = 0;
+  keys.forEach(function (k) {
+    var p = k.split('/');
+    var exists = drawerGrids.some(function (g) { return gkey(g.r, g.t, g.v) === k; });
+    if (exists) { dup++; return; }
+    drawerGrids.push({ r: p[0], t: p[1], v: p[2] });
+    added++;
+  });
+  casSel = {};
+  renderCasBox();
+  renderGridList();
+  if (added) toastMsg('已添加 ' + added + ' 个管辖网格' + (dup ? '，' + dup + ' 个已存在自动跳过' : ''), 'success');
+  else toastMsg('所选网格均已配置，未重复添加', 'warning');
+}
+
+function removeGrid(i) {
+  drawerGrids.splice(i, 1);
+  renderGridList();
+}
+
+function saveGrids() {
+  var d = findDoc(editId);
+  if (!d) return;
+  if (!drawerGrids.length) {
+    openCfm('未配置任何管辖网格即保存，将<b>清空</b>该医生的管辖权限，是否继续？', function () { doSaveGrids(d); });
+    return;
+  }
+  doSaveGrids(d);
+}
+
+function doSaveGrids(d) {
+  d.grids = drawerGrids.map(function (g) { return { r: g.r, t: g.t, v: g.v }; });
+  d.time = drawerGrids.length ? '2026-09-28' : '';
+  closeDrawer();
+  renderTable();
+  toastMsg('医生「' + d.name + '」管辖网格保存成功（共 ' + d.grids.length + ' 个）', 'success');
+}
+
+/* ================= 移除医生 ================= */
+function removeDoctor(id) {
+  var d = findDoc(id);
+  if (!d) return;
+  openCfm('确定移除医生 <b>「' + esc(d.name) + '」</b> 吗？' + (d.grids.length ? '<br><span style="font-size:12px;color:var(--text-tertiary)">其已配置的 ' + d.grids.length + ' 个管辖网格将同时清除。</span>' : ''), function () {
+    var idx = DOCTORS.indexOf(d);
+    if (idx >= 0) DOCTORS.splice(idx, 1);
+    renderTable();
+    toastMsg('医生「' + d.name + '」已移除', 'success');
+  });
+}
+
+/* ================= 确认弹窗 ================= */
+function openCfm(html, onOk) {
+  $('cfmTxt').innerHTML = html;
+  cfmCb = onOk;
+  $('cfmOverlay').classList.add('show');
+}
+function closeCfm() {
+  $('cfmOverlay').classList.remove('show');
+  cfmCb = null;
+}
+$('cfmOk').onclick = function () {
+  var cb = cfmCb;
+  closeCfm();
+  if (cb) cb();
+};
+
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Escape') return;
+  if ($('cfmOverlay').classList.contains('show')) { closeCfm(); return; }
+  if ($('impOverlay').classList.contains('show')) { closeImport(); return; }
+  if ($('gridDrawer').classList.contains('show')) closeDrawer();
+});
+
+/* ================= 初始化 ================= */
+renderTable();
+</script>
+</body>
+</html>

@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>事件报告 - 卫生监督</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}
+
+  /* ===== 页头 ===== */
+  .page-head .right .btn{height:30px;padding:0 14px;font-size:13px}
+
+  /* ===== 筛选区 ===== */
+  .filter-panel{padding:14px 16px;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin-bottom:14px}
+  .filter-row:last-child{margin-bottom:0}
+  .filter-item{display:flex;align-items:center;gap:4px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .fi-select.is-placeholder{color:var(--text-placeholder)}
+  .fi-date{width:118px}
+  .fi-range{display:flex;align-items:center;gap:4px;color:var(--text-tertiary)}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+  /* ===== 数据表格 ===== */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+  .list-tbl th:last-child,.list-tbl td:last-child{position:sticky;right:0}
+  .list-tbl td:last-child{z-index:2;background-color:var(--bg-white)}
+  .list-tbl th:last-child{z-index:6}
+  .list-tbl{width:100%;min-width:1500px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:36px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:nth-child(even) td{background:var(--bg-table-even)}
+  .list-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .list-tbl .center{text-align:center}
+  .num{font-family:Consolas,'Microsoft YaHei',monospace}
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px}
+  .op-link:hover{text-decoration:underline}
+  .op-link.danger{color:var(--danger)}
+  .op-gap{display:inline-block;width:8px}
+  .tbl-empty{padding:50px 20px;text-align:center;color:var(--text-placeholder);font-size:13px}
+  .tbl-empty svg{width:44px;height:44px;stroke:var(--color-neutral-300);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:10px}
+
+  /* ===== 分页 ===== */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:44px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size{display:flex;align-items:center;gap:6px}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);padding:0 6px;background:#fff;outline:none;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-btn.disabled{color:var(--text-disabled);cursor:not-allowed;border-color:#EBEBEB}
+  .pg-jump{display:flex;align-items:center;gap:4px}
+  .pg-jump input{width:44px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);text-align:center;font-size:13px;color:var(--text-primary);outline:none}
+  .pg-jump input:focus{border-color:var(--primary)}
+
+  /* ===== 视图容器 ===== */
+  .view-page{display:none;flex:1;min-height:0;min-width:0;flex-direction:column}
+  .view-page.active{display:flex}
+
+  /* ===== 整页表单 / 详情 ===== */
+  .form-page{flex:1;overflow:auto;padding:18px 22px 30px;background:#F7F8FA}
+  .fv-card{background:var(--bg-white);border:1px solid #E8EDF3;border-radius:8px;overflow:hidden}
+  .fv-head{display:flex;align-items:center;gap:6px;height:42px;padding:0 16px;border-bottom:1px solid #E8EDF3;background:#FAFBFC}
+  .fv-head::before{content:"";width:3px;height:14px;border-radius:2px;background:var(--primary)}
+  .fv-head h3{font-size:14px;font-weight:var(--font-weight-semibold);color:var(--text-primary)}
+  .fv-body{padding:20px 24px}
+  .f-grid{display:grid;grid-template-columns:1fr 1fr;column-gap:24px;row-gap:0}
+  .f-grid .full{grid-column:1 / -1}
+  .f-row{display:flex;align-items:flex-start;margin-bottom:18px}
+  .f-row label{flex:none;width:148px;min-height:32px;display:flex;align-items:center;justify-content:flex-end;padding:0 10px;background:#F0F5FF;border:1px solid #E3ECFA;font-size:13px;color:var(--text-primary);box-sizing:border-box;position:relative}
+  .f-row label .req{position:absolute;left:6px;color:var(--danger);font-style:normal}
+  .f-row .f-ctl-box{flex:1;min-width:0;display:flex;align-items:center;gap:8px}
+  .f-row .f-ctl{flex:1;min-width:0;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);box-sizing:border-box}
+  .f-row .f-ctl:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .f-row .f-ctl.is-placeholder{color:var(--text-placeholder)}
+  .f-row select.f-ctl{padding-right:26px;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+  .f-row .f-ctl[readonly]{background:#F5F7FA;color:var(--text-secondary)}
+  .f-row textarea.f-ctl{height:88px;padding:8px 10px;resize:vertical;line-height:1.6}
+  .f-row .f-count{flex:none;font-size:12px;color:var(--text-tertiary);white-space:nowrap}
+  .f-row .f-count b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .f-row .f-date{width:160px;flex:none}
+
+  /* ---- 富文本编辑器 ---- */
+  .rte{border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);overflow:hidden;flex:1;min-width:0;background:var(--bg-white);position:relative;transition:border-color var(--transition-fast)}
+  .rte:focus-within{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .rte.fullscreen{position:fixed;inset:0;z-index:9998;border:none;border-radius:0;display:flex;flex-direction:column;box-shadow:none}
+  .rte.fullscreen .rte-toolbar{flex:none}
+  .rte.fullscreen .rte-area{flex:1;max-height:none;height:auto}
+  .rte-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:2px;padding:6px 8px;border-bottom:1px solid #E8E8E8;background:#FAFBFC}
+  .rte-btn{min-width:26px;height:26px;padding:0 5px;border:none;background:transparent;border-radius:4px;font-size:13px;color:var(--text-secondary);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+  .rte-btn:hover{background:#EEF2F7;color:var(--primary)}
+  .rte-btn.b{font-weight:700}
+  .rte-btn.i{font-style:italic}
+  .rte-btn.u{text-decoration:underline}
+  .rte-btn.s{text-decoration:line-through}
+  .rte-btn.sep{width:1px;height:16px;background:#E4E7ED;margin:0 4px}
+  .rte-area{min-height:120px;max-height:280px;overflow:auto;padding:10px 12px;font-size:14px;line-height:1.7;color:var(--text-primary);outline:none}
+  .rte-area.sm{min-height:96px}
+  .rte-area.lg{min-height:240px}
+  .rte-area:empty::before{content:attr(data-ph);color:var(--text-placeholder)}
+  .rte-area img{max-width:100%}
+
+  /* ---- 详情展示 ---- */
+  .d-grid{display:grid;grid-template-columns:1fr 1fr;column-gap:24px;row-gap:0}
+  .d-grid .full{grid-column:1 / -1}
+  .d-row{display:flex;align-items:flex-start;margin-bottom:18px}
+  .d-row .k{flex:none;width:148px;min-height:32px;display:flex;align-items:center;justify-content:flex-end;padding:0 10px;background:#F0F5FF;border:1px solid #E3ECFA;font-size:13px;color:var(--text-primary);box-sizing:border-box}
+  .d-row .v{flex:1;min-width:0;padding:6px 10px;font-size:14px;color:var(--text-primary);word-break:break-word;line-height:1.6;border-bottom:1px solid #F0F2F5}
+  .d-row .v.empty{color:var(--text-placeholder)}
+  .d-row .v .num{font-family:Consolas,'Microsoft YaHei',monospace}
+
+  /* ===== 居中弹窗（引入巡查登记） ===== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .modal-overlay.show{opacity:1;pointer-events:auto}
+  .modal{position:fixed;left:50%;top:50%;width:880px;max-width:94vw;max-height:90vh;background:var(--bg-white);border-radius:8px;box-shadow:0 12px 40px rgba(0,0,0,0.2);display:flex;flex-direction:column;transform:translate(-50%,-50%) scale(.96);opacity:0;pointer-events:none;transition:all var(--transition-normal);z-index:calc(var(--z-modal) + 1)}
+  .modal-overlay.show .modal{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+  .modal-head{height:44px;display:flex;align-items:center;padding:0 16px;flex-shrink:0;border-bottom:1px solid #E8E8E8;background:#F0F5FF}
+  .modal-head h3{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+  .modal-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:18px;line-height:1}
+  .modal-close:hover{background:var(--primary-bg);color:var(--primary)}
+  .modal-body{flex:1;min-height:0;display:flex;flex-direction:column;padding:14px 16px}
+  .modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:12px 16px;border-top:1px solid #E8E8E8;flex-shrink:0}
+  .pick-tbl{width:100%;min-width:760px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .pick-tbl th{height:34px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .pick-tbl td{height:34px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pick-tbl tbody tr{cursor:pointer}
+  .pick-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .pick-tbl tbody tr.sel td{background:#E8F0FE;color:var(--primary)}
+  .pick-wrap{flex:1;overflow:auto;border:1px solid #E8E8E8;border-radius:4px;min-height:0}
+  .pick-tip{display:flex;align-items:center;gap:8px;padding:9px 12px;margin-bottom:12px;background:#EFF7FF;border:1px solid #CDE5FF;border-radius:4px;font-size:13px;color:#2F6FE4}
+  .pick-tip svg{width:15px;height:15px;stroke:#2F6FE4;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+  .pick-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:42px;padding:0 2px;font-size:13px;color:var(--text-secondary);flex-shrink:0}
+  .pick-foot b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-mini{display:flex;align-items:center;gap:4px}
+</style>
+</head>
+<body>
+
+<div class="main-area">
+
+  <div class="tabbar">
+    <div class="tab-item active">事件报告</div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <!-- ===== 视图一：列表页 ===== -->
+      <div class="view-page active" id="viewList">
+        <div class="page-head">
+          <h1>事件报告</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="printList()">打印</button>
+            <button class="btn btn-default" onclick="exportList()">导出</button>
+            <button class="btn btn-primary" onclick="openForm()">新增</button>
+          </div>
+        </div>
+
+        <div class="filter-panel">
+          <div class="filter-row">
+            <div class="filter-item">
+              <label>报告机构：</label>
+              <select class="fi-select is-placeholder" id="qOrg" onchange="markSelect(this)">
+                <option value="">请选择</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>报告日期：</label>
+              <span class="fi-range">
+                <input class="fi-ctl fi-date" id="qRepStart" type="date">
+                <span>~</span>
+                <input class="fi-ctl fi-date" id="qRepEnd" type="date">
+              </span>
+            </div>
+            <div class="filter-item">
+              <label>报告人员：</label>
+              <input class="fi-ctl" id="qReporter" placeholder="请输入">
+            </div>
+            <div class="filter-item">
+              <label>信息类别：</label>
+              <select class="fi-select is-placeholder" id="qCategory" onchange="markSelect(this)">
+                <option value="">请选择</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>巡查地点：</label>
+              <select class="fi-select is-placeholder" id="qLocation" onchange="markSelect(this)">
+                <option value="">请选择</option>
+              </select>
+            </div>
+          </div>
+          <div class="filter-row">
+            <div class="filter-item">
+              <label>发现日期：</label>
+              <span class="fi-range">
+                <input class="fi-ctl fi-date" id="qDiscStart" type="date">
+                <span>~</span>
+                <input class="fi-ctl fi-date" id="qDiscEnd" type="date">
+              </span>
+            </div>
+            <div class="filter-btns">
+              <button class="btn btn-default" onclick="resetFilter()">重置</button>
+              <button class="btn btn-primary" onclick="queryFilter()">查询</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrap" id="tableWrap"></div>
+        <div class="page-foot" id="pageFoot"></div>
+      </div>
+
+      <!-- ===== 视图二：新建 / 编辑整页表单 ===== -->
+      <div class="view-page" id="viewForm">
+        <div class="page-head">
+          <h1 id="formTitle">新建卫监巡检报告登记</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="backToList()">返回</button>
+            <button class="btn btn-default" onclick="openPick()">引入巡查登记</button>
+            <button class="btn btn-primary" onclick="saveForm()">保存</button>
+          </div>
+        </div>
+        <div class="form-page">
+          <div class="fv-card">
+            <div class="fv-head"><h3>报告基本信息</h3></div>
+            <div class="fv-body">
+              <div class="f-grid">
+                <div class="f-row">
+                  <label><i class="req">*</i>报告机构</label>
+                  <div class="f-ctl-box">
+                    <select class="f-ctl is-placeholder" id="fOrg" onchange="onOrgChange(this)">
+                      <option value="">请选择</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="f-row">
+                  <label><i class="req">*</i>巡查地点</label>
+                  <div class="f-ctl-box">
+                    <select class="f-ctl is-placeholder" id="fLocation" onchange="onLocationChange(this)">
+                      <option value="">请选择</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="f-row">
+                  <label><i class="req">*</i>巡查地点联系人</label>
+                  <div class="f-ctl-box">
+                    <input class="f-ctl" id="fContact" placeholder="请输入">
+                  </div>
+                </div>
+                <div class="f-row">
+                  <label><i class="req">*</i>巡查地点联系人电话</label>
+                  <div class="f-ctl-box">
+                    <input class="f-ctl" id="fPhone" placeholder="请输入">
+                  </div>
+                </div>
+                <div class="f-row">
+                  <label><i class="req">*</i>巡查日期</label>
+                  <div class="f-ctl-box">
+                    <input class="f-ctl f-date" id="fInspectDate" type="date">
+                  </div>
+                </div>
+                <div class="f-row">
+                  <label><i class="req">*</i>发现日期</label>
+                  <div class="f-ctl-box">
+                    <input class="f-ctl f-date" id="fDiscDate" type="date">
+                  </div>
+                </div>
+                <div class="f-row full">
+                  <label><i class="req">*</i>报告信息类别</label>
+                  <div class="f-ctl-box">
+                    <select class="f-ctl is-placeholder" id="fCategory" onchange="markSelect(this)">
+                      <option value="">请选择</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="f-row full">
+                  <label>信息类别描述</label>
+                  <div class="f-ctl-box">
+                    <textarea class="f-ctl" id="fCatDesc" placeholder="请输入" maxlength="200" oninput="syncCount('fCatDesc','cCatDesc')"></textarea>
+                    <span class="f-count"><b id="cCatDesc">0</b>/200</span>
+                  </div>
+                </div>
+                <div class="f-row full">
+                  <label><i class="req">*</i>信息内容描述</label>
+                  <div class="rte">
+                    <div class="rte-toolbar" id="rteContentBar"></div>
+                    <div class="rte-area" id="rteContent" contenteditable="true" data-ph="请输入信息内容描述"></div>
+                  </div>
+                </div>
+                <div class="f-row full">
+                  <label>卫生监督协管文书</label>
+                  <div class="rte">
+                    <div class="rte-toolbar" id="rteDocBar"></div>
+                    <div class="rte-area lg" id="rteDoc" contenteditable="true" data-ph="请输入卫生监督协管文书内容"></div>
+                  </div>
+                </div>
+                <div class="f-row">
+                  <label><i class="req">*</i>报告人员</label>
+                  <div class="f-ctl-box">
+                    <select class="f-ctl" id="fReporter"></select>
+                  </div>
+                </div>
+                <div class="f-row">
+                  <label><i class="req">*</i>报告日期</label>
+                  <div class="f-ctl-box">
+                    <input class="f-ctl f-date" id="fReportDate" type="date">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 视图三：查看详情 ===== -->
+      <div class="view-page" id="viewDetail">
+        <div class="page-head">
+          <h1>卫监巡检报告登记详情</h1>
+          <div class="right">
+            <button class="btn btn-default" onclick="backToList()">返回</button>
+          </div>
+        </div>
+        <div class="form-page">
+          <div class="fv-card">
+            <div class="fv-head"><h3>报告记录详情</h3></div>
+            <div class="fv-body">
+              <div class="d-grid" id="detailGrid"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== 居中弹窗：引入巡查登记 ===== -->
+<div class="modal-overlay" id="pickOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>巡查登记列表</h3>
+      <div class="modal-close" onclick="closePick()">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="pick-tip">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span>从已登记的巡查记录中选择一条，点击行选中后「确定」引入，将自动回填报告机构、巡查地点、联系人及巡查日期等信息。</span>
+      </div>
+      <div class="filter-panel" style="border:none;padding:0 0 12px">
+        <div class="filter-row" style="margin-bottom:10px">
+          <div class="filter-item">
+            <label>巡查机构：</label>
+            <select class="fi-select is-placeholder" id="pOrg" onchange="markSelect(this);renderPick()">
+              <option value="">请选择</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>巡查地点：</label>
+            <select class="fi-select is-placeholder" id="pLocation" onchange="markSelect(this);renderPick()">
+              <option value="">请选择</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>巡查日期：</label>
+            <span class="fi-range">
+              <input class="fi-ctl fi-date" id="pStart" type="date">
+              <span>~</span>
+              <input class="fi-ctl fi-date" id="pEnd" type="date">
+            </span>
+          </div>
+          <div class="filter-item">
+            <label>巡查人员：</label>
+            <input class="fi-ctl" id="pInspector" placeholder="请输入" oninput="renderPick()">
+          </div>
+          <div class="filter-btns">
+            <button class="btn btn-default" onclick="resetPick()">重置</button>
+            <button class="btn btn-primary" onclick="renderPick()">查询</button>
+          </div>
+        </div>
+      </div>
+      <div class="pick-wrap">
+        <table class="pick-tbl">
+          <colgroup>
+            <col style="width:52px"><col style="width:110px"><col><col style="width:150px">
+            <col style="width:80px"><col style="width:100px">
+          </colgroup>
+          <thead>
+            <tr><th>序号</th><th>巡查地点</th><th>发现的主要问题</th><th>巡查机构</th><th>巡查人</th><th>巡查时间</th></tr>
+          </thead>
+          <tbody id="pickBody"></tbody>
+        </table>
+      </div>
+      <div class="pick-foot">
+        <span>共 <b id="pickTotal">0</b> 条</span>
+        <div class="pg-mini">
+          <span class="pg-btn" id="pickPrev" onclick="pickGo(-1)">‹</span>
+          <span class="pg-btn active" id="pickCur">1</span>
+          <span class="pg-btn" id="pickNext" onclick="pickGo(1)">›</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closePick()">取消</button>
+      <button class="btn btn-primary" onclick="applyPick()" id="pickOk" disabled>确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 居中确认弹窗 ===== -->
+<div class="modal-overlay" id="cfmOverlay">
+  <div class="modal" style="width:420px">
+    <div class="modal-body" style="display:flex;gap:12px;align-items:flex-start;padding:24px 20px 6px">
+      <div style="flex:none;width:36px;height:36px;border-radius:50%;background:var(--warning-bg);display:flex;align-items:center;justify-content:center">
+        <svg width="18" height="18" viewBox="0 0 24 24" style="stroke:var(--warning);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="cfm-txt" id="cfmTxt" style="font-size:14px;color:var(--text-primary);line-height:1.8"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeCfm()">取消</button>
+      <button class="btn btn-primary" id="cfmOk">确定</button>
+    </div>
+  </div>
+</div>
+
+<script src="框架.js" data-page="event-report" data-embed="auto"></script>
+<script>
+'use strict';
+
+/* ================= 基础数据 ================= */
+var ORGS = [
+  '扬州市江都区滨江人民医院',
+  '扬州市江都区大桥镇高巷村卫生室',
+  '扬州市江都区大桥镇花荡村卫生室',
+  '扬州市江都区大桥镇顾巷村卫生室',
+  '扬州市江都区仙女镇卫生院',
+  '扬州市江都区樊川镇卫生院'
+];
+var CATEGORIES = ['公共场所', '医疗机构', '学校卫生', '生活饮用水', '职业卫生', '餐饮服务'];
+var REPORTERS = ['朱劲松', '吕雪', '宋劲松', '高素芹'];
+
+var LOCATION_POOL = {
+  '扬州市江都区滨江人民医院': [
+    { name: '滨江公园广场', contact: '王建国', phone: '13601455678' },
+    { name: '滨江街道菜场', contact: '刘德海', phone: '13901455678' },
+    { name: '滨江影剧院', contact: '赵文华', phone: '13801345678' }
+  ],
+  '扬州市江都区大桥镇高巷村卫生室': [
+    { name: '香王村', contact: '高素芹', phone: '13101010101' },
+    { name: '高巷村卫生室', contact: '高素芹', phone: '13101010101' }
+  ],
+  '扬州市江都区大桥镇花荡村卫生室': [
+    { name: '花荡村', contact: '吕雪', phone: '13905141234' },
+    { name: '花荡村小学', contact: '吕雪', phone: '13905141234' }
+  ],
+  '扬州市江都区大桥镇顾巷村卫生室': [
+    { name: '顾巷村', contact: '高家芹', phone: '13805216789' },
+    { name: '顾巷村文化室', contact: '高家芹', phone: '13805216789' }
+  ],
+  '扬州市江都区仙女镇卫生院': [
+    { name: '仙女农贸市场', contact: '张秀兰', phone: '13505132345' },
+    { name: '仙女镇文化站', contact: '周玉兰', phone: '13705234567' },
+    { name: '仙女中学', contact: '吴志明', phone: '13505131234' }
+  ],
+  '扬州市江都区樊川镇卫生院': [
+    { name: '樊川敬老院', contact: '李秀英', phone: '13805164567' },
+    { name: '樊川小学', contact: '孙建国', phone: '13601456789' },
+    { name: '樊川中心市场', contact: '钱桂芳', phone: '13901452345' }
+  ]
+};
+
+/* 巡查登记数据（供「引入巡查登记」检索） */
+var PICK_INSPECTIONS = [
+  { id: 'I20220911001', org: '扬州市江都区大桥镇高巷村卫生室', location: '香王村', issues: '正常', inspector: '高素芹', date: '2022-09-11' },
+  { id: 'I20220902001', org: '扬州市江都区滨江人民医院', location: '滨江公园广场', issues: '广场垃圾桶未及时清运，已现场督促整改。', inspector: '吕雪', date: '2022-09-02' },
+  { id: 'I20220826001', org: '扬州市江都区大桥镇花荡村卫生室', location: '花荡村小学', issues: '正常', inspector: '宋劲松', date: '2022-08-26' },
+  { id: 'I20220815001', org: '扬州市江都区大桥镇顾巷村卫生室', location: '顾巷村', issues: '供水点消毒记录缺失近一周，已要求补齐。', inspector: '高素芹', date: '2022-08-15' },
+  { id: 'I20220730001', org: '扬州市江都区滨江人民医院', location: '滨江影剧院', issues: '正常', inspector: '吕雪', date: '2022-07-30' },
+  { id: 'I20220718001', org: '扬州市江都区仙女镇卫生院', location: '仙女农贸市场', issues: '部分摊贩防蝇设施不到位，已现场指导。', inspector: '宋劲松', date: '2022-07-18' },
+  { id: 'I20220628001', org: '扬州市江都区樊川镇卫生院', location: '樊川敬老院', issues: '正常', inspector: '朱劲松', date: '2022-06-28' },
+  { id: 'I20220612001', org: '扬州市江都区大桥镇高巷村卫生室', location: '高巷村卫生室', issues: '正常', inspector: '高素芹', date: '2022-06-12' },
+  { id: 'I20220520001', org: '扬州市江都区滨江人民医院', location: '滨江街道菜场', issues: '2名从业人员健康证过期，已要求限期补办。', inspector: '吕雪', date: '2022-05-20' },
+  { id: 'I20220508001', org: '扬州市江都区仙女镇卫生院', location: '仙女中学', issues: '正常', inspector: '宋劲松', date: '2022-05-08' }
+];
+
+/* ================= 事件报告数据 ================= */
+var EVENTS = [
+  { id: 'E20220911001', org: '扬州市江都区大桥镇高巷村卫生室', location: '香王村', contact: '高素芹', phone: '13101010101', inspectDate: '2022-09-11', discDate: '2022-08-25', category: '公共场所', catDesc: '', content: '正常', doc: '', reporter: '高素芹', reportDate: '2022-09-11', entryUser: '朱劲松', entryDate: '2022-09-11' },
+  { id: 'E20220903001', org: '扬州市江都区滨江人民医院', location: '滨江公园广场', contact: '王建国', phone: '13601455678', inspectDate: '2022-09-02', discDate: '2022-09-01', category: '公共场所', catDesc: '广场人流密集场所卫生状况', content: '广场垃圾桶未及时清运，存在卫生死角，已现场督促整改。', doc: '', reporter: '吕雪', reportDate: '2022-09-03', entryUser: '朱劲松', entryDate: '2022-09-03' },
+  { id: 'E20220827001', org: '扬州市江都区大桥镇花荡村卫生室', location: '花荡村小学', contact: '吕雪', phone: '13905141234', inspectDate: '2022-08-26', discDate: '2022-08-26', category: '学校卫生', catDesc: '开学前学校卫生专项检查', content: '正常', doc: '', reporter: '宋劲松', reportDate: '2022-08-27', entryUser: '宋劲松', entryDate: '2022-08-27' },
+  { id: 'E20220816001', org: '扬州市江都区大桥镇顾巷村卫生室', location: '顾巷村', contact: '高家芹', phone: '13805216789', inspectDate: '2022-08-15', discDate: '2022-08-15', category: '生活饮用水', catDesc: '村供水点水质卫生', content: '供水点消毒记录缺失近一周，已要求补齐并加强消毒管理。', doc: '', reporter: '高素芹', reportDate: '2022-08-16', entryUser: '朱劲松', entryDate: '2022-08-16' },
+  { id: 'E20220731001', org: '扬州市江都区滨江人民医院', location: '滨江影剧院', contact: '赵文华', phone: '13801345678', inspectDate: '2022-07-30', discDate: '2022-07-30', category: '公共场所', catDesc: '', content: '正常', doc: '', reporter: '吕雪', reportDate: '2022-07-31', entryUser: '吕雪', entryDate: '2022-07-31' },
+  { id: 'E20220719001', org: '扬州市江都区仙女镇卫生院', location: '仙女农贸市场', contact: '张秀兰', phone: '13505132345', inspectDate: '2022-07-18', discDate: '2022-07-17', category: '职业卫生', catDesc: '市场职业防护与病媒生物防制', content: '部分摊贩防蝇设施不到位，已现场指导并约定一周内复查。', doc: '', reporter: '宋劲松', reportDate: '2022-07-19', entryUser: '宋劲松', entryDate: '2022-07-19' }
+];
+var evtSeq = 7;
+
+/* ================= 页面状态 ================= */
+var curPage = 1;
+var PAGE_SIZE = 20;
+var editId = '';           // 编辑中的记录 id（'' 表示新建）
+var cfmCb = null;
+var pickPage = 1;
+var pickPageSize = 8;
+var pickSelId = '';        // 弹窗中选中的巡查记录 id
+
+function $(id) { return document.getElementById(id); }
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function toastMsg(msg, type) {
+  if (typeof window.toast === 'function') { window.toast(msg, type); return; }
+  var box = document.createElement('div');
+  box.className = 'toast show' + (type ? ' ' + type : '');
+  box.textContent = msg;
+  box.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);padding:10px 18px;background:#fff;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:9999;font-size:14px';
+  document.body.appendChild(box);
+  setTimeout(function () { box.remove(); }, 2400);
+}
+function markSelect(el) { el.classList.toggle('is-placeholder', !el.value); }
+function todayStr() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+/* ================= 视图切换 ================= */
+function showView(name) {
+  ['viewList', 'viewForm', 'viewDetail'].forEach(function (id) {
+    $(id).classList.toggle('active', id === 'view' + name.charAt(0).toUpperCase() + name.slice(1));
+  });
+}
+
+/* ================= 筛选 ================= */
+function resetFilter() {
+  ['qOrg', 'qCategory', 'qLocation'].forEach(function (id) { $(id).value = ''; markSelect($(id)); });
+  ['qRepStart', 'qRepEnd', 'qDiscStart', 'qDiscEnd'].forEach(function (id) { $(id).value = ''; });
+  $('qReporter').value = '';
+  curPage = 1;
+  renderTable();
+  toastMsg('筛选条件已重置');
+}
+function queryFilter() { curPage = 1; renderTable(); toastMsg('查询完成'); }
+
+function filtered() {
+  var org = $('qOrg').value, rep = $('qReporter').value.trim();
+  var cat = $('qCategory').value, loc = $('qLocation').value;
+  var rs = $('qRepStart').value, re = $('qRepEnd').value;
+  var ds = $('qDiscStart').value, de = $('qDiscEnd').value;
+  return EVENTS.filter(function (r) {
+    if (org && r.org !== org) return false;
+    if (rep && r.reporter.indexOf(rep) < 0) return false;
+    if (cat && r.category !== cat) return false;
+    if (loc && r.location !== loc) return false;
+    if (rs && r.reportDate < rs) return false;
+    if (re && r.reportDate > re) return false;
+    if (ds && r.discDate < ds) return false;
+    if (de && r.discDate > de) return false;
+    return true;
+  });
+}
+
+/* ================= 表格渲染 ================= */
+function renderTable() {
+  var rows = filtered();
+  var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  if (curPage > totalPages) curPage = totalPages;
+  var pageRows = rows.slice((curPage - 1) * PAGE_SIZE, curPage * PAGE_SIZE);
+
+  var html = '<table class="list-tbl"><colgroup>'
+    + '<col style="width:52px"><col><col style="width:110px"><col style="width:96px">'
+    + '<col style="width:100px"><col style="width:150px"><col style="width:80px"><col style="width:96px"><col style="width:130px">'
+    + '</colgroup><thead><tr>'
+    + '<th>序号</th><th>报告机构</th><th>巡查地点</th><th>发现日期</th><th>信息类别</th>'
+    + '<th>信息内容</th><th>报告人员</th><th>报告日期</th><th>操作</th>'
+    + '</tr></thead><tbody>';
+
+  if (!pageRows.length) {
+    html += '<tr><td colspan="9"><div class="tbl-empty">'
+      + '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
+      + '<div>暂无事件报告，点击右上角「新增」登记报告</div></div></td></tr>';
+  } else {
+    pageRows.forEach(function (r, i) {
+      var base = (curPage - 1) * PAGE_SIZE + i + 1;
+      var plain = r.content ? r.content.replace(/<[^>]*>/g, '') : '';
+      html += '<tr>';
+      html += '<td class="center">' + base + '</td>';
+      html += '<td title="' + esc(r.org) + '">' + esc(r.org) + '</td>';
+      html += '<td>' + esc(r.location) + '</td>';
+      html += '<td class="num">' + esc(r.discDate) + '</td>';
+      html += '<td>' + esc(r.category) + '</td>';
+      html += '<td title="' + esc(plain) + '">' + esc(plain) + '</td>';
+      html += '<td>' + esc(r.reporter) + '</td>';
+      html += '<td class="num">' + esc(r.reportDate) + '</td>';
+      html += '<td>'
+        + '<span class="op-link" onclick="openForm(\'' + r.id + '\')">编辑</span>'
+        + '<span class="op-gap"></span>'
+        + '<span class="op-link" onclick="openDetail(\'' + r.id + '\')">查看</span>'
+        + '<span class="op-gap"></span>'
+        + '<span class="op-link danger" onclick="removeEvt(\'' + r.id + '\')">删除</span>'
+        + '</td>';
+      html += '</tr>';
+    });
+  }
+  html += '</tbody></table>';
+  $('tableWrap').innerHTML = html;
+  renderFoot(rows.length, totalPages);
+}
+
+function renderFoot(total, totalPages) {
+  if (!total) { $('pageFoot').innerHTML = ''; return; }
+  var html = '<span class="pg-total">共 <b>' + total + '</b> 条</span>';
+  html += '<span class="pg-size">每页<select onchange="changeSize(this.value)">'
+    + ['20', '50', '100'].map(function (n) { return '<option' + (PAGE_SIZE === +n ? ' selected' : '') + '>' + n + '</option>'; }).join('')
+    + '</select>条</span>';
+  html += '<div class="pg-pager">';
+  html += '<span class="pg-btn' + (curPage <= 1 ? ' disabled' : '') + '" onclick="goPage(' + (curPage - 1) + ')">‹</span>';
+  for (var p = 1; p <= totalPages; p++) {
+    if (totalPages > 7 && p > 3 && p < totalPages - 1 && Math.abs(p - curPage) > 1) {
+      if (p === 4) html += '<span style="padding:0 4px;color:var(--text-tertiary)">…</span>';
+      continue;
+    }
+    html += '<span class="pg-btn' + (p === curPage ? ' active' : '') + '" onclick="goPage(' + p + ')">' + p + '</span>';
+  }
+  html += '<span class="pg-btn' + (curPage >= totalPages ? ' disabled' : '') + '" onclick="goPage(' + (curPage + 1) + ')" style="margin-left:4px">›</span>';
+  html += '</div>';
+  html += '<span class="pg-jump">跳至第<input id="pgJump" onkeydown="if(event.key===\'Enter\')jumpPage()">页</span>';
+  $('pageFoot').innerHTML = html;
+}
+
+function goPage(p) {
+  var rows = filtered();
+  var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  if (p < 1 || p > totalPages || p === curPage) return;
+  curPage = p;
+  renderTable();
+}
+function changeSize(n) { PAGE_SIZE = +n; curPage = 1; renderTable(); }
+function jumpPage() {
+  var v = parseInt($('pgJump').value, 10);
+  if (v) goPage(v);
+}
+
+/* ================= 新建 / 编辑 ================= */
+function openForm(id) {
+  editId = id || '';
+  $('formTitle').textContent = editId ? '编辑卫监巡检报告登记' : '新建卫监巡检报告登记';
+  $('fOrg').value = '';
+  $('fLocation').value = '';
+  $('fContact').value = '';
+  $('fPhone').value = '';
+  $('fCategory').value = '';
+  $('fCatDesc').value = '';
+  $('fInspectDate').value = '';
+  $('fDiscDate').value = '';
+  $('fReportDate').value = todayStr();
+  $('fReporter').value = '吕雪';
+  fillLocOptions('');
+  setRteHtml('rteContent', '');
+  setRteHtml('rteDoc', '');
+  syncCount('fCatDesc', 'cCatDesc');
+  markSelect($('fOrg'));
+  markSelect($('fLocation'));
+  markSelect($('fCategory'));
+
+  if (editId) {
+    var r = findEvt(editId);
+    if (r) {
+      $('fOrg').value = r.org;
+      fillLocOptions(r.location);
+      $('fLocation').value = r.location;
+      $('fContact').value = r.contact;
+      $('fPhone').value = r.phone;
+      $('fCategory').value = r.category;
+      $('fCatDesc').value = r.catDesc;
+      $('fInspectDate').value = r.inspectDate;
+      $('fDiscDate').value = r.discDate;
+      $('fReportDate').value = r.reportDate;
+      $('fReporter').value = r.reporter;
+      setRteHtml('rteContent', r.content);
+      setRteHtml('rteDoc', r.doc);
+      syncCount('fCatDesc', 'cCatDesc');
+      markSelect($('fOrg'));
+      markSelect($('fLocation'));
+      markSelect($('fCategory'));
+    }
+  }
+  showView('form');
+}
+
+function backToList() { showView('list'); renderTable(); }
+
+function onOrgChange(sel) {
+  markSelect(sel);
+  $('fLocation').value = '';
+  $('fContact').value = '';
+  $('fPhone').value = '';
+  fillLocOptions('');
+  markSelect($('fLocation'));
+}
+
+function fillLocOptions(sel) {
+  var org = $('fOrg').value;
+  var html = '<option value="">请选择</option>';
+  if (org && LOCATION_POOL[org]) {
+    LOCATION_POOL[org].forEach(function (p) {
+      html += '<option' + (p.name === sel ? ' selected' : '') + '>' + esc(p.name) + '</option>';
+    });
+  }
+  $('fLocation').innerHTML = html;
+}
+
+function onLocationChange(sel) {
+  markSelect(sel);
+  var org = $('fOrg').value, name = sel.value;
+  if (org && name && LOCATION_POOL[org]) {
+    var hit = LOCATION_POOL[org].filter(function (p) { return p.name === name; })[0];
+    if (hit) { $('fContact').value = hit.contact; $('fPhone').value = hit.phone; }
+  } else {
+    $('fContact').value = '';
+    $('fPhone').value = '';
+  }
+}
+
+function syncCount(inpId, cntId) {
+  $('#' + cntId) && ($('#' + cntId).textContent = $('#' + inpId).value.length);
+}
+
+function saveForm() {
+  var org = $('fOrg').value, loc = $('fLocation').value;
+  var contact = $('fContact').value.trim(), phone = $('fPhone').value.trim();
+  var cat = $('fCategory').value, catDesc = $('fCatDesc').value.trim();
+  var inspectDate = $('fInspectDate').value, discDate = $('fDiscDate').value, reportDate = $('fReportDate').value;
+  var content = $('rteContent').innerHTML.trim();
+  var doc = $('rteDoc').innerHTML.trim();
+  var reporter = $('fReporter').value;
+
+  if (!org) { toastMsg('请选择报告机构', 'warning'); return; }
+  if (!loc) { toastMsg('请选择巡查地点', 'warning'); return; }
+  if (!contact) { toastMsg('请输入巡查地点联系人', 'warning'); return; }
+  if (!/^1\d{10}$/.test(phone)) { toastMsg('请输入正确的11位联系电话', 'warning'); return; }
+  if (!inspectDate) { toastMsg('请选择巡查日期', 'warning'); return; }
+  if (!discDate) { toastMsg('请选择发现日期', 'warning'); return; }
+  if (!cat) { toastMsg('请选择报告信息类别', 'warning'); return; }
+  var contentPlain = $('rteContent').innerText.replace(/\s+/g, '');
+  if (!contentPlain) { toastMsg('请输入信息内容描述', 'warning'); return; }
+  if (!reporter) { toastMsg('请选择报告人员', 'warning'); return; }
+  if (!reportDate) { toastMsg('请选择报告日期', 'warning'); return; }
+
+  var ds = todayStr();
+  if (editId) {
+    var r = findEvt(editId);
+    if (r) {
+      r.org = org; r.location = loc; r.contact = contact; r.phone = phone;
+      r.category = cat; r.catDesc = catDesc; r.content = content; r.doc = doc;
+      r.inspectDate = inspectDate; r.discDate = discDate; r.reportDate = reportDate;
+      r.reporter = reporter;
+    }
+    toastMsg('事件报告修改成功', 'success');
+  } else {
+    EVENTS.unshift({
+      id: 'E' + reportDate.replace(/-/g, '') + String(evtSeq++).padStart(3, '0'),
+      org: org, location: loc, contact: contact, phone: phone, category: cat,
+      catDesc: catDesc, content: content, doc: doc,
+      inspectDate: inspectDate, discDate: discDate, reporter: reporter,
+      reportDate: reportDate, entryUser: '朱劲松', entryDate: ds
+    });
+    toastMsg('事件报告保存成功', 'success');
+  }
+  showView('list');
+  curPage = 1;
+  renderTable();
+}
+
+/* ================= 查看详情 ================= */
+function openDetail(id) {
+  var r = findEvt(id);
+  if (!r) return;
+  $('detailGrid').innerHTML =
+    '<div class="d-row"><span class="k">报告机构</span><span class="v">' + esc(r.org) + '</span></div>'
+    + '<div class="d-row"><span class="k">巡查地点</span><span class="v">' + esc(r.location) + '</span></div>'
+    + '<div class="d-row"><span class="k">巡查地点联系人</span><span class="v">' + esc(r.contact) + '</span></div>'
+    + '<div class="d-row"><span class="k">巡查地点联系人电话</span><span class="v num">' + esc(r.phone) + '</span></div>'
+    + '<div class="d-row"><span class="k">巡查日期</span><span class="v num">' + esc(r.inspectDate) + '</span></div>'
+    + '<div class="d-row"><span class="k">发现日期</span><span class="v num">' + esc(r.discDate) + '</span></div>'
+    + '<div class="d-row full"><span class="k">报告信息类别</span><span class="v">' + esc(r.category) + '</span></div>'
+    + '<div class="d-row full"><span class="k">信息类别描述</span><span class="v">' + (r.catDesc ? esc(r.catDesc) : '<span class="empty">—</span>') + '</span></div>'
+    + '<div class="d-row full"><span class="k">信息内容描述</span><span class="v">' + (r.content ? r.content : '<span class="empty">—</span>') + '</span></div>'
+    + '<div class="d-row full"><span class="k">卫生监督协管文书</span><span class="v">' + (r.doc ? r.doc : '<span class="empty">—</span>') + '</span></div>'
+    + '<div class="d-row"><span class="k">报告人员</span><span class="v">' + esc(r.reporter) + '</span></div>'
+    + '<div class="d-row"><span class="k">报告日期</span><span class="v num">' + esc(r.reportDate) + '</span></div>';
+  showView('detail');
+}
+
+/* ================= 删除 ================= */
+function findEvt(id) {
+  for (var i = 0; i < EVENTS.length; i++) if (EVENTS[i].id === id) return EVENTS[i];
+  return null;
+}
+
+function removeEvt(id) {
+  var r = findEvt(id);
+  if (!r) return;
+  openCfm('确定删除该事件报告（<b>' + esc(r.location) + ' · ' + esc(r.reportDate) + '</b>）吗？', function () {
+    var idx = EVENTS.indexOf(r);
+    if (idx >= 0) EVENTS.splice(idx, 1);
+    renderTable();
+    toastMsg('事件报告已删除', 'success');
+  });
+}
+
+/* ================= 打印 / 导出 ================= */
+function printList() {
+  toastMsg('已生成打印预览，共 ' + filtered().length + ' 条事件报告', 'success');
+}
+function exportList() {
+  toastMsg('导出成功，共 ' + filtered().length + ' 条事件报告', 'success');
+}
+
+/* ================= 引入巡查登记弹窗 ================= */
+function openPick() {
+  $('pOrg').value = '';
+  $('pLocation').value = '';
+  $('pInspector').value = '';
+  $('pStart').value = '';
+  $('pEnd').value = '';
+  markSelect($('pOrg'));
+  markSelect($('pLocation'));
+  pickSelId = '';
+  pickPage = 1;
+  renderPick();
+  $('pickOverlay').classList.add('show');
+}
+function closePick() { $('pickOverlay').classList.remove('show'); }
+
+function pickFiltered() {
+  var org = $('pOrg').value, loc = $('pLocation').value;
+  var ins = $('pInspector').value.trim();
+  var s = $('pStart').value, e = $('pEnd').value;
+  return PICK_INSPECTIONS.filter(function (r) {
+    if (org && r.org !== org) return false;
+    if (loc && r.location !== loc) return false;
+    if (ins && r.inspector.indexOf(ins) < 0) return false;
+    if (s && r.date < s) return false;
+    if (e && r.date > e) return false;
+    return true;
+  });
+}
+
+function renderPick() {
+  var rows = pickFiltered();
+  var totalPages = Math.max(1, Math.ceil(rows.length / pickPageSize));
+  if (pickPage > totalPages) pickPage = totalPages;
+  var pageRows = rows.slice((pickPage - 1) * pickPageSize, pickPage * pickPageSize);
+
+  var html = '';
+  if (!pageRows.length) {
+    html = '<tr><td colspan="6"><div class="tbl-empty">'
+      + '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
+      + '<div>暂无数据</div></div></td></tr>';
+  } else {
+    pageRows.forEach(function (r, i) {
+      var base = (pickPage - 1) * pickPageSize + i + 1;
+      html += '<tr class="' + (r.id === pickSelId ? 'sel' : '') + '" onclick="pickSelect(\'' + r.id + '\')">';
+      html += '<td class="center">' + base + '</td>';
+      html += '<td>' + esc(r.location) + '</td>';
+      html += '<td title="' + esc(r.issues) + '">' + esc(r.issues) + '</td>';
+      html += '<td title="' + esc(r.org) + '">' + esc(r.org) + '</td>';
+      html += '<td>' + esc(r.inspector) + '</td>';
+      html += '<td class="num">' + esc(r.date) + '</td>';
+      html += '</tr>';
+    });
+  }
+  $('pickBody').innerHTML = html;
+  $('pickTotal').textContent = rows.length;
+  var cur = $('pickCur');
+  cur.textContent = totalPages ? pickPage : 0;
+  cur.className = 'pg-btn active';
+  $('pickPrev').className = 'pg-btn' + (pickPage <= 1 ? ' disabled' : '');
+  $('pickNext').className = 'pg-btn' + (pickPage >= totalPages ? ' disabled' : '');
+  $('pickOk').disabled = !pickSelId;
+}
+
+function pickSelect(id) {
+  pickSelId = (pickSelId === id ? '' : id);
+  renderPick();
+}
+function pickGo(d) {
+  var rows = pickFiltered();
+  var totalPages = Math.max(1, Math.ceil(rows.length / pickPageSize));
+  var np = pickPage + d;
+  if (np < 1 || np > totalPages) return;
+  pickPage = np;
+  renderPick();
+}
+
+function applyPick() {
+  var hit = null;
+  for (var i = 0; i < PICK_INSPECTIONS.length; i++) if (PICK_INSPECTIONS[i].id === pickSelId) { hit = PICK_INSPECTIONS[i]; break; }
+  if (!hit) return;
+  $('fOrg').value = hit.org;
+  fillLocOptions(hit.location);
+  $('fLocation').value = hit.location;
+  markSelect($('fOrg'));
+  markSelect($('fLocation'));
+  onLocationChange($('fLocation'));
+  $('fInspectDate').value = hit.date;
+  if (!$('fDiscDate').value) $('fDiscDate').value = hit.date;
+  $('fReporter').value = hit.inspector;
+  if ($('rteContent').innerText.trim()) {
+    openCfm('当前信息内容描述已有内容，是否用引入记录的「发现的主要问题」覆盖？', function () {
+      setRteHtml('rteContent', esc(hit.issues));
+    });
+  } else {
+    setRteHtml('rteContent', esc(hit.issues));
+  }
+  closePick();
+  toastMsg('已引入巡查登记记录：' + hit.location, 'success');
+}
+
+function resetPick() {
+  $('pOrg').value = '';
+  $('pLocation').value = '';
+  $('pInspector').value = '';
+  $('pStart').value = '';
+  $('pEnd').value = '';
+  markSelect($('pOrg'));
+  markSelect($('pLocation'));
+  pickPage = 1;
+  renderPick();
+}
+
+/* ================= 富文本编辑器 ================= */
+var RTE_CMDS = [
+  { cmd: 'formatBlock', val: 'H2', label: 'H', tip: '标题' },
+  { cmd: 'bold', cls: 'b', label: 'B', tip: '加粗' },
+  { cmd: 'fontSize', val: '5', label: 'T', cls: 'b', tip: '字号' },
+  { cmd: 'fontName', val: 'SimHei', label: 'F', tip: '字体' },
+  { cmd: 'italic', cls: 'i', label: 'I', tip: '斜体' },
+  { cmd: 'underline', cls: 'u', label: 'U', tip: '下划线' },
+  { cmd: 'strikeThrough', cls: 's', label: 'S', tip: '删除线' },
+  { cmd: 'sep' },
+  { cmd: 'createLink', label: '链接', tip: '插入链接' },
+  { cmd: 'sep' },
+  { cmd: 'justifyLeft', label: '左对齐', tip: '左对齐' },
+  { cmd: 'justifyCenter', label: '居中', tip: '居中' },
+  { cmd: 'justifyRight', label: '右对齐', tip: '右对齐' },
+  { cmd: 'sep' },
+  { cmd: 'insertImage', label: '图片', tip: '插入图片' },
+  { cmd: 'sep' },
+  { cmd: 'undo', label: '⟲', tip: '撤销' },
+  { cmd: 'redo', label: '⟳', tip: '重做' },
+  { cmd: 'sep' },
+  { cmd: 'fullscreen', label: '⛶', tip: '全屏' }
+];
+
+function initRte(barId) {
+  var html = '';
+  RTE_CMDS.forEach(function (c) {
+    if (c.cmd === 'sep') { html += '<span class="rte-btn sep"></span>'; return; }
+    html += '<button type="button" class="rte-btn ' + (c.cls || '') + '" title="' + c.tip + '" data-cmd="' + c.cmd + '"' + (c.val ? ' data-val="' + c.val + '"' : '') + '>' + c.label + '</button>';
+  });
+  var bar = $(barId);
+  bar.innerHTML = html;
+  var areaId = barId === 'rteContentBar' ? 'rteContent' : 'rteDoc';
+  bar.addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-cmd]');
+    if (!btn) return;
+    var cmd = btn.getAttribute('data-cmd');
+    var area = $(areaId);
+    if (cmd === 'fullscreen') {
+      var rte = area.parentNode;
+      rte.classList.toggle('fullscreen');
+      return;
+    }
+    if (cmd === 'createLink') {
+      var url = prompt('请输入链接地址：', 'http://');
+      if (url) document.execCommand('createLink', false, url);
+    } else if (cmd === 'insertImage') {
+      var imgUrl = prompt('请输入图片地址：', 'https://');
+      if (imgUrl) document.execCommand('insertImage', false, imgUrl);
+    } else {
+      var val = btn.getAttribute('data-val');
+      if (cmd === 'formatBlock') {
+        document.execCommand('formatBlock', false, val === 'H2' ? '<h2>' : '<p>');
+      } else {
+        document.execCommand(cmd, false, val || null);
+      }
+    }
+    area.focus();
+  });
+}
+
+function setRteHtml(id, html) { $(id).innerHTML = html; }
+
+/* ================= 确认弹窗 ================= */
+function openCfm(html, onOk) {
+  $('cfmTxt').innerHTML = html;
+  cfmCb = onOk;
+  $('cfmOverlay').classList.add('show');
+}
+function closeCfm() {
+  $('cfmOverlay').classList.remove('show');
+  cfmCb = null;
+}
+$('cfmOk').onclick = function () {
+  var cb = cfmCb;
+  closeCfm();
+  if (cb) cb();
+};
+
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Escape') return;
+  if ($('cfmOverlay').classList.contains('show')) { closeCfm(); return; }
+  if ($('pickOverlay').classList.contains('show')) closePick();
+});
+
+/* ================= 初始化 ================= */
+(function init() {
+  var orgHtml = ORGS.map(function (o) { return '<option>' + esc(o) + '</option>'; }).join('');
+  $('qOrg').innerHTML = '<option value="">请选择</option>' + orgHtml;
+  $('fOrg').innerHTML = '<option value="">请选择</option>' + orgHtml;
+  $('pOrg').innerHTML = '<option value="">请选择</option>' + orgHtml;
+  var catHtml = CATEGORIES.map(function (c) { return '<option>' + esc(c) + '</option>'; }).join('');
+  $('qCategory').innerHTML = '<option value="">请选择</option>' + catHtml;
+  $('fCategory').innerHTML = '<option value="">请选择</option>' + catHtml;
+  var locSet = {};
+  EVENTS.forEach(function (r) { locSet[r.location] = 1; });
+  PICK_INSPECTIONS.forEach(function (r) { locSet[r.location] = 1; });
+  $('qLocation').innerHTML = '<option value="">请选择</option>' + Object.keys(locSet).map(function (n) { return '<option>' + esc(n) + '</option>'; }).join('');
+  $('pLocation').innerHTML = '<option value="">请选择</option>' + Object.keys(locSet).map(function (n) { return '<option>' + esc(n) + '</option>'; }).join('');
+  $('fReporter').innerHTML = REPORTERS.map(function (u) { return '<option>' + esc(u) + '</option>'; }).join('');
+  $('fReporter').value = '吕雪';
+  initRte('rteContentBar');
+  initRte('rteDocBar');
+  renderTable();
+})();
+</script>
+</body>
+</html>

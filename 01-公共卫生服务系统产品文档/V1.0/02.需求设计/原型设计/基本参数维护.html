@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>基本参数维护 - 系统设置</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  /* ===== 基本参数维护页面特有样式（设计变量与公共样式见 框架.css） ===== */
+
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}
+
+  /* ===== 面包屑 ===== */
+  .breadcrumb{height:38px;display:flex;align-items:center;gap:6px;padding:0 16px;font-size:13px;color:var(--text-tertiary);background:var(--bg-white);border-bottom:1px solid #E8E8E8;flex-shrink:0}
+  .breadcrumb b{color:var(--text-primary);font-weight:500}
+  .breadcrumb .sep{color:#C8CDD4}
+
+  /* ===== 页头 ===== */
+  .page-head .right .btn{height:30px;padding:0 16px;font-size:13px}
+
+  /* ===== 参数分区 ===== */
+  .param-scroll{flex:1;overflow:auto;padding:16px 18px 44px}
+  .p-card{background:var(--bg-white);border:1px solid #EBEEF3;border-radius:10px;margin-bottom:16px;overflow:hidden}
+  .p-head{display:flex;align-items:center;gap:8px;height:46px;padding:0 16px;font-size:15px;font-weight:600;color:var(--text-primary);background:#FAFBFD;border-bottom:1px solid #EBEEF3}
+  .p-head .bar{width:4px;height:16px;border-radius:2px;background:var(--primary);flex-shrink:0}
+  .p-head .sub{font-size:12px;color:var(--text-tertiary);font-weight:400;margin-left:4px}
+
+  /* ===== 参数行 ===== */
+  .p-row{display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px dashed #EFF2F6;font-size:14px;color:var(--text-primary)}
+  .p-row:last-child{border-bottom:none}
+  .p-row .lbl{color:var(--text-secondary);flex-shrink:0}
+  .p-row .lbl.strong{color:var(--text-primary)}
+  .p-row .text{color:var(--text-primary)}
+  .p-row .unit{color:var(--text-tertiary);flex-shrink:0}
+  .p-select{height:30px;min-width:150px;border:1px solid #D9DEE4;border-radius:6px;padding:0 26px 0 10px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .p-ctl{height:30px;border:1px solid #D9DEE4;border-radius:6px;padding:0 10px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .p-ctl:focus,.p-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .p-ctl.num{width:84px}
+  .p-ctl.person{min-width:170px;cursor:pointer;background:var(--bg-white)}
+  .p-ctl.person.is-full{color:var(--primary)}
+  .p-ctl.person:disabled{background:#F5F6FA;color:var(--text-tertiary);cursor:not-allowed}
+  .p-ctl:disabled{background:#F5F6FA;color:var(--text-tertiary);cursor:not-allowed}
+
+  /* ===== 行内删除 / 添加 ===== */
+  .row-del{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:var(--danger);cursor:pointer;font-size:12px;border:1px solid #FBC4C4;background:#FEF0F0;transition:all var(--transition-fast);flex-shrink:0;padding:0}
+  .row-del:hover{background:var(--danger);border-color:var(--danger);color:#fff}
+  .p-add{display:flex;align-items:center;justify-content:center;gap:4px;height:38px;color:var(--primary);font-size:13px;cursor:pointer;border-top:1px dashed #EAF0F6;transition:background var(--transition-fast)}
+  .p-add:hover{background:var(--primary-bg)}
+  .p-note{color:var(--text-tertiary);font-size:12px;padding:9px 18px;background:#FAFBFD;border-top:1px solid #F2F4F8}
+
+  /* ===== 开关 ===== */
+  .switch{width:44px;height:22px;border-radius:11px;background:#DCDFE6;position:relative;cursor:pointer;transition:background var(--transition-fast);flex-shrink:0;border:none;padding:0}
+  .switch::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:2px;left:2px;transition:left var(--transition-fast);box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+  .switch.on{background:var(--primary)}
+  .switch.on::after{left:24px}
+  .switch:disabled{opacity:0.55;cursor:not-allowed}
+
+  /* ===== 弹框（通用多选） ===== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .modal-overlay.show{opacity:1;pointer-events:auto}
+  .modal{width:420px;max-width:92vw;background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 8px 32px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden;transform:translateY(10px);transition:transform var(--transition-normal)}
+  .modal-overlay.show .modal{transform:translateY(0)}
+  .modal-head{height:48px;display:flex;align-items:center;padding:0 16px;flex-shrink:0}
+  .modal-head h3{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+  .modal-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:16px}
+  .modal-close:hover{background:var(--primary-bg);color:var(--primary)}
+  .modal-search{padding:0 16px 10px;flex-shrink:0}
+  .modal-search input{width:100%;height:30px;border:1px solid #D9DEE4;border-radius:6px;padding:0 10px;font-size:13px;outline:none;transition:all var(--transition-fast)}
+  .modal-search input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .modal-body{flex:1;min-height:0;overflow:auto;padding:2px 8px 10px}
+  .msel-row{display:flex;align-items:center;gap:8px;height:36px;padding:0 8px;border-radius:6px;cursor:pointer;font-size:13px;color:var(--text-secondary);transition:background var(--transition-fast)}
+  .msel-row:hover{background:var(--primary-bg)}
+  .msel-row input{width:14px;height:14px;accent-color:var(--primary);cursor:pointer}
+  .modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:12px 16px;border-top:1px solid #EFF2F6;flex-shrink:0}
+  .modal-foot .btn{height:30px;padding:0 16px;font-size:13px}
+</style>
+</head>
+<body>
+
+<div class="main-area">
+
+  <div class="content">
+    <div class="content-card">
+
+      <!-- 面包屑 -->
+      <div class="breadcrumb">
+        <span>首页</span><span class="sep">/</span>
+        <span>系统设置</span><span class="sep">/</span>
+        <b>基本参数维护</b>
+      </div>
+
+      <!-- 页头 -->
+      <div class="page-head">
+        <h1>基本参数维护</h1>
+        <div class="right">
+          <button class="btn btn-primary" onclick="saveConfig()">保存</button>
+        </div>
+      </div>
+
+      <div class="param-scroll">
+
+        <!-- ===== 1. 年龄参数维护 ===== -->
+        <div class="p-card">
+          <div class="p-head"><span class="bar"></span>年龄参数维护<span class="sub">（按人群类型维护对应年龄区间）</span></div>
+          <div id="ageList"></div>
+          <div class="p-add" id="ageAddBtn" onclick="addAgeRow()">+ 添加年龄参数</div>
+        </div>
+
+        <!-- ===== 2. 迁移审核参数维护 ===== -->
+        <div class="p-card">
+          <div class="p-head"><span class="bar"></span>迁移审核参数维护</div>
+          <div class="p-row">
+            <span class="lbl">档案迁出审核</span>
+            <button class="switch" id="swMigOut" onclick="toggleSwitch('migOut')" aria-label="档案迁出审核"></button>
+            <span class="lbl" style="margin-left:16px">执行角色</span>
+            <select class="p-select" id="roleMigOut" onchange="CFG.migOut.role=this.value">
+              <option>滨江-管理员</option>
+              <option>滨江-审核员</option>
+              <option>滨江-档案员</option>
+              <option>温江-管理员</option>
+              <option>温江-审核员</option>
+            </select>
+            <span class="lbl" style="margin-left:16px">执行人员</span>
+            <input class="p-ctl person" id="personMigOut" readonly onclick="openMulti('migOut','选择执行人员',PERSON_OPTS)">
+          </div>
+          <div class="p-row">
+            <span class="lbl">档案迁入审核</span>
+            <button class="switch" id="swMigIn" onclick="toggleSwitch('migIn')" aria-label="档案迁入审核"></button>
+            <span class="lbl" style="margin-left:16px">执行角色</span>
+            <select class="p-select" id="roleMigIn" onchange="CFG.migIn.role=this.value">
+              <option>滨江-管理员</option>
+              <option>滨江-审核员</option>
+              <option>滨江-档案员</option>
+              <option>温江-管理员</option>
+              <option>温江-审核员</option>
+            </select>
+            <span class="lbl" style="margin-left:16px">执行人员</span>
+            <input class="p-ctl person" id="personMigIn" readonly onclick="openMulti('migIn','选择执行人员',PERSON_OPTS)">
+          </div>
+        </div>
+
+        <!-- ===== 4. 健康宣教统计规则设置 ===== -->
+        <div class="p-card">
+          <div class="p-head"><span class="bar"></span>健康宣教统计规则设置</div>
+          <div class="p-row">
+            <button class="switch on" id="swHealthEdu" onclick="toggleSwitch('healthEdu')" aria-label="健康宣教去重"></button>
+            <span class="text">同一数据源同一机构同一医生面向同一居民进行同一宣教时，健康宣教统计时只计数一次</span>
+          </div>
+        </div>
+
+        <!-- ===== 5. 实名认证设置 ===== -->
+        <div class="p-card">
+          <div class="p-head"><span class="bar"></span>实名认证设置<span class="sub">（开启后居民需完成实名认证方可建档）</span></div>
+          <div class="p-row">
+            <span class="lbl strong">居民档案</span>
+            <button class="switch" id="swRealResident" onclick="toggleSwitch('realName-resident')" aria-label="居民档案实名认证"></button>
+          </div>
+          <div class="p-row">
+            <span class="lbl strong">妇女档案</span>
+            <button class="switch" id="swRealWoman" onclick="toggleSwitch('realName-woman')" aria-label="妇女档案实名认证"></button>
+          </div>
+          <div class="p-row">
+            <span class="lbl strong">儿童档案</span>
+            <button class="switch" id="swRealChild" onclick="toggleSwitch('realName-child')" aria-label="儿童档案实名认证"></button>
+          </div>
+        </div>
+
+        <!-- ===== 6. 数据加密维护 ===== -->
+        <div class="p-card">
+          <div class="p-head"><span class="bar"></span>数据加密维护<span class="sub">（开启后敏感数据将以密文形式展示）</span></div>
+          <div class="p-row">
+            <span class="lbl">加密显示</span>
+            <button class="switch" id="swEncryptOn" onclick="toggleSwitch('encryptOn')" aria-label="加密显示"></button>
+          </div>
+          <div class="p-row">
+            <span class="lbl">加密内容</span>
+            <input class="p-ctl person" id="encryptItems" readonly onclick="openMulti('encrypt','选择加密内容',ENCRYPT_OPTS)">
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== 通用多选弹框 ===== -->
+<div class="modal-overlay" id="mselModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="mselTitle">选择执行人员</h3>
+      <span class="modal-close" onclick="closeModal('mselModal')">×</span>
+    </div>
+    <div class="modal-search">
+      <input id="mselQ" placeholder="请输入关键字搜索" oninput="renderMsel()">
+    </div>
+    <div class="modal-body" id="mselBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeModal('mselModal')">取消</button>
+      <button class="btn btn-primary" onclick="submitMsel()">确定</button>
+    </div>
+  </div>
+</div>
+
+<script src="框架.js" data-page="basic-param-maintenance" data-embed="auto"></script>
+<script>
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+  /* ================= 数据模型 ================= */
+  var CFG = {
+    ageRows: [
+      { crowd: '儿童',   val: 6 },
+      { crowd: '老年人', val: 65 }
+    ],
+    migOut: { on: true,  role: '滨江-管理员', persons: ['滨江-张伟', '滨江-李娜'] },
+    migIn:  { on: true,  role: '滨江-管理员', persons: ['滨江-王芳', '滨江-刘洋'] },
+    healthEdu: true,
+    realName: { resident: false, woman: false, child: false },
+    encryptOn: false,
+    encrypt: ['居民基本信息', '随访记录']
+  };
+
+  /* 人群类型限定：仅儿童 / 老年人，年龄类型按人群固定（儿童=结束年龄，老年人=起始年龄） */
+  var AGE_CROWDS = ['儿童', '老年人'];
+  function ageTypeOf(crowd) { return crowd === '儿童' ? '结束年龄' : '起始年龄'; }
+  var PERSON_OPTS = ['滨江-张伟', '滨江-李娜', '滨江-王芳', '滨江-刘洋', '滨江-陈静', '滨江-赵敏'];
+  var ENCRYPT_OPTS = ['居民基本信息', '随访记录'];
+
+  /* ================= 年龄参数维护 ================= */
+  function hasCrowd(crowd) {
+    return CFG.ageRows.some(function (r) { return r.crowd === crowd; });
+  }
+
+  function renderAge() {
+    var html = '';
+    CFG.ageRows.forEach(function (r, i) {
+      html += '<div class="p-row">'
+        + '<span class="lbl">人群类型</span>'
+        + '<select class="p-select" onchange="ageCrowd(' + i + ',this.value)">'
+        + AGE_CROWDS.map(function (c) { return '<option' + (c === r.crowd ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('')
+        + '</select>'
+        + '<span class="lbl" style="margin-left:16px">' + ageTypeOf(r.crowd) + '</span>'
+        + '<input class="p-ctl num" type="number" min="0" value="' + (r.val == null ? '' : r.val) + '" onchange="ageVal(' + i + ',this.value)">'
+        + '<span class="unit">岁</span>'
+        + '<span class="row-del" onclick="delAgeRow(' + i + ')" title="删除该行">✕</span>'
+        + '</div>';
+    });
+    $('ageList').innerHTML = html;
+    /* 儿童与老年人都已配置时，隐藏「添加年龄参数」按钮 */
+    $('ageAddBtn').style.display = hasCrowd('儿童') && hasCrowd('老年人') ? 'none' : 'flex';
+  }
+
+  function ageCrowd(i, v) {
+    if (v !== rCrowdOf(i) && hasCrowd(v)) {
+      toast('「' + v + '」年龄参数已配置，请勿重复添加', 'warning');
+      renderAge();
+      return;
+    }
+    CFG.ageRows[i].crowd = v;
+    renderAge();
+  }
+
+  function rCrowdOf(i) { return CFG.ageRows[i] ? CFG.ageRows[i].crowd : ''; }
+
+  function ageVal(i, v) { CFG.ageRows[i].val = +v || 0; }
+
+  function addAgeRow() {
+    var missing = AGE_CROWDS.filter(function (c) { return !hasCrowd(c); });
+    if (!missing.length) return;
+    CFG.ageRows.push({ crowd: missing[0], val: '' });
+    renderAge();
+  }
+
+  function delAgeRow(i) {
+    CFG.ageRows.splice(i, 1);
+    renderAge();
+  }
+
+  /* ================= 迁移审核参数维护 ================= */
+  function renderMig() {
+    ['migOut', 'migIn'].forEach(function (k) {
+      var c = CFG[k];
+      var sw = $(k === 'migOut' ? 'swMigOut' : 'swMigIn');
+      sw.classList.toggle('on', c.on);
+      var person = $(k === 'migOut' ? 'personMigOut' : 'personMigIn');
+      person.value = c.persons.length >= PERSON_OPTS.length ? '全选 (' + c.persons.length + ')' : '已选择 (' + c.persons.length + ')';
+      person.classList.toggle('is-full', c.persons.length >= PERSON_OPTS.length);
+      person.disabled = !c.on;
+      $(k === 'migOut' ? 'roleMigOut' : 'roleMigIn').disabled = !c.on;
+    });
+  }
+
+  function toggleSwitch(k) {
+    if (k === 'migOut' || k === 'migIn') {
+      CFG[k].on = !CFG[k].on;
+      renderMig();
+      return;
+    }
+    if (k === 'healthEdu') {
+      CFG.healthEdu = !CFG.healthEdu;
+      $('swHealthEdu').classList.toggle('on', CFG.healthEdu);
+      return;
+    }
+    if (k.indexOf('realName-') === 0) {
+      var sub = k.slice('realName-'.length);
+      CFG.realName[sub] = !CFG.realName[sub];
+      $('swReal' + sub.charAt(0).toUpperCase() + sub.slice(1)).classList.toggle('on', CFG.realName[sub]);
+      return;
+    }
+    if (k === 'encryptOn') {
+      CFG.encryptOn = !CFG.encryptOn;
+      $('swEncryptOn').classList.toggle('on', CFG.encryptOn);
+    }
+  }
+
+  function initSwitches() {
+    ['resident', 'woman', 'child'].forEach(function (sub) {
+      $('swReal' + sub.charAt(0).toUpperCase() + sub.slice(1)).classList.toggle('on', CFG.realName[sub]);
+    });
+    $('swEncryptOn').classList.toggle('on', CFG.encryptOn);
+  }
+
+  /* ================= 通用多选弹框 ================= */
+  var MSEL = { key: '', title: '', opts: [] };
+
+  function openMulti(key, title, opts) {
+    MSEL.key = key; MSEL.title = title; MSEL.opts = opts;
+    $('mselQ').value = '';
+    renderMsel();
+    $('mselModal').classList.add('show');
+  }
+
+  function renderMsel() {
+    $('mselTitle').textContent = MSEL.title;
+    var q = $('mselQ').value.trim();
+    var cur = CFG[MSEL.key] || [];
+    var html = '';
+    var matched = 0;
+    MSEL.opts.forEach(function (o) {
+      if (q && o.indexOf(q) === -1) return;
+      matched++;
+      html += '<label class="msel-row">'
+        + '<input type="checkbox" data-v="' + esc(o) + '"' + (cur.indexOf(o) > -1 ? ' checked' : '') + '>'
+        + '<span>' + esc(o) + '</span>'
+        + '</label>';
+    });
+    if (!matched) html = '<div style="padding:24px;text-align:center;color:var(--text-tertiary);font-size:13px">未找到匹配项</div>';
+    $('mselBody').innerHTML = html;
+  }
+
+  function submitMsel() {
+    var arr = [];
+    $('mselBody').querySelectorAll('input:checked').forEach(function (cb) {
+      arr.push(cb.getAttribute('data-v'));
+    });
+    CFG[MSEL.key] = arr;
+    $('mselModal').classList.remove('show');
+    refreshPersonDisplays();
+  }
+
+  function refreshPersonDisplays() {
+    ['migOut', 'migIn'].forEach(function (k) {
+      var c = CFG[k];
+      var el = $(k === 'migOut' ? 'personMigOut' : 'personMigIn');
+      if (!el) return;
+      el.value = c.persons.length >= PERSON_OPTS.length ? '全选 (' + c.persons.length + ')' : '已选择 (' + c.persons.length + ')';
+      el.classList.toggle('is-full', c.persons.length >= PERSON_OPTS.length);
+    });
+    var enc = $('encryptItems');
+    enc.value = CFG.encrypt.length >= ENCRYPT_OPTS.length ? '全选 (' + CFG.encrypt.length + ')' : '已选择 (' + CFG.encrypt.length + ')';
+    enc.classList.toggle('is-full', CFG.encrypt.length >= ENCRYPT_OPTS.length);
+  }
+
+  function closeModal(id) { $(id).classList.remove('show'); }
+
+  /* ================= 保存 ================= */
+  function saveConfig() {
+    toast('基本参数维护已保存', 'success');
+  }
+
+  /* ================= 初始化 ================= */
+  renderAge();
+  renderMig();
+  refreshPersonDisplays();
+  initSwitches();
+</script>
+</body>
+</html>

@@ -55,14 +55,15 @@
   .pt-field b{font-weight:var(--font-weight-regular);color:#404040}
   .pt-field.ellipsis{flex:0 1 auto;min-width:0;max-width:360px}
   .pt-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
-  .pt-panorama{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border:1px solid var(--primary-border);border-radius:var(--r-sm);font-size:14px;color:var(--primary);background:#fff;cursor:pointer;transition:all var(--transition-fast)}
-  .pt-panorama:hover{background:var(--primary-bg)}
+  .pt-panorama{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border:1px solid #E3EAF5;border-radius:var(--r-sm);font-size:14px;color:#404040;background:#F4F9FF;cursor:pointer;transition:all var(--transition-fast)}
+  .pt-panorama:hover{background:#EAF2FF}
   .pt-panorama svg{width:16px;height:16px}
   .pt-actions .btn{height:32px;padding:0 18px}
 
   /* ===== 主体：左侧档案导航 + 内容区 ===== */
   .pv-body{flex:1;display:flex;overflow:hidden;min-height:0}
   .pv-nav{width:214px;flex-shrink:0;background:var(--bg-white);border-right:1px solid #D9D9D9;overflow-y:auto;padding-bottom:12px}
+  .pv-nav.hidden{display:none}
   .nav-group-title{padding:14px 16px 6px;font-size:12px;color:var(--text-tertiary);letter-spacing:1px}
   .nav-item{display:flex;align-items:center;height:36px;padding:0 16px 0 20px;font-size:14px;color:var(--text-secondary);cursor:pointer;transition:background var(--transition-fast);user-select:none;position:relative}
   .nav-item:hover{background:var(--primary-bg)}
@@ -1408,6 +1409,222 @@
   .tcm-pg-input{width:38px;height:24px;border:1px solid var(--color-neutral-300);border-radius:2px;
                 text-align:center;font-size:12.5px;color:var(--text-primary);outline:none;font-family:inherit}
   .tcm-foot{display:flex;justify-content:flex-end;gap:10px;padding:16px 24px 20px;flex-shrink:0}
+
+  /* ===== 个人首页视图（健康首页概览）===== */
+  .home-view{display:flex;flex-direction:column;gap:14px;padding:10px 20px 22px;min-width:0;background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(157,169,197,.14);min-height:calc(100vh - 106px);box-sizing:border-box}
+  .home-topbar{display:flex;align-items:center;justify-content:space-between;height:42px;padding:0 2px}
+  .home-crumb{display:flex;align-items:center;gap:8px;font-size:14px}
+  .home-crumb .crumb-prev{color:#8C8C8C;cursor:pointer;transition:color var(--transition-fast)}
+  .home-crumb .crumb-prev:hover{color:var(--primary)}
+  .home-crumb .crumb-sep{color:#BFBFBF}
+  .home-crumb .crumb-now{display:flex;align-items:center;gap:9px;font-size:17px;font-weight:var(--font-weight-semibold);color:#181818;letter-spacing:.5px}
+  .home-crumb .crumb-now::before{content:'';width:4px;height:17px;border-radius:2px;background:var(--primary)}
+  .home-tools{display:flex;align-items:center;gap:10px}
+  .home-tool-btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 16px;border:1px solid var(--primary-border);border-radius:var(--r-sm);background:#fff;font-size:13px;color:var(--primary);cursor:pointer;transition:all var(--transition-fast)}
+  .home-tool-btn:hover{background:var(--primary-bg);border-color:var(--primary)}
+  .home-tool-btn svg{width:15px;height:15px}
+  .home-tool-btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .home-tool-btn.primary:hover{background:var(--primary);color:#fff}
+  /* 生命树顶栏「健康首页」：设计稿为白底 + 灰描边 + 深灰字、无图标 */
+  .home-tool-btn.neutral{height:30px;padding:0 16px;border-color:#D9D9D9;background:#fff;color:#404040}
+  .home-tool-btn.neutral:hover{background:#F5F8FC;border-color:#C4CDDA;color:#404040}
+  .home-card{background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 2px 10px rgba(157,169,197,0.22);overflow:hidden;min-width:0}
+  /* 健康首页白色内容页：内部模块统一 #F7FAFE 背景 */
+  .home-view .home-card{background:#F7FAFE;border:1px solid #EEF3FA;box-shadow:none;border-radius:8px}
+  .home-view .home-card-head{background:transparent;border-bottom:1px solid #E9F0F9}
+  .home-card-head{display:flex;align-items:center;justify-content:space-between;height:46px;padding:0 18px;border-bottom:1px solid #EEF1F6;background:linear-gradient(180deg,#FAFCFF,#FFFFFF)}
+  .home-card-title{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:var(--font-weight-medium);color:#262626}
+  .home-card-title::before{content:'';width:4px;height:16px;border-radius:2px;background:var(--primary)}
+
+  /* 区块一：健康信息（左卡）+ 健康轨迹（右卡） */
+  .hi-layout{display:grid;grid-template-columns:1.72fr 1fr;gap:14px;align-items:stretch;min-width:0}
+  .hi-left,.hi-right{min-width:0;display:flex;flex-direction:column}
+  .health-info-body{padding:24px 16px 8px}
+  .indicator-ring{position:relative;width:520px;max-width:100%;height:296px;margin:0 auto}
+  .in-pill{position:absolute;transform:translate(-50%,-50%);display:inline-flex;align-items:center;gap:5px;padding:9px 14px;border-radius:999px;font-size:13px;font-weight:600;white-space:nowrap;line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.07);letter-spacing:.5px}
+  .in-pill::after{content:'';width:0;height:0;border:4px solid transparent;border-top:5px solid currentColor;opacity:.5;margin-top:3px}
+  .in-pill.noa::after{display:none}
+  .in-pill .pk{width:0;height:0;border:4px solid transparent;border-top:5px solid currentColor;opacity:.5}
+  .ip-glucose{background:#E6F7EC;color:#3DAE5B}
+  .ip-bp{background:#FDEBEC;color:#E05A52}
+  .ip-hr{background:#E3F1FD;color:#2E8EE5}
+  .ip-blood{background:#DCEBFB;color:#2F7BD9}
+  .ip-bmi{background:#FFF6D8;color:#BB8E23}
+  .ip-weight{background:#EFE9FA;color:#8260C9}
+  .ip-height{background:#EDEBFA;color:#7B6BD0}
+  .ring-center{position:absolute;left:50%;top:150px;transform:translate(-50%,-50%);width:142px;height:142px;border-radius:50%;background:#D9E9FB;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(93,142,224,.18)}
+  .ring-center .rc-inner{width:114px;height:114px;border-radius:50%;background:#FFFFFF;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .ring-center svg{width:100px;height:100px}
+  .traj-fill{flex:1;display:flex;align-items:center;justify-content:center;padding:12px 14px;min-width:0}
+  .traj3d{position:relative;flex:1;width:100%;min-height:430px;cursor:grab;overflow:hidden}
+  .traj3d:active{cursor:grabbing}
+  .traj3d canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .traj3d-tip{position:absolute;display:none;pointer-events:none;background:#fff;border:1px solid #E3E9F2;box-shadow:0 4px 14px rgba(38,64,110,.14);border-radius:6px;padding:6px 10px;font-size:12px;color:#262626;white-space:nowrap;z-index:5}
+  .traj3d-hint{position:absolute;right:10px;top:6px;display:flex;align-items:center;gap:4px;font-size:11px;color:#B7C0CC;pointer-events:none}
+
+  /* 区块二：病史信息（健康信息卡内，两列点标条目） */
+  .mh-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 26px;padding:16px 22px 20px;border-top:1px solid #F1F4F9}
+  .mh-item{min-width:0}
+  .mh-item-label{display:flex;align-items:center;gap:7px;font-size:13px;color:#8C8C8C;margin-bottom:6px}
+  .mh-item-label i{width:7px;height:7px;border-radius:50%;display:inline-block;flex:0 0 7px}
+  .mh-item-val{font-size:13px;color:#262626;line-height:1.6;word-break:break-all}
+  .mh-item-val.strong{font-weight:600}
+  .mh-dot-disease{background:#36CFC9}.mh-dot-genetic{background:#722ED1}.mh-dot-allergy{background:#FA8C16}
+  .mh-dot-surgery{background:#FA8C16}.mh-dot-disability{background:#FF4D4F}.mh-dot-trauma{background:#1890FF}
+  .mh-dot-transfusion{background:#FF4D4F}.mh-dot-family{background:#36CFC9}
+
+  /* 区块三：健康数据 */
+  .date-range{display:flex;align-items:center;gap:8px;font-size:12px;color:#595959}
+  .date-range input{width:132px;height:28px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 8px;font-size:12px;font-family:inherit;color:#262626;outline:none;background:#fff}
+  .date-range svg{width:16px;height:16px;color:#8C8C8C}
+  .health-data-body{display:flex;padding:8px 0 10px}
+  .data-chart{flex:1;min-width:0;padding:12px 18px 6px}
+  .data-chart + .data-chart{border-left:1px solid #E3ECF7}
+  .data-chart-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px}
+  .data-chart-namebox{display:flex;flex-direction:column;gap:3px}
+  .data-chart-name{font-size:14px;font-weight:var(--font-weight-semibold);color:#262626;line-height:1.2}
+  .data-chart-unit{font-size:12px;color:#9AA3AF;font-weight:400;line-height:1}
+  .data-legend{display:flex;gap:16px;align-items:center;padding-top:2px}
+  .data-legend span{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#595959}
+  .data-legend i{width:14px;height:4px;border-radius:2px;display:inline-block}
+  .data-chart svg{width:100%;height:218px;display:block}
+  .data-chart svg text{font-family:inherit}
+
+  /* ===== 家系图视图 ===== */
+  .genogram-view{display:flex;flex-direction:column;gap:14px;padding:10px 20px 22px;min-width:0;background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(157,169,197,.14);min-height:calc(100vh - 106px);box-sizing:border-box}
+  .genogram-tipbar{display:flex;align-items:center;justify-content:space-between;height:42px;padding:0 2px}
+  .genogram-tipbar h2{font-size:20px;font-weight:var(--font-weight-semibold);color:#181818;letter-spacing:1px}
+  .g-tool{display:flex;gap:10px}
+  .home-tool-btn.selected{background:var(--primary);color:#fff;border-color:var(--primary);cursor:default}
+  .home-tool-btn.selected:hover{background:var(--primary)}
+  .genogram-wrap{padding:0;min-width:0;overflow-x:auto}
+  .genogram-canvas{position:relative;width:100%;min-width:1000px;height:520px;border-radius:10px;border:1px solid #EEF3FA;background:#F7FAFE;background-image:radial-gradient(#DFE5EE 1.1px,transparent 1.1px);background-size:22px 22px;box-sizing:border-box;overflow:hidden}
+  .genogram-stage{position:relative;width:1000px;height:100%;margin:0 auto}
+  .genogram-lines{position:absolute;left:0;top:0;width:1000px;height:520px;pointer-events:none}
+  .genogram-lines line,.genogram-lines path{stroke:#E6A23C;stroke-width:2;fill:none}
+  .g-legend{position:absolute;top:16px;right:20px;display:flex;align-items:center;gap:18px;font-size:12px;color:#595959;z-index:3}
+  .g-legend span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+  .g-legend i{font-style:normal;font-size:13px}
+  .g-lg-m{color:#4E8CEE}.g-lg-f{color:#F26D6D}.g-lg-u{color:#9AA5B8}
+  .g-card{position:absolute;width:120px;transform:translateX(-50%);background:#fff;border-radius:10px;box-shadow:0 2px 10px rgba(38,64,110,.10);padding:30px 8px 10px;text-align:center;box-sizing:border-box;cursor:pointer;transition:box-shadow var(--transition-fast),transform var(--transition-fast);z-index:2}
+  .g-card:hover{box-shadow:0 6px 18px rgba(38,64,110,.18);transform:translateX(-50%) translateY(-2px)}
+  .g-avatar{position:absolute;left:50%;top:-26px;transform:translateX(-50%);width:52px;height:52px;border-radius:50%;overflow:hidden;background:#fff;box-shadow:0 0 0 3px #fff,0 2px 6px rgba(38,64,110,.14)}
+  .g-avatar svg{width:52px;height:52px;display:block}
+  .g-name{font-size:14px;font-weight:600;color:#262626;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4}
+  .g-meta{margin-top:5px;display:flex;align-items:center;justify-content:center;gap:5px;font-size:12px;color:#8C8C8C;min-height:16px}
+  .g-sex{width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff;line-height:1;font-style:normal;flex:0 0 16px}
+  .g-sex.m{background:#4E8CEE}
+  .g-sex.f{background:#F26D6D}
+  .g-sex.u{background:#9AA5B8}
+  .g-flag{display:inline-block;font-size:10px;line-height:1;padding:2px 5px;border-radius:4px;background:#FFA940;color:#fff;white-space:nowrap}
+  .g-pair{position:absolute;background:#fff;border:1px solid #E6A23C;color:#E6A23C;font-size:11px;line-height:1;padding:4px 10px;border-radius:999px;white-space:nowrap;transform:translate(-50%,-50%);z-index:2;box-shadow:0 1px 4px rgba(230,162,60,.2)}
+
+  /* ===== 生命树视图（时间轴模式 / 文档模式） =====
+     量测来源：设计稿 2048×1152（截图 1920×1080，缩放比 0.9375）
+       顶栏高 40、左右内距 13，底边 1px #D9D9D9
+       左侧模式/目录列 214（含右边框 1px #D9D9D9）                    */
+  .lt-view{padding:0;min-width:0;background:#fff;border-radius:0;box-shadow:none;height:calc(100vh - 74px);box-sizing:border-box;overflow:hidden;
+    display:flex;flex-direction:column;
+    /* 负边距抵消 .pv-content 的内边距，使内容页贴边占满患者栏以下的整个区域 */
+    margin:-16px -6px}
+  .lt-topbar{flex:0 0 auto;display:flex;align-items:center;height:40px;padding:0 13px;border-bottom:1px solid #D9D9D9;box-sizing:border-box}
+  .lt-title{font-size:16px;font-weight:var(--font-weight-semibold);color:#181818;letter-spacing:.5px}
+  .lt-topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+  .lt-modebar{display:flex;align-items:center;gap:10px;margin:0 0 14px}
+  /* 时间轴模式面板：保留原有版式内距 */
+  #ltTimelinePane{flex:1;min-height:0;overflow:auto;padding:14px 20px 22px}
+  /* 模式切换分段控件（文档模式左列 / 时间轴模式顶部共用） */
+  .lt-seg{display:flex}
+  .lt-seg button{height:31px;padding:0 19px;background:#fff;border:1px solid #D9D9D9;font-size:13px;color:#595959;cursor:pointer;
+    font-family:inherit;transition:color var(--transition-fast),border-color var(--transition-fast)}
+  .lt-seg button+button{margin-left:-1px}
+  .lt-seg button:first-child{border-radius:4px 0 0 4px}
+  .lt-seg button:last-child{border-radius:0 4px 4px 0}
+  .lt-seg button.active{position:relative;z-index:1;border-color:#007AFF;color:#007AFF}
+  .lt-modebar .home-tool-btn.selected{background:var(--primary-bg);color:var(--primary);border-color:var(--primary)}
+  .lt-stagebar{display:flex;justify-content:center;gap:3px;margin:4px 0 18px}
+  .lt-stage{height:34px;min-width:112px;padding:0 22px 0 24px;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    background:#C9CFD8;color:#fff;font-size:13px;white-space:nowrap;cursor:pointer;user-select:none;box-sizing:border-box;
+    clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%,12px 50%);transition:background var(--transition-fast)}
+  .lt-stage:first-child{padding-left:16px;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%)}
+  .lt-stage:hover{background:#B4BBC6}
+  .lt-stage.active,.lt-stage.active:hover{background:var(--primary)}
+  .lt-badge{font-size:10px;line-height:1;padding:3px 7px;border-radius:9px;background:rgba(255,255,255,.92);color:#8A94A6;font-weight:400;flex:0 0 auto}
+  .lt-stage.active .lt-badge{color:var(--primary)}
+  .lt-caret{font-size:10px;line-height:1;opacity:.95}
+  .lt-form-slot .fv-card{max-width:none;background:#F7FAFE;border:1px solid #EEF3FA;box-shadow:none;border-radius:8px}
+  .lt-form-slot .fv-head{border-bottom-color:#E3ECF7}
+  /* ===== 生命树 · 文档模式 =====
+     设计稿 2048 宽；表格量测（截图像素 ÷0.9375）：
+       边框 #BFDEFF；分组列 49、标签列 129（有分组列）/ 179（无分组列）；
+       行高 33（用药「药物/胰岛素」行 69）；正文 14px；
+       左右半边各占表格 50%，分栏线落在表格正中                        */
+  #ltTimelinePane.hidden,#ltDocPane.hidden{display:none}
+  .lt-doclayout{flex:1;min-height:0;display:flex;align-items:stretch;background:#fff}
+  /* 左列：模式切换 + 档案目录 */
+  .lt-docnav{flex:0 0 215px;box-sizing:border-box;border-right:1px solid #D9D9D9;padding:12px 0 24px;overflow:auto}
+  .lt-seg.seg-nav{margin:0 0 13px 10px}
+  .lt-docmenu{list-style:none;margin:0;padding:0}
+  .lt-docmenu li{display:flex;align-items:center;gap:11px;height:32px;padding-left:11px;font-size:14px;color:#262626;cursor:pointer;
+    transition:color var(--transition-fast)}
+  .lt-docmenu li:hover{color:#007AFF}
+  .lt-docmenu li.active{color:#007AFF;font-weight:var(--font-weight-medium)}
+  .lt-docmenu .caret{flex:0 0 0;width:0;height:0;border-left:6px solid #C4CDDA;border-top:4.5px solid transparent;border-bottom:4.5px solid transparent}
+  /* 右列：标题 + 姓名/档案编号 + 随访表 */
+  .lt-docmain{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;padding:0 13px;box-sizing:border-box}
+  .doc-head{flex:0 0 auto;height:44px;display:flex;align-items:center;gap:13px}
+  .doc-title{font-size:18px;font-weight:var(--font-weight-semibold);color:#181818;letter-spacing:.5px}
+  .doc-integrity{display:inline-flex;align-items:center;gap:10px;font-size:13px;color:#262626}
+  .doc-integrity i{width:15px;height:15px;box-sizing:border-box;border:2px solid #00B930;border-radius:50%}
+  .doc-print{margin-left:auto;width:32px;height:32px;border-radius:5px;background:#007AFF;color:#fff;display:flex;align-items:center;
+    justify-content:center;cursor:pointer;transition:background var(--transition-fast)}
+  .doc-print:hover{background:#0068DB}
+  .doc-print svg{width:17px;height:17px}
+  .doc-meta{flex:0 0 auto;height:34px;display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#262626}
+  .doc-meta b{font-weight:var(--font-weight-regular)}
+  /* 表格滚动区：常驻滚动条槽，保证表格右边界与设计稿一致 */
+  .doc-body{flex:1;min-height:0;overflow-y:scroll;overflow-x:hidden;padding-right:4px;box-sizing:border-box}
+  .doc-body::-webkit-scrollbar{width:16px}
+  .doc-body::-webkit-scrollbar-track{background:#fff}
+  .doc-body::-webkit-scrollbar-thumb{background:#9AA0A6;border-radius:8px;border:3px solid #fff;background-clip:content-box;min-height:60px}
+  /* 随访表：网格 */
+  .dtbl{border:1px solid #BFDEFF;border-bottom:none;background:#fff}
+  .dtbl>.dt-row,.dtbl>.dt-group,.dt-gb>.dt-row{border-bottom:1px solid #BFDEFF}
+  .dt-gb>.dt-row:last-child{border-bottom:none}
+  .dt-group{display:flex}
+  .dt-gl{flex:0 0 49px;background:#E0EFFF;border-right:1px solid #BFDEFF;display:flex;align-items:center;justify-content:center;
+    padding:0 4px;font-size:14px;line-height:1.4;color:#262626;text-align:center;word-break:break-all}
+  .dt-gb{flex:1;min-width:0;display:flex;flex-direction:column}
+  .dt-row{display:flex;min-height:33px}
+  .dt-row.tall{min-height:69px}
+  .dt-half{flex:1 1 auto;display:flex;min-width:0}
+  .dt-row>.dt-half+.dt-half{border-left:1px solid #BFDEFF}
+  /* 有分组列时，左半边需再减去分组列（49+1）的一半，分栏线才落在表格正中 */
+  .dt-gb .dt-row>.dt-half:first-child:not(:last-child){flex:0 0 calc(50% - 25px)}
+  .dt-lbl{flex:0 0 179px;background:#E0EFFF;border-right:1px solid #BFDEFF;display:flex;align-items:center;justify-content:center;
+    padding:0 8px;font-size:14px;color:#262626;text-align:center;line-height:1.35}
+  .dt-gb .dt-row>.dt-half:first-child>.dt-lbl{flex:0 0 129px}
+  .dt-val{flex:1 1 auto;min-width:0;display:flex;align-items:center;flex-wrap:wrap;gap:0 26px;padding:0 8px;font-size:14px;color:#262626}
+  .dt-val.opts{gap:0 17px}
+  .dt-val.tint{padding:5px 8px}
+  .dt-fill{flex:1;align-self:stretch;background:#F7FAFE;border-radius:3px;display:flex;align-items:center;flex-wrap:wrap;
+    gap:0 26px;padding:0 11px;min-width:0}
+  .fi{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+  .fi b{font-weight:var(--font-weight-regular);color:#262626}
+  /* 选项：圆点单选（随访方式等）/ 方框复选（症状、转诊原因） */
+  .op,.cb{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:#8C8C8C;cursor:pointer;white-space:nowrap}
+  .op i,.cb i{position:relative;flex:0 0 14px;width:14px;height:14px;box-sizing:border-box;background:#fff}
+  .op i{border:1px solid #D9D9D9;border-radius:50%}
+  .cb i{border:1px solid #D9D9D9;border-radius:3px}
+  .op.on{color:#007AFF}
+  .op.on i{border:2px solid #007AFF}
+  .op.on i::after{content:'';position:absolute;left:2px;top:2px;width:6px;height:6px;border-radius:50%;background:#007AFF}
+  .cb.on{color:#007AFF}
+  .cb.on i{border-color:#007AFF;background:#007AFF}
+  .cb.on i::after{content:'';position:absolute;left:4px;top:2px;width:4px;height:7px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+  .bl{display:inline-block;min-width:64px;margin:0 14px 0 2px;padding:0 6px 1px;border-bottom:1px solid #C4CDDA;color:#262626;white-space:nowrap}
+  .bl.w80{min-width:80px}
+  .bl.empty{min-width:96px}
 </style>
 </head>
 <body>
@@ -1444,11 +1661,10 @@
   </div>
   <div class="pt-actions">
     <span class="pt-panorama" onclick="toast('健康全景视图功能建设中','info')">
-      <svg viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z" stroke="#007AFF" stroke-width="1.6"/><circle cx="12" cy="12" r="2.6" stroke="#007AFF" stroke-width="1.6"/></svg>
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 3.4a8.6 8.6 0 1 0 8.6 8.6" stroke="#4B6FE6" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="10.2" r="2.6" fill="#33CFB2"/><path d="M12 13.4c-2.8 0-4.9 1.6-5.3 3.9-.1.6.4 1.1 1 1.1h8.6c.6 0 1.1-.5 1-1.1-.4-2.3-2.5-3.9-5.3-3.9z" fill="#33CFB2"/></svg>
       健康全景视图
     </span>
     <button class="btn btn-default" onclick="goBack()">返回</button>
-    <button class="btn btn-primary" onclick="toast('档案预览功能建设中','info')">预览</button>
     <button class="btn btn-primary" id="btnSave" style="display:none" onclick="saveArchive()">保存</button>
   </div>
 </div>
@@ -1457,8 +1673,8 @@
 <div class="pv-body">
 
   <!-- 左侧档案导航 -->
-  <aside class="pv-nav">
-    <div class="nav-item" onclick="toast('「个人首页」模块功能建设中','info')">个人首页</div>
+  <aside class="pv-nav" id="sideNav">
+    <div class="nav-item" id="navHome" onclick="switchView('home')">个人首页</div>
     <div class="nav-group open" id="navArchiveGroup">
       <div class="nav-item group-toggle" onclick="toggleNavGroup('navArchiveGroup')">
         <span>个人档案</span>
@@ -1795,6 +2011,277 @@
           <div class="fr">
             <label><i>*</i>建档日期：</label>
             <input class="ctl" id="cvDate" type="date">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 视图一：个人首页（健康首页概览）===== -->
+    <div class="pv-view hidden" id="viewHome">
+      <div class="home-view">
+        <!-- 标题栏：健康首页 + 工具按钮 -->
+        <div class="home-topbar">
+          <div class="home-crumb">
+            <span class="crumb-now">健康首页</span>
+          </div>
+          <div class="home-tools">
+            <button class="home-tool-btn" onclick="switchView('lifeTree')">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 3c2 2.5 3 5.2 3 8.4a3.5 3.5 0 0 1-2 3.2V21M12 3c-2 2.5-3 5.2-3 8.4a3.5 3.5 0 0 0 2 3.2V21M12 3v6.5M6 18h12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>生命树
+            </button>
+            <button class="home-tool-btn primary" onclick="switchView('genogram')">
+              <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="5" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.6"/><circle cx="16.5" cy="8" r="2.6" stroke="currentColor" stroke-width="1.6"/><line x1="16.5" y1="10.6" x2="16.5" y2="16" stroke="currentColor" stroke-width="1.6"/><path d="M11 9h-1.2a2 2 0 0 0-2 2v5M8 16h6M13.5 19h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>家系图
+            </button>
+          </div>
+        </div>
+
+        <!-- 区块一：健康信息（左卡）+ 健康轨迹（右卡） -->
+        <div class="hi-layout">
+          <div class="home-card hi-left">
+            <div class="home-card-head">
+              <div class="home-card-title">健康信息</div>
+            </div>
+            <div class="health-info-body">
+              <!-- 环形指标：中心头像 + 彩色 pill 标签（椭圆环绕） -->
+              <div class="indicator-ring">
+                <div class="in-pill ip-glucose" style="left:196px;top:56px">空腹血糖</div>
+                <div class="in-pill ip-bp" style="left:318px;top:56px">血压</div>
+                <div class="in-pill ip-height" style="left:118px;top:118px">身高</div>
+                <div class="in-pill ip-hr" style="left:396px;top:118px">心率</div>
+                <div class="in-pill ip-weight" style="left:140px;top:184px">体重</div>
+                <div class="in-pill ip-blood noa" style="left:372px;top:184px">血型<span class="pk"></span><span>不详</span></div>
+                <div class="in-pill ip-bmi" style="left:252px;top:254px">体质指数(BMI)</div>
+                <div class="ring-center">
+                  <div class="rc-inner">
+                    <svg viewBox="0 0 88 88" aria-hidden="true">
+                      <path d="M44 12c-12.7 0-21 8.8-21 21.6V48c0 2.4-1.2 4-3.2 5.2h48.4C66.2 52 65 50.4 65 48V33.6C65 20.8 56.7 12 44 12z" fill="#312B28"/>
+                      <ellipse cx="44" cy="40" rx="14.5" ry="16.5" fill="#FFD5CB"/>
+                      <path d="M40 52.5h8v6.5h-8z" fill="#F2BCAE"/>
+                      <path d="M44 57.5c-9.8 0-16.6 5.8-18.2 15.5h36.4C60.6 63.3 53.8 57.5 44 57.5z" fill="#F08654"/>
+                      <path d="M40.5 59.2 44 65.6l3.5-6.4-3.5 1.9z" fill="#FFFFFF"/>
+                      <path d="M44 12c-11.6 0-19.4 7.6-20.7 18.6 3-5.6 7.6-8.8 11.6-9.5 2-.4 3.4.2 4.5 1.5 1 1.2 2.6 1.8 4.3 1.7 5.8-.4 12 1.7 15.8 6.3C58.4 19.2 51.6 12 44 12z" fill="#312B28"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 病史信息（两列点标条目） -->
+            <div class="mh-grid">
+              <div class="mh-item">
+                <div class="mh-item-label"><i class="mh-dot-disease"></i><span>疾病史</span></div>
+                <div class="mh-item-val strong">残疾、高危、结核病、高血压、糖尿病、严重精神障碍、心脑血管疾病</div>
+              </div>
+              <div class="mh-item">
+                <div class="mh-item-label"><i class="mh-dot-genetic"></i><span>遗传病史</span></div>
+                <div class="mh-item-val">-</div>
+              </div>
+              <div class="mh-item">
+                <div class="mh-item-label"><i class="mh-dot-allergy"></i><span>药物过敏史</span></div>
+                <div class="mh-item-val">无</div>
+              </div>
+              <div class="mh-item">
+                <div class="mh-item-label"><i class="mh-dot-surgery"></i><span>手术史</span></div>
+                <div class="mh-item-val">-</div>
+              </div>
+              <div class="mh-item">
+                <div class="mh-item-label"><i class="mh-dot-disability"></i><span>残疾情况</span></div>
+                <div class="mh-item-val">无残疾</div>
+              </div>
+              <div class="mh-item">
+                <div class="mh-item-label"><i class="mh-dot-trauma"></i><span>外伤史</span></div>
+                <div class="mh-item-val">-</div>
+              </div>
+              <div class="mh-item">
+                <div class="mh-item-label"><i class="mh-dot-transfusion"></i><span>输血史</span></div>
+                <div class="mh-item-val">-</div>
+              </div>
+              <div class="mh-item">
+                <div class="mh-item-label"><i class="mh-dot-family"></i><span>家族史</span></div>
+                <div class="mh-item-val strong">父亲：无　母亲：无　兄弟姐妹：无　子女：无</div>
+              </div>
+            </div>
+          </div>
+          <div class="home-card hi-right">
+            <div class="traj-fill">
+              <!-- 三维全生命周期视图：X=生命周期 Y=档案业务 Z=具体服务信息（鼠标拖动旋转 / 悬停缓转 / 滚轮缩放） -->
+              <div class="traj3d" id="traj3d">
+                <canvas id="traj3dCanvas"></canvas>
+                <div class="traj3d-tip" id="traj3dTip"></div>
+                <div class="traj3d-hint">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none"><path d="M12 3a9 9 0 1 1-8.6 6.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M3.2 4.5l.4 4.6 4.6-.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  按住拖动旋转 · 滚轮缩放
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 区块三：健康数据 -->
+        <div class="home-card">
+          <div class="home-card-head">
+            <div class="home-card-title">健康数据</div>
+            <div class="date-range">
+              <input type="date" readonly value="2025-08-19"><span>至</span>
+              <input type="date" readonly value="2025-10-09">
+              <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 9.5h17M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+          <div class="health-data-body">
+            <div class="data-chart">
+              <div class="data-chart-head">
+                <div class="data-chart-namebox">
+                  <span class="data-chart-name">空腹血糖</span>
+                  <span class="data-chart-unit">mmol/L</span>
+                </div>
+                <div class="data-legend"><span><i style="background:#3DAE5B"></i>空腹血糖</span></div>
+              </div>
+              <svg viewBox="0 0 380 212" preserveAspectRatio="none">
+                <g stroke="#EEF1F6" stroke-width="1">
+                  <line x1="44" y1="26" x2="376" y2="26"/><line x1="44" y1="70" x2="376" y2="70"/>
+                  <line x1="44" y1="114" x2="376" y2="114"/><line x1="44" y1="158" x2="376" y2="158"/>
+                </g>
+                <line x1="44" y1="26" x2="44" y2="186" stroke="#C9D6E8" stroke-width="1.2"/>
+                <line x1="44" y1="186" x2="376" y2="186" stroke="#C9D6E8" stroke-width="1.2"/>
+                <g fill="#9AA5B8" font-size="10">
+                  <text x="38" y="29" text-anchor="end">8</text><text x="38" y="73" text-anchor="end">6</text>
+                  <text x="38" y="117" text-anchor="end">4</text><text x="38" y="161" text-anchor="end">2</text>
+                  <text x="38" y="190" text-anchor="end">0</text>
+                </g>
+                <polyline points="44,82 110,70 176,78 242,64 308,74 374,68" fill="none" stroke="#3DAE5B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <g fill="#3DAE5B">
+                  <circle cx="44" cy="82" r="3"/><circle cx="110" cy="70" r="3"/><circle cx="176" cy="78" r="3"/>
+                  <circle cx="242" cy="64" r="3"/><circle cx="308" cy="74" r="3"/><circle cx="374" cy="68" r="3"/>
+                </g>
+                <g fill="#9AA5B8" font-size="10" text-anchor="middle">
+                  <text x="44" y="202">08-19</text><text x="110" y="202">08-29</text><text x="176" y="202">09-08</text>
+                  <text x="242" y="202">09-18</text><text x="308" y="202">09-28</text><text x="374" y="202">10-08</text>
+                </g>
+              </svg>
+            </div>
+            <div class="data-chart">
+              <div class="data-chart-head">
+                <div class="data-chart-namebox">
+                  <span class="data-chart-name">血压</span>
+                  <span class="data-chart-unit">mmHg</span>
+                </div>
+                <div class="data-legend"><span><i style="background:#1565C0"></i>收缩压</span><span><i style="background:#42A5F5"></i>舒张压</span></div>
+              </div>
+              <svg viewBox="0 0 380 212" preserveAspectRatio="none">
+                <g stroke="#EEF1F6" stroke-width="1">
+                  <line x1="44" y1="26" x2="376" y2="26"/><line x1="44" y1="70" x2="376" y2="70"/>
+                  <line x1="44" y1="114" x2="376" y2="114"/><line x1="44" y1="158" x2="376" y2="158"/>
+                </g>
+                <line x1="44" y1="26" x2="44" y2="186" stroke="#C9D6E8" stroke-width="1.2"/>
+                <line x1="44" y1="186" x2="376" y2="186" stroke="#C9D6E8" stroke-width="1.2"/>
+                <g fill="#9AA5B8" font-size="10">
+                  <text x="38" y="29" text-anchor="end">160</text><text x="38" y="73" text-anchor="end">120</text>
+                  <text x="38" y="117" text-anchor="end">80</text><text x="38" y="161" text-anchor="end">40</text>
+                  <text x="38" y="190" text-anchor="end">0</text>
+                </g>
+                <polyline points="44,68 110,61 176,65 242,54 308,58 374,56" fill="none" stroke="#1565C0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="44,111 110,106 176,108 242,101 308,104 374,100" fill="none" stroke="#42A5F5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <g fill="#1565C0">
+                  <circle cx="44" cy="68" r="3"/><circle cx="110" cy="61" r="3"/><circle cx="176" cy="65" r="3"/>
+                  <circle cx="242" cy="54" r="3"/><circle cx="308" cy="58" r="3"/><circle cx="374" cy="56" r="3"/>
+                </g>
+                <g fill="#42A5F5">
+                  <circle cx="44" cy="111" r="3"/><circle cx="110" cy="106" r="3"/><circle cx="176" cy="108" r="3"/>
+                  <circle cx="242" cy="101" r="3"/><circle cx="308" cy="104" r="3"/><circle cx="374" cy="100" r="3"/>
+                </g>
+                <g fill="#9AA5B8" font-size="10" text-anchor="middle">
+                  <text x="44" y="202">08-19</text><text x="110" y="202">08-29</text><text x="176" y="202">09-08</text>
+                  <text x="242" y="202">09-18</text><text x="308" y="202">09-28</text><text x="374" y="202">10-08</text>
+                </g>
+                <!-- 悬浮提示框 -->
+                <g>
+                  <rect x="240" y="86" width="118" height="72" rx="4" fill="#FFFFFF" stroke="#E3E9F2"/>
+                  <text x="251" y="104" font-size="11" fill="#595959">2025-09-08</text>
+                  <rect x="251" y="112" width="8" height="8" rx="1.5" fill="#1565C0"/>
+                  <text x="264" y="120" font-size="11" fill="#595959">收缩压</text>
+                  <rect x="251" y="130" width="8" height="8" rx="1.5" fill="#42A5F5"/>
+                  <text x="264" y="138" font-size="11" fill="#595959">舒张压</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 视图：家系图（遗传健康图谱） ===== -->
+    <div class="pv-view hidden" id="viewGenogram">
+      <div class="genogram-view">
+        <div class="genogram-tipbar">
+          <h2>家系图</h2>
+          <div class="g-tool">
+            <button class="home-tool-btn" onclick="switchView('lifeTree')">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 3c2 2.5 3 5.2 3 8.4a3.5 3.5 0 0 1-2 3.2V21M12 3c-2 2.5-3 5.2-3 8.4a3.5 3.5 0 0 0 2 3.2V21M12 3v6.5M6 18h12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>生命树
+            </button>
+            <button class="home-tool-btn selected" onclick="switchView('genogram')">
+              <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="5" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.6"/><circle cx="16.5" cy="8" r="2.6" stroke="currentColor" stroke-width="1.6"/><line x1="16.5" y1="10.6" x2="16.5" y2="16" stroke="currentColor" stroke-width="1.6"/><path d="M11 9h-1.2a2 2 0 0 0-2 2v5M8 16h6M13.5 19h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>家系图
+            </button>
+            <button class="home-tool-btn" onclick="switchView('home')">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M11 17h2M5 12l7-7 7 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>返回健康首页
+            </button>
+          </div>
+        </div>
+
+        <div class="home-card">
+          <div class="genogram-wrap">
+            <div class="genogram-canvas">
+              <!-- 图例 -->
+              <div class="g-legend">
+                <span><i class="g-lg-m">♂</i>男</span>
+                <span><i class="g-lg-f">♀</i>女</span>
+                <span><i class="g-lg-u">⊙</i>未知</span>
+                <span><i class="g-lg-u">?</i>未说明</span>
+              </div>
+              <!-- 关系连线（琥珀色） -->
+              <div class="genogram-stage">
+              <svg class="genogram-lines" viewBox="0 0 1000 520" preserveAspectRatio="none">
+                <path d="M500 140 V242"/>
+                <line x1="480" y1="250" x2="520" y2="250"/>
+                <path d="M500 262 V340"/>
+                <line x1="350" y1="340" x2="500" y2="340"/>
+                <path d="M350 340 V402"/>
+                <path d="M460 340 V402"/>
+              </svg>
+              <!-- 关系标签 -->
+              <span class="g-pair" style="left:500px;top:250px">夫妻</span>
+              <span class="g-pair" style="left:350px;top:340px">子</span>
+              <span class="g-pair" style="left:460px;top:340px">子</span>
+
+              <!-- 第一代：父 -->
+              <div class="g-card" style="left:500px;top:66px" onclick="toast('查看成员档案：王一丁','info')">
+                <div class="g-avatar"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="24" fill="#DCEBFC"/><path d="M10.5 26.5c0-9.4 6.1-15.5 13.5-15.5s13.5 6.1 13.5 15.5v.5h-27z" fill="#409EFF"/><ellipse cx="24" cy="28.5" rx="10.8" ry="9.8" fill="#FFE3C4"/><circle cx="13.6" cy="27.5" r="2.1" fill="#FFE3C4"/><circle cx="34.4" cy="27.5" r="2.1" fill="#FFE3C4"/><path d="M18.6 23.8h3.4M26 23.8h3.4" stroke="#6B7A90" stroke-width="1.2" stroke-linecap="round"/><circle cx="20.2" cy="27" r="1.35" fill="#3B3B3B"/><circle cx="27.8" cy="27" r="1.35" fill="#3B3B3B"/><path d="M21.6 32.4c1.5 1.1 3.3 1.1 4.8 0" stroke="#D98B6F" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg></div>
+                <div class="g-name">王一丁</div>
+                <div class="g-meta"><span>55岁</span><i class="g-sex m">♂</i></div>
+              </div>
+
+              <!-- 第二代：夫妻 -->
+              <div class="g-card" style="left:420px;top:226px" onclick="toast('查看成员档案：患者一','info')">
+                <div class="g-avatar"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="24" fill="#DCEBFC"/><path d="M10.5 26.5c0-9.4 6.1-15.5 13.5-15.5s13.5 6.1 13.5 15.5v.5h-27z" fill="#409EFF"/><ellipse cx="24" cy="28.5" rx="10.8" ry="9.8" fill="#FFE3C4"/><circle cx="13.6" cy="27.5" r="2.1" fill="#FFE3C4"/><circle cx="34.4" cy="27.5" r="2.1" fill="#FFE3C4"/><path d="M18.6 23.8h3.4M26 23.8h3.4" stroke="#6B7A90" stroke-width="1.2" stroke-linecap="round"/><circle cx="20.2" cy="27" r="1.35" fill="#3B3B3B"/><circle cx="27.8" cy="27" r="1.35" fill="#3B3B3B"/><path d="M21.6 32.4c1.5 1.1 3.3 1.1 4.8 0" stroke="#D98B6F" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg></div>
+                <div class="g-name">患者一</div>
+                <div class="g-meta"><span class="g-flag">先证者</span><span>34岁</span><i class="g-sex m">♂</i></div>
+              </div>
+              <div class="g-card" style="left:580px;top:226px" onclick="toast('查看成员档案：产销啊','info')">
+                <div class="g-avatar"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="24" fill="#FCE7EA"/><path d="M12.8 27.5c-.6-8.8 4.4-16.2 11.2-16.2s11.8 7.4 11.2 16.2c-.4 5.6-1.8 8.6-4 10H16.8c-2.2-1.4-3.6-4.4-4-10z" fill="#3A3A3A"/><ellipse cx="24" cy="28.5" rx="9.6" ry="9.2" fill="#FFE3C4"/><path d="M15 24c1.1-3.4 4.6-6 9-6s7.9 2.6 9 6c-1-5-4.6-9-9-9s-8 4-9 9z" fill="#3A3A3A"/><path d="M18.8 23.9h3.2M26 23.9h3.2" stroke="#6B7A90" stroke-width="1.2" stroke-linecap="round"/><circle cx="20.4" cy="27.2" r="1.3" fill="#3B3B3B"/><circle cx="27.6" cy="27.2" r="1.3" fill="#3B3B3B"/><path d="M21.6 32.2c1.5 1.1 3.3 1.1 4.8 0" stroke="#D98B6F" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg></div>
+                <div class="g-name">产销啊</div>
+                <div class="g-meta"><span>41岁</span><i class="g-sex f">♀</i></div>
+              </div>
+
+              <!-- 第三代：子女 -->
+              <div class="g-card" style="left:350px;top:420px" onclick="toast('查看成员档案：病人一','info')">
+                <div class="g-avatar"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="24" fill="#DCEBFC"/><path d="M10.5 26.5c0-9.4 6.1-15.5 13.5-15.5s13.5 6.1 13.5 15.5v.5h-27z" fill="#409EFF"/><ellipse cx="24" cy="28.5" rx="10.8" ry="9.8" fill="#FFE3C4"/><circle cx="13.6" cy="27.5" r="2.1" fill="#FFE3C4"/><circle cx="34.4" cy="27.5" r="2.1" fill="#FFE3C4"/><path d="M18.6 23.8h3.4M26 23.8h3.4" stroke="#6B7A90" stroke-width="1.2" stroke-linecap="round"/><circle cx="20.2" cy="27" r="1.35" fill="#3B3B3B"/><circle cx="27.8" cy="27" r="1.35" fill="#3B3B3B"/><path d="M21.6 32.4c1.5 1.1 3.3 1.1 4.8 0" stroke="#D98B6F" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg></div>
+                <div class="g-name">病人一</div>
+                <div class="g-meta"><span>38岁</span><i class="g-sex m">♂</i></div>
+              </div>
+              <div class="g-card" style="left:460px;top:420px" onclick="toast('查看成员档案：王儿童','info')">
+                <div class="g-avatar"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="24" fill="#DCEBFC"/><path d="M10.5 26.5c0-9.4 6.1-15.5 13.5-15.5s13.5 6.1 13.5 15.5v.5h-27z" fill="#409EFF"/><ellipse cx="24" cy="28.5" rx="10.8" ry="9.8" fill="#FFE3C4"/><circle cx="13.6" cy="27.5" r="2.1" fill="#FFE3C4"/><circle cx="34.4" cy="27.5" r="2.1" fill="#FFE3C4"/><path d="M18.6 23.8h3.4M26 23.8h3.4" stroke="#6B7A90" stroke-width="1.2" stroke-linecap="round"/><circle cx="20.2" cy="27" r="1.35" fill="#3B3B3B"/><circle cx="27.8" cy="27" r="1.35" fill="#3B3B3B"/><path d="M21.6 32.4c1.5 1.1 3.3 1.1 4.8 0" stroke="#D98B6F" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg></div>
+                <div class="g-name">王儿童</div>
+                <div class="g-meta"><span>4岁</span><i class="g-sex m">♂</i></div>
+              </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -2404,6 +2891,242 @@
             <div class="hp-field"><input class="ctl" id="biCreateDate" type="date"></div>
           </div>
 
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 视图：生命树（时间轴模式，入口：健康首页/家系图「生命树」按钮） ===== -->
+    <!-- ===== 视图：生命树（时间轴模式 / 文档模式，入口：健康首页 / 家系图「生命树」按钮） ===== -->
+    <div class="pv-view hidden" id="viewLifeTree">
+      <div class="lt-view">
+        <div class="lt-topbar">
+          <div class="lt-title">生命树</div>
+          <div class="lt-topbar-right">
+            <button class="home-tool-btn neutral" onclick="switchView('home')">健康首页</button>
+          </div>
+        </div>
+
+        <!-- 时间轴模式：生命阶段条 + 个人基本信息表 -->
+        <div id="ltTimelinePane">
+          <div class="lt-modebar">
+            <div class="lt-seg">
+              <button data-mode="timeline" onclick="ltSetMode('timeline')">时间轴模式</button>
+              <button data-mode="doc" onclick="ltSetMode('doc')">文档模式</button>
+            </div>
+          </div>
+          <div class="lt-stagebar" id="ltStagebar"></div>
+          <div class="lt-form-slot" id="ltFormSlot"></div>
+        </div>
+
+        <!-- 文档模式：左侧档案目录 + 右侧随访表 -->
+        <div id="ltDocPane" class="hidden">
+          <div class="lt-doclayout">
+            <aside class="lt-docnav">
+              <div class="lt-seg seg-nav">
+                <button data-mode="timeline" onclick="ltSetMode('timeline')">时间轴模式</button>
+                <button data-mode="doc" onclick="ltSetMode('doc')">文档模式</button>
+              </div>
+              <ul class="lt-docmenu">
+                <li onclick="ltPickDoc(this)"><span class="caret"></span>健康体检</li>
+                <li onclick="ltPickDoc(this)"><span class="caret"></span>慢病档案</li>
+                <li onclick="ltPickDoc(this)"><span class="caret"></span>肺结核档案</li>
+                <li onclick="ltPickDoc(this)"><span class="caret"></span>妇女档案</li>
+              </ul>
+            </aside>
+
+            <section class="lt-docmain">
+              <div class="doc-head">
+                <span class="doc-title">糖尿病随访表</span>
+                <span class="doc-integrity"><i></i>完整度：100%</span>
+                <span class="doc-print" title="打印" onclick="toast('打印功能建设中','info')">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7l-4-4z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M14 3v4h4M9 12h6M9 16h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                </span>
+              </div>
+              <div class="doc-meta">
+                <span>姓名：<b>小山东高速</b></span>
+                <span>档案编号：<b>5101150010010076</b></span>
+              </div>
+
+              <div class="doc-body">
+                <div class="dtbl">
+
+                  <!-- 随访日期 / 随访方式 / 症状 -->
+                  <div class="dt-row">
+                    <div class="dt-half"><div class="dt-lbl">随访日期</div><div class="dt-val">2026-09-09</div></div>
+                  </div>
+                  <div class="dt-row">
+                    <div class="dt-half"><div class="dt-lbl">随访方式</div><div class="dt-val opts">
+                      <span class="op on"><i></i>门诊</span><span class="op"><i></i>家庭</span><span class="op"><i></i>电话</span><span class="op"><i></i>短信</span><span class="op"><i></i>网络</span><span class="op"><i></i>其他</span>
+                    </div></div>
+                  </div>
+                  <div class="dt-row">
+                    <div class="dt-half"><div class="dt-lbl">症状</div><div class="dt-val opts">
+                      <span class="cb on"><i></i>无症状</span><span class="cb"><i></i>多饮</span><span class="cb"><i></i>多食</span><span class="cb"><i></i>多尿</span><span class="cb"><i></i>视力模糊</span><span class="cb"><i></i>感染</span><span class="cb"><i></i>手脚麻木</span><span class="cb"><i></i>下肢浮肿</span><span class="cb"><i></i>体重明显下降</span><span class="cb"><i></i>其他</span>
+                    </div></div>
+                  </div>
+
+                  <!-- 体征 -->
+                  <div class="dt-group">
+                    <div class="dt-gl">体征</div>
+                    <div class="dt-gb">
+                      <div class="dt-row">
+                        <div class="dt-half"><div class="dt-lbl">血压</div><div class="dt-val">
+                          <span class="fi">收缩压：<b>145mmHg</b></span><span class="fi">舒张压：<b>88mmHg</b></span>
+                        </div></div>
+                      </div>
+                      <div class="dt-row">
+                        <div class="dt-half"><div class="dt-lbl">体重</div><div class="dt-val">
+                          <span class="fi">当前体重：</span><span class="fi">目标体重：</span>
+                        </div></div>
+                      </div>
+                      <div class="dt-row">
+                        <div class="dt-half"><div class="dt-lbl">身高</div><div class="dt-val"></div></div>
+                      </div>
+                      <div class="dt-row">
+                        <div class="dt-half"><div class="dt-lbl">体质指数(BMI)</div><div class="dt-val">
+                          <span class="fi">当前体质指数：</span><span class="fi">目标体质指数：</span>
+                        </div></div>
+                      </div>
+                      <div class="dt-row">
+                        <div class="dt-half"><div class="dt-lbl">足背动脉搏动</div><div class="dt-val opts">
+                          <span class="op on"><i></i>触及正常</span><span class="op"><i></i>减弱</span><span class="op"><i></i>消失</span>
+                        </div></div>
+                      </div>
+                      <div class="dt-row">
+                        <div class="dt-half"><div class="dt-lbl">其他</div><div class="dt-val"></div></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 生活方式指导 -->
+                  <div class="dt-group">
+                    <div class="dt-gl">生活方式指导</div>
+                    <div class="dt-gb">
+                      <div class="dt-row">
+                        <div class="dt-half"><div class="dt-lbl">吸烟</div><div class="dt-val">
+                          <span class="fi">日吸烟量：</span><span class="fi">目标日吸烟量：</span>
+                        </div></div>
+                      </div>
+                      <div class="dt-row">
+                        <div class="dt-half"><div class="dt-lbl">饮酒</div><div class="dt-val">
+                          <span class="fi">日饮酒量：</span><span class="fi">目标日饮酒量：</span>
+                        </div></div>
+                      </div>
+                      <div class="dt-row">
+                        <div class="dt-half"><div class="dt-lbl">运动</div><div class="dt-val">
+                          <span class="fi">当前运动周次：</span><span class="fi">当前运动时长：</span><span class="fi">目标运动周次：</span><span class="fi">目标运动时长：</span>
+                        </div></div>
+                      </div>
+                      <div class="dt-row">
+                        <div class="dt-half"><div class="dt-lbl">主食</div><div class="dt-val">
+                          <span class="fi">当前主食：</span><span class="fi">目标主食：</span>
+                        </div></div>
+                      </div>
+                      <div class="dt-row">
+                        <div class="dt-half"><div class="dt-lbl">心理调整</div><div class="dt-val opts">
+                          <span class="op on"><i></i>良好</span><span class="op"><i></i>一般</span><span class="op"><i></i>差</span>
+                        </div></div>
+                        <div class="dt-half"><div class="dt-lbl">遵医行为</div><div class="dt-val opts">
+                          <span class="op on"><i></i>良好</span><span class="op"><i></i>一般</span><span class="op"><i></i>差</span>
+                        </div></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 辅助检查 -->
+                  <div class="dt-group">
+                    <div class="dt-gl">辅助检查</div>
+                    <div class="dt-gb">
+                      <div class="dt-row">
+                        <div class="dt-half"><div class="dt-lbl">空腹血糖</div><div class="dt-val">6.8mmol/L</div></div>
+                        <div class="dt-half"><div class="dt-lbl">糖化血红蛋白</div><div class="dt-val"></div></div>
+                      </div>
+                      <div class="dt-row">
+                        <div class="dt-half"><div class="dt-lbl">检查日期</div><div class="dt-val"></div></div>
+                      </div>
+                      <div class="dt-row">
+                        <div class="dt-half"><div class="dt-lbl">检查结果</div><div class="dt-val"></div></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 服药依从性 / 此次随访分类 -->
+                  <div class="dt-row">
+                    <div class="dt-half"><div class="dt-lbl">服药依从性</div><div class="dt-val opts">
+                      <span class="op"><i></i>规律</span><span class="op"><i></i>间断</span><span class="op"><i></i>不服药</span>
+                    </div></div>
+                    <div class="dt-half"><div class="dt-lbl">药物不良反应</div><div class="dt-val opts">
+                      <span class="op on"><i></i>无</span><span class="op"><i></i>有</span>
+                    </div></div>
+                  </div>
+                  <div class="dt-row">
+                    <div class="dt-half"><div class="dt-lbl">此次随访分类</div><div class="dt-val opts">
+                      <span class="op"><i></i>控制满意</span><span class="op on"><i></i>控制不满意</span><span class="op"><i></i>不良反应</span><span class="op"><i></i>并发症</span>
+                    </div></div>
+                    <div class="dt-half"><div class="dt-lbl">分级</div><div class="dt-val opts">
+                      <span class="op on"><i></i>一级</span><span class="op"><i></i>二级</span><span class="op"><i></i>三级</span>
+                    </div></div>
+                  </div>
+
+                  <!-- 用药情况 -->
+                  <div class="dt-group">
+                    <div class="dt-gl">用药情况</div>
+                    <div class="dt-gb">
+                      <div class="dt-row tall">
+                        <div class="dt-half"><div class="dt-lbl">药物</div><div class="dt-val tint">
+                          <div class="dt-fill">
+                            <span class="fi">药物名称：</span><span class="fi">商品名：</span><span class="fi">分类：</span><span class="fi">用法用量：</span><span class="fi">备注：</span>
+                          </div>
+                        </div></div>
+                      </div>
+                      <div class="dt-row tall">
+                        <div class="dt-half"><div class="dt-lbl">胰岛素</div><div class="dt-val tint">
+                          <div class="dt-fill">
+                            <span class="fi">药物名称：</span><span class="fi">商品名：</span><span class="fi">用法用量：</span>
+                          </div>
+                        </div></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 转诊 -->
+                  <div class="dt-group">
+                    <div class="dt-gl">转诊</div>
+                    <div class="dt-gb">
+                      <div class="dt-row">
+                        <div class="dt-half"><div class="dt-lbl">转诊情况</div><div class="dt-val opts">
+                          <span class="op"><i></i>转诊</span><span class="op"><i></i>不转诊</span>
+                        </div></div>
+                      </div>
+                      <div class="dt-row">
+                        <div class="dt-half"><div class="dt-lbl">转诊原因</div><div class="dt-val opts">
+                          <span class="cb"><i></i>慢病转诊原因1</span><span class="cb"><i></i>慢病转诊原因2</span><span class="cb"><i></i>慢病转诊原因3</span><span class="cb"><i></i>其他</span>
+                        </div></div>
+                      </div>
+                      <div class="dt-row">
+                        <div class="dt-half"><div class="dt-lbl">转诊机构</div><div class="dt-val"></div></div>
+                        <div class="dt-half"><div class="dt-lbl">转诊科室</div><div class="dt-val"></div></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 下次随访日期 / 随访状态 / 失访原因 -->
+                  <div class="dt-row">
+                    <div class="dt-half"><div class="dt-lbl">下次随访日期</div><div class="dt-val">2026-09-23</div></div>
+                    <div class="dt-half"><div class="dt-lbl">随访医生签名</div><div class="dt-val">朱劲松</div></div>
+                  </div>
+                  <div class="dt-row">
+                    <div class="dt-half"><div class="dt-lbl">随访状态</div><div class="dt-val">正常</div></div>
+                    <div class="dt-half"><div class="dt-lbl">失访日期/死亡日期</div><div class="dt-val"></div></div>
+                  </div>
+                  <div class="dt-row">
+                    <div class="dt-half"><div class="dt-lbl">失访原因/死亡原因</div><div class="dt-val"></div></div>
+                  </div>
+
+                </div>
+              </div>
+            </section>
+          </div>
         </div>
       </div>
     </div>
@@ -19064,14 +19787,14 @@
   /* ================= 入参（新建弹框提交的基本信息；直接打开时使用演示数据） ================= */
   var QS = new URLSearchParams(location.search);
   var P = {
-    name:   QS.get('name')   || '张三',
+    name:   QS.get('name')   || '小山东高速',
     gender: QS.get('gender') || '女性',
-    idcard: QS.get('idcard') || '510698198508071369',
-    birth:  QS.get('birth')  || '1985-08-07',
-    phone:  QS.get('phone')  || '17896788523',
+    idcard: QS.get('idcard') || '530123199001010510',
+    birth:  QS.get('birth')  || '1990-01-01',
+    phone:  QS.get('phone')  || '13899222252',
     nation: QS.get('nation') || '汉族',
-    region: QS.get('region') || '山东省济南市历下区',
-    addr:   QS.get('addr')   || '解放路105号'
+    region: QS.get('region') || '四川省成都市温江区柳城街道',
+    addr:   QS.get('addr')   || '光华社区1212'
   };
 
   /* ================= 地址级联数据（省 → 市 → 区县 → 乡镇/街道 → 村/居社区，与设计稿下拉一致） ================= */
@@ -19465,6 +20188,8 @@
     '高血压', '肺结核', '糖尿病', '严重精神障碍', '慢阻肺', '肿瘤', '哮喘', '尿毒症', '肝炎',
     '其他法定传染病', '地方病', '职业病', '失智', '先天畸形', '失能失智老年人',
     '建档立卡贫困人口', '低保五保人口', '计生特殊家庭', '离休干部', '普通人群'];
+  /* 演示用默认人群标签（对齐健康首页设计稿顶部胶囊：孕产妇/残疾人/高危/心脑血管疾病/高血压/肺结核/糖尿病/严重精神障碍） */
+  var PT_HOME_TAGS = ['孕产妇', '残疾人', '高危', '心脑血管疾病', '高血压', '肺结核', '糖尿病', '严重精神障碍'];
 
   function ptChk(name) {
     return Array.prototype.slice.call(document.querySelectorAll('input[name="' + name + '"]:checked'));
@@ -19499,6 +20224,8 @@
     if (!arr) {
       var qs = (QS.get('tags') || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
       arr = qs.length ? qs : ptTagCollect();
+      /* 未勾选任何人群时，按健康首页设计稿展示默认演示标签 */
+      if (arr.length === 1 && arr[0] === '普通人群') arr = PT_HOME_TAGS.slice();
     }
     el.innerHTML = arr.map(function (t) { return '<span class="pt-tag">' + ptEsc(t) + '</span>'; }).join('');
   }
@@ -19554,7 +20281,7 @@
     $('ptPhone').textContent = phone || '-';
     var al = [];
     document.querySelectorAll('input[name="allergy"]:checked').forEach(function (c) { al.push(c.value); });
-    $('ptAllergy').textContent = al.length ? al.join('、') : '-';
+    $('ptAllergy').textContent = al.length ? al.join('、') : '无';
     var addrParts = [$('cvP1').value, $('cvP2').value, $('cvP3').value, $('cvP4').value, $('cvP5').value, $('cvAddrDetail').value];
     var addr = addrParts.filter(Boolean).join('');
     $('ptAddr').textContent = addr || (P.region + P.addr);
@@ -20285,7 +21012,137 @@
     toast('保存成功：已保存 ' + total + ' 条卫生健康服务活动记录', 'success');
   }
 
+  /* ================= 生命树视图（时间轴模式） ================= */
+  var LT_STAGES = [
+    { name: '婴儿期', badge: '已完成' },
+    { name: '幼儿期', badge: '未完成' },
+    { name: '学龄前期', badge: '未完成' },
+    { name: '学龄期', badge: '未完成' },
+    { name: '青春期', badge: '未完成' },
+    { name: '青年期', badge: '未完成' },
+    { name: '中年期', badge: '', current: true },
+    { name: '老年期', badge: '未完成' }
+  ];
+  var ltInited = false;
+  function ltBuildStages() {
+    $('ltStagebar').innerHTML = LT_STAGES.map(function (s) {
+      return '<div class="lt-stage' + (s.current ? ' active' : '') + '" onclick="ltPickStage(this)">' +
+        '<span>' + s.name + '</span>' +
+        (s.current ? '<span class="lt-caret">▾</span>' : '') +
+        (s.badge ? '<span class="lt-badge">' + s.badge + '</span>' : '') +
+        '</div>';
+    }).join('');
+  }
+  function ltPickStage(el) {
+    var kids = $('ltStagebar').children;
+    for (var i = 0; i < kids.length; i++) kids[i].classList.remove('active');
+    el.classList.add('active');
+  }
+  var ltModeCur = 'timeline';   /* 当前模式（进入生命树时保持） */
+  function ltSetMode(mode) {
+    ltModeCur = mode;
+    var isDoc = mode === 'doc';
+    /* 时间轴 / 文档两套面板各自带一组模式按钮，统一按 data-mode 同步选中态 */
+    var btns = document.querySelectorAll('#viewLifeTree .lt-seg button');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].classList.toggle('active', btns[i].getAttribute('data-mode') === mode);
+    }
+    /* 头部（生命树标题栏）以下的整个内容区切换 */
+    $('ltTimelinePane').classList.toggle('hidden', isDoc);
+    $('ltDocPane').classList.toggle('hidden', !isDoc);
+    /* 顶部患者栏随模式切换：文档模式展示随访记录居民 */
+    if (isDoc) { renderLtDocBar(); } else { renderLtBar(); }
+  }
+  /* 文档模式顶部患者栏：演示居民 小山东高速 */
+  function renderLtDocBar() {
+    $('ptName').textContent = '小山东高速';
+    $('ptAge').textContent = '36岁';
+    $('ptIdcard').textContent = '510123199001010106';
+    $('ptBirth').textContent = '1990-01-01';
+    $('ptBlood').textContent = '不详';
+    $('ptPhone').textContent = '13899229292';
+    $('ptAllergy').textContent = '无';
+    $('ptAddr').textContent = '四川省成都市温江区柳城街道办事处北街社区1212';
+    $('ptAddr').title = $('ptAddr').textContent;
+    renderPtTags(['孕产妇', '残疾人', '高危项', '心脑血管疾病', '高血压', '肺结核', '糖尿病', '严重精神障碍']);
+    renderPtGender('男');
+  }
+  /* 文档模式：左侧档案目录选中项 */
+  function ltPickDoc(el) {
+    var items = document.querySelectorAll('#ltDocPane .lt-docmenu li');
+    for (var i = 0; i < items.length; i++) items[i].classList.remove('active');
+    el.classList.add('active');
+    toast('文档预览：' + el.textContent.trim(), 'info');
+  }
+  /* 生命树顶部患者栏：演示居民 王一丁 */
+  function renderLtBar() {
+    $('ptName').textContent = '王一丁';
+    $('ptAge').textContent = '55岁';
+    $('ptIdcard').textContent = '370123197012031256';
+    $('ptBirth').textContent = '1970-12-03';
+    $('ptBlood').textContent = '-';
+    $('ptPhone').textContent = '13580897895';
+    $('ptAllergy').textContent = '-';
+    $('ptAddr').textContent = '江苏省镇江市京口区谏壁街道雩北村玄街区';
+    $('ptAddr').title = $('ptAddr').textContent;
+    renderPtTags([]);
+    renderPtGender('男');
+  }
+  /* 首次进入：克隆「个人基本信息表」卡片并按演示数据回填（避免维护两份表单） */
+  function ltEnsure() {
+    if (ltInited) return;
+    ltInited = true;
+    ltBuildStages();
+    var src = $('basicCard');
+    /* cloneNode 不拷贝运行时 value/checked，先记录再回填 */
+    var srcCtl = src.querySelectorAll('input,select,textarea');
+    var vals = [];
+    srcCtl.forEach(function (n) { vals.push(n.type === 'checkbox' || n.type === 'radio' ? n.checked : n.value); });
+    var clone = src.cloneNode(true);
+    var dstCtl = clone.querySelectorAll('input,select,textarea');
+    dstCtl.forEach(function (n, i) {
+      if (n.type === 'checkbox' || n.type === 'radio') n.checked = vals[i]; else n.value = vals[i];
+    });
+    /* 演示数据（王一丁） */
+    var setVal = function (sel, v) { var n = clone.querySelector(sel); if (n) n.value = v; };
+    setVal('#biName', '王一丁');
+    setVal('#biIdcard', '370123197012031256');
+    setVal('#biBirth', '1970-12-03');
+    setVal('#biPhone', '13580897895');
+    setVal('#biWork', '周村');
+    setVal('#biBirthplace', '济南市历下区');
+    /* select 字段：有对应选项则选中，否则插入演示选项 */
+    var setSel = function (sel, v) {
+      var n = clone.querySelector(sel);
+      if (!n || n.tagName !== 'SELECT') return;
+      var hit = null;
+      for (var i = 0; i < n.options.length; i++) { if (n.options[i].text === v || n.options[i].value === v) { hit = n.options[i]; break; } }
+      if (!hit) { hit = document.createElement('option'); hit.text = v; hit.value = v; n.add(hit); }
+      for (var j = 0; j < n.options.length; j++) {
+        if (n.options[j] === hit) n.options[j].setAttribute('selected', ''); else n.options[j].removeAttribute('selected');
+      }
+      n.value = hit.value;
+    };
+    setSel('#biNation', '汉族');
+    setSel('#biOrg', '镇江市京口区谏壁社区卫生服务中心');
+    clone.querySelectorAll('input[name="biGender"]').forEach(function (r) { r.checked = r.value.indexOf('男') !== -1; });
+    clone.querySelectorAll('input[name="abo"]').forEach(function (r) { r.checked = false; });
+    clone.querySelectorAll('input[type="checkbox"]').forEach(function (c) { if (c.value === '高血压') c.checked = true; });
+    var arch = clone.querySelector('#bhArchNo'); if (arch) arch.textContent = '32101201010000233';
+    var org = clone.querySelector('#bhOrg'); if (org) org.textContent = '镇江市京口区谏壁社区卫生服务中心';
+    var ringTxt = clone.querySelector('#ringTxt'); if (ringTxt) ringTxt.textContent = '89%';
+    var ringBar = clone.querySelector('#ringBar'); if (ringBar) ringBar.setAttribute('stroke-dashoffset', '11.1');
+    var tip = clone.querySelector('.saved-tip'); if (tip) tip.remove();
+    /* 克隆体内去除 id，避免与原表单重复 */
+    clone.removeAttribute('id');
+    clone.querySelectorAll('[id]').forEach(function (n) { n.removeAttribute('id'); });
+    $('ltFormSlot').appendChild(clone);
+  }
+
   function switchView(name) {
+    var isHome = name === 'home';
+    var isGg = name === 'genogram';
+    var isLt = name === 'lifeTree';
     var isCover = name === 'cover';
     var isBasic = name === 'basic';
     var isHp = name === 'hypertension';
@@ -20357,10 +21214,17 @@
     /* 顶部信息栏：儿童相关视图（含预防接种）展示儿童本人信息，其余视图回到居民本人信息 */
     if (isChildAny || isVcAny) {
       renderChildBar();
+    } else if (isLt) {
+      ltEnsure();
+      /* 按当前模式恢复：面板显隐 + 顶部患者栏 */
+      ltSetMode(ltModeCur || 'timeline');
     } else {
       renderPatientBar();
     }
     $('viewCover').classList.toggle('hidden', !isCover);
+    $('viewHome').classList.toggle('hidden', !isHome);
+    $('viewGenogram').classList.toggle('hidden', !isGg);
+    $('viewLifeTree').classList.toggle('hidden', !isLt);
     $('viewBasic').classList.toggle('hidden', !isBasic);
     $('viewHypertension').classList.toggle('hidden', !isHp);
     $('viewFollowup').classList.toggle('hidden', !isFu);
@@ -20424,6 +21288,9 @@
     $('viewVaccineInfo').classList.toggle('hidden', !isVi);
     $('viewVaccineRecord').classList.toggle('hidden', !isVr);
     $('viewHealthCheckup').classList.toggle('hidden', !isHce);
+    /* 生命树视图：隐藏左侧菜单目录，内容页横贯患者栏以下整个区域 */
+    $('sideNav').classList.toggle('hidden', isLt);
+    $('navHome').classList.toggle('active', isHome || isGg || isLt);
     $('navCover').classList.toggle('active', isCover);
     $('navBasic').classList.toggle('active', isBasic);
     $('navHpSpecial').classList.toggle('active', isHp);
@@ -20488,7 +21355,7 @@
     $('navVaccineInfo').classList.toggle('active', isVi);
     $('navVaccineRecord').classList.toggle('active', isVr);
     $('navHealthCheckup').classList.toggle('active', isHce);
-    $('btnSave').style.display = (isCover || isHc || isDt || isSa || isHe || isWa || isPm || isFa || isPpg || isWd || isChildAny || isMsAny || isEa || isDis || isVcAny || isHce) ? 'none' : '';
+    $('btnSave').style.display = (isCover || isHc || isDt || isSa || isHe || isWa || isPm || isFa || isPpg || isWd || isChildAny || isMsAny || isEa || isDis || isVcAny || isHce || isHome || isGg || isLt) ? 'none' : '';
     if (isHp || isFu || isAs) {
       $('navHpGroup').classList.add('open');
       $('pvContent').scrollTop = 0;
@@ -20545,6 +21412,8 @@
     } else if (isHce) {
       $('pvContent').scrollTop = 0;
       hcSyncRail();
+    } else if (isHome || isGg || isLt) {
+      $('pvContent').scrollTop = 0;
     } else if (isBasic) {
       renderComplete();
       $('pvContent').scrollTop = 0;
@@ -23095,6 +23964,15 @@
     else if (initView === 'childGrowth') {
       switchView('childGrowth');
     }
+    /* 个人首页（健康首页概览）支持 ?view=home 直接进入 */
+    else if (initView === 'home' || initView === 'genogram') {
+      switchView(initView);
+    }
+    /* 生命树支持 ?view=lifeTree 直接进入，&mode=doc 直达文档模式 */
+    else if (initView === 'lifeTree') {
+      switchView('lifeTree');
+      if (QS.get('mode') === 'doc') ltSetMode('doc');
+    }
 
     /* 编辑/查看进入（?edit=1）：自动模拟专项内容，并补全该模块目录（开放随访/评估子项） */
     if (QS.get('edit')) {
@@ -24330,6 +25208,182 @@
   });
 
   init();
+</script>
+
+<script>
+/* ================= 个人首页：三维全生命周期视图 =================
+   X 轴：生命周期（婴儿期→老年期）
+   Y 轴：档案业务（个人档案 / 妇女档案）
+   Z 轴：具体服务信息（如 2020-09-08 个人档案），点标签展示
+   交互：按住拖动旋转 · 悬停缓转 · 滚轮缩放 · 点悬停提示 */
+(function(){
+  var wrap = document.getElementById('traj3d');
+  if(!wrap) return;
+  var canvas = document.getElementById('traj3dCanvas');
+  var tip = document.getElementById('traj3dTip');
+  var ctx = canvas.getContext('2d');
+
+  /* ---------- 数据 ---------- */
+  var stages = ['婴儿期','学龄期','青中年','中年期','老年期'];   // X 轴
+  var biz    = ['个人档案','妇女档案'];                          // Y 轴
+  var events = [                                                 // Z 轴：具体服务信息
+    {x:0, y:0, z:0.10, label:'2020-09-08 个人档案'},
+    {x:1, y:0, z:0.28, label:'2010-04-02 个人档案'},
+    {x:2, y:1, z:0.50, label:'2018-03-26 妇女档案'},
+    {x:3, y:1, z:0.80, label:'2026-09-23 妇女档案'},
+    {x:3, y:0, z:0.62, label:'2026-09-23 个人档案'}
+  ];
+
+  /* ---------- 视角状态 ---------- */
+  var BX = 1.0, BY = 0.7, BZ = 0.8;      // 盒子尺寸（归一化）
+  var yaw = -0.42, pitch = 0.38, dist = 3.4;
+  var autoR = false, dragging = false, lx = 0, ly = 0;
+  var W = 0, H = 0, lastPts = [];
+
+  /* ---------- 投影 ---------- */
+  function project(px, py, pz){
+    var x = px - BX/2, y = py - BY/2, z = pz - BZ/2;
+    var cy = Math.cos(yaw), sy = Math.sin(yaw);
+    var x1 = x*cy - y*sy, y1 = x*sy + y*cy;
+    var cp = Math.cos(pitch), sp = Math.sin(pitch);
+    var y2 = y1*cp - z*sp, z2 = y1*sp + z*cp;
+    var f = dist/(dist + y2);
+    var scale = Math.min(W, H)*0.72;
+    return {sx: W/2 + x1*f*scale - W*0.02, sy: H/2 - z2*f*scale + BZ*scale*0.14, depth: y2, f: f};
+  }
+  function L(a, b, color, w){
+    ctx.strokeStyle = color; ctx.lineWidth = w || 1;
+    ctx.beginPath(); ctx.moveTo(a.sx, a.sy); ctx.lineTo(b.sx, b.sy); ctx.stroke();
+  }
+
+  /* ---------- 绘制 ---------- */
+  function draw(){
+    if(W < 20 || H < 20) return;
+    ctx.clearRect(0, 0, W, H);
+    var i, j;
+    var GX = 4, GY = 4, GZ = 4;
+    /* 地面网格 z=0 */
+    for(i = 0; i <= GX; i++){ var gx = i/GX*BX; L(project(gx,0,0), project(gx,BY,0), '#E7EBF1'); }
+    for(j = 0; j <= GY; j++){ var gy = j/GY*BY; L(project(0,gy,0), project(BX,gy,0), '#E7EBF1'); }
+    /* 后墙网格 y=BY */
+    for(i = 0; i <= GX; i++){ var gx2 = i/GX*BX; L(project(gx2,BY,0), project(gx2,BY,BZ), '#E9EDF3'); }
+    for(j = 0; j <= GZ; j++){ var gz = j/GZ*BZ; L(project(0,BY,gz), project(BX,BY,gz), '#E9EDF3'); }
+    /* 左墙网格 x=0 */
+    for(j = 0; j <= GY; j++){ var gy2 = j/GY*BY; L(project(0,gy2,0), project(0,gy2,BZ), '#E9EDF3'); }
+    for(j = 0; j <= GZ; j++){ var gz2 = j/GZ*BZ; L(project(0,0,gz2), project(0,BY,gz2), '#E9EDF3'); }
+    /* 盒子 12 条棱 */
+    var c000=project(0,0,0), c100=project(BX,0,0), c110=project(BX,BY,0), c010=project(0,BY,0);
+    var t000=project(0,0,BZ), t100=project(BX,0,BZ), t110=project(BX,BY,BZ), t010=project(0,BY,BZ);
+    [[c000,c100],[c100,c110],[c110,c010],[c010,c000],
+     [t000,t100],[t100,t110],[t110,t010],[t010,t000],
+     [c000,t000],[c100,t100],[c110,t110],[c010,t010]
+    ].forEach(function(e){ L(e[0], e[1], '#D3DAE4', 1); });
+
+    /* X 轴刻度：生命周期（沿前下边，向外偏移） */
+    ctx.font = '11px "Microsoft YaHei", system-ui, sans-serif';
+    ctx.textAlign = 'center'; ctx.fillStyle = '#8A94A6';
+    stages.forEach(function(s, i){
+      var p = project(i/(stages.length-1)*BX, -0.07, 0);
+      ctx.fillText(s, p.sx, p.sy + 12);
+    });
+    /* Y 轴刻度：档案业务（沿左下边，向外偏移） */
+    ctx.textAlign = 'right';
+    biz.forEach(function(b, i){
+      var p = project(-0.06, i/(biz.length-1)*BY, 0);
+      ctx.fillText(b, p.sx - 4, p.sy + 12);
+    });
+
+    /* 数据点（按深度排序，远→近） */
+    lastPts = events.map(function(ev){
+      var p = project(ev.x/(stages.length-1)*BX,
+                      ev.y/(biz.length-1)*BY,
+                      ev.z*BZ);
+      return {ev: ev, p: p};
+    }).sort(function(a, b){ return b.p.depth - a.p.depth; });
+
+    /* Z 轴标签：具体服务信息（右侧引出，靠近右缘时翻转到点左侧） */
+    ctx.font = '11.5px "Microsoft YaHei", system-ui, sans-serif';
+    lastPts.forEach(function(o){
+      var flip = o.p.sx + 18 + ctx.measureText(o.ev.label).width > W - 6;
+      ctx.strokeStyle = '#DCE2EB'; ctx.lineWidth = 1;
+      ctx.beginPath();
+      if(flip){ ctx.moveTo(o.p.sx - 6, o.p.sy); ctx.lineTo(o.p.sx - 14, o.p.sy); }
+      else { ctx.moveTo(o.p.sx + 6, o.p.sy); ctx.lineTo(o.p.sx + 14, o.p.sy); }
+      ctx.stroke();
+      ctx.fillStyle = '#4A5568';
+      if(flip){ ctx.textAlign = 'right'; ctx.fillText(o.ev.label, o.p.sx - 18, o.p.sy + 4); }
+      else { ctx.textAlign = 'left'; ctx.fillText(o.ev.label, o.p.sx + 18, o.p.sy + 4); }
+    });
+    lastPts.forEach(function(o){
+      var r = 3.6*o.p.f + 1.6;
+      ctx.beginPath(); ctx.arc(o.p.sx, o.p.sy, r, 0, Math.PI*2);
+      ctx.fillStyle = '#AFD23D'; ctx.fill();
+      ctx.lineWidth = 1.5; ctx.strokeStyle = '#FFFFFF'; ctx.stroke();
+    });
+  }
+
+  /* ---------- 尺寸 ---------- */
+  function resize(){
+    var r = wrap.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    W = r.width; H = r.height;
+    canvas.width = Math.max(10, Math.round(W*dpr));
+    canvas.height = Math.max(10, Math.round(H*dpr));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  if(window.ResizeObserver){ new ResizeObserver(resize).observe(wrap); }
+  else { window.addEventListener('resize', resize); }
+
+  /* ---------- 交互 ---------- */
+  wrap.addEventListener('mouseenter', function(){ if(!dragging) autoR = true; });
+  wrap.addEventListener('mouseleave', function(){ autoR = false; hideTip(); });
+  wrap.addEventListener('mousedown', function(e){
+    dragging = true; autoR = false; lx = e.clientX; ly = e.clientY;
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove', function(e){
+    if(!dragging) return;
+    yaw += (e.clientX - lx)*0.008;
+    pitch = Math.min(1.25, Math.max(-0.1, pitch + (e.clientY - ly)*0.006));
+    lx = e.clientX; ly = e.clientY;
+  });
+  window.addEventListener('mouseup', function(){ dragging = false; });
+  wrap.addEventListener('wheel', function(e){
+    e.preventDefault();
+    dist = Math.min(6, Math.max(2.2, dist + e.deltaY*0.0022));
+  }, {passive: false});
+
+  /* 悬停点提示 */
+  function showTip(ev, mx, my){
+    tip.textContent = ev.label;
+    tip.style.display = 'block';
+    var tw = tip.offsetWidth, th = tip.offsetHeight;
+    var x = Math.min(Math.max(4, mx + 12), W - tw - 4);
+    var y = Math.max(4, my - th - 10);
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  }
+  function hideTip(){ tip.style.display = 'none'; }
+  canvas.addEventListener('mousemove', function(e){
+    var rect = canvas.getBoundingClientRect();
+    var mx = e.clientX - rect.left, my = e.clientY - rect.top;
+    var best = null, bd = 14*14;
+    lastPts.forEach(function(o){
+      var dx = o.p.sx - mx, dy = o.p.sy - my, d = dx*dx + dy*dy;
+      if(d < bd){ bd = d; best = o; }
+    });
+    if(best) showTip(best.ev, mx, my); else hideTip();
+  });
+  canvas.addEventListener('mouseleave', hideTip);
+
+  /* ---------- 渲染循环 ---------- */
+  function frame(){
+    if(autoR && !dragging) yaw += 0.0035;
+    draw();
+    requestAnimationFrame(frame);
+  }
+  resize();
+  frame();
+})();
 </script>
 
 </body>

@@ -1619,34 +1619,34 @@
         ] }
       ]
     },
-{
-      key: 'infectReport', name: '传染病报卡', module: '疾病报卡',
-      ico: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>',
-      desc: '法定传染病报告卡；报告病种、发病日期、医生为必填，完整度按基本信息、发病诊断与报告信息分区统计。',
-      enabled: true,
-      sections: [
-        { g: '基本信息', fields: [
-          { k: 'name', n: '姓名', r: true },
-          { k: 'idNo', n: '证件号码', r: true },
-          { k: 'address', n: '现住址', r: false }
-        ] },
-        { g: '发病与诊断', fields: [
-          { k: 'disease', n: '报告病种', r: true },
-          { k: 'onsetDate', n: '发病日期', r: true },
-          { k: 'diagDate', n: '诊断日期', r: true },
-          { k: 'caseType', n: '病例分类', r: true }
-        ] },
-        { g: '报告信息', fields: [
-          { k: 'reportDoctor', n: '填报医生', r: true },
-          { k: 'reportTime', n: '填报时间', r: true }
-        ] }
-      ],
-      complete: [
-        { n: '基本信息', k: 'infBase', w: 30, on: true },
-        { n: '发病诊断', k: 'infDiag', w: 45, on: true },
-        { n: '报告信息', k: 'infReport', w: 25, on: true }
-      ]
-    }
+// {
+//       key: 'infectReport', name: '传染病报卡', module: '疾病报卡',
+//       ico: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+//       desc: '法定传染病报告卡；报告病种、发病日期、医生为必填，完整度按基本信息、发病诊断与报告信息分区统计。',
+//       enabled: true,
+//       sections: [
+//         { g: '基本信息', fields: [
+//           { k: 'name', n: '姓名', r: true },
+//           { k: 'idNo', n: '证件号码', r: true },
+//           { k: 'address', n: '现住址', r: false }
+//         ] },
+//         { g: '发病与诊断', fields: [
+//           { k: 'disease', n: '报告病种', r: true },
+//           { k: 'onsetDate', n: '发病日期', r: true },
+//           { k: 'diagDate', n: '诊断日期', r: true },
+//           { k: 'caseType', n: '病例分类', r: true }
+//         ] },
+//         { g: '报告信息', fields: [
+//           { k: 'reportDoctor', n: '填报医生', r: true },
+//           { k: 'reportTime', n: '填报时间', r: true }
+//         ] }
+//       ],
+//       complete: [
+//         { n: '基本信息', k: 'infBase', w: 30, on: true },
+//         { n: '发病诊断', k: 'infDiag', w: 45, on: true },
+//         { n: '报告信息', k: 'infReport', w: 25, on: true }
+//       ]
+//     }
   ];
 
   /* ================= 运行态：每次渲染从 DM 派生，改完写入 CFG，用于保存/重置 ================= */

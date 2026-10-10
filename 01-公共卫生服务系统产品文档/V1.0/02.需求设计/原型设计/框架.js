@@ -42,8 +42,7 @@
         { key: 'exam-management',        label: '体检管理', url: '体检管理.html' }
       ]
          },
-        
-        { key: 'visit-tracking',         label: '就诊跟踪' },
+        // { key: 'visit-tracking',         label: '就诊跟踪' },
         { key: 'disability-archives',    label: '残疾档案', url: '残疾档案.html' },
         { key: 'archive-migration',      label: '档案迁移' , url: '档案迁移.html'},
         { key: 'migration-in',           label: '迁入审核', url: '迁入审核.html' },
@@ -55,8 +54,9 @@
     { type: 'group', key: 'plan-reminder', label: '计划提醒',
       icon: '<path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/>',
       children: [
-        { key: 'physical-exam-reminder', label: '随访计划提醒', url: '计划提醒.html' },
-        { key: 'follow-poor-reminder',   label: '随访不佳提醒', url: '随访不佳提醒.html' }
+        { key: 'physical-exam-reminder', label: '计划提醒', url: '计划提醒.html' },
+        { key: 'follow-poor-reminder',   label: '不佳提醒', url: '随访不佳提醒.html' },
+        { key: 'reminder-management', label: '更新提醒', url: '提醒管理.html'}
       ] },
     { type: 'divider' },
     { type: 'group', key: 'chronic', label: '慢病管理',
@@ -69,8 +69,6 @@
         { key: 'cardio-cerebro-management', label: '心脑血管管理', url: '心脑血管管理.html' },
         { key: 'tumor-management',          label: '肿瘤管理', url: '肿瘤管理.html' },
         { key: 'highrisk-management',       label: '高危人群管理', url: '高危人群管理.html' },
-        // { key: 'psychosis-management',      label: '重精管理', url: '重精管理.html' },
-        // { key: 'tuberculosis-management',   label: '结核病管理', url: '结核病管理.html' }
       ] },
     { type: 'divider' },
     { key: 'psychosis-management', label: '重精管理', url: '重精管理.html',
@@ -149,17 +147,6 @@
         { key: 'chronic-report', label: '慢病报告卡', url: '慢病报告卡.html' }
       ] },
     { type: 'divider' },
-    // { type: 'group', key: 'bizquery', label: '业务查询',
-    //   icon: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
-    //   children: [
-    //     { key: 'health-edu-track-query', label: '健教活动跟踪查询' },
-    //     { key: 'report-indicator-query', label: '报表指标查询' },
-    //     { key: 'duplicate-archive-screen', label: '重复档案筛查' },
-    //     { key: 'personal-archive-query', label: '个人档案查询' },
-    //     { key: 'chronic-disease-query',  label: '慢病查询' },
-    //     { key: 'tb-query',               label: '肺结核查询' },
-    //     { key: 'women-archive-query',    label: '妇女档案查询' }
-    //   ] },
     { type: 'group', key: 'bizstats', label: '业务统计',
       icon: '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/>',
       children: [
@@ -191,7 +178,8 @@
         },
         // { key: 'subsidy-management',       label: '补助管理' },
         { key: 'disease-diagnosis-setting',label: '疾病诊疗设置', url: '疾病诊疗设置.html' },
-        { key: 'operation-log',            label: '操作日志', url: '档案操作日志.html' }
+        { key: 'operation-log',            label: '操作日志', url: '档案操作日志.html' },
+        { key: 'des-log',            label: '脱敏设置', url: '脱敏规则.html' }
        
       ] }
   ];

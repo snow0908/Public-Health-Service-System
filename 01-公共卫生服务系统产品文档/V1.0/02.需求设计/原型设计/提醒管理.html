@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>提醒管理</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0;border:none;border-top:none;display:flex;flex-direction:column}
+
+  /* 页头 */
+  .page-head{display:flex;align-items:center;justify-content:space-between;height:48px;padding:0 16px;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .page-head h1{font-size:16px;font-weight:var(--font-weight-medium);color:var(--text-primary);margin:0}
+
+  /* 状态 TAB 标签栏（与 随访不佳提醒.html 一致） */
+  .status-tabs{display:flex;align-items:center;gap:2px;height:44px;padding:0 16px;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white);overflow-x:auto}
+  .status-tab{display:flex;align-items:center;gap:6px;padding:0 16px;height:42px;font-size:14px;color:var(--text-secondary);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;flex-shrink:0}
+  .status-tab:hover{color:var(--primary)}
+  .status-tab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:var(--font-weight-medium)}
+  .status-tab .cnt{margin-left:2px;font-size:11px;color:var(--text-tertiary)}
+  .status-tab.active .cnt{color:var(--primary)}
+
+  /* 筛选区 */
+  .filter-panel{padding:12px 16px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:12px;align-items:center}
+  .filter-item{display:flex;align-items:center;gap:8px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:160px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .fi-date{width:130px}
+  .fi-sep{color:var(--text-placeholder);font-size:13px}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+  /* ===== 数据表格（与 随访不佳提醒.html 一致） ===== */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+
+  /* 横向滚动时前 4 列冻结（序号/管理机构/姓名/证件号） */
+  .list-tbl th:nth-child(-n+4),.list-tbl td:nth-child(-n+4){position:sticky}
+  .list-tbl td:nth-child(-n+4){z-index:2;background:var(--bg-white)}
+  .list-tbl th:nth-child(-n+4){z-index:6}
+  .list-tbl th:nth-child(1),.list-tbl td:nth-child(1){left:0}
+  .list-tbl th:nth-child(2),.list-tbl td:nth-child(2){left:44px}
+  .list-tbl th:nth-child(3),.list-tbl td:nth-child(3){left:194px}
+  .list-tbl th:nth-child(4),.list-tbl td:nth-child(4){left:270px}
+  .list-tbl th:nth-child(4),.list-tbl td:nth-child(4){box-shadow:6px 0 8px -6px rgba(0,0,0,0.2)}
+  /* 横向滚动时操作列（末列）冻结在右侧 */
+  .list-tbl th:last-child,.list-tbl td:last-child{position:sticky;right:0}
+  .list-tbl td:last-child{z-index:2;background:var(--bg-white)}
+  .list-tbl th:last-child{z-index:6}
+  .list-tbl th:last-child,.list-tbl td:last-child{box-shadow:-6px 0 8px -6px rgba(0,0,0,0.2)}
+  .list-tbl tr.empty-row td:last-child{position:static;box-shadow:none}
+  /* 操作列允许溢出 */
+  .list-tbl tbody tr:not(.empty-row) td:last-child{overflow:visible}
+  .list-tbl{width:100%;min-width:1480px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:36px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .list-tbl th.center,.list-tbl td.center{text-align:center}
+  .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  .tag{display:inline-block;padding:1px 8px;border-radius:3px;font-size:12px;line-height:18px;white-space:nowrap}
+  .tag.red{background:#FEF0F0;color:var(--danger);border:1px solid #FBC4C4}
+  .tag.orange{background:#FDF6EC;color:#E6A23C;border:1px solid #F5DAB1}
+  .tag.green{background:#F0F9EB;color:var(--success);border:1px solid #C2E7B0}
+  .tag.gray{background:#F4F4F5;color:#909399;border:1px solid #D3D4D6}
+  .tag.blue{background:var(--primary-bg);color:var(--primary);border:1px solid var(--primary-border)}
+
+  /* 操作按钮 */
+  .op-btn{display:inline-block;padding:2px 12px;font-size:12px;border-radius:var(--r-sm);cursor:pointer;border:1px solid transparent}
+  .op-btn.primary{background:var(--primary);color:#fff}
+  .op-btn.primary:hover{opacity:.9}
+  .op-btn.link{background:none;color:var(--primary);border:none;padding:2px 4px;font-size:13px}
+  .op-btn.link:hover{text-decoration:underline}
+  .op-gap{display:inline-block;width:6px}
+  .op-wrap{display:inline-flex;align-items:center;gap:6px}
+
+  /* 更多下拉 */
+  .more-wrap{position:relative;display:inline-block}
+  .more-menu{position:absolute;right:0;top:100%;min-width:120px;background:#fff;border:1px solid #E4E7ED;border-radius:var(--r-sm);box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:20;display:none;padding:4px 0}
+  .more-menu.show{display:block}
+  .more-menu a{display:block;padding:6px 14px;font-size:13px;color:var(--text-secondary);cursor:pointer;white-space:nowrap}
+  .more-menu a:hover{background:var(--primary-bg);color:var(--primary)}
+
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:52px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 22px 0 8px;font-size:13px;color:var(--text-secondary);background:#fff;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-ellipsis{display:inline-block;padding:0 4px;line-height:26px;color:var(--text-tertiary)}
+  .pg-jump input{width:40px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 6px;font-size:13px;text-align:center;color:var(--text-primary);outline:none}
+  .pg-jump input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+
+  /* 弹窗 */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:var(--z-overlay);display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 16px}
+  .modal-overlay.show{display:flex}
+  .modal-wrap{background:#fff;border-radius:8px;width:640px;max-width:96vw;box-shadow:0 4px 24px rgba(0,0,0,.2)}
+  .modal-head{height:50px;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid #E8E8E8;font-size:16px;font-weight:var(--font-weight-medium);color:var(--text-primary)}
+  .modal-head .x{margin-left:auto;cursor:pointer;color:var(--text-tertiary);font-size:20px;font-weight:400;line-height:1}
+  .modal-body{padding:18px 20px;max-height:64vh;overflow:auto}
+  .modal-foot{padding:12px 20px;border-top:1px solid #E8E8E8;display:flex;justify-content:flex-end;gap:8px}
+  .modal-tip{font-size:13px;color:var(--text-secondary);margin-bottom:14px}
+  fieldset{border:1px solid var(--primary-border);border-radius:6px;padding:12px 14px;margin-bottom:14px}
+  fieldset:last-child{margin-bottom:0}
+  legend{padding:0 6px;font-size:13px;color:var(--primary);font-weight:var(--font-weight-medium)}
+  .info-tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .info-tbl th{text-align:right;padding:0 12px;height:36px;background:var(--primary-header);color:var(--text-primary);font-weight:var(--font-weight-medium);border:1px solid var(--primary-border);white-space:nowrap;width:120px;vertical-align:middle}
+  .info-tbl td{padding:0 12px;height:36px;background:var(--bg-white);border:1px solid var(--primary-border);color:var(--text-secondary);vertical-align:middle}
+
+  /* 弹窗内表单栅格 */
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
+  .fg{display:flex;align-items:center;gap:8px;min-width:0}
+  .fg.full{grid-column:1 / -1}
+  .fg label{width:64px;text-align:right;font-size:13px;color:var(--text-secondary);flex-shrink:0}
+  .fg label i{color:var(--danger);font-style:normal;margin-right:2px}
+  .fg .fi-ctl,.fg .fi-select{flex:1;width:auto;min-width:0}
+  .ta-ctl{width:100%;height:64px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:8px 10px;font-size:14px;color:var(--text-primary);font-family:inherit;outline:none;resize:vertical;transition:all var(--transition-fast)}
+  .ta-ctl:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .ta-ctl::placeholder{color:var(--text-placeholder)}
+</style>
+</head>
+<body>
+
+<div class="main-area">
+
+  <div class="tabbar">
+    <div class="tab-item active">提醒管理</div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <!-- 页头：标题 + 导出按钮 -->
+      <div class="page-head">
+        <h1>提醒管理</h1>
+        <button class="btn btn-default btn-sm" onclick="toast('原型演示：导出当前列表','info')">导出</button>
+      </div>
+
+      <!-- 提醒类型 TAB（下划线样式，与随访不佳提醒一致） -->
+      <div class="status-tabs" id="remindTabs"></div>
+
+      <!-- 筛选区 -->
+      <div class="filter-panel">
+        <div class="filter-row">
+          <div class="filter-item">
+            <label>管理机构：</label>
+            <select id="fOrg" class="fi-select">
+              <option value="">请选择</option>
+              <option>扬州市江都区滨江人民医院</option>
+              <option>扬州市江都区仙女社区卫生服务中心</option>
+              <option>扬州市广陵区东关社区卫生服务中心</option>
+              <option>扬州市邗江区蒋王社区卫生服务中心</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>姓名：</label>
+            <input id="fName" class="fi-ctl" placeholder="请输入">
+          </div>
+          <div class="filter-item">
+            <label>证件号：</label>
+            <input id="fIdcard" class="fi-ctl" placeholder="请输入">
+          </div>
+          <div class="filter-item">
+            <label>性别：</label>
+            <select id="fGender" class="fi-select" style="width:110px">
+              <option value="">请选择</option>
+              <option>男</option>
+              <option>女</option>
+            </select>
+          </div>
+          <!-- 慢病类型：仅「慢病档案提醒」TAB 展示 -->
+          <div class="filter-item" id="fDiseaseWrap" style="display:none">
+            <label>慢病类型：</label>
+            <select id="fDisease" class="fi-select" style="width:130px">
+              <option value="">请选择</option>
+              <option>高血压</option>
+              <option>糖尿病</option>
+              <option>慢阻肺</option>
+            </select>
+          </div>
+          <div class="filter-btns">
+            <button class="btn btn-default btn-sm" onclick="resetFilter()">重置</button>
+            <button class="btn btn-primary btn-sm" onclick="applyFilter()">查询</button>
+          </div>
+        </div>
+        <div class="filter-row">
+          <div class="filter-item">
+            <label>出生日期：</label>
+            <input id="fBirthStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+            <span class="fi-sep">~</span>
+            <input id="fBirthEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+          </div>
+          <div class="filter-item">
+            <label>诊疗日期：</label>
+            <input id="fVisitStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+            <span class="fi-sep">~</span>
+            <input id="fVisitEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+          </div>
+          <div class="filter-item">
+            <label>诊疗医生：</label>
+            <input id="fDoctor" class="fi-ctl" placeholder="请输入">
+          </div>
+          <div class="filter-item">
+            <label>诊疗医院：</label>
+            <input id="fHospital" class="fi-ctl" placeholder="请输入">
+          </div>
+        </div>
+      </div>
+
+      <!-- 数据表格 -->
+      <div class="table-wrap">
+        <table class="list-tbl">
+          <colgroup id="tblCols"></colgroup>
+          <thead>
+            <tr>
+              <th class="center">序号</th>
+              <th>管理机构</th>
+              <th>姓名</th>
+              <th>证件号</th>
+              <th>证件类型</th>
+              <th class="center">性别</th>
+              <th class="center">年龄</th>
+              <th>出生日期</th>
+              <th>联系电话</th>
+              <th>详细地址</th>
+              <th>诊疗日期</th>
+              <th>诊疗医生</th>
+              <th class="center" id="thDisease" style="display:none">慢病类型</th>
+              <th class="center">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tbBody"></tbody>
+        </table>
+      </div>
+
+      <!-- 分页 -->
+      <div class="page-foot">
+        <span class="pg-total">共 <b id="pgTotal">0</b> 条</span>
+        <span class="pg-size">
+          <select onchange="toast('原型演示：每页条数固定 20 条','info')">
+            <option selected>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+        </span>
+        <span class="pg-pager" id="pgPager"></span>
+        <span class="pg-jump">跳至第 <input id="pgJump" value="1" onkeydown="if(event.key==='Enter'){jumpPage()}"> 页</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- 新建档案弹窗 -->
+<div class="modal-overlay" id="create-modal"><div class="modal-wrap">
+  <div class="modal-head">新建居民档案<span class="x" onclick="closeCreate()">×</span></div>
+  <div class="modal-body">
+    <p class="modal-tip">根据所选提醒补建居民档案，确认后档案信息将同步至居民档案库。</p>
+    <fieldset><legend>居民信息</legend>
+      <div class="form-grid">
+        <div class="fg"><label><i>*</i>姓名</label><input id="cr-name" class="fi-ctl" placeholder="请输入姓名"></div>
+        <div class="fg"><label><i>*</i>证件类型</label>
+          <select id="cr-idtype" class="fi-select">
+            <option>居民身份证</option>
+            <option>户口簿</option>
+            <option>护照</option>
+          </select>
+        </div>
+        <div class="fg full"><label><i>*</i>证件号</label><input id="cr-idcard" class="fi-ctl" placeholder="请输入证件号"></div>
+        <div class="fg"><label>性别</label>
+          <select id="cr-gender" class="fi-select"><option>男</option><option>女</option></select>
+        </div>
+        <div class="fg"><label>出生日期</label><input id="cr-birth" class="fi-ctl" type="text" placeholder="请选择出生日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}"></div>
+        <div class="fg full"><label>联系电话</label><input id="cr-phone" class="fi-ctl" placeholder="请输入联系电话"></div>
+      </div>
+    </fieldset>
+    <fieldset><legend>建档信息</legend>
+      <div class="form-grid">
+        <div class="fg full"><label>管理机构</label>
+          <select id="cr-org" class="fi-select">
+            <option>扬州市江都区滨江人民医院</option>
+            <option>扬州市江都区仙女社区卫生服务中心</option>
+            <option>扬州市广陵区东关社区卫生服务中心</option>
+            <option>扬州市邗江区蒋王社区卫生服务中心</option>
+          </select>
+        </div>
+        <div class="fg"><label>责任医生</label><input id="cr-doctor" class="fi-ctl" placeholder="请输入责任医生"></div>
+        <div class="fg"><label>诊疗医院</label><input id="cr-hospital" class="fi-ctl" placeholder="请输入诊疗医院"></div>
+      </div>
+    </fieldset>
+  </div>
+  <div class="modal-foot"><button class="btn btn-default" onclick="closeCreate()">取消</button><button class="btn btn-primary" onclick="submitCreate()">确认建档</button></div>
+</div></div>
+
+<!-- 提醒详情弹窗 -->
+<div class="modal-overlay" id="view-modal"><div class="modal-wrap">
+  <div class="modal-head">提醒详情<span class="x" onclick="closeView()">×</span></div>
+  <div class="modal-body">
+    <fieldset><legend>居民信息</legend>
+      <table class="info-tbl">
+        <tr><th>管理机构</th><td id="vw-org" colspan="3">—</td></tr>
+        <tr><th>姓名</th><td id="vw-name">—</td><th>性别 / 年龄</th><td id="vw-genderAge">—</td></tr>
+        <tr><th>证件类型</th><td id="vw-idtype">—</td><th>出生日期</th><td id="vw-birth">—</td></tr>
+        <tr><th>证件号</th><td id="vw-idcard" colspan="3">—</td></tr>
+        <tr><th>联系电话</th><td id="vw-phone" colspan="3">—</td></tr>
+        <tr><th>详细地址</th><td id="vw-address" colspan="3">—</td></tr>
+      </table>
+    </fieldset>
+    <fieldset><legend>提醒详情</legend>
+      <table class="info-tbl">
+        <tr><th>提醒类型</th><td id="vw-type">—</td><th>诊疗日期</th><td id="vw-visitdate">—</td></tr>
+        <tr><th>诊疗医生</th><td id="vw-doctor">—</td><th>诊疗医院</th><td id="vw-hospital">—</td></tr>
+      </table>
+    </fieldset>
+  </div>
+  <div class="modal-foot"><button class="btn btn-primary" onclick="closeView()">关闭</button></div>
+</div></div>
+
+<!-- 忽略提醒弹窗 -->
+<div class="modal-overlay" id="ignore-modal"><div class="modal-wrap">
+  <div class="modal-head">忽略提醒<span class="x" onclick="closeIgnore()">×</span></div>
+  <div class="modal-body">
+    <p class="modal-tip">请确认以下提醒信息，忽略后该提醒将不再出现在列表中：</p>
+    <fieldset><legend>待忽略提醒</legend>
+      <table class="info-tbl">
+        <tr><th>姓名</th><td id="ig-name">—</td><th>提醒类型</th><td id="ig-type">—</td></tr>
+        <tr><th>证件号</th><td id="ig-idcard" colspan="3">—</td></tr>
+      </table>
+    </fieldset>
+    <fieldset><legend>忽略原因</legend>
+      <textarea id="ig-reason" class="ta-ctl" placeholder="请输入忽略原因，例如：信息重复、已线下处理等"></textarea>
+    </fieldset>
+  </div>
+  <div class="modal-foot"><button class="btn btn-default" onclick="closeIgnore()">取消</button><button class="btn btn-primary" onclick="submitIgnore()">确认忽略</button></div>
+</div></div>
+
+<script src="框架.js" data-page="reminder-management" data-embed="auto"></script>
+<script>
+  /* ================= 提醒类型（仅保留两个业务TAB） ================= */
+  var REMIND_TYPES = ['档案更新提醒', '慢病档案提醒'];
+
+  /* ================= 模拟数据 ================= */
+  var remindData = [
+    /* —— 档案更新提醒 —— */
+    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'李久久', idcard:'510132199909099995', idType:'居民身份证', gender:'男', age:27, birth:'1999-09-09', phone:'', address:'', visitDate:'2023-08-14', doctor:'李鹏', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'关允晨', idcard:'110106198602143523', idType:'居民身份证', gender:'女', age:40, birth:'1986-02-14', phone:'', address:'生堂街', visitDate:'2023-08-14', doctor:'李鹏', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'患者四', idcard:'510115199404144440', idType:'居民身份证', gender:'女', age:32, birth:'1994-04-14', phone:'13444444444', address:'珠江国际中心', visitDate:'2023-08-28', doctor:'徐东开', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'凌云', idcard:'110101199003072834', idType:'居民身份证', gender:'男', age:36, birth:'1990-03-07', phone:'15108111236', address:'大桥镇', visitDate:'2023-11-07', doctor:'李磊', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'冯仁齐', idcard:'511623199103185714', idType:'居民身份证', gender:'男', age:35, birth:'1991-03-18', phone:'13541245998', address:'尚华路108号', visitDate:'2023-11-30', doctor:'高雪峰', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'李晶晶', idcard:'510132198705141114', idType:'居民身份证', gender:'男', age:39, birth:'1987-05-13', phone:'', address:'', visitDate:'2023-12-01', doctor:'尹瑜', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'李双双', idcard:'510132194805142220', idType:'居民身份证', gender:'女', age:78, birth:'1948-05-13', phone:'', address:'', visitDate:'2023-12-04', doctor:'尹瑜', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'李阿道', idcard:'519199200010251113', idType:'居民身份证', gender:'男', age:25, birth:'2000-10-25', phone:'', address:'', visitDate:'2023-12-06', doctor:'蒋远军', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'李就个', idcard:'110101200406030220', idType:'居民身份证', gender:'女', age:22, birth:'2004-06-03', phone:'', address:'', visitDate:'2023-12-07', doctor:'尹瑜', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'高宏宝', idcard:'321026194107052036', idType:'居民身份证', gender:'男', age:85, birth:'1941-07-04', phone:'18651058087', address:'樊川镇樊南村', visitDate:'2024-01-03', doctor:'蒋远军', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'演示患者5', idcard:'510115199505055551', idType:'居民身份证', gender:'男', age:31, birth:'1995-05-05', phone:'13555555555', address:'珠江国际中心', visitDate:'2024-01-25', doctor:'尹瑜', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'邹铭', idcard:'110101199003071858', idType:'居民身份证', gender:'男', age:36, birth:'1990-03-07', phone:'15108111250', address:'大桥镇', visitDate:'2024-01-27', doctor:'梅娟', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'唐纯真', idcard:'421022195004050014', idType:'居民身份证', gender:'男', age:76, birth:'1950-04-05', phone:'', address:'', visitDate:'2024-02-02', doctor:'徐东开', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'李斯克', idcard:'510136200004051111', idType:'居民身份证', gender:'男', age:26, birth:'2000-04-05', phone:'', address:'', visitDate:'2024-02-02', doctor:'尹瑜', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案更新提醒', org:'扬州市江都区仙女社区卫生服务中心', name:'王秀兰', idcard:'321088196203152847', idType:'居民身份证', gender:'女', age:64, birth:'1962-03-15', phone:'13905212361', address:'仙女镇人民路22号', visitDate:'2024-01-15', doctor:'陈静', hospital:'江都区人民医院' },
+    { type:'档案更新提醒', org:'扬州市江都区仙女社区卫生服务中心', name:'刘德海', idcard:'32108819551130863X', idType:'居民身份证', gender:'男', age:70, birth:'1955-11-30', phone:'13605251937', address:'仙女镇解放路105号', visitDate:'2024-01-10', doctor:'李蕾', hospital:'江都区人民医院' },
+
+    /* —— 慢病档案提醒（disease：慢病类型，决定跳转的专项表视图） —— */
+    { type:'慢病档案提醒', disease:'高血压', org:'扬州市广陵区东关社区卫生服务中心', name:'张桂英', idcard:'321002195812074426', idType:'居民身份证', gender:'女', age:66, birth:'1958-12-07', phone:'13795126485', address:'东关街道琼花路56号', visitDate:'2024-01-08', doctor:'王建华', hospital:'扬州市第一人民医院' },
+    { type:'慢病档案提醒', disease:'糖尿病', org:'扬州市广陵区东关社区卫生服务中心', name:'陈志明', idcard:'321002195204165519', idType:'居民身份证', gender:'男', age:74, birth:'1952-04-16', phone:'15905277826', address:'东关街道文昌路88号', visitDate:'2024-01-05', doctor:'赵敏', hospital:'扬州市中医院' },
+    { type:'慢病档案提醒', disease:'高血压', org:'扬州市邗江区蒋王社区卫生服务中心', name:'潘凤英', idcard:'321003196202144226', idType:'居民身份证', gender:'女', age:64, birth:'1962-02-14', phone:'15098763214', address:'蒋王镇文汇西路12号', visitDate:'2024-01-06', doctor:'王盛', hospital:'扬州市邗江区人民医院' },
+    { type:'慢病档案提醒', disease:'慢阻肺', org:'扬州市邗江区蒋王社区卫生服务中心', name:'石国强', idcard:'321003196104162619', idType:'居民身份证', gender:'男', age:65, birth:'1961-04-16', phone:'13791046538', address:'蒋王镇站前路7号', visitDate:'2024-01-03', doctor:'朱劲松', hospital:'扬州市邗江区人民医院' },
+    { type:'慢病档案提醒', disease:'糖尿病', org:'扬州市江都区仙女社区卫生服务中心', name:'周建平', idcard:'321088196801093337', idType:'居民身份证', gender:'男', age:58, birth:'1968-01-09', phone:'13793167482', address:'仙女镇工农路19号', visitDate:'2024-01-08', doctor:'陈静', hospital:'江都区人民医院' }
+  ];
+
+  /* ================= 工具函数 ================= */
+  function esc(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function $(id) { return document.getElementById(id); }
+
+  /* ================= 分页 / 状态 ================= */
+  var PAGE_SIZE = 20;
+  var curPage = 1;
+  var curType = '档案更新提醒';   /* 当前提醒类型 */
+  var lastList = [];
+
+  /* ================= 提醒类型 TAB ================= */
+  function renderTabs() {
+    $('remindTabs').innerHTML = REMIND_TYPES.map(function (t) {
+      var cnt = remindData.filter(function (r) { return r.type === t && !r.ignored; }).length;
+      return '<div class="status-tab' + (t === curType ? ' active' : '') + '" data-type="' + esc(t) +
+        '" onclick="switchType(this)">' + esc(t) + '<span class="cnt">' + cnt + '</span></div>';
+    }).join('');
+  }
+
+  function switchType(el) {
+    curType = el.getAttribute('data-type');
+    document.querySelectorAll('.status-tab').forEach(function (t) { t.classList.remove('active'); });
+    el.classList.add('active');
+    curPage = 1;
+    renderTable();
+  }
+
+  /* ================= 筛选 / 表格渲染 ================= */
+  /* 列宽（慢病类型列仅「慢病档案提醒」出现，操作列固定末位） */
+  function buildCols(isChronic) {
+    var widths = [44, 150, 76, 148, 82, 44, 44, 96, 110, 160, 96, 76];
+    if (isChronic) widths.push(96);
+    widths.push(130);
+    return widths.map(function (w) { return '<col style="width:' + w + 'px">'; }).join('');
+  }
+
+  function renderTable() {
+    var isChronic = curType === '慢病档案提醒';
+    $('fDiseaseWrap').style.display = isChronic ? '' : 'none';
+    $('thDisease').style.display = isChronic ? '' : 'none';
+    $('tblCols').innerHTML = buildCols(isChronic);
+
+    var org = $('fOrg').value, name = $('fName').value.trim();
+    var idcard = $('fIdcard').value.trim(), gender = $('fGender').value;
+    var disease = $('fDisease').value;
+    var birthStart = $('fBirthStart').value, birthEnd = $('fBirthEnd').value;
+    var visitStart = $('fVisitStart').value, visitEnd = $('fVisitEnd').value;
+    var doctor = $('fDoctor').value.trim(), hospital = $('fHospital').value.trim();
+
+    lastList = remindData.filter(function (r) {
+      if (r.ignored) return false;
+      if (curType && r.type !== curType) return false;
+      if (org && r.org !== org) return false;
+      if (name && r.name.indexOf(name) === -1) return false;
+      if (idcard && r.idcard.indexOf(idcard) === -1) return false;
+      if (gender && r.gender !== gender) return false;
+      if (isChronic && disease && r.disease !== disease) return false;
+      if (birthStart && r.birth < birthStart) return false;
+      if (birthEnd && r.birth > birthEnd) return false;
+      if (visitStart && r.visitDate < visitStart) return false;
+      if (visitEnd && r.visitDate > visitEnd) return false;
+      if (doctor && r.doctor.indexOf(doctor) === -1) return false;
+      if (hospital && r.hospital.indexOf(hospital) === -1) return false;
+      return true;
+    });
+
+    var totalPage = Math.max(1, Math.ceil(lastList.length / PAGE_SIZE));
+    if (curPage > totalPage) curPage = totalPage;
+    var start = (curPage - 1) * PAGE_SIZE;
+    var slice = lastList.slice(start, start + PAGE_SIZE);
+
+    var html = '';
+    if (slice.length === 0) {
+      html = '<tr class="empty-row"><td colspan="' + (isChronic ? 14 : 13) + '"><div class="ico">📭</div>暂无符合条件的提醒记录</td></tr>';
+    } else {
+      slice.forEach(function (r, i) {
+        var opHtml = '<a class="op-btn link" onclick="goEdit(\'' + esc(r.idcard) + '\')">编辑</a>'
+          + '<span class="op-gap"></span><a class="op-btn link" onclick="goView(\'' + esc(r.idcard) + '\')">查看</a>'
+          + '<span class="op-gap"></span>'
+          + '<span class="more-wrap"><a class="op-btn link" onclick="toggleMore(event,\'' + esc(r.idcard) + '\')">更多 ▼</a>'
+          + '<div class="more-menu" id="more-' + esc(r.idcard) + '">'
+          + '<a onclick="openIgnore(\'' + esc(r.idcard) + '\')">忽略</a>'
+          + '<a onclick="toast(\'原型演示：转诊\',\'info\')">转诊</a>'
+          + '</div></span>';
+        html += '<tr>'
+          + '<td class="center">' + (start + i + 1) + '</td>'
+          + '<td title="' + esc(r.org) + '"><span class="cell">' + esc(r.org) + '</span></td>'
+          + '<td><a class="op-btn link" onclick="goView(\'' + esc(r.idcard) + '\')">' + esc(r.name) + '</a></td>'
+          + '<td title="' + esc(r.idcard) + '"><span class="cell">' + esc(r.idcard) + '</span></td>'
+          + '<td>' + esc(r.idType) + '</td>'
+          + '<td class="center">' + esc(r.gender) + '</td>'
+          + '<td class="center">' + r.age + '</td>'
+          + '<td>' + esc(r.birth) + '</td>'
+          + '<td title="' + esc(r.phone) + '"><span class="cell">' + (r.phone || '—') + '</span></td>'
+          + '<td title="' + esc(r.address) + '"><span class="cell">' + (r.address || '—') + '</span></td>'
+          + '<td>' + esc(r.visitDate) + '</td>'
+          + '<td>' + esc(r.doctor) + '</td>'
+          + (isChronic ? '<td class="center">' + esc(r.disease || '—') + '</td>' : '')
+          + '<td class="center"><div class="op-wrap">' + opHtml + '</div></td>'
+          + '</tr>';
+      });
+    }
+    $('tbBody').innerHTML = html;
+    $('pgTotal').textContent = lastList.length;
+    renderPager(totalPage);
+    $('pgJump').value = curPage;
+  }
+
+  /* ================= 更多下拉 ================= */
+  function toggleMore(e, idcard) {
+    e.stopPropagation();
+    /* 关闭其他菜单 */
+    document.querySelectorAll('.more-menu.show').forEach(function (m) { if (m.id !== 'more-' + idcard) m.classList.remove('show'); });
+    var m = $('more-' + idcard);
+    if (m) m.classList.toggle('show');
+  }
+  document.addEventListener('click', function () {
+    document.querySelectorAll('.more-menu.show').forEach(function (m) { m.classList.remove('show'); });
+  });
+
+  /* ================= 分页器 ================= */
+  function renderPager(total) {
+    var nums = [];
+    if (total <= 7) {
+      for (var i = 1; i <= total; i++) nums.push(i);
+    } else {
+      nums.push(1);
+      if (curPage > 3) nums.push('…');
+      for (var j = Math.max(2, curPage - 1); j <= Math.min(total - 1, curPage + 1); j++) nums.push(j);
+      if (curPage < total - 2) nums.push('…');
+      nums.push(total);
+    }
+    var h = '<button class="pg-btn" onclick="gotoPage(' + (curPage - 1) + ')">‹</button>';
+    nums.forEach(function (n) {
+      h += n === '…'
+        ? '<span class="pg-ellipsis">…</span>'
+        : '<button class="pg-btn' + (n === curPage ? ' active' : '') + '" onclick="gotoPage(' + n + ')">' + n + '</button>';
+    });
+    h += '<button class="pg-btn" onclick="gotoPage(' + (curPage + 1) + ')">›</button>';
+    $('pgPager').innerHTML = h;
+  }
+
+  function gotoPage(p) {
+    var total = Math.max(1, Math.ceil(lastList.length / PAGE_SIZE));
+    if (p < 1) { toast('已是第一页', 'info'); return; }
+    if (p > total) { toast('已是最后一页', 'info'); return; }
+    if (p === curPage) { toast('已在第 ' + p + ' 页', 'info'); return; }
+    curPage = p;
+    renderTable();
+  }
+
+  function jumpPage() {
+    var v = parseInt($('pgJump').value, 10);
+    if (isNaN(v)) { toast('请输入页码', 'warning'); return; }
+    gotoPage(v);
+  }
+
+  /* ================= 筛选交互 ================= */
+  function resetFilter() {
+    ['fOrg', 'fGender', 'fDisease'].forEach(function (id) { $(id).value = ''; });
+    ['fName', 'fIdcard', 'fDoctor', 'fHospital', 'fBirthStart', 'fBirthEnd', 'fVisitStart', 'fVisitEnd'].forEach(function (id) {
+      var el = $(id); el.value = ''; if (el.type === 'date') el.type = 'text';
+    });
+    curPage = 1;
+    renderTable();
+    toast('筛选条件已重置', 'success');
+  }
+
+  function applyFilter() {
+    curPage = 1;
+    renderTable();
+    toast('查询完成，共 ' + $('pgTotal').textContent + ' 条记录', 'success');
+  }
+
+  /* 筛选控件变化即实时过滤（并回到第一页） */
+  ['fOrg', 'fGender', 'fDisease', 'fBirthStart', 'fBirthEnd', 'fVisitStart', 'fVisitEnd']
+    .forEach(function (id) { $(id).addEventListener('change', function () { curPage = 1; renderTable(); }); });
+  ['fName', 'fIdcard', 'fDoctor', 'fHospital']
+    .forEach(function (id) { $(id).addEventListener('input', function () { curPage = 1; renderTable(); }); });
+
+  /* ================= 编辑 / 查看：跳转「档案维护.html」 =================
+     · 档案更新提醒  → 默认选中「个人基本信息」（view=basic）
+     · 慢病档案提醒  → 按慢病类型默认选中对应业务专项表填报界面
+         高血压 → 高血压专项（view=hypertension）
+         糖尿病 → 糖尿病专项（view=diabetes）
+         慢阻肺 → 慢阻肺专项（view=copd） */
+  var DISEASE_VIEW = { '高血压': 'hypertension', '糖尿病': 'diabetes', '慢阻肺': 'copd' };
+
+  function goArchive(idcard) {
+    var r = findRow(idcard);
+    if (!r) return;
+    var view = r.type === '慢病档案提醒'
+      ? (DISEASE_VIEW[r.disease] || 'hypertension')
+      : 'basic';
+    var p = new URLSearchParams();
+    p.set('view', view);
+    p.set('edit', '1');
+    p.set('name', r.name);
+    p.set('gender', r.gender === '男' ? '男性' : '女性');
+    p.set('idType', r.idType);
+    p.set('idcard', r.idcard);
+    p.set('birth', r.birth);
+    if (r.phone) p.set('phone', r.phone);
+    if (r.address) p.set('addr', r.address);
+    if (r.org) p.set('org', r.org);
+    location.href = '档案维护.html?' + p.toString();
+  }
+
+  function goEdit(idcard) { goArchive(idcard); }
+  function goView(idcard) { goArchive(idcard); }
+
+  /* ================= 弹窗 ================= */
+  function findRow(idcard) {
+    for (var i = 0; i < remindData.length; i++) {
+      if (remindData[i].idcard === idcard && !remindData[i].ignored) return remindData[i];
+    }
+    return null;
+  }
+
+  /* 新建档案 */
+  var createIdcard = '';
+  function openCreate(idcard) {
+    var r = findRow(idcard);
+    if (!r) return;
+    createIdcard = idcard;
+    $('cr-name').value = r.name;
+    $('cr-idtype').value = r.idType;
+    $('cr-idcard').value = r.idcard;
+    $('cr-gender').value = r.gender;
+    var b = $('cr-birth'); b.type = 'date'; b.value = r.birth;
+    $('cr-phone').value = r.phone;
+    $('cr-org').value = r.org;
+    $('cr-doctor').value = r.doctor;
+    $('cr-hospital').value = r.hospital;
+    $('create-modal').classList.add('show');
+  }
+  function closeCreate() { $('create-modal').classList.remove('show'); }
+  function submitCreate() {
+    if (!$('cr-name').value.trim() || !$('cr-idcard').value.trim()) { toast('请填写姓名与证件号', 'warning'); return; }
+    var r = findRow(createIdcard);
+    if (r) r.ignored = true;
+    closeCreate();
+    renderTabs();
+    renderTable();
+    toast('已建档：' + $('cr-name').value.trim(), 'success');
+  }
+
+  /* 查看详情 */
+  function openView(idcard) {
+    var r = findRow(idcard);
+    if (!r) return;
+    $('vw-org').textContent = r.org;
+    $('vw-name').textContent = r.name;
+    $('vw-genderAge').textContent = r.gender + ' / ' + r.age + ' 岁';
+    $('vw-idtype').textContent = r.idType;
+    $('vw-birth').textContent = r.birth;
+    $('vw-idcard').textContent = r.idcard;
+    $('vw-phone').textContent = r.phone || '—';
+    $('vw-address').textContent = r.address || '—';
+    $('vw-type').textContent = r.type;
+    $('vw-visitdate').textContent = r.visitDate;
+    $('vw-doctor').textContent = r.doctor;
+    $('vw-hospital').textContent = r.hospital;
+    $('view-modal').classList.add('show');
+  }
+  function closeView() { $('view-modal').classList.remove('show'); }
+
+  /* 忽略提醒 */
+  var ignoreIdcard = '';
+  function openIgnore(idcard) {
+    var r = findRow(idcard);
+    if (!r) return;
+    ignoreIdcard = idcard;
+    $('ig-name').textContent = r.name;
+    $('ig-type').textContent = r.type;
+    $('ig-idcard').textContent = r.idcard;
+    $('ig-reason').value = '';
+    $('ignore-modal').classList.add('show');
+  }
+  function closeIgnore() { $('ignore-modal').classList.remove('show'); }
+  function submitIgnore() {
+    if (!$('ig-reason').value.trim()) { toast('请填写忽略原因', 'warning'); return; }
+    var r = findRow(ignoreIdcard);
+    if (r) r.ignored = true;
+    closeIgnore();
+    renderTabs();
+    renderTable();
+    toast('已忽略该提醒', 'success');
+  }
+
+  document.querySelectorAll('.modal-overlay').forEach(function (o) {
+    o.addEventListener('click', function (e) { if (e.target === o) o.classList.remove('show'); });
+  });
+
+  /* 初始渲染 */
+  renderTabs();
+  renderTable();
+</script>
+</body>
+</html>

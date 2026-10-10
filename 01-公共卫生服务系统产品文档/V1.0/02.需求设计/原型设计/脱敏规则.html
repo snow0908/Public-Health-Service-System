@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>脱敏设置 - 系统管理</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  /* ===== 脱敏规则页面特有样式（设计变量与公共样式见 框架.css） ===== */
+
+  /* ===== 嵌入模式（被 index.html 壳子以 iframe 内嵌时，框架.js 自动加 html.embed-mode） ===== */
+  html.embed-mode .main-area{height:100%}      /* 壳子内自适应：无顶部导航栏包裹 */
+  html.embed-mode .tabbar{display:none}        /* 标签栏由壳子统一管理，本页隐藏 */
+  html.embed-mode .toast{top:24px}             /* 壳内提示位置上移 */
+
+  /* ===== 布局：单栏，卡片撑满、表格内部滚动 ===== */
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}
+  .rule-panel{flex:1;min-height:0;display:flex;flex-direction:column;padding:12px 12px 0}
+  #ruleConfig{flex:1;min-height:0;display:flex;flex-direction:column}
+
+  /* ===== 方案未启用时的空状态 ===== */
+  .rule-disabled{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:24px}
+  .rule-disabled .rd-inner{max-width:480px;text-align:center}
+  .rule-disabled .rd-ico{font-size:46px;line-height:1;opacity:.5;margin-bottom:14px}
+  .rule-disabled .rd-title{font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:8px}
+  .rule-disabled .rd-desc{font-size:13px;color:var(--text-secondary);line-height:1.7;margin-bottom:20px}
+
+  /* ===== 页头（对齐操作日志 page-head 规范） ===== */
+  .page-head .right{display:flex;gap:8px;align-items:center}
+  .page-head .right .btn{height:28px;padding:0 14px;font-size:13px}
+  .page-head .right .btn:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
+
+  /* ===== 方案启用开关 ===== */
+  .enable-wrap{display:flex;align-items:center;gap:8px;padding-right:14px;border-right:1px solid #E8E8E8}
+  .enable-wrap .sw-label{font-size:13px;color:var(--text-secondary);white-space:nowrap}
+  .switch{width:44px;height:22px;border-radius:11px;background:#DCDFE6;position:relative;cursor:pointer;transition:background var(--transition-fast);flex-shrink:0;border:none;padding:0;outline:none}
+  .switch::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:2px;left:2px;transition:left var(--transition-fast);box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+  .switch.on{background:var(--primary)}
+  .switch.on::after{left:24px}
+  .switch:focus-visible{box-shadow:0 0 0 3px rgba(0,122,255,0.2)}
+
+  /* 标题旁的启用状态徽标 */
+  .plan-status{display:inline-flex;align-items:center;height:20px;padding:0 8px;margin-left:8px;border-radius:10px;font-size:12px;font-weight:400;vertical-align:2px;transition:all var(--transition-fast)}
+  .plan-status.on{background:var(--primary-bg);color:var(--primary);border:1px solid var(--primary-border)}
+  .plan-status.off{background:#F2F3F5;color:var(--text-tertiary);border:1px solid #E4E7ED}
+
+  /* 方案选择（拉取方案） */
+  .plan-select{display:flex;align-items:center;gap:8px;margin-right:6px;padding-right:14px;border-right:1px solid #E8E8E8}
+  .plan-select label{font-size:13px;color:var(--text-secondary);white-space:nowrap}
+  .ps-select{height:28px;min-width:158px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;cursor:pointer;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .ps-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .ps-select:disabled{background:#F5F6FA;color:var(--text-tertiary);cursor:not-allowed;border-color:#E4E7ED}
+
+  /* ===== 筛选区（对齐操作日志 filter-panel 规范） ===== */
+  .filter-panel{padding:14px 0 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:14px;align-items:center}
+  .filter-item{display:flex;align-items:center;gap:8px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:240px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+  /* ===== 方案信息条 ===== */
+  .rule-info-bar{display:flex;align-items:center;gap:10px;margin:12px 0;padding:10px 12px;background:#F0F7FF;border:1px solid #BFDEFF;border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);flex-shrink:0}
+  .rule-info-bar .info-icon{width:22px;height:22px;flex-shrink:0;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center}
+  .rule-info-bar .info-text{flex:1;min-width:0;line-height:1.6}
+  .rule-info-bar .info-text strong{color:var(--primary);font-weight:600}
+  .rule-info-bar .info-priority{flex-shrink:0;height:20px;padding:0 8px;border-radius:10px;background:#fff;border:1px solid #BFDEFF;color:var(--primary);font-size:12px;display:inline-flex;align-items:center}
+
+  /* ===== 数据表格（对齐操作日志 table-wrap + list-tbl 规范） ===== */
+  .table-wrap{flex:1;overflow:auto;min-height:0;border:1px solid #E4E7ED;border-radius:var(--r-sm)}
+  .list-tbl{width:100%;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:36px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .list-tbl th.center,.list-tbl td.center{text-align:center}
+  .list-tbl tr.empty-row td{text-align:center;color:var(--text-tertiary);height:160px;font-size:14px}
+  .list-tbl tr.empty-row .ico{font-size:34px;opacity:.45;line-height:1;margin-bottom:8px}
+  .rule-action{color:var(--text-error);cursor:pointer;font-size:13px}
+  .rule-action:hover{text-decoration:underline}
+  .rule-cb{width:14px;height:14px;accent-color:var(--primary);cursor:pointer;vertical-align:middle}
+
+  /* ===== 底部分页栏（对齐操作日志 page-foot 规范） ===== */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:52px;padding:0 4px;flex-shrink:0;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 22px 0 8px;font-size:13px;color:var(--text-secondary);background:#fff;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn:hover:not(.disabled):not(.active){border-color:var(--primary);color:var(--primary)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-btn.disabled{opacity:.45;cursor:not-allowed}
+  .pg-jump input{width:40px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 6px;font-size:13px;text-align:center;color:var(--text-primary);outline:none}
+  .pg-jump input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+
+  /* ===== 通用弹框 ===== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal,1000);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .modal-overlay.show{opacity:1;pointer-events:auto}
+  .modal{background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 8px 32px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden}
+  .modal-head{height:48px;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid #E8E8E8;flex-shrink:0}
+  .modal-head h3{font-size:15px;font-weight:600;color:var(--primary);margin:0;flex:1}
+  .modal-close{width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--r-sm);color:var(--text-tertiary);cursor:pointer;font-size:14px;transition:all var(--transition-fast)}
+  .modal-close:hover{background:#F2F3F5;color:var(--text-primary)}
+  .modal-body{flex:1;min-height:0;display:flex;flex-direction:column;padding:14px 16px;overflow:hidden}
+  .modal-foot{height:56px;display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:0 16px;border-top:1px solid #E8E8E8;flex-shrink:0}
+  .modal-foot .btn{height:32px;padding:0 18px;font-size:14px}
+
+  /* ===== 选择规则弹框 ===== */
+  .rule-select-modal{width:920px;max-width:94vw;height:580px;max-height:88vh}
+  .rsm-sub{font-size:12px;color:var(--text-tertiary);font-weight:400;margin-left:8px}
+  .rsm-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-shrink:0}
+  .rsm-toolbar .search-input{width:280px}
+  .rsm-toolbar .rsm-tip{font-size:13px;color:var(--text-tertiary)}
+  .rsm-table-wrap{flex:1;min-height:0;overflow:auto;border:1px solid #E4E7ED;border-radius:var(--r-sm)}
+  .rsm-table-wrap .list-tbl th:first-child,.rsm-table-wrap .list-tbl td:first-child{position:static;box-shadow:none}
+  .modal-foot .rsm-count{margin-right:auto;font-size:13px;color:var(--text-secondary)}
+  .modal-foot .rsm-count b{color:var(--primary);font-weight:600}
+
+  /* ===== 脱敏效果弹框 ===== */
+  .effect-modal{width:900px;max-width:94vw;height:560px;max-height:88vh}
+  .eff-summary{display:flex;align-items:center;gap:16px;padding:10px 12px;margin-bottom:12px;background:#F0F7FF;border:1px solid #BFDEFF;border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);flex-shrink:0}
+  .eff-summary b{color:var(--primary);font-weight:600}
+  .eff-table-wrap{flex:1;min-height:0;overflow:auto;border:1px solid #E4E7ED;border-radius:var(--r-sm)}
+  .eff-table-wrap .list-tbl th:first-child,.eff-table-wrap .list-tbl td:first-child{position:static;box-shadow:none}
+  .eff-old{color:var(--text-primary)}
+  .eff-new{color:#E6A23C;font-weight:500}
+  .eff-empty{padding:60px 20px;text-align:center;color:var(--text-tertiary);font-size:14px}
+
+  /* ===== 统一确认弹框 ===== */
+  .confirm-modal{width:440px;max-width:92vw;height:auto;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,0.08),0 4px 12px rgba(0,0,0,0.04)}
+  .confirm-modal .modal-head{height:auto;padding:16px 24px;border-bottom:1px solid var(--color-neutral-300)}
+  .confirm-modal .modal-head h3{font-size:16px;font-weight:600;color:var(--primary)}
+  .confirm-body{display:flex;align-items:flex-start;justify-content:center;gap:8px;padding:24px;flex:1;min-height:0}
+  .confirm-body .ico{width:25px;height:24px;flex-shrink:0}
+  .confirm-body .ico svg{width:100%;height:100%;stroke:var(--warning,#E6A23C);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .confirm-body .msg{font-size:14px;color:var(--text-primary);line-height:1.7}
+  .confirm-modal .modal-foot{height:auto;padding:12px 24px;border-top:1px solid var(--color-neutral-100)}
+
+  /* ===== 脱敏规则说明提示 ===== */
+  .page-title-tip{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-left:8px;border-radius:50%;background:#F0F7FF;color:#007AFF;border:1px solid #BFDEFF;font-size:12px;font-weight:600;cursor:help;vertical-align:1px}
+  .page-title-tip:hover{background:#D6E9FF}
+  .page-title-tip-popup{position:fixed;max-width:420px;padding:10px 12px;background:#262626;color:#fff;border-radius:6px;font-size:13px;font-weight:400;line-height:1.6;white-space:normal;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,.15);pointer-events:none}
+  .page-title-tip-popup::before{content:"";position:absolute;left:-8px;top:50%;transform:translateY(-50%);border-width:5px;border-style:solid;border-color:transparent #262626 transparent transparent}
+</style>
+</head>
+<body>
+
+<!-- ===== 主内容区（顶部导航栏与左侧菜单栏由 框架.js 注入） ===== -->
+<div class="main-area">
+
+  <!-- 页面标签条（嵌入模式下隐藏，由壳子统一管理） -->
+  <div class="tabbar">
+    <div class="tab-item active" onclick="toast('当前已在「脱敏设置」页','info')">
+      <svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+      脱敏设置
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <!-- ===== 页头：标题 + 方案启用开关 + 方案选择 + 操作按钮 ===== -->
+      <div class="page-head">
+        <h1>脱敏设置<span class="plan-status on" id="planStatus">已启用</span>
+          <span class="page-title-tip" data-tip="设计思路：先启用脱敏方案，再选择并拉取方案，对方案内的规则做保留 / 删除，可随时预览脱敏效果。<br><br>
+操作流程：<br>
+0. 顶部「方案启用」开关 —— 关闭后脱敏方案整体不生效，方案内规则不执行任何脱敏<br>
+1. 顶部「方案」下拉选择方案 —— 选中即拉取该方案的全部规则<br>
+2. 表格中勾选需要保留的规则（默认全选）<br>
+3. 点「保留」提交保留勾选项，未勾选的规则将不再保留<br>
+4. 点「删除」移除勾选的规则<br>
+5. 点「脱敏效果」查看字段脱敏前 / 后的对比<br><br>
+筛选：支持按规则名称 / 敏感字段关键字与脱敏算法过滤<br>
+备注：勾选 = 该敏感字段执行脱敏；取消勾选 = 该字段不脱敏（原文显示）">?</span>
+        </h1>
+        <div class="right">
+          <div class="enable-wrap">
+            <span class="sw-label">方案启用</span>
+            <button class="switch on" id="swPlanEnabled" onclick="togglePlanEnabled()" role="switch" aria-checked="true" aria-label="脱敏方案启用开关"></button>
+          </div>
+          <div class="plan-select">
+            <label for="planSelect">方案</label>
+            <select class="ps-select" id="planSelect" onchange="onPlanChange(this.value)"></select>
+          </div>
+          <button class="btn btn-primary" id="btnSelectRule" onclick="openRuleSelectModal()">选择规则</button>
+          <button class="btn btn-default" id="btnRetain" onclick="retainRules()">保留</button>
+          <button class="btn btn-danger-outline" id="btnDeleteSel" onclick="deleteSelectedRules()">删除</button>
+          <button class="btn btn-default" id="btnEffect" onclick="openEffectModal()">脱敏效果</button>
+        </div>
+      </div>
+
+      <div class="rule-panel">
+
+        <!-- ===== 方案启用后的配置区（未启用时整体隐藏） ===== -->
+        <div id="ruleConfig">
+
+        <!-- ===== 筛选区 ===== -->
+        <div class="filter-panel">
+          <div class="filter-row">
+            <div class="filter-item"><label>规则名称</label>
+              <input class="fi-ctl" type="text" id="ruleSearch" placeholder="请输入规则名称/敏感字段" onkeydown="if(event.key==='Enter')applyRuleSearch()">
+            </div>
+            <div class="filter-item"><label>脱敏算法</label>
+              <select class="fi-select" id="algoFilter">
+                <option value="">请选择</option>
+                <option value="遮盖脱敏">遮盖脱敏</option>
+                <option value="替换脱敏">替换脱敏</option>
+                <option value="加密脱敏">加密脱敏</option>
+              </select>
+            </div>
+            <div class="filter-btns">
+              <button class="btn btn-default" onclick="resetRuleSearch()">重置</button>
+              <button class="btn btn-primary" onclick="applyRuleSearch()">查询</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== 方案信息条 ===== -->
+        <div class="rule-info-bar" id="ruleInfoBar"></div>
+
+        <!-- ===== 规则表格 ===== -->
+        <div class="table-wrap" id="ruleTableWrap">
+          <table class="list-tbl">
+            <colgroup>
+              <col style="width:52px"><col style="width:64px"><col style="width:168px"><col style="width:120px"><col style="width:240px"><col><col style="width:88px">
+            </colgroup>
+            <thead>
+              <tr>
+                <th class="center"><input type="checkbox" class="rule-cb" id="selectAllCb" onchange="toggleSelectAllRules(this.checked)"></th>
+                <th class="center">序号</th>
+                <th>规则名称</th>
+                <th>脱敏算法</th>
+                <th>算法配置</th>
+                <th>敏感字段</th>
+                <th class="center">操作</th>
+              </tr>
+            </thead>
+            <tbody id="ruleTbody"></tbody>
+          </table>
+        </div>
+
+        <!-- ===== 分页 ===== -->
+        <div class="page-foot" id="rulePageFoot">
+          <span class="pg-total">共 <b id="ruleTotal">0</b> 条 · 已选 <b id="ruleSelectedTotal">0</b> 条</span>
+          <span class="pg-size">
+            <select onchange="toast('原型演示：每页条数固定 20 条','info')">
+              <option selected>20条/页</option>
+              <option>50条/页</option>
+              <option>100条/页</option>
+            </select>
+          </span>
+          <span class="pg-pager" id="rulePager"></span>
+          <span class="pg-jump">跳至第 <input id="rulePgJump" value="1" onkeydown="if(event.key==='Enter'){toast('原型演示：规则列表仅 1 页','info')}"> 页</span>
+        </div>
+
+        </div><!-- /#ruleConfig -->
+
+        <!-- ===== 方案未启用时的空状态（启用后隐藏） ===== -->
+        <div class="rule-disabled" id="ruleDisabled" style="display:none">
+          <div class="rd-inner">
+            <div class="rd-ico">🛡️</div>
+            <div class="rd-title">脱敏方案未启用</div>
+            <div class="rd-desc">当前脱敏方案处于关闭状态，系统不会对敏感字段执行脱敏处理，方案内的规则暂不生效。<br>开启「方案启用」开关后，即可选择方案并配置脱敏规则。</div>
+            <button class="btn btn-primary" onclick="togglePlanEnabled()">立即开启</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 选择规则弹框 ===== -->
+<div class="modal-overlay" id="ruleSelectModal" onclick="if(event.target===this)closeRuleSelectModal()">
+  <div class="modal rule-select-modal">
+    <div class="modal-head">
+      <h3>选择规则<span class="rsm-sub" id="rsmSchemeTip"></span></h3>
+      <div class="modal-close" onclick="closeRuleSelectModal()">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="rsm-toolbar">
+        <div class="search-input">
+          <input type="text" id="rsmPoolSearch" placeholder="请输入规则名称/敏感字段" oninput="renderRsmPool()">
+        </div>
+        <span class="rsm-tip">勾选后点「确定」，规则将加入当前方案</span>
+      </div>
+      <div class="rsm-table-wrap">
+        <table class="list-tbl">
+          <colgroup>
+            <col style="width:52px"><col style="width:64px"><col style="width:180px"><col style="width:120px"><col style="width:240px"><col>
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="center"><input type="checkbox" class="rule-cb" id="rsmPoolSelectAll" onchange="toggleRsmPoolAll(this.checked)"></th>
+              <th class="center">序号</th>
+              <th>规则名称</th>
+              <th>脱敏算法</th>
+              <th>算法配置</th>
+              <th>敏感字段</th>
+            </tr>
+          </thead>
+          <tbody id="rsmPoolTbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <span class="rsm-count">已选 <b id="rsmSelectedCount">0</b> 条</span>
+      <button class="btn btn-default" onclick="closeRuleSelectModal()">取消</button>
+      <button class="btn btn-primary" onclick="confirmRuleSelect()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 脱敏效果弹框 ===== -->
+<div class="modal-overlay" id="effectModal" onclick="if(event.target===this)closeEffectModal()">
+  <div class="modal effect-modal">
+    <div class="modal-head">
+      <h3>脱敏效果预览</h3>
+      <div class="modal-close" onclick="closeEffectModal()">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="eff-summary" id="effSummary"></div>
+      <div class="eff-table-wrap">
+        <table class="list-tbl">
+          <colgroup>
+            <col style="width:64px"><col style="width:180px"><col><col>
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="center">序号</th>
+              <th>规则名称</th>
+              <th>脱敏前</th>
+              <th>脱敏后</th>
+            </tr>
+          </thead>
+          <tbody id="effTbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" onclick="closeEffectModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 统一确认弹框 ===== -->
+<div class="modal-overlay" id="confirmModal" onclick="if(event.target===this)closeConfirm()">
+  <div class="modal confirm-modal">
+    <div class="modal-head"><h3 id="confirmTitle">删除</h3><span class="modal-close" onclick="closeConfirm()">✕</span></div>
+    <div class="modal-body confirm-body">
+      <div class="ico">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="msg" id="confirmMsg"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeConfirm()">返回</button>
+      <button class="btn btn-primary" id="confirmOkBtn">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 统一框架：顶部导航栏 + 左侧菜单栏（菜单配置见 框架.js） =====
+     data-page    = 左侧菜单高亮项（独立打开时生效）
+     data-embed   = "auto" 被壳子 iframe 内嵌时自动进入嵌入模式 -->
+<script src="框架.js" data-page="tuomin" data-embed="auto"></script>
+
+<script>
+/* ==========================================================================
+ * 脱敏设置（单栏版）
+ * --------------------------------------------------------------------------
+ * 功能点：拉取方案 → 选择规则 → 保留 / 删除 → 脱敏效果 → 筛选
+ *   1. 顶部「方案」下拉：切换即拉取该方案的全部规则（默认全选）
+ *   2. 「选择规则」：从规则池中挑选规则加入当前方案
+ *   3. 「保留」：提交保留勾选的规则，未勾选的规则不再保留
+ *   4. 「删除」：移除勾选的规则
+ *   5. 「脱敏效果」：预览字段脱敏前 / 后对比
+ *   6. 筛选：规则名称 / 敏感字段关键字 + 脱敏算法
+ * ========================================================================== */
+
+/* ===== 规则池（全量可选规则，含脱敏前后示例值） ===== */
+const RULE_POOL = [
+  { id: 1,  name: '身份证号',         algo: '遮盖脱敏', config: '保留前6后1，遮盖字符*',  fields: 'csfz|hm,csfzfh,idcard',   before: '360781199812012612', after: '360781***********2' },
+  { id: 2,  name: '年龄',             algo: '遮盖脱敏', config: '遮盖自1到20，遮盖字符*',  fields: 'INL',                    before: '38',                 after: '3*' },
+  { id: 3,  name: '住址',             algo: '遮盖脱敏', config: '保留前1后1，遮盖字符*',   fields: 'xz|dz,jtdz',             before: '四川省成都市温江区柳城街道光华大道三段1188号', after: '四************************************号' },
+  { id: 4,  name: '姓名',             algo: '遮盖脱敏', config: '保留前1后1，遮盖字符*',   fields: 'name,cbxrm,chzxm,cryxm', before: '张淑芬',             after: '张*芬' },
+  { id: 5,  name: '手机号码',         algo: '遮盖脱敏', config: '保留前1后1，遮盖字符*',   fields: 'telephone,cdhhm,cldxhdhhm', before: '13812345678',      after: '1*********8' },
+  { id: 6,  name: '机构名称',         algo: '遮盖脱敏', config: '保留前1后1，遮盖字符*',   fields: 'cy|jgmc',                before: '温江区第一人民医院', after: '温********院' },
+  { id: 7,  name: '出生日期',         algo: '遮盖脱敏', config: '保留前4后0，遮盖字符*',   fields: 'csrq,birth_date',        before: '1988-06-12',         after: '1988-**-**' },
+  { id: 8,  name: '民族',             algo: '遮盖脱敏', config: '保留后1，遮盖字符*',      fields: 'mz',                     before: '汉族',               after: '*族' },
+  { id: 9,  name: '工作单位',         algo: '遮盖脱敏', config: '保留前2后0，遮盖字符*',   fields: 'gzdw,work_unit',         before: '温江区疾病预防控制中心', after: '温江************' },
+  { id: 10, name: '医疗费用支付方式', algo: '替换脱敏', config: '统一替换为「其他」',      fields: 'ylfy,zffs',              before: '城镇职工基本医疗保险', after: '其他' },
+  { id: 11, name: '银行卡号',         algo: '遮盖脱敏', config: '保留前4后4，遮盖字符*',   fields: 'bank_card_no',           before: '6222021234567890123', after: '6222***********0123' },
+  { id: 12, name: '家庭住址',         algo: '遮盖脱敏', config: '保留前3后0，遮盖字符*',   fields: 'jtdz,home_addr',         before: '四川省成都市温江区光华大道三段1188号', after: '四川省******************' },
+  { id: 13, name: '联系人姓名',       algo: '遮盖脱敏', config: '保留前1后0，遮盖字符*',   fields: 'lxr_name,linkman',       before: '李桂兰',             after: '李**' },
+  { id: 14, name: '联系人电话',       algo: '遮盖脱敏', config: '保留前3后0，遮盖字符*',   fields: 'lxr_phone,linkman_tel',  before: '13998765432',        after: '139********' }
+];
+const RULE_POOL_MAP = {};
+RULE_POOL.forEach(r => { RULE_POOL_MAP[r.id] = r; });
+
+/* ===== 脱敏方案（拉取对象） ===== */
+const SCHEMES = [
+  { id: 'plan1', code: 'plan1', name: '默认方案',       priority: 'P0', desc: '全局通用基线方案，所有数据默认脱敏，适用于全院常规场景',
+    ruleIds: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] },
+  { id: 'plan2', code: 'plan2', name: '高敏感方案',     priority: 'P0', desc: '对身份证号、姓名、手机号等高敏感字段加强脱敏，适用于数据对外共享场景',
+    ruleIds: [1, 4, 5, 6, 7, 11] },
+  { id: 'plan3', code: 'plan3', name: '消化内科专用方案', priority: 'P0', desc: '消化内科专用：在科室内查看时放宽年龄、联系人等非敏感字段',
+    ruleIds: [1, 2, 4, 5, 13, 14] }
+];
+
+/* ===== 状态 ===== */
+let planEnabled = true;             // 脱敏方案总开关：关闭时不生效、隐藏配置区
+let currentSchemeId = SCHEMES[0].id;
+let currentRules = [];              // 当前方案已拉取的规则（可增删）
+let selectedRuleIds = new Set();    // 表格勾选项
+let appliedKeyword = '';            // 已应用的筛选关键字
+let appliedAlgo = '';               // 已应用的脱敏算法
+let rsmSelected = new Set();        // 选择规则弹框中的勾选
+
+/* ===== 工具函数 ===== */
+function getScheme(id) {
+  return SCHEMES.find(s => s.id === (id || currentSchemeId)) || SCHEMES[0];
+}
+function cloneRule(id) {
+  const r = RULE_POOL_MAP[id];
+  return r ? Object.assign({}, r) : null;
+}
+function getFilteredRules() {
+  return currentRules.filter(r => {
+    const kw = appliedKeyword;
+    const hitKw = !kw ||
+      r.name.toLowerCase().indexOf(kw) > -1 ||
+      String(r.fields || '').toLowerCase().indexOf(kw) > -1;
+    const hitAlgo = !appliedAlgo || r.algo === appliedAlgo;
+    return hitKw && hitAlgo;
+  });
+}
+
+/* ===== 拉取方案 ===== */
+function loadScheme(id, silent) {
+  const scheme = getScheme(id);
+  currentSchemeId = scheme.id;
+  currentRules = scheme.ruleIds.map(cloneRule).filter(Boolean);
+  selectedRuleIds = new Set(currentRules.map(r => String(r.id)));  // 默认全选（全部脱敏）
+  appliedKeyword = '';
+  appliedAlgo = '';
+  const searchEl = document.getElementById('ruleSearch');
+  if (searchEl) searchEl.value = '';
+  const algoEl = document.getElementById('algoFilter');
+  if (algoEl) algoEl.value = '';
+  renderPlanSelect();
+  renderInfoBar();
+  renderRuleTable();
+  if (!silent) toast('已拉取方案「' + scheme.name + '」，共 ' + currentRules.length + ' 条规则', 'success');
+}
+
+function renderPlanSelect() {
+  const el = document.getElementById('planSelect');
+  if (!el) return;
+  el.innerHTML = SCHEMES.map(s =>
+    '<option value="' + s.id + '"' + (s.id === currentSchemeId ? ' selected' : '') + '>' +
+    escapeHtml(s.name) + '（' + escapeHtml(s.code) + '）</option>'
+  ).join('');
+}
+
+function onPlanChange(id) {
+  loadScheme(id);
+}
+
+/* ===== 方案启用 / 关闭总开关 ===== */
+function togglePlanEnabled() {
+  setPlanEnabled(!planEnabled);
+}
+
+function setPlanEnabled(on, silent) {
+  planEnabled = !!on;
+
+  /* 开关按钮外观 */
+  const sw = document.getElementById('swPlanEnabled');
+  if (sw) {
+    sw.classList.toggle('on', planEnabled);
+    sw.setAttribute('aria-checked', planEnabled ? 'true' : 'false');
+  }
+  /* 标题旁状态徽标 */
+  const status = document.getElementById('planStatus');
+  if (status) {
+    status.textContent = planEnabled ? '已启用' : '未启用';
+    status.classList.toggle('on', planEnabled);
+    status.classList.toggle('off', !planEnabled);
+  }
+  /* 配置区 / 空状态 显隐 */
+  const cfg = document.getElementById('ruleConfig');
+  const dis = document.getElementById('ruleDisabled');
+  if (cfg) cfg.style.display = planEnabled ? '' : 'none';
+  if (dis) dis.style.display = planEnabled ? 'none' : '';
+  /* 未启用时禁用方案选择与全部操作按钮 */
+  const ps = document.getElementById('planSelect');
+  if (ps) ps.disabled = !planEnabled;
+  ['btnSelectRule', 'btnRetain', 'btnDeleteSel', 'btnEffect'].forEach(function (id) {
+    const b = document.getElementById(id);
+    if (b) b.disabled = !planEnabled;
+  });
+
+  if (!silent) {
+    toast(planEnabled
+      ? '已启用脱敏方案「' + getScheme().name + '」'
+      : '已关闭脱敏方案，敏感字段将不再执行脱敏', planEnabled ? 'success' : 'info');
+  }
+}
+
+/* 操作前置校验：方案未启用时拦截 */
+function requirePlanEnabled() {
+  if (!planEnabled) { toast('请先启用脱敏方案后再操作', 'warning'); return false; }
+  return true;
+}
+
+/* ===== 方案信息条 ===== */
+function renderInfoBar() {
+  const el = document.getElementById('ruleInfoBar');
+  if (!el) return;
+  const s = getScheme();
+  el.innerHTML =
+    '<span class="info-icon">方</span>' +
+    '<span class="info-text"><strong>' + escapeHtml(s.name) + '</strong>' +
+    '（编码 ' + escapeHtml(s.code) + '）：' + escapeHtml(s.desc) +
+    '。当前已拉取 <strong>' + currentRules.length + '</strong> 条规则，勾选 = 执行脱敏，取消勾选 = 该字段不脱敏。</span>' +
+    '<span class="info-priority">' + escapeHtml(s.priority || 'P0') + '</span>';
+}
+
+/* ===== 规则表渲染 ===== */
+function renderRuleTable() {
+  const tbody = document.getElementById('ruleTbody');
+  if (!tbody) return;
+  const list = getFilteredRules();
+
+  if (!list.length) {
+    const tip = currentRules.length
+      ? '没有符合筛选条件的规则，请调整「规则名称」或「脱敏算法」后重试'
+      : '当前方案暂无规则，请点右上角「选择规则」添加';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7"><div class="ico">📭</div>' + tip + '</td></tr>';
+    syncRuleCb(0, 0);
+    renderRulePage(0);
+    return;
+  }
+
+  tbody.innerHTML = list.map((r, i) => {
+    const checked = selectedRuleIds.has(String(r.id)) ? 'checked' : '';
+    return '' +
+      '<tr>' +
+        '<td class="center"><input type="checkbox" class="rule-cb" ' + checked +
+          ' onchange="toggleRuleSelect(\'' + r.id + '\', this.checked)"></td>' +
+        '<td class="center">' + (i + 1) + '</td>' +
+        '<td title="' + escapeHtml(r.name) + '">' + escapeHtml(r.name) + '</td>' +
+        '<td title="' + escapeHtml(r.algo) + '">' + escapeHtml(r.algo) + '</td>' +
+        '<td title="' + escapeHtml(r.config) + '">' + escapeHtml(r.config) + '</td>' +
+        '<td title="' + escapeHtml(r.fields || '全部字段') + '">' + escapeHtml(r.fields || '全部字段') + '</td>' +
+        '<td class="center"><span class="rule-action" onclick="deleteRule(' + r.id + ')">删除</span></td>' +
+      '</tr>';
+  }).join('');
+
+  syncRuleCb(list.length, list.filter(r => selectedRuleIds.has(String(r.id))).length);
+  renderRulePage(list.length);
+}
+
+/* 全选框状态同步 */
+function syncRuleCb(total, selected) {
+  const cb = document.getElementById('selectAllCb');
+  if (!cb) return;
+  if (total === 0) { cb.checked = false; cb.indeterminate = false; }
+  else { cb.checked = selected === total; cb.indeterminate = selected > 0 && selected < total; }
+  const selTotal = document.getElementById('ruleSelectedTotal');
+  if (selTotal) selTotal.textContent = selectedRuleIds.size;
+}
+
+/* 勾选单条规则 */
+function toggleRuleSelect(id, checked) {
+  if (checked) selectedRuleIds.add(String(id));
+  else selectedRuleIds.delete(String(id));
+  renderRuleTable();
+}
+
+/* 全选 / 反选（作用于当前筛选结果） */
+function toggleSelectAllRules(checked) {
+  getFilteredRules().forEach(r => {
+    if (checked) selectedRuleIds.add(String(r.id));
+    else selectedRuleIds.delete(String(r.id));
+  });
+  renderRuleTable();
+}
+
+/* ===== 分页 ===== */
+function renderRulePage(total) {
+  const totalEl = document.getElementById('ruleTotal');
+  if (totalEl) totalEl.textContent = total;
+  const pager = document.getElementById('rulePager');
+  if (!pager) return;
+  const pages = Math.max(1, Math.ceil(total / 20));
+  let html = '<button class="pg-btn disabled">‹</button>';
+  for (let i = 1; i <= pages; i++) {
+    html += '<button class="pg-btn' + (i === 1 ? ' active' : '') + '"' +
+      (i === 1 ? '' : ' onclick="toast(\'原型演示：规则列表仅 1 页\',\'info\')"') + '>' + i + '</button>';
+  }
+  html += '<button class="pg-btn disabled">›</button>';
+  pager.innerHTML = html;
+}
+
+/* ===== 筛选：重置 / 查询 ===== */
+function resetRuleSearch() {
+  const s = document.getElementById('ruleSearch');
+  if (s) s.value = '';
+  const a = document.getElementById('algoFilter');
+  if (a) a.value = '';
+  appliedKeyword = '';
+  appliedAlgo = '';
+  renderRuleTable();
+  toast('筛选条件已重置', 'success');
+}
+
+function applyRuleSearch() {
+  const s = document.getElementById('ruleSearch');
+  const a = document.getElementById('algoFilter');
+  appliedKeyword = (s ? s.value : '').trim().toLowerCase();
+  appliedAlgo = a ? a.value : '';
+  renderRuleTable();
+  const totalEl = document.getElementById('ruleTotal');
+  toast('查询完成，共 ' + (totalEl ? totalEl.textContent : 0) + ' 条规则', 'success');
+}
+
+/* ===== 保留 / 删除 ===== */
+function retainRules() {
+  if (!requirePlanEnabled()) return;
+  if (!currentRules.length) { toast('当前方案暂无规则', 'warning'); return; }
+  if (!selectedRuleIds.size) { toast('请先勾选需要保留的规则', 'warning'); return; }
+  const keep = selectedRuleIds.size;
+  const drop = currentRules.length - keep;
+  if (!drop) { toast('已保留全部 ' + keep + ' 条规则', 'success'); return; }
+  showConfirm('保留', '确定保留选中的 ' + keep + ' 条规则吗？未勾选的 ' + drop + ' 条规则将不再保留（字段不执行脱敏）。', function () {
+    currentRules = currentRules.filter(r => selectedRuleIds.has(String(r.id)));
+    selectedRuleIds = new Set(currentRules.map(r => String(r.id)));
+    renderInfoBar();
+    renderRuleTable();
+    toast('已保留 ' + keep + ' 条规则，移出 ' + drop + ' 条', 'success');
+  });
+}
+
+function deleteSelectedRules() {
+  if (!requirePlanEnabled()) return;
+  if (!selectedRuleIds.size) { toast('请先勾选需要删除的规则', 'warning'); return; }
+  const n = selectedRuleIds.size;
+  showConfirm('删除', '确定删除选中的 ' + n + ' 条规则吗？删除后这些字段将不再执行脱敏处理。', function () {
+    currentRules = currentRules.filter(r => !selectedRuleIds.has(String(r.id)));
+    selectedRuleIds.clear();
+    renderInfoBar();
+    renderRuleTable();
+    toast('已删除 ' + n + ' 条规则', 'success');
+  });
+}
+
+/* 行内删除单条 */
+function deleteRule(id) {
+  if (!requirePlanEnabled()) return;
+  const rule = currentRules.find(r => String(r.id) === String(id));
+  if (!rule) return;
+  showConfirm('删除', '确定删除规则「' + escapeHtml(rule.name) + '」吗？删除后该字段将不再执行脱敏处理。', function () {
+    currentRules = currentRules.filter(r => String(r.id) !== String(id));
+    selectedRuleIds.delete(String(id));
+    renderInfoBar();
+    renderRuleTable();
+    toast('删除成功', 'success');
+  });
+}
+
+/* ===== 选择规则弹框 ===== */
+function openRuleSelectModal() {
+  if (!requirePlanEnabled()) return;
+  rsmSelected = new Set();
+  const searchEl = document.getElementById('rsmPoolSearch');
+  if (searchEl) searchEl.value = '';
+  const tip = document.getElementById('rsmSchemeTip');
+  if (tip) tip.textContent = '当前方案：' + getScheme().name;
+  renderRsmPool();
+  document.getElementById('ruleSelectModal').classList.add('show');
+}
+
+function closeRuleSelectModal() {
+  document.getElementById('ruleSelectModal').classList.remove('show');
+}
+
+function renderRsmPool() {
+  const tbody = document.getElementById('rsmPoolTbody');
+  if (!tbody) return;
+  const searchEl = document.getElementById('rsmPoolSearch');
+  const kw = (searchEl ? searchEl.value : '').trim().toLowerCase();
+  const list = RULE_POOL.filter(r =>
+    !kw || r.name.toLowerCase().indexOf(kw) > -1 || String(r.fields || '').toLowerCase().indexOf(kw) > -1
+  );
+
+  if (!list.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6"><div class="ico">🔍</div>没有匹配的规则</td></tr>';
+  } else {
+    tbody.innerHTML = list.map((r, i) => {
+      const inScheme = currentRules.some(x => String(x.id) === String(r.id));
+      const checked = rsmSelected.has(r.id) || inScheme;
+      return '' +
+        '<tr>' +
+          '<td class="center"><input type="checkbox" class="rule-cb" ' + (checked ? 'checked' : '') +
+            ' onchange="toggleRsmPoolItem(' + r.id + ', this.checked)"></td>' +
+          '<td class="center">' + (i + 1) + '</td>' +
+          '<td title="' + escapeHtml(r.name) + '">' + escapeHtml(r.name) +
+            (inScheme ? ' <span style="color:var(--text-tertiary);font-size:12px">[已在方案]</span>' : '') + '</td>' +
+          '<td title="' + escapeHtml(r.algo) + '">' + escapeHtml(r.algo) + '</td>' +
+          '<td title="' + escapeHtml(r.config) + '">' + escapeHtml(r.config) + '</td>' +
+          '<td title="' + escapeHtml(r.fields || '全部字段') + '">' + escapeHtml(r.fields || '全部字段') + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  const allCb = document.getElementById('rsmPoolSelectAll');
+  if (allCb) {
+    const selectedInList = list.filter(r => rsmSelected.has(r.id) || currentRules.some(x => String(x.id) === String(r.id))).length;
+    allCb.checked = list.length > 0 && selectedInList === list.length;
+    allCb.indeterminate = selectedInList > 0 && selectedInList < list.length;
+  }
+  const countEl = document.getElementById('rsmSelectedCount');
+  if (countEl) countEl.textContent = rsmSelected.size;
+}
+
+function toggleRsmPoolItem(id, checked) {
+  if (checked) rsmSelected.add(id);
+  else rsmSelected.delete(id);
+  renderRsmPool();
+}
+
+function toggleRsmPoolAll(checked) {
+  const searchEl = document.getElementById('rsmPoolSearch');
+  const kw = (searchEl ? searchEl.value : '').trim().toLowerCase();
+  const list = RULE_POOL.filter(r =>
+    !kw || r.name.toLowerCase().indexOf(kw) > -1 || String(r.fields || '').toLowerCase().indexOf(kw) > -1
+  );
+  list.forEach(r => { if (checked) rsmSelected.add(r.id); else rsmSelected.delete(r.id); });
+  renderRsmPool();
+}
+
+function confirmRuleSelect() {
+  if (!rsmSelected.size) { toast('请至少选择一条规则', 'warning'); return; }
+  let added = 0;
+  rsmSelected.forEach(id => {
+    if (!currentRules.some(r => String(r.id) === String(id))) {
+      const r = cloneRule(id);
+      if (r) { currentRules.push(r); selectedRuleIds.add(String(r.id)); added++; }
+    }
+  });
+  closeRuleSelectModal();
+  renderInfoBar();
+  renderRuleTable();
+  toast(added ? '已添加 ' + added + ' 条规则到「' + getScheme().name + '」' : '所选规则均已在该方案中', added ? 'success' : 'info');
+}
+
+/* ===== 脱敏效果预览 ===== */
+function openEffectModal() {
+  if (!requirePlanEnabled()) return;
+  renderEffectTable();
+  document.getElementById('effectModal').classList.add('show');
+}
+
+function closeEffectModal() {
+  document.getElementById('effectModal').classList.remove('show');
+}
+
+function renderEffectTable() {
+  const tbody = document.getElementById('effTbody');
+  const summary = document.getElementById('effSummary');
+  if (!tbody) return;
+
+  const filtered = getFilteredRules();
+  const picked = filtered.filter(r => selectedRuleIds.has(String(r.id)));
+  const list = picked.length ? picked : filtered;
+
+  const scheme = getScheme();
+  if (summary) {
+    summary.innerHTML = '<span>方案：<b>' + escapeHtml(scheme.name) + '</b></span>' +
+      '<span>当前规则：<b>' + filtered.length + '</b> 条</span>' +
+      '<span>执行脱敏：<b>' + picked.length + '</b> 条</span>' +
+      '<span>' + (picked.length ? '（预览已勾选规则）' : '（未勾选任何规则，预览全部规则）') + '</span>';
+  }
+
+  if (!list.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="4"><div class="ico">🔍</div>没有可预览的规则</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = list.map((r, i) =>
+    '<tr>' +
+      '<td class="center">' + (i + 1) + '</td>' +
+      '<td title="' + escapeHtml(r.name) + '">' + escapeHtml(r.name) + '</td>' +
+      '<td title="' + escapeHtml(r.before || '-') + '"><span class="eff-old">' + escapeHtml(r.before || '-') + '</span></td>' +
+      '<td title="' + escapeHtml(r.after || '-') + '"><span class="eff-new">' + escapeHtml(r.after || '-') + '</span></td>' +
+    '</tr>'
+  ).join('');
+}
+
+/* ===== 统一确认弹框 ===== */
+let confirmCallback = null;
+
+function showConfirm(title, msg, onOk) {
+  confirmCallback = onOk;
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  document.getElementById('confirmModal').classList.add('show');
+}
+
+function closeConfirm() {
+  document.getElementById('confirmModal').classList.remove('show');
+  confirmCallback = null;
+}
+
+document.getElementById('confirmOkBtn').addEventListener('click', function () {
+  const cb = confirmCallback;
+  closeConfirm();
+  if (typeof cb === 'function') cb();
+});
+
+/* ===== 通用提示气泡（挂载 body 避免祖先 overflow 裁切） ===== */
+let _tooltipEl = null;
+
+function _showTooltip(tipEl, popupClass) {
+  _hideTooltip();
+  var popup = document.createElement('div');
+  popup.className = popupClass;
+  popup.innerHTML = tipEl.getAttribute('data-tip');
+  document.body.appendChild(popup);
+  _tooltipEl = popup;
+  requestAnimationFrame(function () {
+    var rect = tipEl.getBoundingClientRect();
+    var pw = popup.offsetWidth;
+    var left = rect.right + 8;
+    var top = rect.top + rect.height / 2 - popup.offsetHeight / 2;
+    if (left + pw > window.innerWidth - 10) left = rect.left - pw - 8;
+    if (top < 10) top = 10;
+    if (top + popup.offsetHeight > window.innerHeight - 10) top = window.innerHeight - popup.offsetHeight - 10;
+    popup.style.left = left + 'px';
+    popup.style.top = top + 'px';
+  });
+}
+
+function _hideTooltip() {
+  if (_tooltipEl) { _tooltipEl.remove(); _tooltipEl = null; }
+}
+
+document.addEventListener('mouseover', function (e) {
+  var pageTip = e.target.closest('.page-title-tip');
+  if (pageTip) _showTooltip(pageTip, 'page-title-tip-popup');
+});
+
+document.addEventListener('mouseout', function (e) {
+  var tip = e.target.closest('.page-title-tip');
+  if (tip && !tip.contains(e.relatedTarget)) _hideTooltip();
+});
+
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') {
+    closeConfirm();
+    closeRuleSelectModal();
+    closeEffectModal();
+  }
+});
+
+/* ===== 初始化：默认启用方案并拉取「默认方案」 ===== */
+loadScheme(currentSchemeId, true);
+setPlanEnabled(true, true);
+</script>
+
+</body>
+</html>

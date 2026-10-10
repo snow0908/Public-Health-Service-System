@@ -22190,10 +22190,12 @@
     toast('保存成功：个人基本信息表已归档，完整度 100%', 'success');
   }
 
-  /* ================= 返回 ================= */
+  /* ================= 返回 =================
+     档案维护页是档案管理主界面下级页面，「返回」统一回到「居民档案列表」。
+     不使用 history.back()：从「新建向导」保存进来时，历史栈上一页是档案创建界面，
+     会导致返回落到创建界面而不是列表页。 */
   function goBack() {
-    if (history.length > 1) history.back();
-    else location.href = '居民档案列表.html';
+    location.href = '居民档案列表.html';
   }
 
   /* ================= 编辑/查看进入：自动模拟专项内容 + 补全目录 ================= */
@@ -25208,6 +25210,14 @@
   });
 
   init();
+
+  /* ================= URL 参数直达指定视图 =================
+     ?view=basic → 默认选中「个人基本信息」
+     （「居民档案创建界面」第三步保存后跳转进入时使用） */
+  var INIT_VIEW = QS.get('view');
+  if (INIT_VIEW && document.getElementById('view' + INIT_VIEW.charAt(0).toUpperCase() + INIT_VIEW.slice(1))) {
+    switchView(INIT_VIEW);
+  }
 </script>
 
 <script>

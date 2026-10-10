@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>居民档案创建界面</title>
+<style>
+  :root {
+    --primary: #2378F5;
+    --primary-hover: #1E6AD8;
+    --primary-light: #EAF3FE;
+    --primary-bg: #F5F9FF;
+    --danger: #F53F3F;
+    --text-1: #1D2129;
+    --text-2: #4E5969;
+    --text-3: #86909C;
+    --border: #E5E6EB;
+    --border-light: #EEF0F4;
+    --fill-1: #F7F8FA;
+    --radius: 4px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px;
+    color: var(--text-1);
+    background: #F2F3F5;
+    overflow: hidden; /* 页面本身不滚动，滚动交给下方内容区 */
+  }
+  input, select, button, textarea { font-family: inherit; font-size: 14px; color: var(--text-1); outline: none; }
+  input[type="radio"], input[type="checkbox"] { accent-color: var(--primary); width: 14px; height: 14px; vertical-align: -2px; margin-right: 4px; cursor: pointer; }
+  input[type="date"] { color-scheme: light; }
+
+  /* ============ 通用表单控件 ============ */
+  .u-input, .u-select {
+    height: 34px; width: 100%;
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 0 10px; background: #fff;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .u-input::placeholder { color: #C0C4CC; }
+  .u-input:hover, .u-select:hover { border-color: #C9CDD4; }
+  .u-input:focus, .u-select:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(35,120,245,.12); }
+  .u-select { appearance: none; -webkit-appearance: none; padding-right: 28px; cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%2386909C' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center; }
+  .u-select:disabled, .u-input:disabled, .u-input[readonly].u-grey { background-color: var(--fill-1); color: #A8ABB2; cursor: not-allowed; border-color: var(--border-light); }
+  .u-input.has-count { padding-right: 44px; }
+  .cell-count { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #C0C4CC; pointer-events: none; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    height: 32px; padding: 0 18px; border-radius: var(--radius);
+    border: 1px solid var(--border); background: #fff; color: var(--text-2);
+    cursor: pointer; transition: all .15s; user-select: none; white-space: nowrap;
+  }
+  .btn:hover { color: var(--primary); border-color: var(--primary); }
+  .btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; font-weight: 500; }
+  .btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); color: #fff; }
+  .btn-plain-primary { color: var(--primary); border-color: var(--primary); background: #fff; font-weight: 500; }
+  .btn-plain-primary:hover { background: var(--primary-light); }
+
+  .req::before { content: "*"; color: var(--danger); margin-right: 2px; font-family: Arial, sans-serif; }
+
+  /* ============ 向导步骤条 ============ */
+  /* 创建视图：占满视口高度，顶部步骤区冻结，仅下方内容区滚动 */
+  #wizardView { height: 100%; display: flex; flex-direction: column; }
+  .wizard-header {
+    flex: none; position: relative; z-index: 5;
+    background: #fff; padding: 18px 32px 20px;
+    border-bottom: 1px solid var(--border-light);
+    box-shadow: 0 2px 8px rgba(31,35,41,.04);
+  }
+  .head-main { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .action-group { display: none; flex: none; gap: 12px; }
+  .action-group.visible { display: inline-flex; }
+  .wizard-title { font-size: 18px; font-weight: 600; color: var(--text-1); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .wizard-title .bar { width: 4px; height: 18px; background: var(--primary); border-radius: 2px; }
+  .steps { display: flex; align-items: center; max-width: 760px; }
+  .step-item { display: flex; align-items: center; cursor: default; }
+  .step-item.clickable { cursor: pointer; }
+  .step-dot {
+    width: 26px; height: 26px; border-radius: 50%; flex: none;
+    border: 1px solid #C9CDD4; color: var(--text-3); background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600; transition: all .2s;
+  }
+  .step-name { margin: 0 10px 0 8px; color: var(--text-3); font-size: 14px; transition: color .2s; }
+  .step-line { flex: none; width: 90px; height: 1px; background: #E5E6EB; margin-right: 10px; transition: background .2s; }
+  .step-item.active .step-dot { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .step-item.active .step-name { color: var(--primary); font-weight: 600; }
+  .step-item.done .step-dot { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
+  .step-item.done .step-name { color: var(--text-2); }
+  .step-item.done + .step-line, .step-item.active + .step-line { background: var(--primary); opacity: .35; }
+
+  .wizard-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 20px 32px 32px; }
+  .step-panel { display: none; }
+  .step-panel.visible { display: block; animation: fadeIn .25s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .panel-card { background: #fff; border-radius: 8px; padding: 28px 32px; box-shadow: 0 1px 4px rgba(31,35,41,.05); position: relative; }
+
+  /* ============ 第一步：填报基本信息 ============ */
+  .step1-grid { display: grid; grid-template-columns: 344px 492px; gap: 0 24px; align-items: start;
+    max-width: 860px; margin: 0 auto; }
+  .addr-row { display: flex; align-items: flex-start; max-width: 860px; margin: 24px auto 0; }
+  .addr-row .flabel { width: 96px; flex: none; text-align: right; line-height: 34px; color: var(--text-2); margin-right: 12px; }
+  .addr-row .fcell { position: relative; flex: none; width: 348px; }
+  .form-row { display: flex; align-items: flex-start; margin-bottom: 18px; }
+  .form-row .flabel { width: 96px; flex: none; text-align: right; line-height: 34px; color: var(--text-2); margin-right: 12px; }
+  .form-row .fcell { flex: 1; position: relative; min-width: 0; }
+  .form-row .fcell + .fcell { margin-left: 12px; }
+  .form-row .fcell.fixed-264 { flex: none; width: 264px; }
+  .inline-btn { margin-left: 12px; flex: none; }
+  .cell-flex { display: flex; gap: 12px; }
+  .cell-flex > * { flex: 1; min-width: 0; }
+  .cell-flex > .flex-none { flex: none; }
+
+  .idcard-panel {
+    border: 1px dashed #A9C7F5; background: var(--primary-bg); border-radius: 6px;
+    padding: 22px 20px; margin-top: 20px;
+  }
+  .idcard-panel .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 24px; }
+  .idcard-panel .info-item { display: flex; line-height: 26px; }
+  .idcard-panel .info-item .k { color: var(--text-1); flex: none; }
+  .idcard-panel .info-item .v { color: var(--primary); margin-left: 4px; word-break: break-all; }
+  .panel-tip { color: #C0C4CC; text-align: center; padding: 54px 0 52px; font-size: 13px; }
+  .panel-tip .icon { display: block; width: 40px; height: 40px; margin: 0 auto 12px; border-radius: 50%; background: #fff; border: 1px dashed #C9CDD4; position: relative; }
+  .panel-tip .icon::after { content: ""; position: absolute; inset: 0; margin: auto; width: 16px; height: 16px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='2' y='3.5' width='12' height='9' rx='1.5' fill='none' stroke='%23C0C4CC' stroke-width='1.2'/%3E%3Ccircle cx='6' cy='7' r='1.4' fill='%23C0C4CC'/%3E%3Cpath d='M4.5 10.5c.6-1.2 3.4-1.2 4 0M10 7h2.5M10 9.5h2' stroke='%23C0C4CC' stroke-width='1.1' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat; }
+
+  /* ============ 第二步：档案封面 ============ */
+  .cover-card { width: 580px; margin: 0 auto; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 6px rgba(31,35,41,.06); }
+  .cover-head {
+    background: linear-gradient(90deg, #EEF6FF 0%, #E5EFFF 55%, #DBE9FF 100%);
+    padding: 14px 20px 16px; display: flex; align-items: center;
+    position: relative; min-height: 78px;
+  }
+  .cover-head h2 { color: #1A66D9; font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+  .cover-head .no { color: var(--text-1); margin-top: 8px; font-size: 13.5px; font-weight: 600; }
+  .cover-illus { position: absolute; right: 8px; top: 2px; pointer-events: none; }
+  .cover-body { background: #fff; padding: 20px 44px 28px; }
+  .cover-form .form-row { margin-bottom: 4px; }
+  .cover-form .flabel { width: 122px; margin-right: 12px; line-height: 32px; font-size: 13px; }
+  .cover-form .u-input, .cover-form .u-select { height: 32px; }
+
+  /* ============ 第三步 / 个人基本信息表 ============ */
+  .step3-card { background: #fff; border-radius: 8px; padding: 16px 20px 24px; box-shadow: 0 1px 4px rgba(31,35,41,.05); }
+  .arch-title-bar { display: flex; align-items: center; gap: 14px; }
+  .arch-title-bar .t { font-size: 15px; font-weight: 600; }
+  .mini-ring { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid #C9CDD4; display: inline-block; flex: none; }
+  .done-text { display: inline-flex; align-items: center; gap: 6px; color: var(--text-2); font-size: 13px; }
+  .arch-meta-bar { display: flex; align-items: center; justify-content: space-between; margin: 12px 0 14px; color: var(--text-2); font-size: 13px; }
+  .arch-meta-bar .meta b { color: var(--text-1); font-weight: 500; }
+  .tag-green-line { display: inline-flex; align-items: center; gap: 4px; color: var(--text-2); }
+  .tag-green-line .dot { width: 8px; height: 8px; border-radius: 50%; background: #00B42A; }
+
+  .arch-table { width: 100%; border-collapse: collapse; background: #fff; table-layout: fixed; }
+  .arch-table col.c-gcol { width: 38px; }
+  .arch-table col.c-lcol { width: 132px; }
+  .arch-table col.c-lcol2 { width: 150px; }
+  .arch-table td { border: 1px solid var(--border-light); padding: 9px 12px; vertical-align: middle; font-weight: 400; }
+  .arch-table .gcol { background: var(--primary-bg); text-align: center; color: var(--text-2); font-size: 13px; padding: 9px 5px; }
+  .arch-table .gcol span { writing-mode: vertical-rl; letter-spacing: 5px; display: inline-block; }
+  .arch-table .lcol { background: #FBFCFD; text-align: right; color: var(--text-2); }
+  .arch-table .lcol2 { background: #FBFCFD; text-align: right; color: var(--text-2); }
+  .arch-table .opts { display: flex; flex-wrap: wrap; gap: 6px 18px; line-height: 22px; }
+  .arch-table .opts label { cursor: pointer; color: var(--text-1); white-space: nowrap; }
+  .arch-table .opts.cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; }
+  .arch-table .cell-flex { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .arch-table .cell-flex .u-input, .arch-table .cell-flex .u-select { height: 32px; flex: 1; min-width: 80px; }
+  .arch-table .cell-flex .mini-label { color: var(--text-2); flex: none; }
+  .arch-table .cell-flex .mini-label.req::before { margin-right: 1px; }
+  .arch-table .w-input { max-width: 320px; }
+  .arch-table .n-input { max-width: 220px; }
+
+  .cert-table { width: 100%; border-collapse: collapse; }
+  .cert-table th { background: var(--primary-light); color: var(--text-2); font-weight: 500; }
+  .cert-table th, .cert-table td { border: 1px solid var(--border-light); padding: 7px 10px; text-align: left; }
+  .cert-table td { padding: 6px 8px; }
+
+  /* toast */
+  #toast {
+    position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-16px);
+    background: #fff; color: var(--text-1); border-radius: 6px; padding: 10px 18px;
+    box-shadow: 0 6px 20px rgba(31,35,41,.15); display: flex; align-items: center; gap: 8px;
+    opacity: 0; pointer-events: none; transition: all .25s; z-index: 99; font-size: 13.5px;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #toast .ok { width: 16px; height: 16px; flex: none;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='8' fill='%2300B42A'/%3E%3Cpath d='M4.6 8.2l2.2 2.2 4.4-4.6' stroke='%23fff' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat; }
+</style>
+</head>
+<body>
+
+<!-- ==================== 创建流程（三步向导） ==================== -->
+<div id="wizardView">
+  <div class="wizard-header">
+    <div class="wizard-title"><span class="bar"></span>居民健康档案创建</div>
+    <div class="head-main">
+      <div class="steps" id="stepsBar">
+        <div class="step-item active" data-step="1">
+          <div class="step-dot">1</div><div class="step-name">填报基本信息</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-item" data-step="2">
+          <div class="step-dot">2</div><div class="step-name">填报档案封面信息</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-item" data-step="3">
+          <div class="step-dot">3</div><div class="step-name">填报档案基本信息</div>
+        </div>
+      </div>
+      <!-- 各步骤操作按钮：统一置于右上角 -->
+      <div class="action-group visible" id="actStep1">
+        <button class="btn btn-primary" id="btnStep1Next">下一步</button>
+        <button class="btn" id="btnStep1Cancel">取消</button>
+      </div>
+      <div class="action-group" id="actStep2">
+        <button class="btn" id="btnStep2Prev">上一步</button>
+        <button class="btn btn-primary" id="btnStep2Next">下一步</button>
+      </div>
+      <div class="action-group" id="actStep3">
+        <button class="btn" id="btnStep3Prev">上一步</button>
+        <button class="btn btn-primary" id="btnStep3Save">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wizard-body">
+
+    <!-- ========== 第一步：填报基本信息 ========== -->
+    <section class="step-panel visible" id="step1">
+      <div class="panel-card">
+        <div class="step1-grid">
+          <!-- 左：表单 -->
+          <div>
+            <div class="form-row">
+              <div class="flabel req">证件类型</div>
+              <div class="fcell">
+                <select class="u-select" id="s1CertType">
+                  <option>居民身份证</option>
+                  <option>居民户口簿</option>
+                  <option>护照</option>
+                  <option>军官证</option>
+                  <option>其他</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="flabel req">姓名</div>
+              <div class="fcell">
+                <input class="u-input has-count" id="s1Name" maxlength="8" placeholder="请输入">
+                <span class="cell-count" id="s1NameCount">0/8</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="flabel req">性别</div>
+              <div class="fcell">
+                <select class="u-select" id="s1Gender">
+                  <option value="">请选择</option>
+                  <option>男</option>
+                  <option>女</option>
+                  <option>未说明的性别</option>
+                  <option>未知的性别</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="flabel req">民族</div>
+              <div class="fcell">
+                <select class="u-select" id="s1Nation">
+                  <option>汉族</option><option>蒙古族</option><option>回族</option><option>藏族</option>
+                  <option>维吾尔族</option><option>苗族</option><option>彝族</option><option>壮族</option>
+                  <option>布依族</option><option>朝鲜族</option><option>其他</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="flabel req">联系电话</div>
+              <div class="fcell"><input class="u-input" id="s1Phone" maxlength="11" placeholder="请输入联系电话"></div>
+            </div>
+            <div class="form-row">
+              <div class="flabel req">出生日期</div>
+              <div class="fcell"><input type="date" class="u-input" id="s1Birth"></div>
+            </div>
+          </div>
+
+          <!-- 右：证件号（置于右上角）+ 身份证读卡信息 -->
+          <div>
+            <div class="form-row">
+              <div class="flabel req">证件号</div>
+              <div class="fcell fixed-264">
+                <input class="u-input has-count" id="s1CertNo" maxlength="18" placeholder="请输入证件号">
+                <span class="cell-count" id="s1CertNoCount">0/18</span>
+              </div>
+              <button class="btn btn-plain-primary inline-btn" id="btnReadCard" style="margin-left:auto;">身份证读卡</button>
+            </div>
+
+            <div class="idcard-panel" id="idcardPanel">
+              <div class="panel-tip" id="idcardTip">
+                <span class="icon"></span>
+                点击上方「身份证读卡」，自动读取并回填居民身份信息
+              </div>
+              <div class="info-grid" id="idcardInfo" style="display:none;">
+                <div class="info-item" style="grid-area:1 / 1;"><span class="k">姓名：</span><span class="v" id="icName"></span></div>
+                <div class="info-item" style="grid-area:1 / 2;"><span class="k">民族：</span><span class="v" id="icNation"></span></div>
+                <div class="info-item" style="grid-area:2 / 1;"><span class="k">出生年月：</span><span class="v" id="icBirth"></span></div>
+                <div class="info-item" style="grid-area:3 / 1;"><span class="k">证件类型：</span><span class="v" id="icCertType"></span></div>
+                <div class="info-item" style="grid-area:3 / 2;"><span class="k">证件号：</span><span class="v" id="icCertNo"></span></div>
+                <div class="info-item" style="grid-area:4 / 1 / 5 / 3;"><span class="k">联系地址：</span><span class="v" id="icAddr"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 联系地址：整行（与证件号输入框右边缘对齐） -->
+        <div class="addr-row">
+          <div class="flabel req">联系地址</div>
+          <div class="cell-flex" style="flex:none;width:512px;position:relative;">
+            <select class="u-select flex-none" id="s1Addr" style="width:152px;">
+              <option value="">请选择现住址</option>
+              <option>江苏省 / 扬州市 / 江都区 / 小纪镇 / 九龙社区</option>
+              <option>江苏省 / 扬州市 / 邗江区</option>
+              <option>江苏省 / 扬州市 / 广陵区</option>
+              <option>江苏省 / 南京市 / 玄武区</option>
+            </select>
+            <input class="u-input has-count" id="s1AddrDetail" maxlength="50" placeholder="请输入详细地址">
+            <span class="cell-count" id="s1AddrCount">0/50</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 第二步：填报档案封面信息 ========== -->
+    <section class="step-panel" id="step2">
+      <div class="cover-card">
+        <div class="cover-head">
+          <div style="position:relative;z-index:1;">
+            <h2>居民健康档案</h2>
+            <div class="no">个人档案编号：<span id="coverNo">32101210010000323</span></div>
+          </div>
+          <svg class="cover-illus" width="152" height="74" viewBox="0 0 152 74" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="cvA" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#9DBBFF"/><stop offset="1" stop-color="#4A73EE"/>
+              </linearGradient>
+              <linearGradient id="cvB" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#CBD9FF"/><stop offset="1" stop-color="#8EA9FA"/>
+              </linearGradient>
+              <linearGradient id="cvC" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#DCE6FF"/>
+              </linearGradient>
+            </defs>
+            <circle cx="28" cy="48" r="20" fill="none" stroke="#CFDFFF" stroke-width="6"/>
+            <path d="M34 54 L88 38 L142 54 L90 70 Z" fill="url(#cvA)"/>
+            <path d="M34 46 L34 54 L90 70 L90 62 Z" fill="#5B80F1"/>
+            <path d="M142 46 L142 54 L90 70 L90 62 Z" fill="#3D63DE"/>
+            <path d="M34 46 L88 30 L142 46 L90 62 Z" fill="url(#cvB)"/>
+            <path d="M46 42 L88 30 L130 42 L88 54 Z" fill="url(#cvC)"/>
+            <path d="M88 30 L88 54" stroke="#C3D3FB" stroke-width="1.2"/>
+            <rect x="116" y="8" width="12" height="12" rx="3" fill="#BBD1FF"/>
+            <rect x="132" y="16" width="8" height="8" rx="2" fill="#93B2FB"/>
+            <rect x="58" y="16" width="9" height="9" rx="2" fill="#D3E1FF"/>
+          </svg>
+        </div>
+        <div class="cover-body">
+          <div class="cover-form">
+            <div class="form-row">
+              <div class="flabel req">姓名：</div>
+              <div class="fcell">
+                <input class="u-input has-count" id="s2Name" maxlength="8" value="王丁丁">
+                <span class="cell-count" id="s2NameCount">3/8</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="flabel req">现住址：</div>
+              <div class="fcell">
+                <select class="u-select" id="s2LiveAddr">
+                  <option value="">请选择现住址</option>
+                  <option selected>江苏省 / 扬州市 / 江都区 / 仙女镇 / 东苑社区</option>
+                  <option>江苏省 / 扬州市 / 江都区 / 小纪镇 / 九龙社区</option>
+                  <option>江苏省 / 扬州市 / 邗江区</option>
+                  <option>江苏省 / 扬州市 / 广陵区</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="flabel req">管辖网格：</div>
+              <div class="fcell">
+                <select class="u-select" id="s2Grid">
+                  <option value="">请选择</option>
+                  <option selected>321012103002</option>
+                  <option>321012103001</option>
+                  <option>321012105006</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="flabel req">住址详细地址：</div>
+              <div class="fcell">
+                <input class="u-input has-count" id="s2LiveDetail" maxlength="50" value="西社区">
+                <span class="cell-count" id="s2LiveDetailCount">3/50</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="flabel req">户籍地址：</div>
+              <div class="fcell">
+                <select class="u-select" id="s2RegAddr">
+                  <option value="">请选择户籍地址</option>
+                  <option selected>江苏省 / 扬州市 / 江都区 / 武坚镇 / 周西社区</option>
+                  <option>江苏省 / 扬州市 / 江都区 / 仙女镇 / 东苑社区</option>
+                  <option>江苏省 / 扬州市 / 邗江区</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="flabel req">户籍详细地址：</div>
+              <div class="fcell">
+                <input class="u-input has-count" id="s2RegDetail" maxlength="50" value="西社区">
+                <span class="cell-count" id="s2RegDetailCount">3/50</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="flabel req">联系电话：</div>
+              <div class="fcell"><input class="u-input" id="s2Phone" value="15589897895"></div>
+            </div>
+            <div class="form-row">
+              <div class="flabel req">乡镇（街道）名称：</div>
+              <div class="fcell"><input class="u-input" id="s2Town" value="仙女镇"></div>
+            </div>
+            <div class="form-row">
+              <div class="flabel req">村（居）委会名称：</div>
+              <div class="fcell"><input class="u-input" id="s2Village" value="东苑社区居委会"></div>
+            </div>
+            <div class="form-row">
+              <div class="flabel req">建档单位：</div>
+              <div class="fcell">
+                <select class="u-select" id="s2Org">
+                  <option>山东大学齐鲁医院</option>
+                  <option>扬州市江都区仙女镇社区卫生服务中心</option>
+                  <option>扬州市第一人民医院</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="flabel req">建档人：</div>
+              <div class="fcell">
+                <select class="u-select" id="s2Creator">
+                  <option>吕雪</option><option>吕喜</option><option>王芳</option><option>李建国</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="flabel req">责任医生：</div>
+              <div class="fcell">
+                <select class="u-select" id="s2Doctor">
+                  <option>吕雪</option><option>吕喜</option><option>王芳</option><option>李建国</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="flabel req">建档日期：</div>
+              <div class="fcell"><input type="date" class="u-input" id="s2Date" value="2026-10-09"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 第三步：填报档案基本信息 ========== -->
+    <section class="step-panel" id="step3">
+      <div class="step3-card">
+        <!-- 操作按钮已统一移至顶部右上角 -->
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+          <div class="arch-title-bar">
+            <span class="t">个人基本信息表</span>
+            <span class="done-text"><span class="mini-ring"></span>完成度：0%</span>
+          </div>
+        </div>
+        <div class="arch-meta-bar">
+          <span class="tag-green-line"><span class="dot"></span>健康档案管理状态：正常</span>
+          <span class="meta">编号：<b id="archNo"></b></span>
+        </div>
+
+        <!-- 个人基本信息表单 -->
+        <table class="arch-table">
+          <colgroup>
+            <col class="c-gcol"><col class="c-lcol"><col><col class="c-lcol2"><col>
+          </colgroup>
+          <tbody>
+          <!-- ===== 个人健康标识 ===== -->
+          <tr>
+            <td class="gcol" rowspan="13"><span>个人健康标识</span></td>
+            <td class="lcol">人群标识</td>
+            <td colspan="3"><div class="opts">
+              <label><input type="checkbox">0-6岁儿童</label>
+              <label><input type="checkbox">65岁及以上老年人</label>
+              <label><input type="checkbox">孕产妇</label>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="lcol"><span class="req">婚姻/重点疾病</span></td>
+            <td colspan="3"><div class="opts">
+              <label><input type="checkbox">高血压</label>
+              <label><input type="checkbox">2型糖尿病</label>
+              <label><input type="checkbox">脑卒中</label>
+              <label><input type="checkbox">冠心病</label>
+              <label><input type="checkbox">脑血管病后遗症</label>
+              <label><input type="checkbox">慢性阻塞性肺疾病</label>
+              <label><input type="checkbox">哮喘</label>
+              <label><input type="checkbox">尿毒症</label>
+              <label><input type="checkbox">恶性肿瘤</label>
+              <label><input type="checkbox">严重精神障碍</label>
+              <label><input type="checkbox">地方病</label>
+              <label><input type="checkbox">职业病</label>
+              <label><input type="checkbox">失能</label>
+              <label><input type="checkbox">失智</label>
+              <label><input type="checkbox">先天畸形</label>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="lcol">法定传染病</td>
+            <td colspan="3"><div class="opts">
+              <label><input type="checkbox">肺结核</label>
+              <label><input type="checkbox">疟疾</label>
+              <label><input type="checkbox">其他法定传染病</label>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="lcol">体重情况</td>
+            <td colspan="3"><div class="opts">
+              <label><input type="radio" name="weight">偏低</label>
+              <label><input type="radio" name="weight">正常</label>
+              <label><input type="radio" name="weight">超重</label>
+              <label><input type="radio" name="weight">肥胖</label>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="lcol">血型</td>
+            <td><div class="opts">
+              <label><input type="radio" name="abo">A型</label>
+              <label><input type="radio" name="abo">B型</label>
+              <label><input type="radio" name="abo">O型</label>
+              <label><input type="radio" name="abo">AB型</label>
+              <label><input type="radio" name="abo">不详</label>
+            </div></td>
+            <td class="lcol2">RH血型</td>
+            <td><div class="opts">
+              <label><input type="radio" name="rh">阴性</label>
+              <label><input type="radio" name="rh">阳性</label>
+              <label><input type="radio" name="rh">不详</label>
+              <label><input type="radio" name="rh">未查</label>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="lcol"><span class="req">姓名</span></td>
+            <td><input class="u-input w-input" id="aName" value="陈优优"></td>
+            <td class="lcol2"><span class="req">性别</span></td>
+            <td><div class="opts">
+              <label><input type="radio" name="gender">男性</label>
+              <label><input type="radio" name="gender" checked>女性</label>
+              <label><input type="radio" name="gender">未知的性别</label>
+              <label><input type="radio" name="gender">未说明的性别</label>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="lcol"><span class="req">证件类型</span></td>
+            <td><select class="u-select w-input" id="aCertType">
+              <option>居民身份证</option><option>居民户口簿</option><option>护照</option><option>其他</option>
+            </select></td>
+            <td class="lcol2"><span class="req">证件号</span></td>
+            <td><input class="u-input" id="aCertNo" value="51062319880808122X"></td>
+          </tr>
+          <tr>
+            <td class="lcol"><span class="req">出生日期</span></td>
+            <td><input type="date" class="u-input w-input" id="aBirth" value="1998-08-08"></td>
+            <td class="lcol2"><span class="req">工作单位/学校</span></td>
+            <td><input class="u-input" placeholder="请输入"></td>
+          </tr>
+          <tr>
+            <td class="lcol"><span class="req">籍贯</span></td>
+            <td><select class="u-select w-input">
+              <option value="">请选择</option>
+              <option>江苏省 / 扬州市</option>
+              <option>四川省 / 成都市</option>
+            </select></td>
+            <td class="lcol2"><span class="req">出生地</span></td>
+            <td><input class="u-input" placeholder="请输入"></td>
+          </tr>
+          <tr>
+            <td class="lcol">民族</td>
+            <td><select class="u-select w-input"><option>汉族</option><option>其他</option></select></td>
+            <td class="lcol2"></td><td></td>
+          </tr>
+          <tr>
+            <td class="lcol"><span class="req">管理机构</span></td>
+            <td><select class="u-select w-input" id="aOrg">
+              <option>山东大学齐鲁医院</option>
+              <option>扬州市江都区小纪镇社区卫生服务中心</option>
+            </select></td>
+            <td class="lcol2">档案管理机构电话</td>
+            <td><input class="u-input" placeholder="请输入"></td>
+          </tr>
+          <tr>
+            <td class="lcol">家庭医生是否签约</td>
+            <td><div class="opts">
+              <label><input type="radio" name="sign">是</label>
+              <label><input type="radio" name="sign">否</label>
+            </div></td>
+            <td class="lcol2">家庭医生姓名</td>
+            <td><input class="u-input u-grey" readonly placeholder="请输入"></td>
+          </tr>
+          <tr>
+            <td class="lcol">家庭医生电话</td>
+            <td><input class="u-input u-grey" readonly placeholder="请输入"></td>
+            <td class="lcol2"><span class="req">本人电话</span></td>
+            <td><input class="u-input" id="aPhone" value="15589897898"></td>
+          </tr>
+
+          <!-- ===== 紧急联系人 ===== -->
+          <tr>
+            <td class="gcol" rowspan="2"><span>紧急联系人</span></td>
+            <td class="lcol"><span class="req">联系人1</span></td>
+            <td colspan="3"><div class="cell-flex">
+              <span class="mini-label req">姓名：</span><input class="u-input" placeholder="请输入">
+              <span class="mini-label req">与本人关系：</span><input class="u-input" placeholder="请输入">
+              <span class="mini-label req">电话：</span><input class="u-input" placeholder="请输入">
+            </div></td>
+          </tr>
+          <tr>
+            <td class="lcol">联系人2</td>
+            <td colspan="3"><div class="cell-flex">
+              <span class="mini-label">姓名：</span><input class="u-input" placeholder="请输入">
+              <span class="mini-label">与本人关系：</span><input class="u-input" placeholder="请输入">
+              <span class="mini-label">电话：</span><input class="u-input" placeholder="请输入">
+            </div></td>
+          </tr>
+
+          <!-- ===== 无分组行 ===== -->
+          <tr>
+            <td class="lcol" colspan="2"><span class="req">常住类型</span></td>
+            <td colspan="3"><div class="cell-flex">
+              <div class="opts">
+                <label><input type="radio" name="live" checked>户籍</label>
+                <label><input type="radio" name="live">非户籍</label>
+              </div>
+              <span class="mini-label">户籍地址：</span>
+              <input class="u-input" value="江苏省扬州市江都区小纪镇九龙社区又有">
+            </div></td>
+          </tr>
+          <tr>
+            <td class="lcol" colspan="2">常住地址</td>
+            <td colspan="3"><input class="u-input" value="江苏省扬州市江都区小纪镇九龙社区又有"></td>
+          </tr>
+          <tr>
+            <td class="lcol" colspan="2"><span class="req">文化程度</span></td>
+            <td colspan="3"><div class="opts">
+              <label><input type="radio" name="edu">研究生</label>
+              <label><input type="radio" name="edu">大学本科</label>
+              <label><input type="radio" name="edu">大学专科和专科学校</label>
+              <label><input type="radio" name="edu">中等专业学校</label>
+              <label><input type="radio" name="edu">技工学校</label>
+              <label><input type="radio" name="edu">高中</label>
+              <label><input type="radio" name="edu">初中</label>
+              <label><input type="radio" name="edu">小学</label>
+              <label><input type="radio" name="edu">文盲或半文盲</label>
+              <label><input type="radio" name="edu">不详</label>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="lcol" colspan="2"><span class="req">职业</span></td>
+            <td colspan="3"><div class="opts">
+              <label><input type="radio" name="job">国家机关、党群组织、企业、事业单位负责人</label>
+              <label><input type="radio" name="job">专业技术人员</label>
+              <label><input type="radio" name="job">办事人员和有关人员</label>
+              <label><input type="radio" name="job">商业、服务业人员</label>
+              <label><input type="radio" name="job">农、林、牧、渔、水利业生产人员</label>
+              <label><input type="radio" name="job">生产、运输设备操作人员及有关人员</label>
+              <label><input type="radio" name="job">军人</label>
+              <label><input type="radio" name="job">不便分类的其他从业人员</label>
+              <label><input type="radio" name="job">无职业</label>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="lcol" colspan="2"><span class="req">婚姻状况</span></td>
+            <td colspan="3"><div class="opts">
+              <label><input type="radio" name="marry">未婚</label>
+              <label><input type="radio" name="marry">已婚</label>
+              <label><input type="radio" name="marry">初婚</label>
+              <label><input type="radio" name="marry">再婚</label>
+              <label><input type="radio" name="marry">复婚</label>
+              <label><input type="radio" name="marry">丧偶</label>
+              <label><input type="radio" name="marry">离婚</label>
+              <label><input type="radio" name="marry">未说明的婚姻状况</label>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="lcol" colspan="2">医疗费用支付方式</td>
+            <td colspan="3"><div class="opts">
+              <label><input type="checkbox">城镇职工基本医疗保险</label>
+              <label><input type="checkbox">城镇居民基本医疗保险</label>
+              <label><input type="checkbox">新型农村合作医疗</label>
+              <label><input type="checkbox">贫困救助</label>
+              <label><input type="checkbox">商业医疗保险</label>
+              <label><input type="checkbox">全公费</label>
+              <label><input type="checkbox">全自费</label>
+              <label><input type="checkbox">其他</label>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="lcol" colspan="2">个人健康证件</td>
+            <td colspan="3" style="padding:0;">
+              <table class="cert-table">
+                <thead><tr>
+                  <th style="width:18%;">名称</th><th style="width:18%;">编号</th>
+                  <th style="width:22%;">凭证签发机构</th><th style="width:21%;">凭证签发时间</th>
+                  <th>凭证有效期限</th>
+                </tr></thead>
+                <tbody>
+                  <tr>
+                    <td><select class="u-select" style="height:30px;"><option value="">请选择</option><option>居民健康卡</option><option>预防接种证</option></select></td>
+                    <td><input class="u-input" style="height:30px;" placeholder="请输入"></td>
+                    <td><select class="u-select" style="height:30px;"><option value="">请选择</option><option>山东大学齐鲁医院</option></select></td>
+                    <td><input type="date" class="u-input" style="height:30px;" placeholder="请选择"></td>
+                    <td><input type="date" class="u-input" style="height:30px;" placeholder="请选择"></td>
+                  </tr>
+                  <tr>
+                    <td><select class="u-select" style="height:30px;"><option value="">请选择</option><option>居民健康卡</option><option>预防接种证</option></select></td>
+                    <td><input class="u-input" style="height:30px;" placeholder="请输入"></td>
+                    <td><select class="u-select" style="height:30px;"><option value="">请选择</option><option>山东大学齐鲁医院</option></select></td>
+                    <td><input type="date" class="u-input" style="height:30px;" placeholder="请选择"></td>
+                    <td><input type="date" class="u-input" style="height:30px;" placeholder="请选择"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td class="lcol" colspan="2">药物过敏史</td>
+            <td colspan="3"><div class="opts">
+              <label><input type="checkbox">无</label>
+              <label><input type="checkbox">青霉素</label>
+              <label><input type="checkbox">磺胺</label>
+              <label><input type="checkbox">链霉素</label>
+              <label><input type="checkbox">其他</label>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="lcol" colspan="2"><span class="req">暴露史</span></td>
+            <td colspan="3"><div class="opts">
+              <label><input type="checkbox">无</label>
+              <label><input type="checkbox">化学品</label>
+              <label><input type="checkbox">毒物</label>
+              <label><input type="checkbox">射线</label>
+            </div></td>
+          </tr>
+
+          <!-- ===== 既往史 ===== -->
+          <tr>
+            <td class="gcol" rowspan="5"><span>既往史</span></td>
+            <td class="lcol">疾病</td>
+            <td colspan="3"><div class="opts cols2">
+              <label><input type="checkbox">无</label>
+              <label><input type="checkbox">高血压</label>
+              <label><input type="checkbox">糖尿病</label>
+              <label><input type="checkbox">冠心病</label>
+              <label><input type="checkbox">慢性阻塞性肺疾病</label>
+              <label><input type="checkbox">恶性肿瘤</label>
+              <label><input type="checkbox">脑卒中</label>
+              <label><input type="checkbox">严重精神障碍</label>
+              <label><input type="checkbox">结核病</label>
+              <label><input type="checkbox">肝炎</label>
+              <label><input type="checkbox">其他法定传染病</label>
+              <label><input type="checkbox">职业病</label>
+              <label><input type="checkbox">其他</label>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="lcol"><span class="req">手术</span></td>
+            <td colspan="3"><div class="opts">
+              <label><input type="radio" name="surgery" checked>无</label>
+              <label><input type="radio" name="surgery">有</label>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="lcol"><span class="req">外伤</span></td>
+            <td colspan="3"><div class="opts">
+              <label><input type="radio" name="injury" checked>无</label>
+              <label><input type="radio" name="injury">有</label>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="lcol">输血</td>
+            <td colspan="3"><div class="opts">
+              <label><input type="radio" name="transfuse" checked>无</label>
+              <label><input type="radio" name="transfuse">有</label>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="lcol">预防接种史</td>
+            <td colspan="3"><div class="opts">
+              <label><input type="radio" name="vaccine" checked>无</label>
+              <label><input type="radio" name="vaccine">有</label>
+            </div></td>
+          </tr>
+
+          <!-- ===== 家族史 ===== -->
+          <tr>
+            <td class="gcol" rowspan="5"><span>家族史</span></td>
+            <td class="lcol">父亲</td>
+            <td colspan="3"><div class="opts">
+              <label><input type="checkbox">无</label>
+              <label><input type="checkbox">高血压</label>
+              <label><input type="checkbox">糖尿病</label>
+              <label><input type="checkbox">冠心病</label>
+              <label><input type="checkbox">慢性阻塞性肺疾病</label>
+              <label><input type="checkbox">恶性肿瘤</label>
+              <label><input type="checkbox">脑卒中</label>
+              <label><input type="checkbox">严重精神障碍</label>
+              <label><input type="checkbox">结核病</label>
+              <label><input type="checkbox">肝炎</label>
+              <label><input type="checkbox">先天畸形</label>
+              <label><input type="checkbox">其他</label>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="lcol">母亲</td>
+            <td colspan="3"><div class="opts">
+              <label><input type="checkbox">无</label>
+              <label><input type="checkbox">高血压</label>
+              <label><input type="checkbox">糖尿病</label>
+              <label><input type="checkbox">冠心病</label>
+              <label><input type="checkbox">慢性阻塞性肺疾病</label>
+              <label><input type="checkbox">恶性肿瘤</label>
+              <label><input type="checkbox">脑卒中</label>
+              <label><input type="checkbox">严重精神障碍</label>
+              <label><input type="checkbox">结核病</label>
+              <label><input type="checkbox">肝炎</label>
+              <label><input type="checkbox">先天畸形</label>
+              <label><input type="checkbox">其他</label>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="lcol">兄弟姐妹</td>
+            <td colspan="3"><div class="opts">
+              <label><input type="checkbox">无</label>
+              <label><input type="checkbox">高血压</label>
+              <label><input type="checkbox">糖尿病</label>
+              <label><input type="checkbox">冠心病</label>
+              <label><input type="checkbox">慢性阻塞性肺疾病</label>
+              <label><input type="checkbox">恶性肿瘤</label>
+              <label><input type="checkbox">脑卒中</label>
+              <label><input type="checkbox">严重精神障碍</label>
+              <label><input type="checkbox">结核病</label>
+              <label><input type="checkbox">肝炎</label>
+              <label><input type="checkbox">先天畸形</label>
+              <label><input type="checkbox">其他</label>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="lcol">子女</td>
+            <td colspan="3"><div class="opts">
+              <label><input type="checkbox">无</label>
+              <label><input type="checkbox">高血压</label>
+              <label><input type="checkbox">糖尿病</label>
+              <label><input type="checkbox">冠心病</label>
+              <label><input type="checkbox">慢性阻塞性肺疾病</label>
+              <label><input type="checkbox">恶性肿瘤</label>
+              <label><input type="checkbox">脑卒中</label>
+              <label><input type="checkbox">严重精神障碍</label>
+              <label><input type="checkbox">结核病</label>
+              <label><input type="checkbox">肝炎</label>
+              <label><input type="checkbox">先天畸形</label>
+              <label><input type="checkbox">其他</label>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="lcol">遗传病史</td>
+            <td colspan="3"><div class="opts">
+              <label><input type="radio" name="genetic" checked>无</label>
+              <label><input type="radio" name="genetic">有</label>
+            </div></td>
+          </tr>
+
+          <!-- ===== 其余行（无分组） ===== -->
+          <tr>
+            <td class="lcol" colspan="2"><span class="req">残疾情况</span></td>
+            <td colspan="3"><div class="opts">
+              <label><input type="checkbox">无残疾</label>
+              <label><input type="checkbox">视力残疾</label>
+              <label><input type="checkbox">听力残疾</label>
+              <label><input type="checkbox">言语残疾</label>
+              <label><input type="checkbox">肢体残疾</label>
+              <label><input type="checkbox">智力残疾</label>
+              <label><input type="checkbox">精神残疾</label>
+              <label><input type="checkbox">其他残疾</label>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="lcol" colspan="2"><span class="req">村居委会</span></td>
+            <td colspan="3"><input class="u-input n-input" id="aVillage" value="九龙社区居委会"></td>
+          </tr>
+          <tr>
+            <td class="lcol" colspan="2">人群性质</td>
+            <td colspan="3"><div class="opts">
+              <label><input type="checkbox">普通人群</label>
+              <label><input type="checkbox">农村建档立卡贫困人口</label>
+              <label><input type="checkbox">城乡低保五保人口</label>
+              <label><input type="checkbox">计划生育特殊家庭人口</label>
+              <label><input type="checkbox">失能(失智)老年人</label>
+              <label><input type="checkbox">残疾人</label>
+              <label><input type="checkbox">0-6岁儿童</label>
+              <label><input type="checkbox">高血压患者</label>
+              <label><input type="checkbox">糖尿病患者</label>
+              <label><input type="checkbox">65岁以上常住居民</label>
+              <label><input type="checkbox">严重精神障碍患者</label>
+              <label><input type="checkbox">肺结核患者</label>
+              <label><input type="checkbox">离休干部</label>
+              <label><input type="checkbox">孕13周之前建档并进行第一次产前检查的孕产妇</label>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="lcol" colspan="2"><span class="req">责任医生</span></td>
+            <td colspan="3"><select class="u-select n-input" id="aDoctor">
+              <option>吕雪</option><option>吕喜</option><option>王芳</option><option>李建国</option>
+            </select></td>
+          </tr>
+          <tr>
+            <td class="lcol" colspan="2">建档单位</td>
+            <td><input class="u-input u-grey n-input" readonly id="aOrgName" value="山东大学齐鲁医院"></td>
+            <td class="lcol2"><span class="req">建档人</span></td>
+            <td><select class="u-select n-input" id="aCreator">
+              <option>吕雪</option><option>吕喜</option><option>王芳</option><option>李建国</option>
+            </select></td>
+          </tr>
+          <tr>
+            <td class="lcol" colspan="2"><span class="req">建档日期</span></td>
+            <td colspan="3"><input type="date" class="u-input n-input" id="aDate" value="2026-10-10"></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<div id="toast"><span class="ok"></span><span id="toastMsg"></span></div>
+
+<script>
+(function () {
+  var $ = function (s, p) { return (p || document).querySelector(s); };
+  var $$ = function (s, p) { return Array.prototype.slice.call((p || document).querySelectorAll(s)); };
+
+  /* 档案维护页地址（同仓库「原型设计」目录下的档案维护.html，?view=basic 直达「个人基本信息」） */
+  var MAINTAIN_URL = '01-公共卫生服务系统产品文档/V1.0/02.需求设计/原型设计/档案维护.html?view=basic';
+
+  /* ---------- toast ---------- */
+  var toastTimer;
+  window.toast = function (msg) {
+    $('#toastMsg').textContent = msg;
+    $('#toast').classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { $('#toast').classList.remove('show'); }, 2200);
+  };
+
+  /* ---------- 步骤切换 ---------- */
+  var current = 1, maxReached = 1;
+  function goStep(n) {
+    current = n;
+    maxReached = Math.max(maxReached, n);
+    $$('.step-panel').forEach(function (p) { p.classList.remove('visible'); });
+    $('#step' + n).classList.add('visible');
+    $$('#stepsBar .step-item').forEach(function (it) {
+      var s = +it.dataset.step;
+      it.classList.toggle('active', s === n);
+      it.classList.toggle('done', s < n);
+    });
+    // 顶部右上角按钮组随步骤切换
+    [1, 2, 3].forEach(function (s) {
+      $('#actStep' + s).classList.toggle('visible', s === n);
+    });
+    // 步骤区已冻结，只需重置下方内容区的滚动位置
+    var wb = document.querySelector('.wizard-body');
+    if (wb) wb.scrollTop = 0;
+    window.scrollTo(0, 0);
+  }
+  $$('#stepsBar .step-item').forEach(function (it) {
+    it.addEventListener('click', function () {
+      var s = +it.dataset.step;
+      if (s <= maxReached) goStep(s);
+    });
+  });
+
+  /* ---------- 字数统计 ---------- */
+  function bindCount(inputId, countId) {
+    var input = $('#' + inputId), count = $('#' + countId);
+    if (!input || !count) return;
+    var update = function () { count.textContent = input.value.length + '/' + (input.maxLength > 0 ? input.maxLength : ''); };
+    input.addEventListener('input', update);
+    update();
+  }
+  bindCount('s1CertNo', 's1CertNoCount');
+  bindCount('s1Name', 's1NameCount');
+  bindCount('s1AddrDetail', 's1AddrCount');
+  bindCount('s2Name', 's2NameCount');
+  bindCount('s2LiveDetail', 's2LiveDetailCount');
+  bindCount('s2RegDetail', 's2RegDetailCount');
+
+  /* ---------- 第一步：身份证读卡 ---------- */
+  $('#btnReadCard').addEventListener('click', function () {
+    var data = {
+      name: '陈优优', nation: '汉族', birth: '1998-08-08',
+      certType: '居民身份证', certNo: '51062319880808122X',
+      addr: '江苏省扬州市江都区小纪镇九龙社区'
+    };
+    $('#s1CertNo').value = data.certNo; $('#s1CertNo').dispatchEvent(new Event('input'));
+    $('#s1Name').value = data.name;     $('#s1Name').dispatchEvent(new Event('input'));
+    $('#s1Gender').value = '女';
+    $('#s1Nation').value = data.nation;
+    $('#s1Birth').value = data.birth;
+    $('#s1Addr').value = '江苏省 / 扬州市 / 江都区 / 小纪镇 / 九龙社区';
+    $('#icName').textContent = data.name;
+    $('#icNation').textContent = data.nation;
+    $('#icBirth').textContent = data.birth;
+    $('#icCertType').textContent = data.certType;
+    $('#icCertNo').textContent = data.certNo;
+    $('#icAddr').textContent = data.addr;
+    $('#idcardTip').style.display = 'none';
+    $('#idcardInfo').style.display = 'grid';
+    toast('身份证读卡成功，信息已回填');
+  });
+
+  /* ---------- 第一步按钮 ---------- */
+  var addrMap = {
+    '江苏省 / 扬州市 / 江都区 / 仙女镇 / 东苑社区': ['仙女镇', '东苑社区居委会'],
+    '江苏省 / 扬州市 / 江都区 / 武坚镇 / 周西社区': ['武坚镇', '周西社区居委会'],
+    '江苏省 / 扬州市 / 江都区 / 小纪镇 / 九龙社区': ['小纪镇', '九龙社区居委会'],
+    '江苏省 / 扬州市 / 邗江区': ['双桥街道', '康乐社区居民委员会']
+  };
+  $('#btnStep1Next').addEventListener('click', function () {
+    // 同步数据到第二步封面（第一步已填写时才覆盖封面示例数据）
+    var name = $('#s1Name').value;
+    if (name) { $('#s2Name').value = name; $('#s2Name').dispatchEvent(new Event('input')); }
+    var phone = $('#s1Phone').value;
+    if (phone) { $('#s2Phone').value = phone; }
+    var addr = $('#s1Addr').value;
+    if (addr) {
+      $('#s2LiveAddr').value = addr;
+      // 选择现住址后自动带出乡镇/村居
+      var mapped = addrMap[addr];
+      if (mapped) {
+        $('#s2Town').value = mapped[0];
+        $('#s2Village').value = mapped[1];
+      }
+    }
+    var detail = $('#s1AddrDetail').value;
+    if (detail) {
+      $('#s2LiveDetail').value = detail; $('#s2LiveDetail').dispatchEvent(new Event('input'));
+      $('#s2RegDetail').value = detail;  $('#s2RegDetail').dispatchEvent(new Event('input'));
+    }
+    goStep(2);
+  });
+  $('#btnStep1Cancel').addEventListener('click', function () { toast('已取消创建居民档案'); });
+
+  /* ---------- 第二步 ---------- */
+  $('#btnStep2Prev').addEventListener('click', function () { goStep(1); });
+  $('#btnStep2Next').addEventListener('click', function () {
+    // 同步到第三步
+    $('#archNo').textContent = $('#coverNo').textContent;
+    $('#aOrgName').value = $('#s2Org').value;
+    syncSelect($('#aOrg'), $('#s2Org').value);
+    syncSelect($('#aDoctor'), $('#s2Doctor').value);
+    syncSelect($('#aCreator'), $('#s2Creator').value);
+    $('#aPhone').value = $('#s2Phone').value || '15589897898';
+    $('#aVillage').value = $('#s2Village').value || $('#aVillage').value;
+    $('#aDate').value = $('#s2Date').value || '2026-10-10';
+    goStep(3);
+  });
+  function syncSelect(sel, text) {
+    if (!sel || !text) return;
+    for (var i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].text === text) { sel.selectedIndex = i; return; }
+    }
+    var opt = document.createElement('option');
+    opt.textContent = text;
+    sel.appendChild(opt);
+    sel.selectedIndex = sel.options.length - 1;
+  }
+
+  /* ---------- 第三步：右上角按钮 ---------- */
+  $('#btnStep3Prev').addEventListener('click', function () { goStep(2); });
+  /* 保存：跳转「档案维护」页，并默认定位到「个人基本信息」 */
+  $('#btnStep3Save').addEventListener('click', function () {
+    toast('居民健康档案保存成功');
+    setTimeout(function () { location.href = MAINTAIN_URL; }, 700);
+  });
+})();
+</script>
+</body>
+</html>

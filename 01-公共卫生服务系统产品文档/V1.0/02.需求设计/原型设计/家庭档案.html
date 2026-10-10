@@ -55,6 +55,20 @@
   .fam-tbl tr.fam-row td{background:var(--bg-white)}
   .fam-tbl tr.fam-row.open td{background:#F0F7FF}
 
+  /* ===== 冻结列：左侧前三列（序号/管理机构/户主姓名）+ 右侧操作列，横向滚动时保持可见 =====
+     左偏移 --fz-c2/--fz-c3 由 syncFreezeCols() 按实际列宽写入，保证表头与表体对齐 */
+  .fam-tbl td:nth-child(1),.fam-tbl td:nth-child(2),.fam-tbl td:nth-child(3){position:sticky;z-index:3;background:var(--bg-white)}
+  .fam-tbl th:nth-child(1),.fam-tbl th:nth-child(2),.fam-tbl th:nth-child(3){position:sticky;z-index:7}
+  .fam-tbl td:nth-child(1),.fam-tbl th:nth-child(1){left:0}
+  .fam-tbl td:nth-child(2),.fam-tbl th:nth-child(2){left:var(--fz-c2,56px)}
+  .fam-tbl td:nth-child(3),.fam-tbl th:nth-child(3){left:var(--fz-c3,226px)}
+  .fam-tbl td:nth-child(3),.fam-tbl th:nth-child(3){box-shadow:8px 0 8px -8px rgba(0,0,0,.16)}
+  .fam-tbl td:nth-child(13),.fam-tbl th:nth-child(13){position:sticky;right:0}
+  .fam-tbl td:nth-child(13){z-index:3;background:var(--bg-white)}
+  .fam-tbl th:nth-child(13){z-index:7}
+  .fam-tbl td:nth-child(13),.fam-tbl th:nth-child(13){box-shadow:-8px 0 8px -8px rgba(0,0,0,.16)}
+  .fam-tbl tr.empty-row td{position:static;left:auto;right:auto;box-shadow:none}
+
   /* ===== 成员列表底部浮层（抽屉）：仅覆盖内容区域，点击表格行后弹出 ===== */
   .content .content-card{position:relative}
   .member-drawer{position:absolute;left:0;right:0;bottom:0;z-index:60;background:var(--bg-white);border-top:1px solid #D6E4F7;box-shadow:0 -6px 18px rgba(0,0,0,0.10);border-radius:6px 6px 0 0;transform:translateY(100%);transition:transform .22s ease;display:flex;flex-direction:column;max-height:62vh}
@@ -260,6 +274,48 @@
   .m-tbl tbody tr:hover td{background:var(--primary-bg)}
   .m-foot{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:12px 2px 0;font-size:13px;color:var(--text-secondary)}
   .m-cancel{display:flex;justify-content:flex-end;padding-top:12px}
+
+  /* ===== 查看模式：复用"家庭档案信息"页，控件呈现为纯文本 ===== */
+  #createView.view-mode .cr-item label i,
+  #createView.view-mode .pf-lb i,
+  #createView.view-mode .pf-rowtbl td.lb i,
+  #createView.view-mode .pf-tbl th i,
+  #createView.view-mode .mm-item label i{display:none}
+  #createView.view-mode .cr-foot,
+  #createView.view-mode .mem-bar,
+  #createView.view-mode .pf-addbar,
+  #createView.view-mode .m-cancel,
+  #createView.view-mode .remark-cnt,
+  #createView.view-mode .cr-search svg,
+  #createView.view-mode .mem-tbl th:last-child,
+  #createView.view-mode .mem-tbl td:last-child,
+  #createView.view-mode .pf-tbl th:last-child,
+  #createView.view-mode .pf-tbl td:last-child{display:none}
+  #createView.view-mode .mem-tbl th .ed-ico{display:none}
+  #createView.view-mode .cr-ctl,
+  #createView.view-mode .pf-in{
+    border-color:transparent;background:transparent;background-image:none;
+    padding-left:0;padding-right:0;pointer-events:none;box-shadow:none;color:var(--text-primary);
+  }
+  #createView.view-mode select.cr-ctl,
+  #createView.view-mode select.pf-in{cursor:default}
+  #createView.view-mode textarea{border-color:transparent;background:transparent;resize:none;pointer-events:none;padding-left:0}
+  #createView.view-mode .soc-opt,
+  #createView.view-mode .r-opt{pointer-events:none}
+  #createView.view-mode input[type="radio"],
+  #createView.view-mode input[type="checkbox"]{
+    appearance:none;-webkit-appearance:none;width:13px;height:13px;
+    border:1px solid #C0C4CC;background:#fff;margin:0;
+  }
+  #createView.view-mode input[type="radio"]{border-radius:50%}
+  #createView.view-mode input[type="checkbox"]{border-radius:2px}
+
+  /* ===== 删除家庭档案弹框 ===== */
+  .del-body{padding:4px 20px 16px}
+  .del-tip{margin:0 0 14px;font-size:13px;color:var(--text-secondary);line-height:1.7}
+  .del-label{font-size:13px;color:var(--text-secondary);margin-bottom:6px}
+  .del-label i{color:var(--danger);font-style:normal;margin-right:2px}
+  .del-foot{display:flex;justify-content:flex-end;gap:10px;padding:0 20px 20px}
 </style>
 </head>
 <body>
@@ -431,7 +487,7 @@
           <div class="cr-body">
             <div class="cr-sec-title">家庭基本信息</div>
             <div class="cr-grid">
-              <div class="cr-item"><label>家庭档案编号：</label><input class="cr-ctl" value="51011500100100009" readonly></div>
+              <div class="cr-item"><label>家庭档案编号：</label><input id="cmFamNo" class="cr-ctl" value="51011500100100009" readonly></div>
               <div class="cr-item"><label><i>*</i>户主姓名：</label>
                 <span class="cr-search">
                   <input id="cmOwner" class="cr-ctl" placeholder="请选择户主" onclick="openMemberModal()">
@@ -457,8 +513,8 @@
               </div>
               <div class="cr-item"><label><i>*</i>出生日期：</label><input id="cmBirth" class="cr-ctl" type="text" placeholder="请选择" onfocus="this.type='date'" onblur="if(!this.value){this.type='text'}"></div>
               <div class="cr-item"><label>家庭电话：</label><input id="cmPhone" class="cr-ctl" placeholder="请输入"></div>
-              <div class="cr-item"><label>家庭总人口数：</label><input class="cr-ctl" placeholder="请输入"></div>
-              <div class="cr-item"><label>现住人口数：</label><input class="cr-ctl" placeholder="请输入"></div>
+              <div class="cr-item"><label>家庭总人口数：</label><input id="cmTotalPop" class="cr-ctl" placeholder="请输入"></div>
+              <div class="cr-item"><label>现住人口数：</label><input id="cmLivePop" class="cr-ctl" placeholder="请输入"></div>
               <div class="cr-item"><label><i>*</i>家庭地址：</label>
                 <span class="cascader">
                   <input id="cmRegion" class="cr-ctl" placeholder="请选择" onclick="toggleCascader(event)">
@@ -466,10 +522,10 @@
                 </span>
               </div>
               <div class="cr-item"><label><i>*</i>详细地址：</label><input id="cmDetail" class="cr-ctl" placeholder="请输入"></div>
-              <div class="cr-item"><label><i>*</i>建档时间：</label><input class="cr-ctl" type="text" value="2026-09-17" onfocus="this.type='date'" onblur="if(!this.value){this.type='text'}"></div>
-              <div class="cr-item"><label><i>*</i>建档负责人：</label><input class="cr-ctl" value="1814109564346885890"></div>
+              <div class="cr-item"><label><i>*</i>建档时间：</label><input id="cmCreated" class="cr-ctl" type="text" value="2026-09-17" onfocus="this.type='date'" onblur="if(!this.value){this.type='text'}"></div>
+              <div class="cr-item"><label><i>*</i>建档负责人：</label><input id="cmDoctor" class="cr-ctl" value="1814109564346885890"></div>
               <div class="cr-item"><label><i>*</i>建档机构：</label>
-                <select class="cr-ctl">
+                <select id="cmBuildOrg" class="cr-ctl">
                   <option value="" >请选择</option>
                   <option selected>山东大学齐鲁医院</option>
                   <option>扬州市江都区滨江人民医院</option>
@@ -936,6 +992,28 @@
   </div>
 </div>
 
+<!-- ===== 删除家庭档案：填写删除原因弹框 ===== -->
+<div class="modal-overlay" id="delModal">
+  <div class="modal modal-sm">
+    <div class="modal-head">
+      <h3>删除家庭档案</h3>
+      <span class="modal-close" onclick="closeDelModal()">×</span>
+    </div>
+    <div class="del-body">
+      <p class="del-tip">如果删除此家庭档案，家庭成员都将移出家庭，你确定要删除吗？</p>
+      <div class="del-label"><i>*</i>删除原因：</div>
+      <div class="remark-box">
+        <textarea id="delReason" maxlength="50" placeholder="" oninput="updateDelCnt()"></textarea>
+        <span class="remark-cnt" id="delCnt">0/50</span>
+      </div>
+    </div>
+    <div class="del-foot">
+      <button class="btn btn-primary" onclick="confirmDelFamily()">确定</button>
+      <button class="btn btn-default" onclick="closeDelModal()">取消</button>
+    </div>
+  </div>
+</div>
+
 <script>
   /* ================= 模拟数据（10 户家庭，第一户含 2 名成员） ================= */
   var familyData = [
@@ -1045,35 +1123,65 @@
           +   '<span class="op-gap"></span>'
           +   '<a class="op-link" onclick="event.stopPropagation();viewFamily(\'' + famId + '\')">查看</a>'
           +   '<span class="op-gap"></span>'
-          +   '<a class="op-link danger" onclick="event.stopPropagation();deleteFamily(\'' + famId + '\')">删除</a>'
-          +   '<span class="op-gap"></span>'
-          +   '<a class="op-link" onclick="event.stopPropagation();toast(\'查看家庭档案详情：' + esc(r.owner) + '\',\'info\')">家庭档案</a>'
+          +   '<a class="op-link danger" onclick="event.stopPropagation();deleteFamily(\'' + famId + '\')">删除家庭档案</a>'
           + '</td>'
           + '</tr>';
         /* 成员列表改为底部浮层抽屉展示（见页面底部 #memberDrawer），此处不再内嵌渲染 */
       });
     }
     $('tbBody').innerHTML = html;
+    syncFreezeCols();
+  }
+
+  /* 冻结列：按前三列实际宽度写入左偏移变量，保证表头与表体对齐 */
+  function syncFreezeCols() {
+    var ths = document.querySelectorAll('.fam-tbl thead th');
+    if (ths.length < 3) return;
+    var w1 = ths[0].getBoundingClientRect().width;
+    var w2 = ths[1].getBoundingClientRect().width;
+    if (!w1) return;
+    document.documentElement.style.setProperty('--fz-c2', w1 + 'px');
+    document.documentElement.style.setProperty('--fz-c3', (w1 + w2) + 'px');
   }
 
   /* 家庭档案行操作 */
   function editFamily(famId) {
     var i = parseInt(famId.split('_')[1], 10);
-    var r = familyData[i];
-    if (!r) return;
-    toast('编辑家庭档案：' + r.owner, 'info');
+    if (!familyData[i]) return;
+    openFamilyView('edit', i);
   }
   function viewFamily(famId) {
     var i = parseInt(famId.split('_')[1], 10);
-    var r = familyData[i];
-    if (!r) return;
-    toast('查看家庭档案：' + r.owner, 'info');
+    if (!familyData[i]) return;
+    openFamilyView('view', i);
   }
   function deleteFamily(famId) {
     var i = parseInt(famId.split('_')[1], 10);
+    if (!familyData[i]) return;
+    openDelModal(famId);
+  }
+
+  /* ================= 删除家庭档案：填写删除原因 → 确认删除 ================= */
+  var delFamId = null;
+
+  function openDelModal(famId) {
+    delFamId = famId;
+    $('delReason').value = '';
+    updateDelCnt();
+    $('delModal').classList.add('show');
+  }
+  function closeDelModal() {
+    $('delModal').classList.remove('show');
+  }
+  function updateDelCnt() {
+    $('delCnt').textContent = $('delReason').value.length + '/50';
+  }
+  function confirmDelFamily() {
+    if (!$('delReason').value.trim()) { toast('请填写删除原因', 'warning'); return; }
+    var i = parseInt(delFamId.split('_')[1], 10);
     var r = familyData[i];
+    closeDelModal();
     if (!r) return;
-    if (!window.confirm('确定删除「' + r.owner + '」的家庭档案吗？')) return;
     familyData.splice(i, 1);
     renderTable();
     toast('已删除家庭档案：' + r.owner, 'success');
@@ -1158,16 +1266,122 @@
     toast('筛选条件已应用', 'success');
   }
 
-  /* ================= 新建家庭档案视图 ================= */
-  function openCreateView() {
-    $('listView').style.display = 'none';
-    $('createView').style.display = 'flex';
-    /* 重置成员表为空态（重新新建一份家庭档案） */
-    familySaved = false;
+  /* ================= 家庭档案信息页：新建 / 编辑 / 查看 ================= */
+  var crMode = 'create';   /* create 新建 | edit 编辑 | view 查看 */
+  var crIndex = -1;        /* 编辑/查看 对应的 familyData 下标 */
+
+  function openCreateView() { openFamilyView('create', -1); }
+
+  function openFamilyView(mode, index) {
+    crMode = mode; crIndex = index;
+    var v = $('createView');
+    v.classList.toggle('view-mode', mode === 'view');
+
+    resetFamilyForm();
+    if (index >= 0 && familyData[index]) { fillFamilyForm(familyData[index]); }
+
+    /* 家庭成员 / 精准扶贫：编辑、查看时直接进入可维护状态 */
+    familySaved = (mode !== 'create');
     $('memTbody').innerHTML = '';
     $('memEmpty').style.display = 'block';
     $('memTbl').style.display = 'none';
+    var members = (index >= 0 && familyData[index] && familyData[index].members) || [];
+    if (members.length) { renderFamilyMembers(members); }
+
+    $('listView').style.display = 'none';
+    v.style.display = 'flex';
+    v.scrollTop = 0;
     switchCrTab(document.querySelector('.cr-tab'), 'paneBase');
+  }
+
+  /* 清空表单（新建前重置） */
+  function resetFamilyForm() {
+    $('cmFamNo').value = '';
+    $('cmOwner').value = '';
+    $('cmIdType').value = '';
+    $('cmIdNo').value = '';
+    $('cmGender').value = '';
+    $('cmBirth').type = 'text'; $('cmBirth').value = '';
+    $('cmPhone').value = '';
+    $('cmTotalPop').value = '';
+    $('cmLivePop').value = '';
+    $('cmRegion').value = '';
+    $('cmDetail').value = '';
+    $('cmCreated').type = 'text'; $('cmCreated').value = '2026-09-17';
+    $('cmDoctor').value = '';
+    $('cmBuildOrg').value = '';
+    $('remarkInput').value = '';
+    updateRemarkCnt();
+    syncOwnerIcons();
+  }
+
+  /* 用家庭档案数据回填表单（编辑/查看） */
+  function fillFamilyForm(r) {
+    var owner = (r.members && r.members[0]) || {};
+    $('cmFamNo').value = r.famNo || '';
+    $('cmOwner').value = r.owner || '';
+    $('cmIdType').value = r.idType || '';
+    $('cmIdNo').value = r.idcard || owner.idcard || '';
+    $('cmGender').value = owner.gender === '女' ? '女性' : (owner.gender === '男' ? '男性' : '');
+    $('cmBirth').type = 'text';
+    $('cmBirth').value = r.birth || owner.birth || '';
+    $('cmPhone').value = owner.phone || '';
+    var pop = (r.members || []).length;
+    $('cmTotalPop').value = pop || '';
+    $('cmLivePop').value = pop || '';
+    var path = findRegionPath(r.region);
+    $('cmRegion').value = path ? path.join(' / ') : (r.region || '');
+    $('cmDetail').value = r.addr || '';
+    $('cmCreated').type = 'text';
+    $('cmCreated').value = r.created || '';
+    $('cmDoctor').value = r.doctor || '';
+    setSelectText($('cmBuildOrg'), r.org || r.buildOrg);
+    syncOwnerIcons();
+  }
+
+  /* 下拉框按选项文字选中；不存在时补充一个选项 */
+  function setSelectText(sel, name) {
+    if (!name) { sel.value = ''; return; }
+    for (var i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].textContent === name) { sel.selectedIndex = i; return; }
+    }
+    var o = document.createElement('option');
+    o.textContent = name;
+    sel.appendChild(o);
+    sel.value = name;
+  }
+
+  /* 家庭成员表：按档案数据渲染（首行为户主） */
+  function renderFamilyMembers(members) {
+    var html = '';
+    members.forEach(function (m, i) {
+      var age = '-';
+      if (/^\d{4}-\d{2}-\d{2}$/.test(m.birth || '')) {
+        var now = new Date();
+        age = now.getFullYear() - parseInt(m.birth.slice(0, 4), 10);
+        if (now.getMonth() + 1 < parseInt(m.birth.slice(5, 7), 10)) age--;
+      }
+      var op = (i === 0)
+        ? '<span class="op-disabled" onclick="toast(\'户主不可注销\',\'warning\')">注销</span><span class="op-disabled" onclick="toast(\'户主不可删除\',\'warning\')">删除</span>'
+        : memberOpsHtml(m.name);
+      html += '<tr>'
+        + '<td class="center">' + (i + 1) + '</td>'
+        + '<td>' + esc(m.name) + '</td>'
+        + '<td>' + esc(genMemberNo()) + '</td>'
+        + '<td>' + esc(m.rel || (i === 0 ? '本人或户主' : '-')) + '</td>'
+        + '<td>' + esc(m.idcard || '-') + '</td>'
+        + '<td class="center">' + esc(m.gender || '-') + '</td>'
+        + '<td class="center">' + age + '</td>'
+        + '<td>' + esc(m.phone || '-') + '</td>'
+        + '<td>' + esc(i === 0 ? '无血缘关系' : '-') + '</td>'
+        + '<td title="' + esc(m.addr || '') + '"><span class="cell">' + esc(m.addr || '-') + '</span></td>'
+        + '<td>未掌握</td>'
+        + '<td class="center">' + op + '</td>'
+        + '</tr>';
+    });
+    $('memTbody').innerHTML = html;
+    $('memEmpty').style.display = 'none';
+    $('memTbl').style.display = 'table';
   }
 
   function backCreateView() {
@@ -1584,8 +1798,30 @@
   var familySaved = false;   /* 本次新建是否已成功保存（保存后成员表保留户主行） */
 
   function saveFamily() {
+    if (crMode === 'view') return;
     if (!$('cmOwner').value) {
       toast('请先选择户主', 'warning');
+      return;
+    }
+    /* 编辑：回写列表数据并返回列表 */
+    if (crMode === 'edit') {
+      var r = familyData[crIndex];
+      if (r) {
+        r.owner = $('cmOwner').value;
+        r.famNo = $('cmFamNo').value || r.famNo;
+        r.idType = $('cmIdType').value || r.idType;
+        r.idcard = $('cmIdNo').value || r.idcard;
+        r.birth = $('cmBirth').value || r.birth;
+        r.addr = $('cmDetail').value || r.addr;
+        r.doctor = $('cmDoctor').value || r.doctor;
+        r.org = $('cmBuildOrg').value || r.org;
+        r.created = $('cmCreated').value || r.created;
+        if ($('cmRegion').value) { r.region = $('cmRegion').value.split(' / ').pop(); }
+        if (r.members && r.members[0]) { r.members[0].name = r.owner; }
+      }
+      backCreateView();
+      renderTable();
+      toast('家庭档案修改已保存', 'success');
       return;
     }
     openTipModal();
@@ -1766,6 +2002,8 @@
 
   /* 初始渲染 */
   renderTable();
+  window.addEventListener('resize', syncFreezeCols);
+  window.addEventListener('load', syncFreezeCols);
 </script>
 
 <!-- ===== 统一框架：顶部导航栏 + 左侧菜单栏（菜单配置见 框架.js） =====

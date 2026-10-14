@@ -20,18 +20,15 @@
 
   /* 筛选区 */
   .filter-panel{padding:10px 12px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
-  .filter-row{display:flex;flex-wrap:wrap;gap:10px 14px;margin-bottom:10px;align-items:center}
+  .filter-row{display:flex;flex-wrap:wrap;gap:10px 22px;margin-bottom:10px;align-items:center}
   .filter-item{display:flex;align-items:center;gap:8px}
   .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
   .fi-ctl{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
-  .fi-select{width:140px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-select{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
   .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
   .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .fi-select.is-placeholder{color:var(--text-placeholder)}
   .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
-  .fi-date-range{display:flex;align-items:center;gap:6px}
-  .fi-date{width:110px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 28px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-size:14px;appearance:none;-webkit-appearance:none}
-  .fi-date:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
-  .fi-sep{color:var(--text-placeholder);font-size:13px}
   .fi-check{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer;user-select:none}
   .fi-check input{cursor:pointer}
 
@@ -126,7 +123,7 @@
   .select-modal .modal{width:1160px;max-width:96vw;max-height:88vh;display:flex;flex-direction:column}
   .select-modal .modal-body{padding:12px 0 0;display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
   .select-filter{padding:0 16px 10px;border-bottom:1px solid #E8E8E8;flex-shrink:0}
-  .select-filter .filter-row{margin-bottom:10px}
+  .select-filter .filter-row{gap:10px 14px;margin-bottom:10px}
   .select-filter .fi-ctl{width:150px;height:30px;font-size:13px}
   .select-filter .fi-select{width:130px;height:30px;font-size:13px}
   .select-filter .btn{height:28px;padding:0 12px;font-size:13px}
@@ -187,7 +184,7 @@
           <div class="filter-row">
             <div class="filter-item">
               <label>填报机构：</label>
-              <select class="fi-select">
+              <select class="fi-select is-placeholder" id="qOrg" onchange="markSelect(this)">
                 <option value="">请选择</option>
                 <option>扬州市江都区滨江人民医院</option>
                 <option>扬州市江都区大桥中心卫生院</option>
@@ -198,43 +195,11 @@
             </div>
             <div class="filter-item">
               <label>姓名：</label>
-              <input class="fi-ctl" placeholder="请输入" type="text">
-            </div>
-            <div class="filter-item">
-              <label>分娩方式：</label>
-              <select class="fi-select">
-                <option value="">请选择</option>
-                <option>未娩</option>
-                <option>自然产</option>
-                <option>阴道手术产</option>
-                <option>剖宫产</option>
-              </select>
-            </div>
-            <div class="filter-item">
-              <label>填报人：</label>
-              <input class="fi-ctl" placeholder="请输入" type="text">
-            </div>
-          </div>
-          <div class="filter-row">
-            <div class="filter-item">
-              <label>死亡日期：</label>
-              <div class="fi-date-range">
-                <input class="fi-date" placeholder="开始日期" type="text">
-                <span class="fi-sep">~</span>
-                <input class="fi-date" placeholder="结束日期" type="text">
-              </div>
-            </div>
-            <div class="filter-item">
-              <label>填报日期：</label>
-              <div class="fi-date-range">
-                <input class="fi-date" placeholder="开始日期" type="text">
-                <span class="fi-sep">~</span>
-                <input class="fi-date" placeholder="结束日期" type="text">
-              </div>
+              <input class="fi-ctl" id="qName" placeholder="请输入" type="text">
             </div>
             <div class="filter-btns">
-              <button class="btn btn-default btn-sm" onclick="toast('已重置','info')">重置</button>
-              <button class="btn btn-primary btn-sm" onclick="toast('查询成功，共 8 条记录','success')">查询</button>
+              <button class="btn btn-default" onclick="resetFilter()">重置</button>
+              <button class="btn btn-primary" onclick="toast('查询成功，共 8 条记录','success')">查询</button>
             </div>
           </div>
         </div>
@@ -929,12 +894,11 @@
         </div>
         <div class="filter-row">
           <div class="filter-item"><label>管理机构</label>
-            <select class="fi-select">
-              <option value="">请选择</option>
-              <option>扬州市江都区滨江人民医院</option>
-              <option>扬州市江都区仙女社区卫生服务中心</option>
-              <option>扬州市江都区大桥中心卫生院</option>
-            </select>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val">
+            </div>
           </div>
           <div class="filter-item"><label>管理网格</label>
             <select class="fi-select">
@@ -1189,6 +1153,15 @@
       if (e.target === overlay) overlay.classList.remove('show');
     });
   });
+
+  /* ===== 筛选区交互 ===== */
+  function markSelect(el) { el.classList.toggle('is-placeholder', !el.value); }
+
+  function resetFilter() {
+    var name = $('qName'); if (name) name.value = '';
+    var org = $('qOrg'); if (org) { org.value = ''; markSelect(org); }
+    toast('已重置', 'info');
+  }
 
   function toggleSfExtra() {
     var row = $('sfExtraRow'), btn = $('btnSfExpand');

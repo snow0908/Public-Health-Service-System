@@ -31,6 +31,16 @@
   .fi-select.is-placeholder{color:var(--text-placeholder)}
   .fi-date{width:118px}
   .fi-range{display:flex;align-items:center;gap:4px;color:var(--text-tertiary)}
+  /* 建档日期：单框区间（仅筛选区使用，弹框内的区间日期不受影响） */
+  .filter-panel .fi-range{width:200px;height:32px;padding:0 8px 0 10px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);background:var(--bg-white);transition:all var(--transition-fast)}
+  .filter-panel .fi-range:hover{border-color:var(--primary)}
+  .filter-panel .fi-range:focus-within{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .filter-panel .fi-range input{flex:1 1 0;min-width:0;height:30px;border:none;background:transparent;outline:none;padding:0;font-size:13px;color:var(--text-primary);font-family:inherit}
+  .filter-panel .fi-range input:focus{box-shadow:none}
+  .filter-panel .fi-range input::placeholder{color:var(--text-placeholder)}
+  .filter-panel .fi-range input::-webkit-calendar-picker-indicator{display:none}
+  .fi-tilde{flex-shrink:0;font-size:13px;color:var(--text-placeholder)}
+  .fi-cal{width:14px;height:14px;flex-shrink:0;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none' stroke='%23bfbfbf' stroke-width='1.2'%3E%3Crect x='1.4' y='2.4' width='11.2' height='10.2' rx='1.6'/%3E%3Cpath d='M1.4 5.6h11.2M4.6 1.4v2M9.4 1.4v2'/%3E%3C/svg%3E") no-repeat center/contain}
   .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
 
   /* ===== 数据表格 ===== */
@@ -183,9 +193,11 @@
           <div class="filter-row">
             <div class="filter-item">
               <label>管理机构：</label>
-              <select class="fi-select is-placeholder" id="qOrg" onchange="markSelect(this)">
-                <option value="">请选择</option>
-              </select>
+              <div class="fcp-ms" data-fcp="ms">
+                <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+                <div class="fcp-panel"></div>
+                <input type="hidden" class="fcp-val" id="qOrg">
+              </div>
             </div>
             <div class="filter-item">
               <label>姓名：</label>
@@ -197,23 +209,26 @@
             </div>
             <div class="filter-item">
               <label>建档日期：</label>
-              <span class="fi-range">
-                <input class="fi-ctl fi-date" id="qArcStart" type="date">
-                <span>~</span>
-                <input class="fi-ctl fi-date" id="qArcEnd" type="date">
-              </span>
-            </div>
-            <div class="filter-item">
-              <label>详细地址：</label>
-              <input class="fi-ctl" id="qAddr" placeholder="请输入">
+              <div class="fi-range">
+                <input id="qArcStart" type="text" value="2026-01-01" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}" placeholder="开始日期">
+                <span class="fi-tilde">~</span>
+                <input id="qArcEnd" type="text" value="2026-10-13" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}" placeholder="结束日期">
+                <span class="fi-cal"></span>
+              </div>
             </div>
           </div>
           <div class="filter-row">
             <div class="filter-item">
-              <label>管理行政区：</label>
-              <select class="fi-select is-placeholder" id="qDistrict" onchange="markSelect(this)">
-                <option value="">请选择</option>
-              </select>
+              <label>详细地址：</label>
+              <input class="fi-ctl" id="qAddr" placeholder="请输入">
+            </div>
+            <div class="filter-item">
+              <label>管辖行政区：</label>
+              <div class="fcp-cas" data-fcp="cas">
+                <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+                <div class="fcp-panel"></div>
+                <input type="hidden" class="fcp-val" id="qRegion">
+              </div>
             </div>
             <div class="filter-item">
               <label>锁定状态：</label>
@@ -904,15 +919,19 @@
           </div>
           <div class="filter-item">
             <label>管理机构：</label>
-            <select class="fi-select is-placeholder" id="pOrg" onchange="markSelect(this);renderPick()">
-              <option value="">请选择</option>
-            </select>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="pOrg">
+            </div>
           </div>
           <div class="filter-item">
             <label>管辖网格：</label>
-            <select class="fi-select is-placeholder" id="pGrid" onchange="markSelect(this);renderPick()">
-              <option value="">请选择</option>
-            </select>
+            <div class="fcp-tree" data-fcp="tree">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="pGrid">
+            </div>
           </div>
           <div class="filter-btns">
             <button class="btn btn-default" onclick="resetPick()">重置</button>
@@ -1102,11 +1121,15 @@ function showView(name) {
 function backToList() { showView('list'); renderTable(); }
 
 /* ================= 筛选 ================= */
+/* 建档日期默认区间：仅作展示，未改动时不参与过滤 */
+var ARC_DEFAULT_START = '2026-01-01', ARC_DEFAULT_END = '2026-10-13';
+
 function resetFilter() {
-  ['qOrg', 'qDistrict', 'qLock'].forEach(function (id) { $(id).value = ''; markSelect($(id)); });
+  $('qOrg').value = ''; $('qRegion').value = '';
+  $('qLock').value = ''; markSelect($('qLock'));
   ['qName', 'qIdcard', 'qAddr'].forEach(function (id) { $(id).value = ''; });
-  $('qArcStart').value = '';
-  $('qArcEnd').value = '';
+  $('qArcStart').value = ARC_DEFAULT_START; $('qArcStart').type = 'text';
+  $('qArcEnd').value = ARC_DEFAULT_END; $('qArcEnd').type = 'text';
   $('qOnlyMe').checked = false;
   curPage = 1;
   renderTable();
@@ -1116,8 +1139,10 @@ function queryFilter() { curPage = 1; renderTable(); toastMsg('查询完成'); }
 
 function filtered() {
   var org = $('qOrg').value, name = $('qName').value.trim(), idc = $('qIdcard').value.trim();
-  var addr = $('qAddr').value.trim(), dist = $('qDistrict').value, lock = $('qLock').value;
+  var addr = $('qAddr').value.trim(), dist = $('qRegion').value, lock = $('qLock').value;
   var as = $('qArcStart').value, ae = $('qArcEnd').value;
+  if (as === ARC_DEFAULT_START) as = '';
+  if (ae === ARC_DEFAULT_END) ae = '';
   return MOTHERS.filter(function (m) {
     if (org && m.org !== org) return false;
     if (name && m.name.indexOf(name) < 0) return false;
@@ -1706,7 +1731,6 @@ document.addEventListener('keydown', function (e) {
   $('qOrg').innerHTML = '<option value="">请选择</option>' + orgHtml;
   $('pOrg').innerHTML = '<option value="">请选择</option>' + orgHtml;
   var distHtml = DISTRICTS.map(function (d) { return '<option>' + esc(d) + '</option>'; }).join('');
-  $('qDistrict').innerHTML = '<option value="">请选择</option>' + distHtml;
   $('pDistrict').innerHTML = '<option value="">请选择</option>' + distHtml;
   var gridHtml = GRIDS.map(function (g) { return '<option>' + esc(g) + '</option>'; }).join('');
   $('pGrid').innerHTML = '<option value="">请选择</option>' + gridHtml;

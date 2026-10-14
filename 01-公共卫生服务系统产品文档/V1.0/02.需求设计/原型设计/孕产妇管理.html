@@ -43,6 +43,34 @@
   .fi-unit{font-size:13px;color:var(--text-secondary)}
   .fi-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer}
   .fi-check input{margin:0;accent-color:var(--primary);cursor:pointer}
+  /* 主筛选区行距/列距/标签间距（对齐设计稿：行距 10、列距 22、标签-控件 12） */
+  .filter-panel .filter-row{gap:12px 22px;margin-bottom:10px}
+  .filter-panel .filter-item{gap:12px}
+  /* 筛选区内控件统一外框宽度（仅作用于主筛选区，不影响新建专项弹框内同名类） */
+  .filter-panel .fi-ctl,.filter-panel .fi-select{width:180px}
+  /* 筛选区内统一筛选复合控件（管理机构/管辖行政区）等宽 180px */
+  .filter-panel .fcp-ms,.filter-panel .fcp-cas,.filter-panel .fcp-tree,.filter-panel .fcp-mst{width:180px}
+  .filter-panel .fcp-ms .fcp-panel{width:max-content;min-width:100%;max-width:300px}
+  .filter-panel .fcp-tree .fcp-panel{width:200px}
+  /* 日期区间：单一外框（开始日期 ~ 结束日期 + 日历图标） */
+  .fi-range{display:flex;align-items:center;gap:6px;width:232px;height:32px;padding:0 8px 0 10px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);background:var(--bg-white);transition:all var(--transition-fast)}
+  .fi-range:hover{border-color:var(--primary)}
+  .fi-range:focus-within{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-range input{flex:1 1 0;min-width:0;height:30px;border:none;background:transparent;outline:none;padding:0;font-size:14px;color:var(--text-primary);font-family:inherit}
+  .fi-range input::placeholder{color:var(--text-placeholder)}
+  .fi-range input::-webkit-calendar-picker-indicator{display:none}
+  .fi-tilde{flex-shrink:0;font-size:14px;color:var(--text-placeholder)}
+  .fi-cal{width:14px;height:14px;flex-shrink:0;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none' stroke='%23bfbfbf' stroke-width='1.2'%3E%3Crect x='1.4' y='2.4' width='11.2' height='10.2' rx='1.6'/%3E%3Cpath d='M1.4 5.6h11.2M4.6 1.4v2M9.4 1.4v2'/%3E%3C/svg%3E") no-repeat center/contain}
+  /* 只看个人管理档案 复选框（统一写法，替换各页旧版 .own-check） */
+  .fi-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer;user-select:none;white-space:nowrap;margin:0}
+  .fi-check input[type=checkbox]{width:15px;height:15px;margin:0;accent-color:var(--primary);cursor:pointer}
+  /* 可清空单选下拉（中医服务等：有值时右侧出现圆形 ✕） */
+  .fi-combo{position:relative;display:inline-flex;align-items:center}
+  .filter-panel .fi-combo .fi-select{width:180px;padding-right:30px}
+  .fi-combo.has-val .fi-select{background-image:none}
+  .fi-combo .fi-combo-x{display:none;position:absolute;right:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;box-sizing:border-box;border:1px solid #BFBFBF;border-radius:50%;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='5' viewBox='0 0 5 5'%3E%3Cpath d='M1 1l3 3M4 1L1 4' stroke='%23BFBFBF' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center/5px 5px;cursor:pointer;user-select:none}
+  .fi-combo.has-val .fi-combo-x{display:block}
+  .fi-combo .fi-combo-x:hover{border-color:var(--primary);background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='5' viewBox='0 0 5 5'%3E%3Cpath d='M1 1l3 3M4 1L1 4' stroke='%23007AFF' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E")}
 
   /* ===== 数据表格 ===== */
   .table-wrap{flex:1;overflow:auto;min-height:0}
@@ -246,61 +274,34 @@
       <!-- 筛选区 -->
       <div class="filter-panel">
         <div class="filter-row">
-          <div class="filter-item"><label>管理机构</label>
-            <select id="fOrg" class="fi-select w-lg">
-              <option value="" selected>请选择</option>
-              <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
-              <option value="济南市历下区甸柳新村社区卫生服务中心">济南市历下区甸柳新村社区卫生服务中心</option>
-              <option value="济南市市中区舜玉路社区卫生服务中心">济南市市中区舜玉路社区卫生服务中心</option>
-              <option value="济南市历下区千佛山社区卫生服务中心">济南市历下区千佛山社区卫生服务中心</option>
-              <option value="济南市天桥区工人新村社区卫生服务中心">济南市天桥区工人新村社区卫生服务中心</option>
-              <option value="济南市历下区文化东路社区卫生服务中心">济南市历下区文化东路社区卫生服务中心</option>
-            </select>
+          <div class="filter-item"><label>管理机构：</label>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fOrg">
+            </div>
           </div>
-          <div class="filter-item"><label>姓名</label><input id="fName" class="fi-ctl" placeholder="请输入姓名"></div>
-          <div class="filter-item"><label>证件号</label><input id="fIdcard" class="fi-ctl" placeholder="请输入证件号"></div>
-          <div class="filter-item"><label>管辖行政区</label>
-            <select id="fRegion" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="解放路社区">解放路社区</option>
-              <option value="千佛山社区">千佛山社区</option>
-              <option value="燕山社区">燕山社区</option>
-              <option value="姚家社区">姚家社区</option>
-              <option value="舜玉社区">舜玉社区</option>
-              <option value="甸柳社区">甸柳社区</option>
-              <option value="文化东路社区">文化东路社区</option>
-              <option value="工人新村社区">工人新村社区</option>
-              <option value="窑头社区">窑头社区</option>
-              <option value="七里山社区">七里山社区</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>锁定状态</label>
-            <select id="fLock" class="fi-select">
-              <option value="未上锁" selected>未上锁</option>
-              <option value="">全部</option>
-              <option value="已上锁">已上锁</option>
-            </select>
-          </div>
+          <div class="filter-item"><label>姓名：</label><input id="fName" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>档案编号：</label><input id="fArchNo" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>证件号：</label><input id="fIdcard" class="fi-ctl" placeholder="请输入"></div>
         </div>
         <div class="filter-row">
-          <div class="filter-item"><label>居民状态</label>
-            <select id="fRStatus" class="fi-select">
-              <option value="正常" selected>正常</option>
+          <div class="filter-item"><label>结案情况：</label>
+            <select id="fClose" class="fi-select">
               <option value="">全部</option>
-              <option value="死亡">死亡</option>
-              <option value="迁出">迁出</option>
-              <option value="注销">注销</option>
+              <option value="未结案" selected>未结案</option>
+              <option value="已结案">已结案</option>
             </select>
           </div>
-          <div class="filter-item"><label>管理状态</label>
-            <select id="fMStatus" class="fi-select">
-              <option value="有效管理" selected>有效管理</option>
-              <option value="">全部</option>
-              <option value="中断管理">中断管理</option>
-              <option value="终止管理">终止管理</option>
-            </select>
+          <div class="filter-item"><label>管辖行政区：</label>
+            <div class="fcp-cas" data-fcp="cas" data-caret>
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fRegion">
+            </div>
           </div>
-          <div class="filter-item"><label>五色分级</label>
+          <div class="filter-item"><label>孕次：</label><input id="fGest" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>五色情况：</label>
             <select id="fGrade" class="fi-select">
               <option value="" selected>请选择</option>
               <option value="绿色">绿色</option>
@@ -310,24 +311,6 @@
               <option value="紫色">紫色</option>
             </select>
           </div>
-          <div class="filter-item"><label>孕周阶段</label>
-            <select id="fStage" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="孕早期">孕早期</option>
-              <option value="孕中期">孕中期</option>
-              <option value="孕晚期">孕晚期</option>
-              <option value="产后">产后</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>管辖网格</label>
-            <select id="fGrid" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="第一网格">第一网格</option>
-              <option value="第二网格">第二网格</option>
-              <option value="第三网格">第三网格</option>
-              <option value="第四网格">第四网格</option>
-            </select>
-          </div>
           <div class="filter-btns">
             <button class="btn btn-default" onclick="resetFilter()">重置</button>
             <button class="btn btn-primary" onclick="applyFilter()">查询</button>
@@ -335,118 +318,36 @@
           </div>
         </div>
         <div class="filter-row extra">
-          <div class="filter-item"><label>随访次数</label>
-            <select id="fFuCntOp" class="fi-select fi-cmp">
+          <div class="filter-item"><label>预产期：</label>
+            <span class="fi-range">
+              <input id="fEdcStart" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <span class="fi-tilde">~</span>
+              <input id="fEdcEnd" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <span class="fi-cal"></span>
+            </span>
+          </div>
+          <div class="filter-item"><label>详细地址：</label><input id="fAddress" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>建档日期：</label>
+            <span class="fi-range">
+              <input id="fSpecStart" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <span class="fi-tilde">~</span>
+              <input id="fSpecEnd" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <span class="fi-cal"></span>
+            </span>
+          </div>
+          <div class="filter-item"><label>锁定状态：</label>
+            <select id="fLock" class="fi-select">
               <option value="" selected>请选择</option>
-              <option value="≥">≥</option>
-              <option value="≤">≤</option>
-              <option value="＝">＝</option>
-            </select>
-            <input id="fFuCnt" class="fi-ctl fi-num" placeholder="请输入">
-          </div>
-          <div class="filter-item"><label>产检次数</label>
-            <select id="fExamCntOp" class="fi-select fi-cmp">
-              <option value="" selected>请选择</option>
-              <option value="≥">≥</option>
-              <option value="≤">≤</option>
-              <option value="＝">＝</option>
-            </select>
-            <input id="fExamCnt" class="fi-ctl fi-num" placeholder="请输入">
-          </div>
-          <div class="filter-item"><label>业务日期</label>
-            <input id="fBizStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">—</span>
-            <input id="fBizEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-          </div>
-          <div class="filter-item"><label>随访类型</label>
-            <select id="fFuType" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="产前随访">产前随访</option>
-              <option value="产后访视">产后访视</option>
-              <option value="产后42天检查">产后42天检查</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>预产期</label>
-            <input id="fEdcStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">—</span>
-            <input id="fEdcEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-          </div>
-        </div>
-        <div class="filter-row extra">
-          <div class="filter-item"><label>档案完整度</label>
-            <select id="fFullOp" class="fi-select fi-cmp">
-              <option value="" selected>请选择</option>
-              <option value="≥">≥</option>
-              <option value="≤">≤</option>
-              <option value="＝">＝</option>
-            </select>
-            <input id="fFullVal" class="fi-ctl fi-num" placeholder="请输入">
-            <span class="fi-unit">%</span>
-          </div>
-          <div class="filter-item"><label>专项建档机构</label>
-            <select id="fSpecOrg" class="fi-select w-lg">
-              <option value="" selected>请选择</option>
-              <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
-              <option value="济南市历下区甸柳新村社区卫生服务中心">济南市历下区甸柳新村社区卫生服务中心</option>
-              <option value="济南市市中区舜玉路社区卫生服务中心">济南市市中区舜玉路社区卫生服务中心</option>
-              <option value="济南市历下区千佛山社区卫生服务中心">济南市历下区千佛山社区卫生服务中心</option>
-              <option value="济南市天桥区工人新村社区卫生服务中心">济南市天桥区工人新村社区卫生服务中心</option>
-              <option value="济南市历下区文化东路社区卫生服务中心">济南市历下区文化东路社区卫生服务中心</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>专项建档医生</label><input id="fSpecDoc" class="fi-ctl" placeholder="请输入"></div>
-          <div class="filter-item"><label>专项建档日期</label>
-            <input id="fSpecStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">—</span>
-            <input id="fSpecEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-          </div>
-        </div>
-        <div class="filter-row extra">
-          <div class="filter-item"><label>居民建档日期</label>
-            <input id="fArchStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">—</span>
-            <input id="fArchEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-          </div>
-          <div class="filter-item"><label>居民建档医生</label><input id="fArchDoc" class="fi-ctl" placeholder="请输入"></div>
-          <div class="filter-item"><label>居民类型</label>
-            <select id="fResidentType" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="常住">常住</option>
-              <option value="流动">流动</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>居住类型</label>
-            <select id="fLiveType" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="常住">常住</option>
-              <option value="暂住">暂住</option>
-              <option value="人户分离">人户分离</option>
+              <option value="未上锁">未上锁</option>
+              <option value="已上锁">已上锁</option>
             </select>
           </div>
         </div>
         <div class="filter-row extra">
-          <div class="filter-item"><label>出生日期</label>
-            <input id="fBirthStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">—</span>
-            <input id="fBirthEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-          </div>
-          <div class="filter-item"><label>性别</label>
-            <select id="fGender" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="男">男</option>
-              <option value="女">女</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>电话号码</label><input id="fPhone" class="fi-ctl" placeholder="请输入"></div>
-          <div class="filter-item"><label>档案编号</label><input id="fArchNo" class="fi-ctl" placeholder="请输入档案编号"></div>
-        </div>
-        <div class="filter-row extra">
-          <div class="filter-item"><label>详细地址</label><input id="fAddress" class="fi-ctl" placeholder="请输入详细地址"></div>
-          <div class="filter-item">
-            <label class="fi-check"><input type="checkbox" id="fMine">只看个人管理档案</label>
-          </div>
+          <div class="filter-item"><label class="fi-check"><input type="checkbox" id="fMine"> 只看个人管理档案</label></div>
         </div>
       </div>
+
 
       <!-- 数据表格 -->
       <div class="table-wrap">
@@ -527,24 +428,18 @@
         </div>
         <div class="filter-row">
           <div class="filter-item"><label>管理机构</label>
-            <select id="sfOrg" class="fi-select w-lg">
-              <option value="" selected>请选择</option>
-              <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
-              <option value="扬州市江都区吴桥镇卫生院">扬州市江都区吴桥镇卫生院</option>
-              <option value="扬州市江都区宜陵镇中心卫生院">扬州市江都区宜陵镇中心卫生院</option>
-              <option value="扬州市江都区仙女镇社区卫生服务中心">扬州市江都区仙女镇社区卫生服务中心</option>
-              <option value="扬州市江都区丁沟镇卫生院">扬州市江都区丁沟镇卫生院</option>
-              <option value="扬州市江都区樊川镇卫生院">扬州市江都区樊川镇卫生院</option>
-            </select>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="sfOrg">
+            </div>
           </div>
           <div class="filter-item"><label>管辖网格</label>
-            <select id="sfGrid" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="第一网格">第一网格</option>
-              <option value="第二网格">第二网格</option>
-              <option value="第三网格">第三网格</option>
-              <option value="第四网格">第四网格</option>
-            </select>
+            <div class="fcp-tree" data-fcp="tree">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="sfGrid">
+            </div>
           </div>
           <div class="filter-btns">
             <button class="btn btn-default" onclick="resetSelectFilter()">重置</button>
@@ -715,30 +610,30 @@
 <script>
   /* ================= 模拟数据（姓名/证件号/出生日期/性别/年龄相互对应；末次月经+280天=预产期，孕周按 2026-09-20 推算，五色分级匹配妊娠风险筛查标准） ================= */
   var maternalData = [
-    { org:'山东大学齐鲁医院', name:'李静怡', idcard:'370102199603124826', idType:'居民身份证', grade:'绿色', stage:'孕晚期', gestWeek:'35周', lmp:'2026-01-15', edc:'2026-10-22', gender:'女', age:30, phone:'13905312846', birth:'1996-03-12', address:'济南市历下区解放路105号',       archNo:'370102FY26001', region:'解放路社区',   grid:'第一网格', specDate:'2026-02-18', specDoc:'徐东升', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁', fuCnt:5, examCnt:5, fuType:'产前随访' },
-    { org:'山东大学齐鲁医院', name:'王雨桐', idcard:'370102199808154820', idType:'居民身份证', grade:'黄色', stage:'孕晚期', gestWeek:'28周', lmp:'2026-03-05', edc:'2026-12-10', gender:'女', age:28, phone:'18764162853', birth:'1998-08-15', address:'济南市历下区山大南路27号',       archNo:'370102FY26002', region:'千佛山社区',   grid:'第二网格', specDate:'2026-03-20', specDoc:'李蕾',   full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁', fuCnt:4, examCnt:4, fuType:'产前随访' },
-    { org:'山东大学齐鲁医院', name:'张梦琪', idcard:'370102199402264426', idType:'居民身份证', grade:'红色', stage:'孕中期', gestWeek:'17周', lmp:'2026-05-20', edc:'2027-02-24', gender:'女', age:32, phone:'13583175246', birth:'1994-02-26', address:'济南市历下区燕山小区东路18号',   archNo:'370102FY26003', region:'燕山社区',     grid:'第三网格', specDate:'2026-06-05', specDoc:'朱劲松', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁', fuCnt:3, examCnt:3, fuType:'产前随访' },
-    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'陈思涵', idcard:'370102199909012428', idType:'居民身份证', grade:'绿色', stage:'孕早期', gestWeek:'10周', lmp:'2026-07-08', edc:'2027-04-14', gender:'女', age:27, phone:'15863771824', birth:'1999-09-01', address:'济南市历下区甸柳新村七区3号楼',   archNo:'370102FY26004', region:'甸柳社区',     grid:'第二网格', specDate:'2026-07-15', specDoc:'王盛',   full:90,  rStatus:'正常', mStatus:'有效管理', lock:'未上锁', fuCnt:1, examCnt:1, fuType:'产前随访' },
-    { org:'山东大学齐鲁医院', name:'刘婷婷', idcard:'370102199702244829', idType:'居民身份证', grade:'黄色', stage:'孕早期', gestWeek:'3周',  lmp:'2026-08-30', edc:'2027-06-06', gender:'女', age:29, phone:'13006598712', birth:'1997-02-24', address:'济南市历城区华信路3号',         archNo:'370102FY26005', region:'姚家社区',     grid:'第二网格', specDate:'2026-09-02', specDoc:'徐东升', full:60,  rStatus:'正常', mStatus:'有效管理', lock:'未上锁', fuCnt:0, examCnt:0, fuType:'产前随访' },
-    { org:'济南市市中区舜玉路社区卫生服务中心', name:'赵婉清', idcard:'370102199501054420', idType:'居民身份证', grade:'紫色', stage:'孕晚期', gestWeek:'31周', lmp:'2026-02-10', edc:'2026-11-17', gender:'女', age:31, phone:'13626413789', birth:'1995-01-05', address:'济南市市中区二环南路2766号',   archNo:'370102FY26006', region:'舜玉社区',     grid:'第一网格', specDate:'2026-03-02', specDoc:'敖鹏天', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁', fuCnt:4, examCnt:5, fuType:'产前随访' },
-    { org:'山东大学齐鲁医院', name:'孙晓芳', idcard:'370102199812194626', idType:'居民身份证', grade:'橙色', stage:'孕中期', gestWeek:'22周', lmp:'2026-04-18', edc:'2027-01-23', gender:'女', age:27, phone:'13370585246', birth:'1998-12-19', address:'济南市历下区和平路36号',         archNo:'370102FY26007', region:'解放路社区',   grid:'第一网格', specDate:'2026-05-08', specDoc:'陆柳琳', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁', fuCnt:3, examCnt:3, fuType:'产前随访' },
-    { org:'济南市历下区千佛山社区卫生服务中心', name:'周诗雨', idcard:'370102199303244428', idType:'居民身份证', grade:'绿色', stage:'产后',   gestWeek:'产后6周', lmp:'2025-10-28', edc:'2026-08-04', gender:'女', age:33, phone:'15508662453', birth:'1993-03-24', address:'济南市历下区经十路9777号',        archNo:'370102FY26008', region:'千佛山社区',   grid:'第二网格', specDate:'2025-11-20', specDoc:'王盛',   full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁', fuCnt:7, examCnt:7, fuType:'产后42天检查' },
-    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'吴雅琳', idcard:'370102199705154224', idType:'居民身份证', grade:'黄色', stage:'孕中期', gestWeek:'15周', lmp:'2026-06-02', edc:'2027-03-09', gender:'女', age:29, phone:'15562591876', birth:'1997-05-15', address:'济南市历下区甸柳新村二区4号楼',   archNo:'370102FY26009', region:'甸柳社区',     grid:'第二网格', specDate:'2026-06-15', specDoc:'王盛',   full:85,  rStatus:'正常', mStatus:'中断管理', lock:'未上锁', fuCnt:2, examCnt:2, fuType:'产前随访' },
-    { org:'济南市天桥区工人新村社区卫生服务中心', name:'郑晓彤', idcard:'370102199006254825', idType:'居民身份证', grade:'红色', stage:'孕晚期', gestWeek:'36周', lmp:'2026-01-08', edc:'2026-10-15', gender:'女', age:36, phone:'15098764213', birth:'1990-06-25', address:'济南市天桥区堤口路92号',           archNo:'370102FY26010', region:'工人新村社区', grid:'第一网格', specDate:'2026-02-10', specDoc:'朱劲松', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁', fuCnt:6, examCnt:6, fuType:'产前随访' },
-    { org:'山东大学齐鲁医院', name:'冯嘉欣', idcard:'370102200003084824', idType:'居民身份证', grade:'绿色', stage:'孕中期', gestWeek:'18周', lmp:'2026-05-11', edc:'2027-02-15', gender:'女', age:26, phone:'15589961237', birth:'2000-03-08', address:'济南市历下区窑头路7号',            archNo:'370102FY26011', region:'窑头社区',     grid:'第三网格', specDate:'2026-05-26', specDoc:'徐东升', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁', fuCnt:2, examCnt:2, fuType:'产前随访' },
-    { org:'济南市市中区舜玉路社区卫生服务中心', name:'何雨薇', idcard:'370102199208174623', idType:'居民身份证', grade:'黄色', stage:'产后',   gestWeek:'产后2周', lmp:'2025-11-24', edc:'2026-08-31', gender:'女', age:34, phone:'13064018573', birth:'1992-08-17', address:'济南市市中区六里山南路20号',     archNo:'370102FY26012', region:'舜玉社区',     grid:'第一网格', specDate:'2025-12-10', specDoc:'敖鹏天', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁', fuCnt:6, examCnt:6, fuType:'产后访视' },
-    { org:'济南市历下区文化东路社区卫生服务中心', name:'高雪晴', idcard:'370102199611224426', idType:'居民身份证', grade:'绿色', stage:'孕早期', gestWeek:'8周',  lmp:'2026-07-21', edc:'2027-04-27', gender:'女', age:29, phone:'15562594387', birth:'1996-11-22', address:'济南市历下区文化东路51号',       archNo:'370102FY26013', region:'文化东路社区', grid:'第四网格', specDate:'2026-08-05', specDoc:'李蕾',   full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁', fuCnt:1, examCnt:1, fuType:'产前随访' },
-    { org:'济南市天桥区工人新村社区卫生服务中心', name:'韩梦洁', idcard:'370102199504194425', idType:'居民身份证', grade:'橙色', stage:'孕中期', gestWeek:'25周', lmp:'2026-03-28', edc:'2027-01-02', gender:'女', age:31, phone:'15066659432', birth:'1995-04-19', address:'济南市天桥区工人新村北街7号',     archNo:'370102FY26014', region:'工人新村社区', grid:'第一网格', specDate:'2026-04-22', specDoc:'朱劲松', full:95,  rStatus:'正常', mStatus:'有效管理', lock:'未上锁', fuCnt:4, examCnt:4, fuType:'产前随访' },
-    { org:'山东大学齐鲁医院', name:'林欣妍', idcard:'370102199809154829', idType:'居民身份证', grade:'绿色', stage:'产后',   gestWeek:'产后17周', lmp:'2025-08-12', edc:'2026-05-19', gender:'女', age:28, phone:'15806601245', birth:'1998-09-15', address:'济南市历下区经十路9777号',        archNo:'370102FY26015', region:'千佛山社区',   grid:'第二网格', specDate:'2025-09-01', specDoc:'李蕾',   full:100, rStatus:'正常', mStatus:'终止管理', lock:'已上锁', fuCnt:8, examCnt:8, fuType:'产后42天检查' },
-    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'马丽娜', idcard:'370102199312074824', idType:'居民身份证', grade:'紫色', stage:'孕晚期', gestWeek:'30周', lmp:'2026-02-22', edc:'2026-11-29', gender:'女', age:32, phone:'15806603246', birth:'1993-12-07', address:'济南市历下区甸柳新村八区2号楼',   archNo:'370102FY26016', region:'甸柳社区',     grid:'第二网格', specDate:'2026-03-15', specDoc:'陆柳琳', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁', fuCnt:5, examCnt:5, fuType:'产前随访' },
-    { org:'济南市市中区舜玉路社区卫生服务中心', name:'崔文静', idcard:'370102199704304423', idType:'居民身份证', grade:'绿色', stage:'孕早期', gestWeek:'6周',  lmp:'2026-08-05', edc:'2027-05-12', gender:'女', age:29, phone:'15550061287', birth:'1997-04-30', address:'济南市市中区七里山路15号',       archNo:'370102FY26017', region:'七里山社区',   grid:'第一网格', specDate:'2026-08-20', specDoc:'敖鹏天', full:50,  rStatus:'正常', mStatus:'有效管理', lock:'未上锁', fuCnt:0, examCnt:0, fuType:'产前随访' },
-    { org:'山东大学齐鲁医院', name:'苏曼妮', idcard:'370102199205184220', idType:'居民身份证', grade:'黄色', stage:'孕晚期', gestWeek:'40周', lmp:'2025-12-14', edc:'2026-09-20', gender:'女', age:34, phone:'13176643578', birth:'1992-05-18', address:'济南市历下区姚家路29号',           archNo:'370102FY26018', region:'姚家社区',     grid:'第二网格', specDate:'2026-01-06', specDoc:'王盛',   full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁', fuCnt:6, examCnt:6, fuType:'产前随访' },
-    { org:'济南市历下区文化东路社区卫生服务中心', name:'白雨欣', idcard:'370102199907204623', idType:'居民身份证', grade:'绿色', stage:'孕中期', gestWeek:'24周', lmp:'2026-04-05', edc:'2027-01-10', gender:'女', age:27, phone:'15165372948', birth:'1999-07-20', address:'济南市历下区文化东路88号',       archNo:'370102FY26019', region:'文化东路社区', grid:'第四网格', specDate:'2026-04-28', specDoc:'李蕾',   full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁', fuCnt:3, examCnt:3, fuType:'产前随访' },
-    { org:'山东大学齐鲁医院', name:'潘静怡', idcard:'370102199610214820', idType:'居民身份证', grade:'橙色', stage:'孕中期', gestWeek:'13周', lmp:'2026-06-15', edc:'2027-03-22', gender:'女', age:29, phone:'13064029137', birth:'1996-10-21', address:'济南市历下区和平路53号',         archNo:'370102FY26020', region:'解放路社区',   grid:'第一网格', specDate:'2026-07-02', specDoc:'徐东升', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁', fuCnt:2, examCnt:2, fuType:'产前随访' },
-    { org:'济南市天桥区工人新村社区卫生服务中心', name:'董丽君', idcard:'370102198908314420', idType:'居民身份证', grade:'红色', stage:'孕晚期', gestWeek:'33周', lmp:'2026-01-28', edc:'2026-11-04', gender:'女', age:37, phone:'15066658734', birth:'1989-08-31', address:'济南市天桥区济泺路130号',          archNo:'370102FY26021', region:'工人新村社区', grid:'第一网格', specDate:'2026-02-24', specDoc:'朱劲松', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁', fuCnt:5, examCnt:5, fuType:'产前随访' },
-    { org:'济南市历下区千佛山社区卫生服务中心', name:'贾晓楠', idcard:'370102200102084827', idType:'居民身份证', grade:'绿色', stage:'产后',   gestWeek:'产后20周', lmp:'2025-07-26', edc:'2026-05-02', gender:'女', age:25, phone:'15508664321', birth:'2001-02-08', address:'济南市历下区科院路19号',          archNo:'370102FY26022', region:'千佛山社区',   grid:'第二网格', specDate:'2025-08-18', specDoc:'王盛',   full:100, rStatus:'正常', mStatus:'终止管理', lock:'已上锁', fuCnt:7, examCnt:7, fuType:'产后42天检查' },
-    { org:'济南市市中区舜玉路社区卫生服务中心', name:'万雪梅', idcard:'370102199401254824', idType:'居民身份证', grade:'黄色', stage:'孕中期', gestWeek:'16周', lmp:'2026-05-30', edc:'2027-03-06', gender:'女', age:32, phone:'15562587321', birth:'1994-01-25', address:'济南市市中区玉函路39号',          archNo:'370102FY26023', region:'舜玉社区',     grid:'第一网格', specDate:'2026-06-18', specDoc:'敖鹏天', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁', fuCnt:2, examCnt:2, fuType:'产前随访' },
-    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'邵美琪', idcard:'370102199511084422', idType:'居民身份证', grade:'绿色', stage:'孕早期', gestWeek:'7周',  lmp:'2026-07-30', edc:'2027-05-06', gender:'女', age:30, phone:'13176648932', birth:'1995-11-08', address:'济南市历下区甸柳新村五区6号楼',   archNo:'370102FY26024', region:'甸柳社区',     grid:'第二网格', specDate:'2026-08-14', specDoc:'陆柳琳', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁', fuCnt:1, examCnt:1, fuType:'产前随访' }
+    { org:'山东大学齐鲁医院', name:'李静怡', idcard:'370102199603124826', idType:'居民身份证', grade:'绿色', stage:'孕晚期', gestWeek:'35周', lmp:'2026-01-15', edc:'2026-10-22', gender:'女', age:30, phone:'13905312846', birth:'1996-03-12', address:'济南市历下区解放路105号',       archNo:'370102FY26001', region:'解放路社区',   grid:'第一网格', specDate:'2026-02-18', specDoc:'徐东升', full:100, rStatus:'正常', mStatus:'有效管理', closed:'未结案', gravidity:1, mine:true, lock:'未上锁', fuCnt:5, examCnt:5, fuType:'产前随访' },
+    { org:'山东大学齐鲁医院', name:'王雨桐', idcard:'370102199808154820', idType:'居民身份证', grade:'黄色', stage:'孕晚期', gestWeek:'28周', lmp:'2026-03-05', edc:'2026-12-10', gender:'女', age:28, phone:'18764162853', birth:'1998-08-15', address:'济南市历下区山大南路27号',       archNo:'370102FY26002', region:'千佛山社区',   grid:'第二网格', specDate:'2026-03-20', specDoc:'李蕾',   full:100, rStatus:'正常', mStatus:'有效管理', closed:'未结案', gravidity:2, mine:false, lock:'未上锁', fuCnt:4, examCnt:4, fuType:'产前随访' },
+    { org:'山东大学齐鲁医院', name:'张梦琪', idcard:'370102199402264426', idType:'居民身份证', grade:'红色', stage:'孕中期', gestWeek:'17周', lmp:'2026-05-20', edc:'2027-02-24', gender:'女', age:32, phone:'13583175246', birth:'1994-02-26', address:'济南市历下区燕山小区东路18号',   archNo:'370102FY26003', region:'燕山社区',     grid:'第三网格', specDate:'2026-06-05', specDoc:'朱劲松', full:100, rStatus:'正常', mStatus:'有效管理', closed:'未结案', gravidity:3, mine:false, lock:'未上锁', fuCnt:3, examCnt:3, fuType:'产前随访' },
+    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'陈思涵', idcard:'370102199909012428', idType:'居民身份证', grade:'绿色', stage:'孕早期', gestWeek:'10周', lmp:'2026-07-08', edc:'2027-04-14', gender:'女', age:27, phone:'15863771824', birth:'1999-09-01', address:'济南市历下区甸柳新村七区3号楼',   archNo:'370102FY26004', region:'甸柳社区',     grid:'第二网格', specDate:'2026-07-15', specDoc:'王盛',   full:90,  rStatus:'正常', mStatus:'有效管理', closed:'已结案', gravidity:1, mine:true, lock:'未上锁', fuCnt:1, examCnt:1, fuType:'产前随访' },
+    { org:'山东大学齐鲁医院', name:'刘婷婷', idcard:'370102199702244829', idType:'居民身份证', grade:'黄色', stage:'孕早期', gestWeek:'3周',  lmp:'2026-08-30', edc:'2027-06-06', gender:'女', age:29, phone:'13006598712', birth:'1997-02-24', address:'济南市历城区华信路3号',         archNo:'370102FY26005', region:'姚家社区',     grid:'第二网格', specDate:'2026-09-02', specDoc:'徐东升', full:60,  rStatus:'正常', mStatus:'有效管理', closed:'未结案', gravidity:2, mine:false, lock:'未上锁', fuCnt:0, examCnt:0, fuType:'产前随访' },
+    { org:'济南市市中区舜玉路社区卫生服务中心', name:'赵婉清', idcard:'370102199501054420', idType:'居民身份证', grade:'紫色', stage:'孕晚期', gestWeek:'31周', lmp:'2026-02-10', edc:'2026-11-17', gender:'女', age:31, phone:'13626413789', birth:'1995-01-05', address:'济南市市中区二环南路2766号',   archNo:'370102FY26006', region:'舜玉社区',     grid:'第一网格', specDate:'2026-03-02', specDoc:'敖鹏天', full:100, rStatus:'正常', mStatus:'有效管理', closed:'未结案', gravidity:3, mine:false, lock:'未上锁', fuCnt:4, examCnt:5, fuType:'产前随访' },
+    { org:'山东大学齐鲁医院', name:'孙晓芳', idcard:'370102199812194626', idType:'居民身份证', grade:'橙色', stage:'孕中期', gestWeek:'22周', lmp:'2026-04-18', edc:'2027-01-23', gender:'女', age:27, phone:'13370585246', birth:'1998-12-19', address:'济南市历下区和平路36号',         archNo:'370102FY26007', region:'解放路社区',   grid:'第一网格', specDate:'2026-05-08', specDoc:'陆柳琳', full:100, rStatus:'正常', mStatus:'有效管理', closed:'未结案', gravidity:1, mine:true, lock:'未上锁', fuCnt:3, examCnt:3, fuType:'产前随访' },
+    { org:'济南市历下区千佛山社区卫生服务中心', name:'周诗雨', idcard:'370102199303244428', idType:'居民身份证', grade:'绿色', stage:'产后',   gestWeek:'产后6周', lmp:'2025-10-28', edc:'2026-08-04', gender:'女', age:33, phone:'15508662453', birth:'1993-03-24', address:'济南市历下区经十路9777号',        archNo:'370102FY26008', region:'千佛山社区',   grid:'第二网格', specDate:'2025-11-20', specDoc:'王盛',   full:100, rStatus:'正常', mStatus:'有效管理', closed:'已结案', gravidity:2, mine:false, lock:'未上锁', fuCnt:7, examCnt:7, fuType:'产后42天检查' },
+    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'吴雅琳', idcard:'370102199705154224', idType:'居民身份证', grade:'黄色', stage:'孕中期', gestWeek:'15周', lmp:'2026-06-02', edc:'2027-03-09', gender:'女', age:29, phone:'15562591876', birth:'1997-05-15', address:'济南市历下区甸柳新村二区4号楼',   archNo:'370102FY26009', region:'甸柳社区',     grid:'第二网格', specDate:'2026-06-15', specDoc:'王盛',   full:85,  rStatus:'正常', mStatus:'中断管理', closed:'未结案', gravidity:3, mine:false, lock:'未上锁', fuCnt:2, examCnt:2, fuType:'产前随访' },
+    { org:'济南市天桥区工人新村社区卫生服务中心', name:'郑晓彤', idcard:'370102199006254825', idType:'居民身份证', grade:'红色', stage:'孕晚期', gestWeek:'36周', lmp:'2026-01-08', edc:'2026-10-15', gender:'女', age:36, phone:'15098764213', birth:'1990-06-25', address:'济南市天桥区堤口路92号',           archNo:'370102FY26010', region:'工人新村社区', grid:'第一网格', specDate:'2026-02-10', specDoc:'朱劲松', full:100, rStatus:'正常', mStatus:'有效管理', closed:'未结案', gravidity:1, mine:true, lock:'未上锁', fuCnt:6, examCnt:6, fuType:'产前随访' },
+    { org:'山东大学齐鲁医院', name:'冯嘉欣', idcard:'370102200003084824', idType:'居民身份证', grade:'绿色', stage:'孕中期', gestWeek:'18周', lmp:'2026-05-11', edc:'2027-02-15', gender:'女', age:26, phone:'15589961237', birth:'2000-03-08', address:'济南市历下区窑头路7号',            archNo:'370102FY26011', region:'窑头社区',     grid:'第三网格', specDate:'2026-05-26', specDoc:'徐东升', full:100, rStatus:'正常', mStatus:'有效管理', closed:'未结案', gravidity:2, mine:false, lock:'未上锁', fuCnt:2, examCnt:2, fuType:'产前随访' },
+    { org:'济南市市中区舜玉路社区卫生服务中心', name:'何雨薇', idcard:'370102199208174623', idType:'居民身份证', grade:'黄色', stage:'产后',   gestWeek:'产后2周', lmp:'2025-11-24', edc:'2026-08-31', gender:'女', age:34, phone:'13064018573', birth:'1992-08-17', address:'济南市市中区六里山南路20号',     archNo:'370102FY26012', region:'舜玉社区',     grid:'第一网格', specDate:'2025-12-10', specDoc:'敖鹏天', full:100, rStatus:'正常', mStatus:'有效管理', closed:'已结案', gravidity:3, mine:false, lock:'未上锁', fuCnt:6, examCnt:6, fuType:'产后访视' },
+    { org:'济南市历下区文化东路社区卫生服务中心', name:'高雪晴', idcard:'370102199611224426', idType:'居民身份证', grade:'绿色', stage:'孕早期', gestWeek:'8周',  lmp:'2026-07-21', edc:'2027-04-27', gender:'女', age:29, phone:'15562594387', birth:'1996-11-22', address:'济南市历下区文化东路51号',       archNo:'370102FY26013', region:'文化东路社区', grid:'第四网格', specDate:'2026-08-05', specDoc:'李蕾',   full:100, rStatus:'正常', mStatus:'有效管理', closed:'未结案', gravidity:1, mine:true, lock:'未上锁', fuCnt:1, examCnt:1, fuType:'产前随访' },
+    { org:'济南市天桥区工人新村社区卫生服务中心', name:'韩梦洁', idcard:'370102199504194425', idType:'居民身份证', grade:'橙色', stage:'孕中期', gestWeek:'25周', lmp:'2026-03-28', edc:'2027-01-02', gender:'女', age:31, phone:'15066659432', birth:'1995-04-19', address:'济南市天桥区工人新村北街7号',     archNo:'370102FY26014', region:'工人新村社区', grid:'第一网格', specDate:'2026-04-22', specDoc:'朱劲松', full:95,  rStatus:'正常', mStatus:'有效管理', closed:'未结案', gravidity:2, mine:false, lock:'未上锁', fuCnt:4, examCnt:4, fuType:'产前随访' },
+    { org:'山东大学齐鲁医院', name:'林欣妍', idcard:'370102199809154829', idType:'居民身份证', grade:'绿色', stage:'产后',   gestWeek:'产后17周', lmp:'2025-08-12', edc:'2026-05-19', gender:'女', age:28, phone:'15806601245', birth:'1998-09-15', address:'济南市历下区经十路9777号',        archNo:'370102FY26015', region:'千佛山社区',   grid:'第二网格', specDate:'2025-09-01', specDoc:'李蕾',   full:100, rStatus:'正常', mStatus:'终止管理', closed:'未结案', gravidity:3, mine:false, lock:'已上锁', fuCnt:8, examCnt:8, fuType:'产后42天检查' },
+    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'马丽娜', idcard:'370102199312074824', idType:'居民身份证', grade:'紫色', stage:'孕晚期', gestWeek:'30周', lmp:'2026-02-22', edc:'2026-11-29', gender:'女', age:32, phone:'15806603246', birth:'1993-12-07', address:'济南市历下区甸柳新村八区2号楼',   archNo:'370102FY26016', region:'甸柳社区',     grid:'第二网格', specDate:'2026-03-15', specDoc:'陆柳琳', full:100, rStatus:'正常', mStatus:'有效管理', closed:'已结案', gravidity:1, mine:true, lock:'未上锁', fuCnt:5, examCnt:5, fuType:'产前随访' },
+    { org:'济南市市中区舜玉路社区卫生服务中心', name:'崔文静', idcard:'370102199704304423', idType:'居民身份证', grade:'绿色', stage:'孕早期', gestWeek:'6周',  lmp:'2026-08-05', edc:'2027-05-12', gender:'女', age:29, phone:'15550061287', birth:'1997-04-30', address:'济南市市中区七里山路15号',       archNo:'370102FY26017', region:'七里山社区',   grid:'第一网格', specDate:'2026-08-20', specDoc:'敖鹏天', full:50,  rStatus:'正常', mStatus:'有效管理', closed:'未结案', gravidity:2, mine:false, lock:'未上锁', fuCnt:0, examCnt:0, fuType:'产前随访' },
+    { org:'山东大学齐鲁医院', name:'苏曼妮', idcard:'370102199205184220', idType:'居民身份证', grade:'黄色', stage:'孕晚期', gestWeek:'40周', lmp:'2025-12-14', edc:'2026-09-20', gender:'女', age:34, phone:'13176643578', birth:'1992-05-18', address:'济南市历下区姚家路29号',           archNo:'370102FY26018', region:'姚家社区',     grid:'第二网格', specDate:'2026-01-06', specDoc:'王盛',   full:100, rStatus:'正常', mStatus:'有效管理', closed:'未结案', gravidity:3, mine:false, lock:'未上锁', fuCnt:6, examCnt:6, fuType:'产前随访' },
+    { org:'济南市历下区文化东路社区卫生服务中心', name:'白雨欣', idcard:'370102199907204623', idType:'居民身份证', grade:'绿色', stage:'孕中期', gestWeek:'24周', lmp:'2026-04-05', edc:'2027-01-10', gender:'女', age:27, phone:'15165372948', birth:'1999-07-20', address:'济南市历下区文化东路88号',       archNo:'370102FY26019', region:'文化东路社区', grid:'第四网格', specDate:'2026-04-28', specDoc:'李蕾',   full:100, rStatus:'正常', mStatus:'有效管理', closed:'未结案', gravidity:1, mine:true, lock:'未上锁', fuCnt:3, examCnt:3, fuType:'产前随访' },
+    { org:'山东大学齐鲁医院', name:'潘静怡', idcard:'370102199610214820', idType:'居民身份证', grade:'橙色', stage:'孕中期', gestWeek:'13周', lmp:'2026-06-15', edc:'2027-03-22', gender:'女', age:29, phone:'13064029137', birth:'1996-10-21', address:'济南市历下区和平路53号',         archNo:'370102FY26020', region:'解放路社区',   grid:'第一网格', specDate:'2026-07-02', specDoc:'徐东升', full:100, rStatus:'正常', mStatus:'有效管理', closed:'已结案', gravidity:2, mine:false, lock:'未上锁', fuCnt:2, examCnt:2, fuType:'产前随访' },
+    { org:'济南市天桥区工人新村社区卫生服务中心', name:'董丽君', idcard:'370102198908314420', idType:'居民身份证', grade:'红色', stage:'孕晚期', gestWeek:'33周', lmp:'2026-01-28', edc:'2026-11-04', gender:'女', age:37, phone:'15066658734', birth:'1989-08-31', address:'济南市天桥区济泺路130号',          archNo:'370102FY26021', region:'工人新村社区', grid:'第一网格', specDate:'2026-02-24', specDoc:'朱劲松', full:100, rStatus:'正常', mStatus:'有效管理', closed:'未结案', gravidity:3, mine:false, lock:'未上锁', fuCnt:5, examCnt:5, fuType:'产前随访' },
+    { org:'济南市历下区千佛山社区卫生服务中心', name:'贾晓楠', idcard:'370102200102084827', idType:'居民身份证', grade:'绿色', stage:'产后',   gestWeek:'产后20周', lmp:'2025-07-26', edc:'2026-05-02', gender:'女', age:25, phone:'15508664321', birth:'2001-02-08', address:'济南市历下区科院路19号',          archNo:'370102FY26022', region:'千佛山社区',   grid:'第二网格', specDate:'2025-08-18', specDoc:'王盛',   full:100, rStatus:'正常', mStatus:'终止管理', closed:'未结案', gravidity:1, mine:true, lock:'已上锁', fuCnt:7, examCnt:7, fuType:'产后42天检查' },
+    { org:'济南市市中区舜玉路社区卫生服务中心', name:'万雪梅', idcard:'370102199401254824', idType:'居民身份证', grade:'黄色', stage:'孕中期', gestWeek:'16周', lmp:'2026-05-30', edc:'2027-03-06', gender:'女', age:32, phone:'15562587321', birth:'1994-01-25', address:'济南市市中区玉函路39号',          archNo:'370102FY26023', region:'舜玉社区',     grid:'第一网格', specDate:'2026-06-18', specDoc:'敖鹏天', full:100, rStatus:'正常', mStatus:'有效管理', closed:'未结案', gravidity:2, mine:false, lock:'未上锁', fuCnt:2, examCnt:2, fuType:'产前随访' },
+    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'邵美琪', idcard:'370102199511084422', idType:'居民身份证', grade:'绿色', stage:'孕早期', gestWeek:'7周',  lmp:'2026-07-30', edc:'2027-05-06', gender:'女', age:30, phone:'13176648932', birth:'1995-11-08', address:'济南市历下区甸柳新村五区6号楼',   archNo:'370102FY26024', region:'甸柳社区',     grid:'第二网格', specDate:'2026-08-14', specDoc:'陆柳琳', full:100, rStatus:'正常', mStatus:'有效管理', closed:'已结案', gravidity:3, mine:false, lock:'未上锁', fuCnt:1, examCnt:1, fuType:'产前随访' }
   ];
 
   /* ================= 工具函数 ================= */
@@ -758,64 +653,29 @@
   function renderTable() {
     var org = $('fOrg').value, name = $('fName').value.trim(), idcard = $('fIdcard').value.trim();
     var region = $('fRegion').value, lock = $('fLock').value;
-    var rStatus = $('fRStatus').value, mStatus = $('fMStatus').value;
-    var grade = $('fGrade').value, stage = $('fStage').value, grid = $('fGrid').value;
-    var phone = $('fPhone').value.trim(), archNo = $('fArchNo').value.trim();
-    var gender = $('fGender').value, address = $('fAddress').value.trim();
-    var specDoc = $('fSpecDoc').value.trim();
-    var fuCntOp = $('fFuCntOp').value, fuCnt = $('fFuCnt').value.trim();
-    var examCntOp = $('fExamCntOp').value, examCnt = $('fExamCnt').value.trim();
-    var fuType = $('fFuType').value;
+    var closeSt = $('fClose').value, grade = $('fGrade').value;
+    var archNo = $('fArchNo').value.trim(), address = $('fAddress').value.trim();
+    var gest = $('fGest').value.trim();
     var edcStart = $('fEdcStart').value, edcEnd = $('fEdcEnd').value;
-    var fullOp = $('fFullOp').value, fullVal = $('fFullVal').value.trim();
-    var birthStart = $('fBirthStart').value, birthEnd = $('fBirthEnd').value;
     var specStart = $('fSpecStart').value, specEnd = $('fSpecEnd').value;
+    var mine = $('fMine').checked;
 
     lastList = maternalData.filter(function (r) {
-      if (org && r.org !== org) return false;
+      if (org && org.split(',').indexOf(r.org) === -1) return false;
       if (name && r.name.indexOf(name) === -1) return false;
       if (idcard && r.idcard.indexOf(idcard) === -1) return false;
+      if (archNo && r.archNo.indexOf(archNo) === -1) return false;
       if (region && r.region !== region) return false;
       if (lock && r.lock !== lock) return false;
-      if (rStatus && r.rStatus !== rStatus) return false;
-      if (mStatus && r.mStatus !== mStatus) return false;
+      if (closeSt && (r.closed || '未结案') !== closeSt) return false;
       if (grade && r.grade !== grade) return false;
-      if (stage && r.stage !== stage) return false;
-      if (grid && r.grid !== grid) return false;
-      if (phone && r.phone.indexOf(phone) === -1) return false;
-      if (archNo && r.archNo.indexOf(archNo) === -1) return false;
-      if (gender && r.gender !== gender) return false;
+      if (gest && String(r.gravidity) !== gest) return false;
       if (address && r.address.indexOf(address) === -1) return false;
-      if (specDoc && r.specDoc.indexOf(specDoc) === -1) return false;
-      if (fuType && r.fuType !== fuType) return false;
-      /* 随访次数：≥/≤/＝ 组合比较 */
-      if (fuCntOp && fuCnt !== '') {
-        var vc = r.fuCnt, vn = parseFloat(fuCnt);
-        if (fuCntOp === '≥' && !(vc >= vn)) return false;
-        if (fuCntOp === '≤' && !(vc <= vn)) return false;
-        if (fuCntOp === '＝' && vc !== vn) return false;
-      }
-      /* 产检次数：≥/≤/＝ 组合比较 */
-      if (examCntOp && examCnt !== '') {
-        var ec = r.examCnt, en = parseFloat(examCnt);
-        if (examCntOp === '≥' && !(ec >= en)) return false;
-        if (examCntOp === '≤' && !(ec <= en)) return false;
-        if (examCntOp === '＝' && ec !== en) return false;
-      }
-      /* 预产期范围 */
       if (edcStart && r.edc < edcStart) return false;
       if (edcEnd && r.edc > edcEnd) return false;
-      /* 档案完整度：≥/≤/＝ 组合比较 */
-      if (fullOp && fullVal !== '') {
-        var fv = parseFloat(fullVal);
-        if (fullOp === '≥' && !(r.full >= fv)) return false;
-        if (fullOp === '≤' && !(r.full <= fv)) return false;
-        if (fullOp === '＝' && r.full !== fv) return false;
-      }
-      if (birthStart && r.birth < birthStart) return false;
-      if (birthEnd && r.birth > birthEnd) return false;
       if (specStart && r.specDate < specStart) return false;
       if (specEnd && r.specDate > specEnd) return false;
+      if (mine && !r.mine) return false;
       return true;
     });
 
@@ -916,12 +776,10 @@
 
   /* ================= 交互 ================= */
   function resetFilter() {
-    ['fName', 'fIdcard', 'fPhone', 'fArchNo', 'fAddress', 'fSpecDoc', 'fArchDoc', 'fFuCnt', 'fExamCnt', 'fFullVal'].forEach(function (id) { $(id).value = ''; });
-    ['fOrg', 'fRegion', 'fGrid', 'fGrade', 'fStage', 'fFuCntOp', 'fExamCntOp', 'fFuType', 'fFullOp', 'fSpecOrg', 'fResidentType', 'fLiveType', 'fGender'].forEach(function (id) { $(id).value = ''; });
-    ['fBizStart', 'fBizEnd', 'fEdcStart', 'fEdcEnd', 'fSpecStart', 'fSpecEnd', 'fArchStart', 'fArchEnd', 'fBirthStart', 'fBirthEnd'].forEach(function (id) { var el = $(id); el.value = ''; el.type = 'text'; });
-    $('fLock').value = '未上锁';
-    $('fRStatus').value = '正常';
-    $('fMStatus').value = '有效管理';
+    ['fName', 'fIdcard', 'fArchNo', 'fAddress', 'fGest'].forEach(function (id) { $(id).value = ''; });
+    ['fOrg', 'fRegion', 'fGrade', 'fLock'].forEach(function (id) { $(id).value = ''; });
+    ['fEdcStart', 'fEdcEnd', 'fSpecStart', 'fSpecEnd'].forEach(function (id) { var el = $(id); el.value = ''; el.type = 'text'; });
+    $('fClose').value = '未结案';
     $('fMine').checked = false;
     curPage = 1;
     renderTable();
@@ -935,7 +793,7 @@
   }
 
   function toggleExtra() {
-    var rows = document.querySelectorAll('.filter-row.extra');
+    var rows = document.querySelectorAll('.filter-panel .filter-row.extra');
     var btn = $('btnExpand');
     var show = !rows[0].classList.contains('show');
     rows.forEach(function (row) { row.classList.toggle('show', show); });
@@ -1015,14 +873,23 @@
   });
 
   /* 筛选控件输入即实时过滤（并回到第一页） */
-  ['fName', 'fIdcard', 'fPhone', 'fArchNo', 'fAddress', 'fSpecDoc', 'fArchDoc', 'fFuCnt', 'fExamCnt', 'fFullVal'].forEach(function (id) {
+  ['fName', 'fIdcard', 'fArchNo', 'fAddress', 'fGest'].forEach(function (id) {
     $(id).addEventListener('input', function () { curPage = 1; renderTable(); });
   });
-  ['fOrg', 'fRegion', 'fLock', 'fRStatus', 'fMStatus', 'fGrade', 'fStage', 'fGrid', 'fFuCntOp', 'fExamCntOp', 'fFuType', 'fFullOp', 'fSpecOrg', 'fResidentType', 'fLiveType', 'fGender', 'fMine'].forEach(function (id) {
+  ['fOrg', 'fRegion', 'fLock', 'fClose', 'fGrade', 'fMine'].forEach(function (id) {
     $(id).addEventListener('change', function () { curPage = 1; renderTable(); });
   });
-  ['fBizStart', 'fBizEnd', 'fEdcStart', 'fEdcEnd', 'fSpecStart', 'fSpecEnd', 'fArchStart', 'fArchEnd', 'fBirthStart', 'fBirthEnd'].forEach(function (id) {
+  ['fEdcStart', 'fEdcEnd', 'fSpecStart', 'fSpecEnd'].forEach(function (id) {
     $(id).addEventListener('input', function () { curPage = 1; renderTable(); });
+  });
+
+  /* 复合筛选控件（管理机构/重点人群类型/管辖行政区）选择后实时过滤 */
+  document.querySelectorAll('.filter-panel [data-fcp]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      if (e.target.closest('.fcp-opt,.fcp-n,.fcp-clear')) {
+        setTimeout(function () { curPage = 1; renderTable(); }, 0);
+      }
+    });
   });
 
   /* ================= 档案选择弹框（新建专项第一步） ================= */

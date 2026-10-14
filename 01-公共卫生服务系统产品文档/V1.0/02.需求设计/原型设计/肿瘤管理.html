@@ -35,11 +35,37 @@
   .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
   .btn-plain{height:28px;padding:0 8px;font-size:13px;color:var(--primary);border-radius:var(--r-sm)}
   .btn-plain:hover{background:var(--primary-bg)}
-  /* 只看个人管理档案 复选框 */
-  .fi-check{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;color:var(--text-secondary);user-select:none;white-space:nowrap}
-  .fi-check input[type=checkbox]{width:15px;height:15px;accent-color:var(--primary);cursor:pointer}
-  /* 出生日期范围 */
-  .fi-dash{color:var(--text-tertiary);font-size:13px}
+  /* 主筛选区行距/列距/标签间距（对齐设计稿：行距 10、列距 22、标签-控件 12） */
+  .filter-panel .filter-row{gap:12px 22px;margin-bottom:10px}
+  .filter-panel .filter-item{gap:12px}
+  /* 筛选区内控件统一外框宽度（仅作用于主筛选区，不影响新建专项弹框内同名类） */
+  .filter-panel .fi-ctl,.filter-panel .fi-select{width:180px}
+  /* 筛选区内统一筛选复合控件（管理机构/管辖行政区）等宽 180px */
+  .filter-panel .fcp-ms,.filter-panel .fcp-cas,.filter-panel .fcp-tree,.filter-panel .fcp-mst{width:180px}
+  .filter-panel .fcp-ms .fcp-panel{width:max-content;min-width:100%;max-width:300px}
+  .filter-panel .fcp-tree .fcp-panel{width:200px}
+  /* 日期区间：单一外框（开始日期 ~ 结束日期 + 日历图标） */
+  .fi-range{display:flex;align-items:center;gap:6px;width:232px;height:32px;padding:0 8px 0 10px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);background:var(--bg-white);transition:all var(--transition-fast)}
+  .fi-range:hover{border-color:var(--primary)}
+  .fi-range:focus-within{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-range input{flex:1 1 0;min-width:0;height:30px;border:none;background:transparent;outline:none;padding:0;font-size:14px;color:var(--text-primary);font-family:inherit}
+  .fi-range input::placeholder{color:var(--text-placeholder)}
+  .fi-range input::-webkit-calendar-picker-indicator{display:none}
+  .fi-tilde{flex-shrink:0;font-size:14px;color:var(--text-placeholder)}
+  .fi-cal{width:14px;height:14px;flex-shrink:0;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none' stroke='%23bfbfbf' stroke-width='1.2'%3E%3Crect x='1.4' y='2.4' width='11.2' height='10.2' rx='1.6'/%3E%3Cpath d='M1.4 5.6h11.2M4.6 1.4v2M9.4 1.4v2'/%3E%3C/svg%3E") no-repeat center/contain}
+  /* 只看个人管理档案 复选框（统一写法，替换各页旧版 .own-check） */
+  .fi-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer;user-select:none;white-space:nowrap;margin:0}
+  .fi-check input[type=checkbox]{width:15px;height:15px;margin:0;accent-color:var(--primary);cursor:pointer}
+  /* 卡氏评分值：比较方式（范围/等于/大于/小于，可一键清空）+ 数值框 */
+  .fi-kps-wrap{display:inline-flex;align-items:center;gap:6px}
+  .fi-kps{position:relative;display:inline-flex;align-items:center;flex:0 0 auto}
+  .filter-panel .fi-kps .fi-kps-sel{width:112px}
+  .fi-kps.has-val .fi-kps-sel{background-image:none;padding-right:30px}
+  .fi-kps .fi-kps-x{display:none;position:absolute;right:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;box-sizing:border-box;border:1px solid #BFBFBF;border-radius:50%;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='5' viewBox='0 0 5 5'%3E%3Cpath d='M1 1l3 3M4 1L1 4' stroke='%23BFBFBF' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center/5px 5px;cursor:pointer;user-select:none}
+  .fi-kps.has-val .fi-kps-x{display:block}
+  .fi-kps .fi-kps-x:hover{border-color:var(--primary);background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='5' viewBox='0 0 5 5'%3E%3Cpath d='M1 1l3 3M4 1L1 4' stroke='%23007AFF' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E")}
+  .filter-panel .fi-kps-num{width:112px}
+  .fi-kps-to{flex-shrink:0;font-size:14px;color:var(--text-secondary)}
 
   /* ===== 数据表格 ===== */
   .table-wrap{flex:1;overflow:auto;min-height:0}
@@ -222,46 +248,39 @@
       </div>
 
       <!-- 筛选区 -->
+            <!-- 筛选区（每行 4 个条件；前 2 行常显，点击「展开」显示后 2 行） -->
       <div class="filter-panel">
+        <!-- 行 1 -->
         <div class="filter-row">
-          <div class="filter-item"><label>管理机构</label>
-            <select id="fOrg" class="fi-select w-lg">
-              <option value="" selected>请选择</option>
-              <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
-              <option value="扬州市江都区宜陵镇中心卫生院">扬州市江都区宜陵镇中心卫生院</option>
-              <option value="扬州市江都区郭村镇卫生院">扬州市江都区郭村镇卫生院</option>
-              <option value="扬州市江都区吴桥镇卫生院">扬州市江都区吴桥镇卫生院</option>
-              <option value="扬州市江都区仙女镇社区卫生服务中心">扬州市江都区仙女镇社区卫生服务中心</option>
-              <option value="扬州市江都区大桥镇中心卫生院">扬州市江都区大桥镇中心卫生院</option>
-            </select>
+          <div class="filter-item"><label>管理机构：</label>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fOrg">
+            </div>
           </div>
-          <div class="filter-item"><label>姓名</label><input id="fName" class="fi-ctl" placeholder="请输入"></div>
-          <div class="filter-item"><label>证件号</label><input id="fIdcard" class="fi-ctl" placeholder="请输入"></div>
-          <div class="filter-item"><label>性别</label>
+          <div class="filter-item"><label>姓名：</label><input id="fName" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>证件号：</label><input id="fIdcard" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>性别：</label>
             <select id="fGender" class="fi-select">
               <option value="" selected>请选择</option>
               <option value="男">男</option>
               <option value="女">女</option>
             </select>
           </div>
-          <div class="filter-item"><label>管理行政区</label>
-            <select id="fRegion" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="同兴村">同兴村</option>
-              <option value="郭村">郭村</option>
-              <option value="吴桥">吴桥</option>
-              <option value="龙川">龙川</option>
-              <option value="大桥">大桥</option>
-              <option value="谢桥">谢桥</option>
-              <option value="白塔">白塔</option>
-              <option value="舜华社区">舜华社区</option>
-            </select>
-          </div>
         </div>
+        <!-- 行 2 -->
         <div class="filter-row">
-          <div class="filter-item"><label>家庭住址</label><input id="fAddr" class="fi-ctl" placeholder="请输入"></div>
-          <div class="filter-item"><label>诊断名称</label><input id="fDiag" class="fi-ctl" placeholder="请输入"></div>
-          <div class="filter-item"><label>居民类型</label>
+          <div class="filter-item"><label>管辖行政区：</label>
+            <div class="fcp-cas" data-fcp="cas" data-caret>
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fRegion">
+            </div>
+          </div>
+          <div class="filter-item"><label>家庭住址：</label><input id="fAddr" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>诊断名称：</label><input id="fDiag" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>居民类型：</label>
             <select id="fResType" class="fi-select">
               <option value="" selected>请选择</option>
               <option value="户籍">户籍</option>
@@ -269,31 +288,57 @@
               <option value="流动">流动</option>
             </select>
           </div>
-          <div class="filter-item"><label>居住类型</label>
+          <div class="filter-btns">
+            <button class="btn btn-default" onclick="resetFilter()">重置</button>
+            <button class="btn btn-primary" onclick="applyFilter()">查询</button>
+            <button class="btn-plain" id="btnExpand" onclick="toggleExtra()">展开 ▼</button>
+          </div>
+        </div>
+        <!-- 行 3（折叠） -->
+        <div class="filter-row extra">
+          <div class="filter-item"><label>居住类型：</label>
             <select id="fLiveType" class="fi-select">
               <option value="" selected>请选择</option>
               <option value="城镇">城镇</option>
               <option value="农村">农村</option>
             </select>
           </div>
-          <div class="filter-item"><label>出生日期</label>
-            <input id="fBirthStart" class="fi-ctl" style="width:132px" type="text" placeholder="开始日期"
-                   onfocus="this.type='date';try{this.showPicker()}catch(e){}"
-                   onblur="if(!this.value){this.type='text'}">
-            <span class="fi-dash">~</span>
-            <input id="fBirthEnd" class="fi-ctl" style="width:132px" type="text" placeholder="结束日期"
-                   onfocus="this.type='date';try{this.showPicker()}catch(e){}"
-                   onblur="if(!this.value){this.type='text'}">
+          <div class="filter-item"><label>出生日期：</label>
+            <div class="fi-range">
+              <input id="fBirthStart" class="fi-rd" type="text" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}" placeholder="开始日期">
+              <span class="fi-tilde">~</span>
+              <input id="fBirthEnd" class="fi-rd" type="text" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}" placeholder="结束日期">
+              <span class="fi-cal"></span>
+            </div>
           </div>
-          <div class="filter-btns">
-            <button class="btn btn-default" onclick="resetFilter()">重置</button>
-            <button class="btn btn-primary" onclick="applyFilter()">查询</button>
-            <button class="btn-plain" id="btnExpand" onclick="toggleExtra()">展开 +</button>
+          <div class="filter-item"><label>卡氏评分值：</label>
+            <span class="fi-kps-wrap">
+              <span class="fi-kps" id="kpsCtl">
+                <select id="fKpsOp" class="fi-select fi-kps-sel">
+                  <option value="" selected>请选择</option>
+                  <option value="范围">范围</option>
+                  <option value="等于">等于</option>
+                  <option value="大于">大于</option>
+                  <option value="小于">小于</option>
+                </select>
+                <span class="fi-kps-x" title="清空" onmousedown="event.preventDefault();event.stopPropagation()" onclick="clearKps()"></span>
+              </span>
+              <input id="fKps1" class="fi-ctl fi-kps-num" style="display:none" placeholder="请输入">
+              <span class="fi-kps-to" id="fKpsTo" style="display:none">至</span>
+              <input id="fKps2" class="fi-ctl fi-kps-num" style="display:none" placeholder="请输入">
+            </span>
           </div>
+          <div class="filter-item"><label>建档医生：</label><input id="fDoc" class="fi-ctl" placeholder="请输入"></div>
         </div>
-        <div class="filter-row extra" id="extraRow">
-          <div class="filter-item"><label>联系电话</label><input id="fPhone" class="fi-ctl" placeholder="请输入联系电话"></div>
-          <div class="filter-item"><label>档案编号</label><input id="fArchNo" class="fi-ctl" placeholder="请输入档案编号"></div>
+        <!-- 行 4（折叠） -->
+        <div class="filter-row extra">
+          <div class="filter-item"><label>锁定状态：</label>
+            <select id="fLock" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="未上锁">未上锁</option>
+              <option value="已上锁">已上锁</option>
+            </select>
+          </div>
           <div class="filter-item">
             <label class="fi-check"><input type="checkbox" id="fOwn"> 只看个人管理档案</label>
           </div>
@@ -372,24 +417,18 @@
         </div>
         <div class="filter-row">
           <div class="filter-item"><label>管理机构</label>
-            <select id="sfOrg" class="fi-select w-lg">
-              <option value="" selected>请选择</option>
-              <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
-              <option value="扬州市江都区宜陵镇中心卫生院">扬州市江都区宜陵镇中心卫生院</option>
-              <option value="扬州市江都区郭村镇卫生院">扬州市江都区郭村镇卫生院</option>
-              <option value="扬州市江都区吴桥镇卫生院">扬州市江都区吴桥镇卫生院</option>
-              <option value="扬州市江都区仙女镇社区卫生服务中心">扬州市江都区仙女镇社区卫生服务中心</option>
-              <option value="扬州市江都区大桥镇中心卫生院">扬州市江都区大桥镇中心卫生院</option>
-            </select>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="sfOrg">
+            </div>
           </div>
           <div class="filter-item"><label>管辖网格</label>
-            <select id="sfGrid" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="第一网格">第一网格</option>
-              <option value="第二网格">第二网格</option>
-              <option value="第三网格">第三网格</option>
-              <option value="第四网格">第四网格</option>
-            </select>
+            <div class="fcp-tree" data-fcp="tree">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="sfGrid">
+            </div>
           </div>
           <div class="filter-btns">
             <button class="btn btn-default" onclick="resetSelectFilter()">重置</button>
@@ -584,30 +623,30 @@
 <script>
   /* ================= 模拟数据（姓名/证件号/出生日期/性别/年龄相互对应；含 TNM 与临床双分期体系） ================= */
   var tuData = [
-    { org:'扬州市江都区宜陵镇中心卫生院',       name:'吴昊',     idcard:'321088197104073635', idType:'居民身份证', gender:'男', birth:'1971-04-07', age:55, phone:'13899112121', address:'同兴村李庄组12号',       diagBasis:'X线', current:'',       kps:12,  diagName:'颌下腺良性肿瘤', tnm:'不详',    clinical:'0-I期', region:'同兴村', archNo:'32101201201136301', resType:'户籍', liveType:'农村', own:true,  lock:'未上锁' },
-    { org:'扬州市江都区郭村镇卫生院',           name:'刘菊兰NV', idcard:'321088194908174139', idType:'居民身份证', gender:'女', birth:'1949-08-17', age:77, phone:'13101010101', address:'郭村周庄组',             diagBasis:'临床', current:'',       kps:1,   diagName:'淋巴上皮样淋巴瘤', tnm:'',        clinical:'0-I期', region:'郭村',   archNo:'32101211211200035', resType:'户籍', liveType:'农村', own:false, lock:'未上锁' },
-    { org:'扬州市江都区宜陵镇中心卫生院',       name:'高德旺',   idcard:'321088195502143617', idType:'居民身份证', gender:'男', birth:'1955-02-14', age:71, phone:'13705271654', address:'宜陵镇同兴村李庄组18号', diagBasis:'病理', current:'治疗中', kps:80,  diagName:'肺恶性肿瘤',     tnm:'T2N1M0',  clinical:'II期',   region:'同兴村', archNo:'32101203010700003', resType:'户籍', liveType:'农村', own:true,  lock:'未上锁' },
-    { org:'扬州市江都区郭村镇卫生院',           name:'陈秀兰',   idcard:'321088194811205826', idType:'居民身份证', gender:'女', birth:'1948-11-20', age:77, phone:'13852712346', address:'郭村周庄组26号',         diagBasis:'病理', current:'稳定',   kps:90,  diagName:'乳腺恶性肿瘤',   tnm:'T1N0M0',  clinical:'I期',    region:'郭村',   archNo:'32101203010700004', resType:'户籍', liveType:'农村', own:false, lock:'未上锁' },
-    { org:'扬州市江都区吴桥镇卫生院',           name:'赵庆丰',   idcard:'321088196208157913', idType:'居民身份证', gender:'男', birth:'1962-08-15', age:64, phone:'13952735678', address:'吴桥街56号',               diagBasis:'CT',   current:'治疗中', kps:70,  diagName:'结肠恶性肿瘤',   tnm:'T3N0M0',  clinical:'II期',   region:'吴桥',   archNo:'32101203010700005', resType:'户籍', liveType:'城镇', own:false, lock:'未上锁' },
-    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'孙桂英',   idcard:'321088194603054428', idType:'居民身份证', gender:'女', birth:'1946-03-05', age:80, phone:'15805273456', address:'仙女镇龙川社区7号',       diagBasis:'病理', current:'稳定',   kps:60,  diagName:'胃恶性肿瘤',     tnm:'T3N1M0',  clinical:'III期',  region:'龙川',   archNo:'32101203010700006', resType:'常住', liveType:'城镇', own:false, lock:'已上锁' },
-    { org:'扬州市江都区大桥镇中心卫生院',       name:'王建国',   idcard:'321088195810126019', idType:'居民身份证', gender:'男', birth:'1958-10-12', age:68, phone:'13665279874', address:'大桥镇东大街31号',         diagBasis:'内镜', current:'好转',   kps:80,  diagName:'食管恶性肿瘤',   tnm:'T2N0M0',  clinical:'II期',   region:'大桥',   archNo:'32101203010700007', resType:'户籍', liveType:'城镇', own:false, lock:'未上锁' },
-    { org:'扬州市江都区宜陵镇中心卫生院',       name:'周淑芬',   idcard:'321088195306224826', idType:'居民身份证', gender:'女', birth:'1953-06-22', age:73, phone:'15952765432', address:'宜陵镇振兴路15号',         diagBasis:'B超', current:'稳定',   kps:100, diagName:'甲状腺良性肿瘤', tnm:'不详',    clinical:'0-I期',  region:'同兴村', archNo:'32101203010700008', resType:'户籍', liveType:'农村', own:true,  lock:'未上锁' },
-    { org:'扬州市江都区郭村镇卫生院',           name:'朱文明',   idcard:'321088196504075317', idType:'居民身份证', gender:'男', birth:'1965-04-07', age:61, phone:'13805278653', address:'郭村镇通扬路9号',         diagBasis:'CT',   current:'治疗中', kps:50,  diagName:'肝恶性肿瘤',     tnm:'T2N0M1',  clinical:'IV期',   region:'郭村',   archNo:'32101203010700009', resType:'户籍', liveType:'城镇', own:false, lock:'未上锁' },
-    { org:'扬州市江都区吴桥镇卫生院',           name:'钱玉梅',   idcard:'321088197211092643', idType:'居民身份证', gender:'女', birth:'1972-11-09', age:53, phone:'13773581920', address:'吴桥镇兴吴路22号',         diagBasis:'病理', current:'康复',   kps:90,  diagName:'宫颈恶性肿瘤',   tnm:'T1bN0M0', clinical:'I期',    region:'吴桥',   archNo:'32101203010700010', resType:'户籍', liveType:'农村', own:false, lock:'未上锁' },
-    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'冯国强',   idcard:'321088196009185615', idType:'居民身份证', gender:'男', birth:'1960-09-18', age:66, phone:'15862009753', address:'仙女镇东方红路45号',     diagBasis:'CT',   current:'稳定',   kps:80,  diagName:'肺恶性肿瘤',     tnm:'T1N0M0',  clinical:'I期',    region:'龙川',   archNo:'32101203010700011', resType:'常住', liveType:'城镇', own:false, lock:'未上锁' },
-    { org:'扬州市江都区大桥镇中心卫生院',       name:'何秀珍',   idcard:'321088195405236724', idType:'居民身份证', gender:'女', birth:'1954-05-23', age:72, phone:'13952739518', address:'大桥镇忠诚村8组',         diagBasis:'手术', current:'稳定',   kps:70,  diagName:'直肠恶性肿瘤',   tnm:'T3N0M0',  clinical:'II期',   region:'大桥',   archNo:'32101203010700012', resType:'户籍', liveType:'农村', own:true,  lock:'未上锁' },
-    { org:'扬州市江都区宜陵镇中心卫生院',       name:'蒋立新',   idcard:'321088196712304718', idType:'居民身份证', gender:'男', birth:'1967-12-30', age:58, phone:'13615187246', address:'宜陵镇文星路18号',       diagBasis:'MRI', current:'治疗中', kps:80,  diagName:'鼻咽恶性肿瘤',   tnm:'T2N1M0',  clinical:'II期',   region:'同兴村', archNo:'32101203010700013', resType:'户籍', liveType:'城镇', own:false, lock:'未上锁' },
-    { org:'扬州市江都区郭村镇卫生院',           name:'沈玉兰',   idcard:'321088195108275842', idType:'居民身份证', gender:'女', birth:'1951-08-27', age:75, phone:'15905274683', address:'郭村佘坂组3号',           diagBasis:'CT',   current:'治疗中', kps:60,  diagName:'胰腺恶性肿瘤',   tnm:'T3N0M0',  clinical:'III期',  region:'郭村',   archNo:'32101203010700014', resType:'户籍', liveType:'农村', own:false, lock:'未上锁' },
-    { org:'扬州市江都区吴桥镇卫生院',           name:'韩德顺',   idcard:'321088195511196312', idType:'居民身份证', gender:'男', birth:'1955-11-19', age:70, phone:'13852796317', address:'吴桥镇谢桥村12组',       diagBasis:'病理', current:'稳定',   kps:70,  diagName:'前列腺恶性肿瘤', tnm:'T2N0M0',  clinical:'II期',   region:'谢桥',   archNo:'32101203010700015', resType:'户籍', liveType:'农村', own:false, lock:'已上锁' },
-    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'潘玉珍',  idcard:'321088197209134426', idType:'居民身份证', gender:'女', birth:'1972-09-13', age:54, phone:'15190872465', address:'仙女镇利民南路60号',       diagBasis:'B超', current:'康复',   kps:100, diagName:'乳腺纤维腺瘤',   tnm:'不详',    clinical:'0-I期',  region:'龙川',   archNo:'32101203010700016', resType:'户籍', liveType:'城镇', own:false, lock:'未上锁' },
-    { org:'扬州市江都区大桥镇中心卫生院',       name:'严洪斌',   idcard:'321088196005063417', idType:'居民身份证', gender:'男', birth:'1960-05-06', age:66, phone:'13773365498', address:'大桥镇白塔村5组',         diagBasis:'CT',   current:'康复',   kps:90,  diagName:'肾恶性肿瘤',     tnm:'T1N0M0',  clinical:'I期',    region:'白塔',   archNo:'32101203010700017', resType:'户籍', liveType:'农村', own:true,  lock:'未上锁' },
-    { org:'扬州市江都区宜陵镇中心卫生院',       name:'尹桂香',   idcard:'321088194810124425', idType:'居民身份证', gender:'女', birth:'1948-10-12', age:77, phone:'15952738102', address:'宜陵镇七里村2组',         diagBasis:'病理', current:'治疗中', kps:80,  diagName:'卵巢恶性肿瘤',   tnm:'T1cN0M0', clinical:'I期',    region:'同兴村', archNo:'32101203010700018', resType:'户籍', liveType:'农村', own:false, lock:'未上锁' },
-    { org:'扬州市江都区郭村镇卫生院',           name:'白世昌',   idcard:'321088195902233613', idType:'居民身份证', gender:'男', birth:'1959-02-23', age:67, phone:'13813154672', address:'郭村松山组16号',           diagBasis:'内镜', current:'稳定',   kps:90,  diagName:'膀胱恶性肿瘤',   tnm:'T1N0M0',  clinical:'I期',    region:'郭村',   archNo:'32101203010700019', resType:'户籍', liveType:'城镇', own:false, lock:'未上锁' },
-    { org:'扬州市江都区吴桥镇卫生院',           name:'罗秀英',   idcard:'321088196606115428', idType:'居民身份证', gender:'女', birth:'1966-06-11', age:60, phone:'13695271784', address:'吴桥镇五塔村9组',         diagBasis:'活检', current:'复发',   kps:50,  diagName:'肺恶性肿瘤',     tnm:'T2N0M1',  clinical:'IV期',   region:'吴桥',   archNo:'32101203010700020', resType:'常住', liveType:'农村', own:false, lock:'未上锁' },
-    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'崔建军',  idcard:'321088196509033912', idType:'居民身份证', gender:'男', birth:'1965-09-03', age:61, phone:'15805276930', address:'仙女镇建乐村4组',         diagBasis:'CT',   current:'治疗中', kps:60,  diagName:'肝恶性肿瘤',     tnm:'T3N0M0',  clinical:'III期',  region:'龙川',   archNo:'32101203010700021', resType:'流动', liveType:'城镇', own:false, lock:'未上锁' },
-    { org:'扬州市江都区大桥镇中心卫生院',       name:'华凤英',   idcard:'321088195705164427', idType:'居民身份证', gender:'女', birth:'1957-05-16', age:69, phone:'13952728641', address:'大桥镇嘶马村11组',       diagBasis:'病理', current:'稳定',   kps:70,  diagName:'结肠恶性肿瘤',   tnm:'T2N1M0',  clinical:'III期',  region:'大桥',   archNo:'32101203010700022', resType:'户籍', liveType:'农村', own:false, lock:'未上锁' },
-    { org:'扬州市江都区宜陵镇中心卫生院',       name:'顾庆丰',   idcard:'321088196412253816', idType:'居民身份证', gender:'男', birth:'1964-12-25', age:61, phone:'13773524698', address:'宜陵镇许桥村6组',         diagBasis:'内镜', current:'稳定',   kps:100, diagName:'胃间质瘤',       tnm:'不详',    clinical:'0-I期',  region:'同兴村', archNo:'32101203010700023', resType:'户籍', liveType:'农村', own:true,  lock:'未上锁' },
-    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'尤桂珍',  idcard:'321088195307284829', idType:'居民身份证', gender:'女', birth:'1953-07-28', age:73, phone:'13988554466', address:'仙女镇利民北路33号',     diagBasis:'病理', current:'稳定',   kps:80,  diagName:'乳腺恶性肿瘤',   tnm:'T2N0M0',  clinical:'II期',   region:'龙川',   archNo:'32101203010700024', resType:'户籍', liveType:'城镇', own:false, lock:'未上锁' }
+    { org:'扬州市江都区宜陵镇中心卫生院',       name:'吴昊',     idcard:'321088197104073635', idType:'居民身份证', gender:'男', birth:'1971-04-07', age:55, phone:'13899112121', address:'同兴村李庄组12号',       diagBasis:'X线', current:'',       kps:12,  diagName:'颌下腺良性肿瘤', tnm:'不详',    clinical:'0-I期', region:'同兴村', archNo:'32101201201136301', resType:'户籍', liveType:'农村', doc:'徐东升', own:true,  lock:'未上锁' },
+    { org:'扬州市江都区郭村镇卫生院',           name:'刘菊兰NV', idcard:'321088194908174139', idType:'居民身份证', gender:'女', birth:'1949-08-17', age:77, phone:'13101010101', address:'郭村周庄组',             diagBasis:'临床', current:'',       kps:1,   diagName:'淋巴上皮样淋巴瘤', tnm:'',        clinical:'0-I期', region:'郭村',   archNo:'32101211211200035', resType:'户籍', liveType:'农村', doc:'白云虎', own:false, lock:'未上锁' },
+    { org:'扬州市江都区宜陵镇中心卫生院',       name:'高德旺',   idcard:'321088195502143617', idType:'居民身份证', gender:'男', birth:'1955-02-14', age:71, phone:'13705271654', address:'宜陵镇同兴村李庄组18号', diagBasis:'病理', current:'治疗中', kps:80,  diagName:'肺恶性肿瘤',     tnm:'T2N1M0',  clinical:'II期',   region:'同兴村', archNo:'32101203010700003', resType:'户籍', liveType:'农村', doc:'陈国强', own:true,  lock:'未上锁' },
+    { org:'扬州市江都区郭村镇卫生院',           name:'陈秀兰',   idcard:'321088194811205826', idType:'居民身份证', gender:'女', birth:'1948-11-20', age:77, phone:'13852712346', address:'郭村周庄组26号',         diagBasis:'病理', current:'稳定',   kps:90,  diagName:'乳腺恶性肿瘤',   tnm:'T1N0M0',  clinical:'I期',    region:'郭村',   archNo:'32101203010700004', resType:'户籍', liveType:'农村', doc:'王秀兰', own:false, lock:'未上锁' },
+    { org:'扬州市江都区吴桥镇卫生院',           name:'赵庆丰',   idcard:'321088196208157913', idType:'居民身份证', gender:'男', birth:'1962-08-15', age:64, phone:'13952735678', address:'吴桥街56号',               diagBasis:'CT',   current:'治疗中', kps:70,  diagName:'结肠恶性肿瘤',   tnm:'T3N0M0',  clinical:'II期',   region:'吴桥',   archNo:'32101203010700005', resType:'户籍', liveType:'城镇', doc:'李文斌', own:false, lock:'未上锁' },
+    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'孙桂英',   idcard:'321088194603054428', idType:'居民身份证', gender:'女', birth:'1946-03-05', age:80, phone:'15805273456', address:'仙女镇龙川社区7号',       diagBasis:'病理', current:'稳定',   kps:60,  diagName:'胃恶性肿瘤',     tnm:'T3N1M0',  clinical:'III期',  region:'龙川',   archNo:'32101203010700006', resType:'常住', liveType:'城镇', doc:'张建华', own:false, lock:'已上锁' },
+    { org:'扬州市江都区大桥镇中心卫生院',       name:'王建国',   idcard:'321088195810126019', idType:'居民身份证', gender:'男', birth:'1958-10-12', age:68, phone:'13665279874', address:'大桥镇东大街31号',         diagBasis:'内镜', current:'好转',   kps:80,  diagName:'食管恶性肿瘤',   tnm:'T2N0M0',  clinical:'II期',   region:'大桥',   archNo:'32101203010700007', resType:'户籍', liveType:'城镇', doc:'周慧敏', own:false, lock:'未上锁' },
+    { org:'扬州市江都区宜陵镇中心卫生院',       name:'周淑芬',   idcard:'321088195306224826', idType:'居民身份证', gender:'女', birth:'1953-06-22', age:73, phone:'15952765432', address:'宜陵镇振兴路15号',         diagBasis:'B超', current:'稳定',   kps:100, diagName:'甲状腺良性肿瘤', tnm:'不详',    clinical:'0-I期',  region:'同兴村', archNo:'32101203010700008', resType:'户籍', liveType:'农村', doc:'赵鹏飞', own:true,  lock:'未上锁' },
+    { org:'扬州市江都区郭村镇卫生院',           name:'朱文明',   idcard:'321088196504075317', idType:'居民身份证', gender:'男', birth:'1965-04-07', age:61, phone:'13805278653', address:'郭村镇通扬路9号',         diagBasis:'CT',   current:'治疗中', kps:50,  diagName:'肝恶性肿瘤',     tnm:'T2N0M1',  clinical:'IV期',   region:'郭村',   archNo:'32101203010700009', resType:'户籍', liveType:'城镇', doc:'徐东升', own:false, lock:'未上锁' },
+    { org:'扬州市江都区吴桥镇卫生院',           name:'钱玉梅',   idcard:'321088197211092643', idType:'居民身份证', gender:'女', birth:'1972-11-09', age:53, phone:'13773581920', address:'吴桥镇兴吴路22号',         diagBasis:'病理', current:'康复',   kps:90,  diagName:'宫颈恶性肿瘤',   tnm:'T1bN0M0', clinical:'I期',    region:'吴桥',   archNo:'32101203010700010', resType:'户籍', liveType:'农村', doc:'白云虎', own:false, lock:'未上锁' },
+    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'冯国强',   idcard:'321088196009185615', idType:'居民身份证', gender:'男', birth:'1960-09-18', age:66, phone:'15862009753', address:'仙女镇东方红路45号',     diagBasis:'CT',   current:'稳定',   kps:80,  diagName:'肺恶性肿瘤',     tnm:'T1N0M0',  clinical:'I期',    region:'龙川',   archNo:'32101203010700011', resType:'常住', liveType:'城镇', doc:'陈国强', own:false, lock:'未上锁' },
+    { org:'扬州市江都区大桥镇中心卫生院',       name:'何秀珍',   idcard:'321088195405236724', idType:'居民身份证', gender:'女', birth:'1954-05-23', age:72, phone:'13952739518', address:'大桥镇忠诚村8组',         diagBasis:'手术', current:'稳定',   kps:70,  diagName:'直肠恶性肿瘤',   tnm:'T3N0M0',  clinical:'II期',   region:'大桥',   archNo:'32101203010700012', resType:'户籍', liveType:'农村', doc:'王秀兰', own:true,  lock:'未上锁' },
+    { org:'扬州市江都区宜陵镇中心卫生院',       name:'蒋立新',   idcard:'321088196712304718', idType:'居民身份证', gender:'男', birth:'1967-12-30', age:58, phone:'13615187246', address:'宜陵镇文星路18号',       diagBasis:'MRI', current:'治疗中', kps:80,  diagName:'鼻咽恶性肿瘤',   tnm:'T2N1M0',  clinical:'II期',   region:'同兴村', archNo:'32101203010700013', resType:'户籍', liveType:'城镇', doc:'李文斌', own:false, lock:'未上锁' },
+    { org:'扬州市江都区郭村镇卫生院',           name:'沈玉兰',   idcard:'321088195108275842', idType:'居民身份证', gender:'女', birth:'1951-08-27', age:75, phone:'15905274683', address:'郭村佘坂组3号',           diagBasis:'CT',   current:'治疗中', kps:60,  diagName:'胰腺恶性肿瘤',   tnm:'T3N0M0',  clinical:'III期',  region:'郭村',   archNo:'32101203010700014', resType:'户籍', liveType:'农村', doc:'张建华', own:false, lock:'未上锁' },
+    { org:'扬州市江都区吴桥镇卫生院',           name:'韩德顺',   idcard:'321088195511196312', idType:'居民身份证', gender:'男', birth:'1955-11-19', age:70, phone:'13852796317', address:'吴桥镇谢桥村12组',       diagBasis:'病理', current:'稳定',   kps:70,  diagName:'前列腺恶性肿瘤', tnm:'T2N0M0',  clinical:'II期',   region:'谢桥',   archNo:'32101203010700015', resType:'户籍', liveType:'农村', doc:'周慧敏', own:false, lock:'已上锁' },
+    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'潘玉珍',  idcard:'321088197209134426', idType:'居民身份证', gender:'女', birth:'1972-09-13', age:54, phone:'15190872465', address:'仙女镇利民南路60号',       diagBasis:'B超', current:'康复',   kps:100, diagName:'乳腺纤维腺瘤',   tnm:'不详',    clinical:'0-I期',  region:'龙川',   archNo:'32101203010700016', resType:'户籍', liveType:'城镇', doc:'赵鹏飞', own:false, lock:'未上锁' },
+    { org:'扬州市江都区大桥镇中心卫生院',       name:'严洪斌',   idcard:'321088196005063417', idType:'居民身份证', gender:'男', birth:'1960-05-06', age:66, phone:'13773365498', address:'大桥镇白塔村5组',         diagBasis:'CT',   current:'康复',   kps:90,  diagName:'肾恶性肿瘤',     tnm:'T1N0M0',  clinical:'I期',    region:'白塔',   archNo:'32101203010700017', resType:'户籍', liveType:'农村', doc:'徐东升', own:true,  lock:'未上锁' },
+    { org:'扬州市江都区宜陵镇中心卫生院',       name:'尹桂香',   idcard:'321088194810124425', idType:'居民身份证', gender:'女', birth:'1948-10-12', age:77, phone:'15952738102', address:'宜陵镇七里村2组',         diagBasis:'病理', current:'治疗中', kps:80,  diagName:'卵巢恶性肿瘤',   tnm:'T1cN0M0', clinical:'I期',    region:'同兴村', archNo:'32101203010700018', resType:'户籍', liveType:'农村', doc:'白云虎', own:false, lock:'未上锁' },
+    { org:'扬州市江都区郭村镇卫生院',           name:'白世昌',   idcard:'321088195902233613', idType:'居民身份证', gender:'男', birth:'1959-02-23', age:67, phone:'13813154672', address:'郭村松山组16号',           diagBasis:'内镜', current:'稳定',   kps:90,  diagName:'膀胱恶性肿瘤',   tnm:'T1N0M0',  clinical:'I期',    region:'郭村',   archNo:'32101203010700019', resType:'户籍', liveType:'城镇', doc:'陈国强', own:false, lock:'未上锁' },
+    { org:'扬州市江都区吴桥镇卫生院',           name:'罗秀英',   idcard:'321088196606115428', idType:'居民身份证', gender:'女', birth:'1966-06-11', age:60, phone:'13695271784', address:'吴桥镇五塔村9组',         diagBasis:'活检', current:'复发',   kps:50,  diagName:'肺恶性肿瘤',     tnm:'T2N0M1',  clinical:'IV期',   region:'吴桥',   archNo:'32101203010700020', resType:'常住', liveType:'农村', doc:'王秀兰', own:false, lock:'未上锁' },
+    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'崔建军',  idcard:'321088196509033912', idType:'居民身份证', gender:'男', birth:'1965-09-03', age:61, phone:'15805276930', address:'仙女镇建乐村4组',         diagBasis:'CT',   current:'治疗中', kps:60,  diagName:'肝恶性肿瘤',     tnm:'T3N0M0',  clinical:'III期',  region:'龙川',   archNo:'32101203010700021', resType:'流动', liveType:'城镇', doc:'李文斌', own:false, lock:'未上锁' },
+    { org:'扬州市江都区大桥镇中心卫生院',       name:'华凤英',   idcard:'321088195705164427', idType:'居民身份证', gender:'女', birth:'1957-05-16', age:69, phone:'13952728641', address:'大桥镇嘶马村11组',       diagBasis:'病理', current:'稳定',   kps:70,  diagName:'结肠恶性肿瘤',   tnm:'T2N1M0',  clinical:'III期',  region:'大桥',   archNo:'32101203010700022', resType:'户籍', liveType:'农村', doc:'张建华', own:false, lock:'未上锁' },
+    { org:'扬州市江都区宜陵镇中心卫生院',       name:'顾庆丰',   idcard:'321088196412253816', idType:'居民身份证', gender:'男', birth:'1964-12-25', age:61, phone:'13773524698', address:'宜陵镇许桥村6组',         diagBasis:'内镜', current:'稳定',   kps:100, diagName:'胃间质瘤',       tnm:'不详',    clinical:'0-I期',  region:'同兴村', archNo:'32101203010700023', resType:'户籍', liveType:'农村', doc:'周慧敏', own:true,  lock:'未上锁' },
+    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'尤桂珍',  idcard:'321088195307284829', idType:'居民身份证', gender:'女', birth:'1953-07-28', age:73, phone:'13988554466', address:'仙女镇利民北路33号',     diagBasis:'病理', current:'稳定',   kps:80,  diagName:'乳腺恶性肿瘤',   tnm:'T2N0M0',  clinical:'II期',   region:'龙川',   archNo:'32101203010700024', resType:'户籍', liveType:'城镇', doc:'赵鹏飞', own:false, lock:'未上锁' }
   ];
 
   /* ================= 工具函数 ================= */
@@ -637,7 +676,8 @@
     var addr = $('fAddr').value.trim(), diag = $('fDiag').value.trim();
     var resType = $('fResType').value, liveType = $('fLiveType').value;
     var birthS = $('fBirthStart').value, birthE = $('fBirthEnd').value;
-    var phone = $('fPhone').value.trim(), archNo = $('fArchNo').value.trim();
+    var doc = $('fDoc').value.trim(), lock = $('fLock').value;
+    var kpsOp = $('fKpsOp').value, kps1 = $('fKps1').value.trim(), kps2 = $('fKps2').value.trim();
     var own = $('fOwn').checked;
 
     lastList = tuData.filter(function (r) {
@@ -652,8 +692,23 @@
       if (liveType && r.liveType !== liveType) return false;
       if (birthS && (!r.birth || r.birth < birthS)) return false;
       if (birthE && (!r.birth || r.birth > birthE)) return false;
-      if (phone && r.phone.indexOf(phone) === -1) return false;
-      if (archNo && r.archNo.indexOf(archNo) === -1) return false;
+      if (doc && (!r.doc || r.doc.indexOf(doc) === -1)) return false;
+      if (lock && r.lock !== lock) return false;
+      /* 卡氏评分值：范围 / 等于 / 大于 / 小于（未填数值时该项不参与过滤） */
+      if (kpsOp) {
+        var k1 = parseFloat(kps1);
+        if (kps1 !== '' && !isNaN(k1)) {
+          if (kpsOp === '等于' && r.kps !== k1) return false;
+          if (kpsOp === '大于' && !(r.kps > k1)) return false;
+          if (kpsOp === '小于' && !(r.kps < k1)) return false;
+          if (kpsOp === '范围') {
+            var k2 = parseFloat(kps2);
+            if (kps2 !== '' && !isNaN(k2)) {
+              if (r.kps < k1 || r.kps > k2) return false;
+            } else if (r.kps < k1) return false;
+          }
+        }
+      }
       if (own && !r.own) return false;
       return true;
     });
@@ -745,10 +800,14 @@
 
   /* ================= 交互 ================= */
   function resetFilter() {
-    ['fName', 'fIdcard', 'fAddr', 'fDiag', 'fPhone', 'fArchNo', 'fBirthStart', 'fBirthEnd'].forEach(function (id) {
-      $(id).value = ''; $(id).type = 'text';
+    ['fName', 'fIdcard', 'fAddr', 'fDiag', 'fDoc', 'fKps1', 'fKps2'].forEach(function (id) { $(id).value = ''; });
+    ['fBirthStart', 'fBirthEnd'].forEach(function (id) {
+      var el = $(id);
+      el.value = '';
+      el.type = 'text';
     });
-    ['fOrg', 'fGender', 'fRegion', 'fResType', 'fLiveType'].forEach(function (id) { $(id).value = ''; });
+    ['fOrg', 'fGender', 'fRegion', 'fResType', 'fLiveType', 'fLock', 'fKpsOp'].forEach(function (id) { $(id).value = ''; });
+    syncKps();
     $('fOwn').checked = false;
     curPage = 1;
     renderTable();
@@ -761,10 +820,42 @@
     toast('查询完成，共 ' + $('pgTotal').textContent + ' 条记录', 'success');
   }
 
+  /* 卡氏评分值：选择比较方式后显示数值框（「范围」显示「至」双值） */
+  function syncKps() {
+    var op = $('fKpsOp').value;
+    var two = (op === '范围');
+    $('kpsCtl').classList.toggle('has-val', !!op);
+    $('fKps1').style.display = op ? '' : 'none';
+    $('fKpsTo').style.display = two ? '' : 'none';
+    $('fKps2').style.display = two ? '' : 'none';
+    if (!op) { $('fKps1').value = ''; $('fKps2').value = ''; }
+    else if (!two) { $('fKps2').value = ''; }
+  }
+
+  /* 卡氏评分值：点「×」清空比较方式与数值 */
+  function clearKps() {
+    $('fKpsOp').value = '';
+    $('fKps1').value = '';
+    $('fKps2').value = '';
+    syncKps();
+    curPage = 1;
+    renderTable();
+  }
+
   function toggleExtra() {
-    var row = $('extraRow'), btn = $('btnExpand');
-    var show = row.classList.toggle('show');
-    btn.textContent = show ? '收起 −' : '展开 +';
+    var rows = document.querySelectorAll('.filter-row.extra');
+    var btn = $('btnExpand');
+    var show = !rows[0].classList.contains('show');
+    rows.forEach(function (row) { row.classList.toggle('show', show); });
+    btn.textContent = show ? '收起 ▲' : '展开 ▼';
+    /* 展开：按钮组移到最后一行筛选条件右侧；收起：移回第二行末尾 */
+    var btns = document.querySelector('.filter-panel .filter-btns');
+    var mainRows = document.querySelectorAll('.filter-panel .filter-row:not(.extra)');
+    if (show) {
+      rows[rows.length - 1].appendChild(btns);
+    } else {
+      mainRows[mainRows.length - 1].appendChild(btns);
+    }
   }
 
   var opMenuFloat = null;
@@ -806,11 +897,17 @@
   });
 
   /* 筛选控件输入即实时过滤（并回到第一页） */
-  ['fName', 'fIdcard', 'fAddr', 'fDiag', 'fPhone', 'fArchNo'].forEach(function (id) {
+  ['fName', 'fIdcard', 'fAddr', 'fDiag', 'fDoc', 'fKps1', 'fKps2'].forEach(function (id) {
     $(id).addEventListener('input', function () { curPage = 1; renderTable(); });
   });
-  ['fOrg', 'fGender', 'fRegion', 'fResType', 'fLiveType', 'fBirthStart', 'fBirthEnd'].forEach(function (id) {
-    $(id).addEventListener('change', function () { curPage = 1; renderTable(); });
+  ['fOrg', 'fGender', 'fRegion', 'fResType', 'fLiveType', 'fLock', 'fKpsOp'].forEach(function (id) {
+    $(id).addEventListener('change', function () {
+      if (id === 'fKpsOp') syncKps();
+      curPage = 1; renderTable();
+    });
+  });
+  ['fBirthStart', 'fBirthEnd'].forEach(function (id) {
+    $(id).addEventListener('input', function () { curPage = 1; renderTable(); });
   });
   $('fOwn').addEventListener('change', function () { curPage = 1; renderTable(); });
 
@@ -1125,6 +1222,7 @@
   });
 
   /* 初始渲染 */
+  syncKps();
   renderTable();
 </script>
 

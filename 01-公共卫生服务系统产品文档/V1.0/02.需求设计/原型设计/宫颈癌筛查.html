@@ -23,6 +23,8 @@
   /* ===== 筛选区 ===== */
   .filter-panel{padding:14px 12px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
   .filter-row{display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:14px;align-items:center}
+  .filter-row.extra{display:none}
+  .filter-row.extra.show{display:flex}
   .filter-item{display:flex;align-items:center;gap:8px}
   .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
   .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
@@ -36,6 +38,34 @@
   .fi-sep{color:var(--text-placeholder);font-size:13px}
   .fi-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer}
   .fi-check input{margin:0;accent-color:var(--primary);cursor:pointer}
+  /* 主筛选区行距/列距/标签间距（对齐设计稿：行距 10、列距 22、标签-控件 12） */
+  .filter-panel .filter-row{gap:12px 22px;margin-bottom:10px}
+  .filter-panel .filter-item{gap:12px}
+  /* 筛选区内控件统一外框宽度（仅作用于主筛选区，不影响新建专项弹框内同名类） */
+  .filter-panel .fi-ctl,.filter-panel .fi-select{width:180px}
+  /* 筛选区内统一筛选复合控件（管理机构/管辖行政区）等宽 180px */
+  .filter-panel .fcp-ms,.filter-panel .fcp-cas,.filter-panel .fcp-tree,.filter-panel .fcp-mst{width:180px}
+  .filter-panel .fcp-ms .fcp-panel{width:max-content;min-width:100%;max-width:300px}
+  .filter-panel .fcp-tree .fcp-panel{width:200px}
+  /* 日期区间：单一外框（开始日期 ~ 结束日期 + 日历图标） */
+  .fi-range{display:flex;align-items:center;gap:6px;width:232px;height:32px;padding:0 8px 0 10px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);background:var(--bg-white);transition:all var(--transition-fast)}
+  .fi-range:hover{border-color:var(--primary)}
+  .fi-range:focus-within{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-range input{flex:1 1 0;min-width:0;height:30px;border:none;background:transparent;outline:none;padding:0;font-size:14px;color:var(--text-primary);font-family:inherit}
+  .fi-range input::placeholder{color:var(--text-placeholder)}
+  .fi-range input::-webkit-calendar-picker-indicator{display:none}
+  .fi-tilde{flex-shrink:0;font-size:14px;color:var(--text-placeholder)}
+  .fi-cal{width:14px;height:14px;flex-shrink:0;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none' stroke='%23bfbfbf' stroke-width='1.2'%3E%3Crect x='1.4' y='2.4' width='11.2' height='10.2' rx='1.6'/%3E%3Cpath d='M1.4 5.6h11.2M4.6 1.4v2M9.4 1.4v2'/%3E%3C/svg%3E") no-repeat center/contain}
+  /* 只看个人管理档案 复选框（统一写法，替换各页旧版 .own-check） */
+  .fi-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer;user-select:none;white-space:nowrap;margin:0}
+  .fi-check input[type=checkbox]{width:15px;height:15px;margin:0;accent-color:var(--primary);cursor:pointer}
+  /* 可清空单选下拉（中医服务等：有值时右侧出现圆形 ✕） */
+  .fi-combo{position:relative;display:inline-flex;align-items:center}
+  .filter-panel .fi-combo .fi-select{width:180px;padding-right:30px}
+  .fi-combo.has-val .fi-select{background-image:none}
+  .fi-combo .fi-combo-x{display:none;position:absolute;right:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;box-sizing:border-box;border:1px solid #BFBFBF;border-radius:50%;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='5' viewBox='0 0 5 5'%3E%3Cpath d='M1 1l3 3M4 1L1 4' stroke='%23BFBFBF' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center/5px 5px;cursor:pointer;user-select:none}
+  .fi-combo.has-val .fi-combo-x{display:block}
+  .fi-combo .fi-combo-x:hover{border-color:var(--primary);background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='5' viewBox='0 0 5 5'%3E%3Cpath d='M1 1l3 3M4 1L1 4' stroke='%23007AFF' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E")}
 
   /* ===== 数据表格 ===== */
   .table-wrap{flex:1;overflow:auto;min-height:0}
@@ -201,32 +231,35 @@
       <!-- 筛选区 -->
       <div class="filter-panel">
         <div class="filter-row">
-          <div class="filter-item"><label>管理机构</label>
-            <select id="fOrg" class="fi-select w-lg">
-              <option value="" selected>请选择</option>
-              <option value="扬州市江都区吴桥镇人民医院">扬州市江都区吴桥镇人民医院</option>
-              <option value="扬州市江都区宜陵镇中心卫生院">扬州市江都区宜陵镇中心卫生院</option>
-              <option value="扬州市江都区仙女镇社区卫生服务中心">扬州市江都区仙女镇社区卫生服务中心</option>
-              <option value="扬州市江都区丁沟镇卫生院">扬州市江都区丁沟镇卫生院</option>
-              <option value="扬州市江都区樊川镇卫生院">扬州市江都区樊川镇卫生院</option>
-            </select>
+          <div class="filter-item"><label>管理机构：</label>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fOrg">
+            </div>
           </div>
-          <div class="filter-item"><label>姓名</label><input id="fName" class="fi-ctl" placeholder="请输入"></div>
-          <div class="filter-item"><label>建档日期</label>
-            <input id="fRegStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">—</span>
-            <input id="fRegEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+          <div class="filter-item"><label>姓名：</label><input id="fName" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>建档日期：</label>
+            <span class="fi-range">
+              <input id="fRegStart" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <span class="fi-tilde">~</span>
+              <input id="fRegEnd" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <span class="fi-cal"></span>
+            </span>
           </div>
-          <div class="filter-item"><label>责任医生</label><input id="fDoc" class="fi-ctl" placeholder="请输入"></div>
-          <div class="filter-item"><label>证件号</label><input id="fIdcard" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>责任医生：</label><input id="fDoc" class="fi-ctl" placeholder="请输入"></div>
         </div>
         <div class="filter-row">
-          <div class="filter-item"><label>出生日期</label>
-            <input id="fBirthStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">—</span>
-            <input id="fBirthEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+          <div class="filter-item"><label>证件号：</label><input id="fIdcard" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>出生日期：</label>
+            <span class="fi-range">
+              <input id="fBirthStart" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <span class="fi-tilde">~</span>
+              <input id="fBirthEnd" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <span class="fi-cal"></span>
+            </span>
           </div>
-          <div class="filter-item"><label>婚姻状况</label>
+          <div class="filter-item"><label>婚姻状况：</label>
             <select id="fMarriage" class="fi-select">
               <option value="" selected>请选择</option>
               <option value="未婚">未婚</option>
@@ -235,7 +268,7 @@
               <option value="离婚">离婚</option>
             </select>
           </div>
-          <div class="filter-item"><label>管理行政区</label>
+          <div class="filter-item"><label>管辖行政区：</label>
             <select id="fRegion" class="fi-select">
               <option value="" selected>请选择</option>
               <option value="吴桥社区">吴桥社区</option>
@@ -245,22 +278,24 @@
               <option value="樊川社区">樊川社区</option>
             </select>
           </div>
-          <div class="filter-item"><label>镜检状态</label>
-            <select id="fMirror" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="未上镜">未上镜</option>
-              <option value="已上镜">已上镜</option>
-            </select>
-          </div>
-          <div class="filter-item">
-            <label class="fi-check"><input type="checkbox" id="fMine">只看个人管理档案</label>
-          </div>
           <div class="filter-btns">
             <button class="btn btn-default" onclick="resetFilter()">重置</button>
             <button class="btn btn-primary" onclick="applyFilter()">查询</button>
+            <button class="btn-plain" id="btnExpand" onclick="toggleExtra()">展开 ▼</button>
           </div>
         </div>
+        <div class="filter-row extra">
+          <div class="filter-item"><label>锁定状态：</label>
+            <select id="fLock" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="未上锁">未上锁</option>
+              <option value="已上锁">已上锁</option>
+            </select>
+          </div>
+          <div class="filter-item"><label class="fi-check"><input type="checkbox" id="fMine"> 只看个人管理档案</label></div>
+        </div>
       </div>
+
 
       <!-- 数据表格 -->
       <div class="table-wrap">
@@ -322,14 +357,11 @@
           <div class="filter-item"><label>姓名</label><input id="sfName" class="fi-ctl" placeholder="请输入"></div>
           <div class="filter-item"><label>证件号</label><input id="sfIdcard" class="fi-ctl" placeholder="请输入"></div>
           <div class="filter-item"><label>管理机构</label>
-            <select id="sfOrg" class="fi-select w-lg">
-              <option value="" selected>请选择</option>
-              <option value="扬州市江都区吴桥镇人民医院">扬州市江都区吴桥镇人民医院</option>
-              <option value="扬州市江都区宜陵镇中心卫生院">扬州市江都区宜陵镇中心卫生院</option>
-              <option value="扬州市江都区仙女镇社区卫生服务中心">扬州市江都区仙女镇社区卫生服务中心</option>
-              <option value="扬州市江都区丁沟镇卫生院">扬州市江都区丁沟镇卫生院</option>
-              <option value="扬州市江都区樊川镇卫生院">扬州市江都区樊川镇卫生院</option>
-            </select>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="sfOrg">
+            </div>
           </div>
           <div class="filter-btns">
             <button class="btn btn-default" onclick="resetSelectFilter()">重置</button>
@@ -536,28 +568,28 @@
 <script>
   /* ================= 模拟数据（姓名/证件号/出生日期对应；诊断与染色结果自洽） ================= */
   var screeningData = [
-    { org:'扬州市江都区吴桥镇人民医院',           name:'夏余兰', idcard:'321088195803177723', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区吴桥镇吴桥路24号',   lastDiag:'正常',       doc:'朱劲松', examDate:'2022-09-03', mirror:'已上镜', regDate:'2022-08-28', birth:'1958-03-13', marriage:'已婚', region:'吴桥社区', mine:true },
-    { org:'扬州市江都区吴桥镇人民医院',           name:'小山东', idcard:'510123199001101066', diag:'阴性（正常）', acetic:'阳性（异常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区吴桥镇育才巷7号',   lastDiag:'正常',       doc:'朱劲松', examDate:'2023-04-03', mirror:'未上镜', regDate:'2023-03-21', birth:'1990-01-01', marriage:'未婚', region:'吴桥社区', mine:false },
-    { org:'扬州市江都区宜陵镇中心卫生院',         name:'王秀英', idcard:'321088196502244826', diag:'阳性（异常）', acetic:'阳性（异常）', iodine:'阳性（异常）', pap:'II级', address:'扬州市江都区宜陵镇宜陵东路51号', lastDiag:'炎症',       doc:'李蕾',   examDate:'2023-05-16', mirror:'已上镜', regDate:'2023-05-09', birth:'1965-02-24', marriage:'已婚', region:'宜陵社区', mine:true },
-    { org:'扬州市江都区宜陵镇中心卫生院',         name:'刘德兰', idcard:'32108819711130863X', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区宜陵镇振兴街12号',   lastDiag:'正常',       doc:'李蕾',   examDate:'2023-06-22', mirror:'已上镜', regDate:'2023-06-15', birth:'1971-11-30', marriage:'已婚', region:'宜陵社区', mine:false },
-    { org:'扬州市江都区仙女镇社区卫生服务中心',   name:'杨春梅', idcard:'321088198109082543', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区仙女镇龙川南路88号', lastDiag:'正常',       doc:'王盛',   examDate:'2023-07-11', mirror:'未上镜', regDate:'2023-07-02', birth:'1981-09-08', marriage:'已婚', region:'仙女社区', mine:false },
-    { org:'扬州市江都区仙女镇社区卫生服务中心',   name:'周建华', idcard:'321088194910056317', diag:'阳性（异常）', acetic:'阳性（异常）', iodine:'阳性（异常）', pap:'III级',address:'扬州市江都区仙女镇三江路215号',  lastDiag:'高级别病变', doc:'王盛',   examDate:'2023-08-03', mirror:'已上镜', regDate:'2023-07-26', birth:'1949-10-05', marriage:'丧偶', region:'仙女社区', mine:true },
-    { org:'扬州市江都区丁沟镇卫生院',             name:'冯立珍', idcard:'321088197706285516', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区丁沟镇人民路9号',   lastDiag:'正常',       doc:'徐东升', examDate:'2023-09-14', mirror:'未上镜', regDate:'2023-09-01', birth:'1977-06-28', marriage:'已婚', region:'丁沟社区', mine:false },
-    { org:'扬州市江都区丁沟镇卫生院',             name:'高凤仙', idcard:'321088194503124826', diag:'阳性（异常）', acetic:'阳性（异常）', iodine:'阴性（正常）', pap:'II级', address:'扬州市江都区丁沟镇丁沟巷33号',  lastDiag:'炎症',       doc:'徐东升', examDate:'2023-10-19', mirror:'已上镜', regDate:'2023-10-08', birth:'1945-03-12', marriage:'丧偶', region:'丁沟社区', mine:true },
-    { org:'扬州市江都区樊川镇卫生院',             name:'韩淑芬', idcard:'321088195912034420', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区樊川镇樊川路66号',  lastDiag:'正常',       doc:'陆柳琳', examDate:'2023-11-27', mirror:'已上镜', regDate:'2023-11-15', birth:'1959-12-03', marriage:'已婚', region:'樊川社区', mine:false },
-    { org:'扬州市江都区樊川镇卫生院',             name:'谭德顺', idcard:'321088195008195517', diag:'阴性（正常）', acetic:'阳性（异常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区樊川镇永安街18号',  lastDiag:'正常',       doc:'陆柳琳', examDate:'2023-12-06', mirror:'未上镜', regDate:'2023-11-29', birth:'1950-08-19', marriage:'已婚', region:'樊川社区', mine:false },
-    { org:'扬州市江都区吴桥镇人民医院',           name:'董梅香', idcard:'321088196705244824', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区吴桥镇通扬路102号', lastDiag:'正常',       doc:'朱劲松', examDate:'2024-01-15', mirror:'已上镜', regDate:'2024-01-06', birth:'1967-05-24', marriage:'离婚', region:'吴桥社区', mine:false },
-    { org:'扬州市江都区吴桥镇人民医院',           name:'贾淑华', idcard:'321088195310076311', diag:'阳性（异常）', acetic:'阳性（异常）', iodine:'阳性（异常）', pap:'II级', address:'扬州市江都区吴桥镇桥南小区5号', lastDiag:'低级别病变', doc:'朱劲松', examDate:'2024-02-27', mirror:'已上镜', regDate:'2024-02-19', birth:'1953-10-07', marriage:'丧偶', region:'吴桥社区', mine:true },
-    { org:'扬州市江都区宜陵镇中心卫生院',         name:'潘金凤', idcard:'321088196202144226', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区宜陵镇光明路77号',  lastDiag:'正常',       doc:'李蕾',   examDate:'2024-03-21', mirror:'未上镜', regDate:'2024-03-12', birth:'1962-02-14', marriage:'已婚', region:'宜陵社区', mine:false },
-    { org:'扬州市江都区宜陵镇中心卫生院',         name:'何广霞', idcard:'321088196511023513', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阳性（异常）', pap:'I级',  address:'扬州市江都区宜陵镇育才路8号',   lastDiag:'炎症',       doc:'李蕾',   examDate:'2024-04-09', mirror:'已上镜', regDate:'2024-04-01', birth:'1965-11-02', marriage:'离婚', region:'宜陵社区', mine:false },
-    { org:'扬州市江都区仙女镇社区卫生服务中心',   name:'邵玉洁', idcard:'321088197006084824', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区仙女镇仙城路46号',  lastDiag:'正常',       doc:'王盛',   examDate:'2024-05-23', mirror:'未上镜', regDate:'2024-05-14', birth:'1970-06-08', marriage:'已婚', region:'仙女社区', mine:false },
-    { org:'扬州市江都区仙女镇社区卫生服务中心',   name:'崔桂英', idcard:'321088195609253719', diag:'阳性（异常）', acetic:'阳性（异常）', iodine:'阳性（异常）', pap:'III级',address:'扬州市江都区仙女镇镇南路32号',  lastDiag:'高级别病变', doc:'王盛',   examDate:'2024-06-17', mirror:'已上镜', regDate:'2024-06-05', birth:'1956-09-25', marriage:'丧偶', region:'仙女社区', mine:true },
-    { org:'扬州市江都区丁沟镇卫生院',             name:'白淑珍', idcard:'321088194804304428', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区丁沟镇丁沟北路3号', lastDiag:'正常',       doc:'徐东升', examDate:'2024-07-29', mirror:'已上镜', regDate:'2024-07-18', birth:'1948-04-30', marriage:'已婚', region:'丁沟社区', mine:false },
-    { org:'扬州市江都区丁沟镇卫生院',             name:'孙福霞', idcard:'321088195201275511', diag:'阴性（正常）', acetic:'阳性（异常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区丁沟镇向阳巷21号',  lastDiag:'正常',       doc:'徐东升', examDate:'2024-08-13', mirror:'未上镜', regDate:'2024-08-02', birth:'1952-01-27', marriage:'已婚', region:'丁沟社区', mine:false },
-    { org:'扬州市江都区樊川镇卫生院',             name:'罗建萍', idcard:'321088196303184426', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区樊川镇樊南路58号',  lastDiag:'正常',       doc:'陆柳琳', examDate:'2024-09-24', mirror:'已上镜', regDate:'2024-09-11', birth:'1963-03-18', marriage:'离婚', region:'樊川社区', mine:false },
-    { org:'扬州市江都区樊川镇卫生院',             name:'蒋春林', idcard:'321088195707065518', diag:'阳性（异常）', acetic:'阳性（异常）', iodine:'阴性（正常）', pap:'II级', address:'扬州市江都区樊川镇富民路16号',  lastDiag:'炎症',       doc:'陆柳琳', examDate:'2024-10-15', mirror:'已上镜', regDate:'2024-10-08', birth:'1957-07-06', marriage:'丧偶', region:'樊川社区', mine:true },
-    { org:'扬州市江都区吴桥镇人民医院',           name:'万秀琴', idcard:'321088195505214824', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区吴桥镇迎宾大道9号', lastDiag:'正常',       doc:'朱劲松', examDate:'2024-11-06', mirror:'未上镜', regDate:'2024-10-29', birth:'1955-05-21', marriage:'已婚', region:'吴桥社区', mine:false },
-    { org:'扬州市江都区仙女镇社区卫生服务中心',   name:'顾长英', idcard:'321088194912113317', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阳性（异常）', pap:'I级',  address:'扬州市江都区仙女镇惠民花园11号',lastDiag:'炎症',       doc:'王盛',   examDate:'2024-12-11', mirror:'已上镜', regDate:'2024-12-02', birth:'1949-12-11', marriage:'丧偶', region:'仙女社区', mine:false }
+    { org:'扬州市江都区吴桥镇人民医院',           name:'夏余兰', idcard:'321088195803177723', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区吴桥镇吴桥路24号',   lastDiag:'正常',       doc:'朱劲松', examDate:'2022-09-03', mirror:'已上镜', regDate:'2022-08-28', birth:'1958-03-13', marriage:'已婚', region:'吴桥社区', lock:'未上锁', mine:true },
+    { org:'扬州市江都区吴桥镇人民医院',           name:'小山东', idcard:'510123199001101066', diag:'阴性（正常）', acetic:'阳性（异常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区吴桥镇育才巷7号',   lastDiag:'正常',       doc:'朱劲松', examDate:'2023-04-03', mirror:'未上镜', regDate:'2023-03-21', birth:'1990-01-01', marriage:'未婚', region:'吴桥社区', lock:'未上锁', mine:false },
+    { org:'扬州市江都区宜陵镇中心卫生院',         name:'王秀英', idcard:'321088196502244826', diag:'阳性（异常）', acetic:'阳性（异常）', iodine:'阳性（异常）', pap:'II级', address:'扬州市江都区宜陵镇宜陵东路51号', lastDiag:'炎症',       doc:'李蕾',   examDate:'2023-05-16', mirror:'已上镜', regDate:'2023-05-09', birth:'1965-02-24', marriage:'已婚', region:'宜陵社区', lock:'已上锁', mine:true },
+    { org:'扬州市江都区宜陵镇中心卫生院',         name:'刘德兰', idcard:'32108819711130863X', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区宜陵镇振兴街12号',   lastDiag:'正常',       doc:'李蕾',   examDate:'2023-06-22', mirror:'已上镜', regDate:'2023-06-15', birth:'1971-11-30', marriage:'已婚', region:'宜陵社区', lock:'未上锁', mine:false },
+    { org:'扬州市江都区仙女镇社区卫生服务中心',   name:'杨春梅', idcard:'321088198109082543', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区仙女镇龙川南路88号', lastDiag:'正常',       doc:'王盛',   examDate:'2023-07-11', mirror:'未上镜', regDate:'2023-07-02', birth:'1981-09-08', marriage:'已婚', region:'仙女社区', lock:'未上锁', mine:false },
+    { org:'扬州市江都区仙女镇社区卫生服务中心',   name:'周建华', idcard:'321088194910056317', diag:'阳性（异常）', acetic:'阳性（异常）', iodine:'阳性（异常）', pap:'III级',address:'扬州市江都区仙女镇三江路215号',  lastDiag:'高级别病变', doc:'王盛',   examDate:'2023-08-03', mirror:'已上镜', regDate:'2023-07-26', birth:'1949-10-05', marriage:'丧偶', region:'仙女社区', lock:'未上锁', mine:true },
+    { org:'扬州市江都区丁沟镇卫生院',             name:'冯立珍', idcard:'321088197706285516', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区丁沟镇人民路9号',   lastDiag:'正常',       doc:'徐东升', examDate:'2023-09-14', mirror:'未上镜', regDate:'2023-09-01', birth:'1977-06-28', marriage:'已婚', region:'丁沟社区', lock:'未上锁', mine:false },
+    { org:'扬州市江都区丁沟镇卫生院',             name:'高凤仙', idcard:'321088194503124826', diag:'阳性（异常）', acetic:'阳性（异常）', iodine:'阴性（正常）', pap:'II级', address:'扬州市江都区丁沟镇丁沟巷33号',  lastDiag:'炎症',       doc:'徐东升', examDate:'2023-10-19', mirror:'已上镜', regDate:'2023-10-08', birth:'1945-03-12', marriage:'丧偶', region:'丁沟社区', lock:'未上锁', mine:true },
+    { org:'扬州市江都区樊川镇卫生院',             name:'韩淑芬', idcard:'321088195912034420', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区樊川镇樊川路66号',  lastDiag:'正常',       doc:'陆柳琳', examDate:'2023-11-27', mirror:'已上镜', regDate:'2023-11-15', birth:'1959-12-03', marriage:'已婚', region:'樊川社区', lock:'已上锁', mine:false },
+    { org:'扬州市江都区樊川镇卫生院',             name:'谭德顺', idcard:'321088195008195517', diag:'阴性（正常）', acetic:'阳性（异常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区樊川镇永安街18号',  lastDiag:'正常',       doc:'陆柳琳', examDate:'2023-12-06', mirror:'未上镜', regDate:'2023-11-29', birth:'1950-08-19', marriage:'已婚', region:'樊川社区', lock:'未上锁', mine:false },
+    { org:'扬州市江都区吴桥镇人民医院',           name:'董梅香', idcard:'321088196705244824', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区吴桥镇通扬路102号', lastDiag:'正常',       doc:'朱劲松', examDate:'2024-01-15', mirror:'已上镜', regDate:'2024-01-06', birth:'1967-05-24', marriage:'离婚', region:'吴桥社区', lock:'未上锁', mine:false },
+    { org:'扬州市江都区吴桥镇人民医院',           name:'贾淑华', idcard:'321088195310076311', diag:'阳性（异常）', acetic:'阳性（异常）', iodine:'阳性（异常）', pap:'II级', address:'扬州市江都区吴桥镇桥南小区5号', lastDiag:'低级别病变', doc:'朱劲松', examDate:'2024-02-27', mirror:'已上镜', regDate:'2024-02-19', birth:'1953-10-07', marriage:'丧偶', region:'吴桥社区', lock:'未上锁', mine:true },
+    { org:'扬州市江都区宜陵镇中心卫生院',         name:'潘金凤', idcard:'321088196202144226', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区宜陵镇光明路77号',  lastDiag:'正常',       doc:'李蕾',   examDate:'2024-03-21', mirror:'未上镜', regDate:'2024-03-12', birth:'1962-02-14', marriage:'已婚', region:'宜陵社区', lock:'未上锁', mine:false },
+    { org:'扬州市江都区宜陵镇中心卫生院',         name:'何广霞', idcard:'321088196511023513', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阳性（异常）', pap:'I级',  address:'扬州市江都区宜陵镇育才路8号',   lastDiag:'炎症',       doc:'李蕾',   examDate:'2024-04-09', mirror:'已上镜', regDate:'2024-04-01', birth:'1965-11-02', marriage:'离婚', region:'宜陵社区', lock:'未上锁', mine:false },
+    { org:'扬州市江都区仙女镇社区卫生服务中心',   name:'邵玉洁', idcard:'321088197006084824', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区仙女镇仙城路46号',  lastDiag:'正常',       doc:'王盛',   examDate:'2024-05-23', mirror:'未上镜', regDate:'2024-05-14', birth:'1970-06-08', marriage:'已婚', region:'仙女社区', lock:'已上锁', mine:false },
+    { org:'扬州市江都区仙女镇社区卫生服务中心',   name:'崔桂英', idcard:'321088195609253719', diag:'阳性（异常）', acetic:'阳性（异常）', iodine:'阳性（异常）', pap:'III级',address:'扬州市江都区仙女镇镇南路32号',  lastDiag:'高级别病变', doc:'王盛',   examDate:'2024-06-17', mirror:'已上镜', regDate:'2024-06-05', birth:'1956-09-25', marriage:'丧偶', region:'仙女社区', lock:'未上锁', mine:true },
+    { org:'扬州市江都区丁沟镇卫生院',             name:'白淑珍', idcard:'321088194804304428', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区丁沟镇丁沟北路3号', lastDiag:'正常',       doc:'徐东升', examDate:'2024-07-29', mirror:'已上镜', regDate:'2024-07-18', birth:'1948-04-30', marriage:'已婚', region:'丁沟社区', lock:'未上锁', mine:false },
+    { org:'扬州市江都区丁沟镇卫生院',             name:'孙福霞', idcard:'321088195201275511', diag:'阴性（正常）', acetic:'阳性（异常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区丁沟镇向阳巷21号',  lastDiag:'正常',       doc:'徐东升', examDate:'2024-08-13', mirror:'未上镜', regDate:'2024-08-02', birth:'1952-01-27', marriage:'已婚', region:'丁沟社区', lock:'未上锁', mine:false },
+    { org:'扬州市江都区樊川镇卫生院',             name:'罗建萍', idcard:'321088196303184426', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区樊川镇樊南路58号',  lastDiag:'正常',       doc:'陆柳琳', examDate:'2024-09-24', mirror:'已上镜', regDate:'2024-09-11', birth:'1963-03-18', marriage:'离婚', region:'樊川社区', lock:'未上锁', mine:false },
+    { org:'扬州市江都区樊川镇卫生院',             name:'蒋春林', idcard:'321088195707065518', diag:'阳性（异常）', acetic:'阳性（异常）', iodine:'阴性（正常）', pap:'II级', address:'扬州市江都区樊川镇富民路16号',  lastDiag:'炎症',       doc:'陆柳琳', examDate:'2024-10-15', mirror:'已上镜', regDate:'2024-10-08', birth:'1957-07-06', marriage:'丧偶', region:'樊川社区', lock:'未上锁', mine:true },
+    { org:'扬州市江都区吴桥镇人民医院',           name:'万秀琴', idcard:'321088195505214824', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阴性（正常）', pap:'I级',  address:'扬州市江都区吴桥镇迎宾大道9号', lastDiag:'正常',       doc:'朱劲松', examDate:'2024-11-06', mirror:'未上镜', regDate:'2024-10-29', birth:'1955-05-21', marriage:'已婚', region:'吴桥社区', lock:'已上锁', mine:false },
+    { org:'扬州市江都区仙女镇社区卫生服务中心',   name:'顾长英', idcard:'321088194912113317', diag:'阴性（正常）', acetic:'阴性（正常）', iodine:'阳性（异常）', pap:'I级',  address:'扬州市江都区仙女镇惠民花园11号',lastDiag:'炎症',       doc:'王盛',   examDate:'2024-12-11', mirror:'已上镜', regDate:'2024-12-02', birth:'1949-12-11', marriage:'丧偶', region:'仙女社区', lock:'未上锁', mine:false }
   ];
 
   /* 档案选择弹框模拟数据（新建筛查记录第一步：选择居民档案，仅女性居民） */
@@ -592,7 +624,7 @@
   /* ================= 主表格渲染（按筛选条件过滤 + 分页） ================= */
   function renderTable() {
     var org = $('fOrg').value, name = $('fName').value.trim(), idcard = $('fIdcard').value.trim();
-    var doc = $('fDoc').value.trim(), region = $('fRegion').value, mirror = $('fMirror').value;
+    var doc = $('fDoc').value.trim(), region = $('fRegion').value, lock = $('fLock').value;
     var marriage = $('fMarriage').value;
     var regStart = $('fRegStart').value, regEnd = $('fRegEnd').value;
     var birthStart = $('fBirthStart').value, birthEnd = $('fBirthEnd').value;
@@ -604,7 +636,7 @@
       if (idcard && r.idcard.indexOf(idcard) < 0) return false;
       if (doc && r.doc.indexOf(doc) < 0) return false;
       if (region && r.region !== region) return false;
-      if (mirror && r.mirror !== mirror) return false;
+      if (lock && r.lock !== lock) return false;
       if (marriage && r.marriage !== marriage) return false;
       if (regStart && r.regDate < regStart) return false;
       if (regEnd && r.regDate > regEnd) return false;
@@ -685,12 +717,48 @@
   function applyFilter() { curPage = 1; renderTable(); toast('查询完成', 'success'); }
   function resetFilter() {
     ['fName','fIdcard','fDoc','fRegStart','fRegEnd','fBirthStart','fBirthEnd'].forEach(function (id) { $(id).value = ''; });
-    ['fOrg','fRegion','fMirror','fMarriage'].forEach(function (id) { $(id).value = ''; });
+    ['fOrg','fRegion','fLock','fMarriage'].forEach(function (id) { $(id).value = ''; });
     $('fMine').checked = false;
     curPage = 1;
     renderTable();
     toast('筛选条件已重置', 'info');
   }
+
+  function toggleExtra() {
+    var rows = document.querySelectorAll('.filter-panel .filter-row.extra');
+    var btn = $('btnExpand');
+    var show = !rows[0].classList.contains('show');
+    rows.forEach(function (row) { row.classList.toggle('show', show); });
+    btn.textContent = show ? '收起 ▲' : '展开 ▼';
+    var btns = document.querySelector('.filter-panel .filter-btns');
+    var mainRows = document.querySelectorAll('.filter-panel .filter-row:not(.extra)');
+    if (show) {
+      rows[rows.length - 1].appendChild(btns);
+    } else {
+      mainRows[mainRows.length - 1].appendChild(btns);
+    }
+  }
+
+  /* 筛选控件输入即实时过滤（并回到第一页） */
+  ['fName','fIdcard','fDoc'].forEach(function (id) {
+    $(id).addEventListener('input', function () { curPage = 1; renderTable(); });
+  });
+  ['fOrg','fRegion','fMarriage','fLock','fMine'].forEach(function (id) {
+    $(id).addEventListener('change', function () { curPage = 1; renderTable(); });
+  });
+  ['fRegStart','fRegEnd','fBirthStart','fBirthEnd'].forEach(function (id) {
+    $(id).addEventListener('input', function () { curPage = 1; renderTable(); });
+  });
+
+  /* 复合筛选控件（管理机构/重点人群类型/管辖行政区）选择后实时过滤 */
+  document.querySelectorAll('.filter-panel [data-fcp]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      if (e.target.closest('.fcp-opt,.fcp-n,.fcp-clear')) {
+        setTimeout(function () { curPage = 1; renderTable(); }, 0);
+      }
+    });
+  });
+
 
   /* ================= 档案选择弹框（新建第一步） ================= */
   var sfList = archiveData.slice();

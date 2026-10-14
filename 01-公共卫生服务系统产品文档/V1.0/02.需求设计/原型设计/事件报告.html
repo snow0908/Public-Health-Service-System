@@ -29,6 +29,16 @@
   .fi-select.is-placeholder{color:var(--text-placeholder)}
   .fi-date{width:118px}
   .fi-range{display:flex;align-items:center;gap:4px;color:var(--text-tertiary)}
+  /* 报告日期：单框区间（仅列表筛选区使用，选单弹框内的区间日期不受影响） */
+  .fi-range-box{display:flex;align-items:center;gap:6px;width:210px;height:32px;padding:0 8px 0 10px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);background:var(--bg-white);transition:all var(--transition-fast)}
+  .fi-range-box:hover{border-color:var(--primary)}
+  .fi-range-box:focus-within{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-range-box input{flex:1 1 0;min-width:0;height:30px;border:none;background:transparent;outline:none;padding:0;font-size:13px;color:var(--text-primary);font-family:inherit}
+  .fi-range-box input:focus{box-shadow:none}
+  .fi-range-box input::placeholder{color:var(--text-placeholder)}
+  .fi-range-box input::-webkit-calendar-picker-indicator{display:none}
+  .fi-tilde{flex-shrink:0;font-size:13px;color:var(--text-placeholder)}
+  .fi-cal{width:14px;height:14px;flex-shrink:0;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none' stroke='%23bfbfbf' stroke-width='1.2'%3E%3Crect x='1.4' y='2.4' width='11.2' height='10.2' rx='1.6'/%3E%3Cpath d='M1.4 5.6h11.2M4.6 1.4v2M9.4 1.4v2'/%3E%3C/svg%3E") no-repeat center/contain}
   .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
 
   /* ===== 数据表格 ===== */
@@ -176,11 +186,12 @@
             </div>
             <div class="filter-item">
               <label>报告日期：</label>
-              <span class="fi-range">
-                <input class="fi-ctl fi-date" id="qRepStart" type="date">
-                <span>~</span>
-                <input class="fi-ctl fi-date" id="qRepEnd" type="date">
-              </span>
+              <div class="fi-range-box">
+                <input id="qRepStart" type="text" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}" placeholder="开始日期">
+                <span class="fi-tilde">~</span>
+                <input id="qRepEnd" type="text" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}" placeholder="结束日期">
+                <span class="fi-cal"></span>
+              </div>
             </div>
             <div class="filter-item">
               <label>报告人员：</label>
@@ -192,21 +203,13 @@
                 <option value="">请选择</option>
               </select>
             </div>
+          </div>
+          <div class="filter-row">
             <div class="filter-item">
               <label>巡查地点：</label>
               <select class="fi-select is-placeholder" id="qLocation" onchange="markSelect(this)">
                 <option value="">请选择</option>
               </select>
-            </div>
-          </div>
-          <div class="filter-row">
-            <div class="filter-item">
-              <label>发现日期：</label>
-              <span class="fi-range">
-                <input class="fi-ctl fi-date" id="qDiscStart" type="date">
-                <span>~</span>
-                <input class="fi-ctl fi-date" id="qDiscEnd" type="date">
-              </span>
             </div>
             <div class="filter-btns">
               <button class="btn btn-default" onclick="resetFilter()">重置</button>
@@ -444,7 +447,7 @@ var ORGS = [
   '扬州市江都区仙女镇卫生院',
   '扬州市江都区樊川镇卫生院'
 ];
-var CATEGORIES = ['公共场所', '医疗机构', '学校卫生', '生活饮用水', '职业卫生', '餐饮服务'];
+var CATEGORIES = ['食源性疾病', '饮用水卫生', '学校卫生', '非法行医(供采血)', '计划生育', '公共场所'];
 var REPORTERS = ['朱劲松', '吕雪', '宋劲松', '高素芹'];
 
 var LOCATION_POOL = {
@@ -493,12 +496,12 @@ var PICK_INSPECTIONS = [
 
 /* ================= 事件报告数据 ================= */
 var EVENTS = [
-  { id: 'E20220911001', org: '扬州市江都区大桥镇高巷村卫生室', location: '香王村', contact: '高素芹', phone: '13101010101', inspectDate: '2022-09-11', discDate: '2022-08-25', category: '公共场所', catDesc: '', content: '正常', doc: '', reporter: '高素芹', reportDate: '2022-09-11', entryUser: '朱劲松', entryDate: '2022-09-11' },
+  { id: 'E20220911001', org: '扬州市江都区大桥镇高巷村卫生室', location: '香王村', contact: '高素芹', phone: '13101010101', inspectDate: '2022-09-11', discDate: '2022-08-25', category: '食源性疾病', catDesc: '', content: '正常', doc: '', reporter: '高素芹', reportDate: '2022-09-11', entryUser: '朱劲松', entryDate: '2022-09-11' },
   { id: 'E20220903001', org: '扬州市江都区滨江人民医院', location: '滨江公园广场', contact: '王建国', phone: '13601455678', inspectDate: '2022-09-02', discDate: '2022-09-01', category: '公共场所', catDesc: '广场人流密集场所卫生状况', content: '广场垃圾桶未及时清运，存在卫生死角，已现场督促整改。', doc: '', reporter: '吕雪', reportDate: '2022-09-03', entryUser: '朱劲松', entryDate: '2022-09-03' },
   { id: 'E20220827001', org: '扬州市江都区大桥镇花荡村卫生室', location: '花荡村小学', contact: '吕雪', phone: '13905141234', inspectDate: '2022-08-26', discDate: '2022-08-26', category: '学校卫生', catDesc: '开学前学校卫生专项检查', content: '正常', doc: '', reporter: '宋劲松', reportDate: '2022-08-27', entryUser: '宋劲松', entryDate: '2022-08-27' },
-  { id: 'E20220816001', org: '扬州市江都区大桥镇顾巷村卫生室', location: '顾巷村', contact: '高家芹', phone: '13805216789', inspectDate: '2022-08-15', discDate: '2022-08-15', category: '生活饮用水', catDesc: '村供水点水质卫生', content: '供水点消毒记录缺失近一周，已要求补齐并加强消毒管理。', doc: '', reporter: '高素芹', reportDate: '2022-08-16', entryUser: '朱劲松', entryDate: '2022-08-16' },
-  { id: 'E20220731001', org: '扬州市江都区滨江人民医院', location: '滨江影剧院', contact: '赵文华', phone: '13801345678', inspectDate: '2022-07-30', discDate: '2022-07-30', category: '公共场所', catDesc: '', content: '正常', doc: '', reporter: '吕雪', reportDate: '2022-07-31', entryUser: '吕雪', entryDate: '2022-07-31' },
-  { id: 'E20220719001', org: '扬州市江都区仙女镇卫生院', location: '仙女农贸市场', contact: '张秀兰', phone: '13505132345', inspectDate: '2022-07-18', discDate: '2022-07-17', category: '职业卫生', catDesc: '市场职业防护与病媒生物防制', content: '部分摊贩防蝇设施不到位，已现场指导并约定一周内复查。', doc: '', reporter: '宋劲松', reportDate: '2022-07-19', entryUser: '宋劲松', entryDate: '2022-07-19' }
+  { id: 'E20220816001', org: '扬州市江都区大桥镇顾巷村卫生室', location: '顾巷村', contact: '高家芹', phone: '13805216789', inspectDate: '2022-08-15', discDate: '2022-08-15', category: '饮用水卫生', catDesc: '村供水点水质卫生', content: '供水点消毒记录缺失近一周，已要求补齐并加强消毒管理。', doc: '', reporter: '高素芹', reportDate: '2022-08-16', entryUser: '朱劲松', entryDate: '2022-08-16' },
+  { id: 'E20220731001', org: '扬州市江都区滨江人民医院', location: '滨江影剧院', contact: '赵文华', phone: '13801345678', inspectDate: '2022-07-30', discDate: '2022-07-30', category: '非法行医(供采血)', catDesc: '', content: '正常', doc: '', reporter: '吕雪', reportDate: '2022-07-31', entryUser: '吕雪', entryDate: '2022-07-31' },
+  { id: 'E20220719001', org: '扬州市江都区仙女镇卫生院', location: '仙女农贸市场', contact: '张秀兰', phone: '13505132345', inspectDate: '2022-07-18', discDate: '2022-07-17', category: '计划生育', catDesc: '市场计划生育宣传服务与药具管理', content: '避孕药具发放登记不完整，已现场指导并约定一周内复查。', doc: '', reporter: '宋劲松', reportDate: '2022-07-19', entryUser: '宋劲松', entryDate: '2022-07-19' }
 ];
 var evtSeq = 7;
 
@@ -542,7 +545,7 @@ function showView(name) {
 /* ================= 筛选 ================= */
 function resetFilter() {
   ['qOrg', 'qCategory', 'qLocation'].forEach(function (id) { $(id).value = ''; markSelect($(id)); });
-  ['qRepStart', 'qRepEnd', 'qDiscStart', 'qDiscEnd'].forEach(function (id) { $(id).value = ''; });
+  ['qRepStart', 'qRepEnd'].forEach(function (id) { $(id).value = ''; $(id).type = 'text'; });
   $('qReporter').value = '';
   curPage = 1;
   renderTable();
@@ -554,7 +557,6 @@ function filtered() {
   var org = $('qOrg').value, rep = $('qReporter').value.trim();
   var cat = $('qCategory').value, loc = $('qLocation').value;
   var rs = $('qRepStart').value, re = $('qRepEnd').value;
-  var ds = $('qDiscStart').value, de = $('qDiscEnd').value;
   return EVENTS.filter(function (r) {
     if (org && r.org !== org) return false;
     if (rep && r.reporter.indexOf(rep) < 0) return false;
@@ -562,8 +564,6 @@ function filtered() {
     if (loc && r.location !== loc) return false;
     if (rs && r.reportDate < rs) return false;
     if (re && r.reportDate > re) return false;
-    if (ds && r.discDate < ds) return false;
-    if (de && r.discDate > de) return false;
     return true;
   });
 }

@@ -1,0 +1,176 @@
+<div class="filter-panel">
+        <div class="filter-row">
+          <div class="filter-item"><label>管理机构</label>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fOrg">
+            </div>
+          </div>
+          <div class="filter-item"><label>姓名</label><input id="fName" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>性别</label>
+            <select id="fGender" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="男">男</option>
+              <option value="女">女</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>证件号</label><input id="fIdcard" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>转诊结论</label>
+            <select id="fReferral" class="fi-select">
+              <option value="" selected>全部</option>
+              <option value="正常">正常</option>
+              <option value="建议转诊">建议转诊</option>
+              <option value="已转诊">已转诊</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>脑卒中风险</label>
+            <select id="fStroke" class="fi-select">
+              <option value="" selected>全部</option>
+              <option value="高危">高危</option>
+              <option value="中危">中危</option>
+              <option value="低危">低危</option>
+            </select>
+          </div>
+        </div>
+        <div class="filter-row">
+          <div class="filter-item"><label>管理行政区</label>
+            <select id="fRegion" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="同兴村">同兴村</option>
+              <option value="郭村">郭村</option>
+              <option value="吴桥">吴桥</option>
+              <option value="龙川">龙川</option>
+              <option value="大桥">大桥</option>
+              <option value="谢桥">谢桥</option>
+              <option value="白塔">白塔</option>
+              <option value="舜华社区">舜华社区</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>心脑血管风险</label>
+            <select id="fCardio" class="fi-select">
+              <option value="" selected>全部</option>
+              <option value="高危">高危</option>
+              <option value="中危">中危</option>
+              <option value="低危">低危</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>评估日期</label>
+            <input id="fEvalStart" class="fi-ctl" style="width:132px" type="text" placeholder="开始日期"
+                   onfocus="this.type='date';try{this.showPicker()}catch(e){}"
+                   onblur="if(!this.value){this.type='text'}">
+            <span class="fi-dash">~</span>
+            <input id="fEvalEnd" class="fi-ctl" style="width:132px" type="text" placeholder="结束日期"
+                   onfocus="this.type='date';try{this.showPicker()}catch(e){}"
+                   onblur="if(!this.value){this.type='text'}">
+          </div>
+          <div class="filter-item"><label>锁定状态</label>
+            <select id="fLock" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="未上锁">未上锁</option>
+              <option value="已上锁">已上锁</option>
+            </select>
+          </div>
+          <div class="filter-btns">
+            <button class="btn btn-default" onclick="resetFilter()">重置</button>
+            <button class="btn btn-primary" onclick="applyFilter()">查询</button>
+            <button class="btn-plain" id="btnExpand" onclick="toggleExtra()">展开 +</button>
+          </div>
+        </div>
+        <div class="filter-row extra" id="extraRow">
+          <div class="filter-item"><label>联系电话</label><input id="fPhone" class="fi-ctl" placeholder="请输入联系电话"></div>
+          <div class="filter-item"><label>出生日期</label><input id="fBirth" class="fi-ctl" placeholder="如：1954 或 1954-03"></div>
+          <div class="filter-item"><label>档案编号</label><input id="fArchNo" class="fi-ctl" placeholder="请输入档案编号"></div>
+          <div class="filter-item">
+            <label class="fi-check"><input type="checkbox" id="fOwn"> 只看个人管理档案</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- 数据表格 -->
+      <div class="table-wrap">
+        <table class="list-tbl">
+          <colgroup>
+            <col style="width:44px"><col style="width:150px"><col style="width:76px"><col style="width:82px"><col style="width:148px"><col style="width:44px"><col style="width:44px"><col style="width:110px"><col style="width:116px"><col style="width:90px"><col style="width:120px"><col style="width:90px"><col style="width:140px"><col style="width:148px"><col style="width:90px"><col style="width:170px">
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="center">序号</th>
+              <th>管理机构</th>
+              <th>姓名</th>
+              <th>证件类型</th>
+              <th>证件号</th>
+              <th class="center">性别</th>
+              <th class="center">年龄</th>
+              <th>出生日期</th>
+              <th>电话号码</th>
+              <th class="center">脑卒中风险</th>
+              <th class="center">心脑血管疾病风险</th>
+              <th class="center">转诊结论</th>
+              <th>详细地址</th>
+              <th>档案编号</th>
+              <th class="center">评估</th>
+              <th class="center">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tbBody"></tbody>
+        </table>
+      </div>
+
+      <!-- 分页 -->
+      <div class="page-foot">
+        <span class="pg-total">共 <b id="pgTotal">0</b> 条</span>
+        <span class="pg-size">
+          <select onchange="toast('原型演示：每页条数固定 20 条','info')">
+            <option selected>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+        </span>
+        <span class="pg-pager" id="pgPager"></span>
+        <span class="pg-jump">前往 <input id="pgJump" value="1" onkeydown="if(event.key==='Enter'){jumpPage()}"> 页</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== 档案选择弹框（新建专项第一步：选择居民档案） ===== -->
+<div class="modal-overlay select-modal" id="selectModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>新建心脑血管专项</h3>
+      <span class="modal-close" onclick="closeSelectModal()">×</span>
+    </div>
+    <div class="modal-body">
+      <!-- 筛选区 -->
+      <div class="select-filter">
+        <div class="filter-row">
+          <div class="filter-item"><label>姓名</label><input id="sfName" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>证件类型</label>
+            <select id="sfIdType" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="居民身份证">居民身份证</option>
+              <option value="居民户口簿">居民户口簿</option>
+              <option value="护照">护照</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>证件号</label><input id="sfIdcard" class="fi-ctl" placeholder="请输入"></div>
+        </div>
+        <div class="filter-row">
+          <div class="filter-item"><label>管理机构</label>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="sfOrg">
+            </div>
+          </div>
+          <div class="filter-item"><label>管辖网格</label>
+            <div class="fcp-tree" data-fcp="tree">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="sfGrid">
+            </div>
+          </div>
+          <div class="filter-btns">
+            <button class="btn btn-default" onclick="resetSelectFilter()">

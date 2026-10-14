@@ -23,6 +23,7 @@
   .fb-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
   .fb-input{height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 12px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
   .fb-input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fb-input.fb-date{padding:0 30px 0 12px;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;cursor:pointer}
   .fb-range{display:flex;align-items:center;gap:8px}
   .fb-range .dash{-color:var(--text-tertiary)}
   .filter-btns{margin-left:auto;display:flex;gap:8px}
@@ -83,28 +84,22 @@
 
       <!-- 筛选栏 -->
       <div class="filter-bar">
-        <select class="fb-select">
-          <option>按机构</option>
-          <option>按科室</option>
-          <option>按医生</option>
+        <select class="fb-select" id="fbType" onchange="fbTypeChange()">
+          <option value="org">按机构</option>
+          <option value="region">按行政区划</option>
         </select>
-        <select class="fb-select">
-          <option>山东大学齐鲁医院</option>
-          <option>山东省立医院</option>
-          <option>济南市中心医院</option>
-        </select>
-        <select class="fb-select">
-          <option>按年</option>
-          <option>按季度</option>
-          <option>按月</option>
+        <select class="fb-select" id="fbScope"></select>
+        <select class="fb-select" id="fbMode" onchange="fbModeChange()">
+          <option value="year">按年</option>
+          <option value="month">按月</option>
         </select>
         <div class="fb-range">
-          <input class="fb-input" type="text" value="2026" style="width:100px">
+          <input class="fb-input fb-date" id="fbStart" type="text" value="2026" style="width:110px">
           <span class="dash">-</span>
-          <input class="fb-input" type="text" value="2026" style="width:100px">
+          <input class="fb-input fb-date" id="fbEnd" type="text" value="2026" style="width:110px">
         </div>
         <div class="filter-btns">
-          <button class="btn btn-default" onclick="toast('已重置','info')">重置</button>
+          <button class="btn btn-default" onclick="fbReset()">重置</button>
           <button class="btn btn-primary" onclick="toast('查询成功','success')">查询</button>
         </div>
       </div>
@@ -273,5 +268,47 @@
 </div>
 
 <script src="框架.js" data-page="dashboard" data-embed="auto" data-sysname="公共卫生系统" data-org="山东大学齐鲁医院"></script>
+<script>
+'use strict';
+/* ================= 筛选栏联动 ================= */
+var FB_ORGS = ['山东大学齐鲁医院', '山东省立医院', '济南市中心医院'];
+/* 按行政区划：镇列表（与区域网格化管理页同源） */
+var FB_TOWNS = ['仙女镇', '小纪镇', '邵伯镇', '樊川镇', '真武镇', '宜陵镇', '丁沟镇', '郭村镇'];
+
+function fbFillScope(type) {
+  var sel = document.getElementById('fbScope');
+  var list = type === 'region' ? FB_TOWNS : FB_ORGS;
+  var ph = type === 'region' ? '请选择行政区划' : '请选择机构';
+  sel.innerHTML = '<option value="">' + ph + '</option>'
+    + list.map(function (x) { return '<option>' + x + '</option>'; }).join('');
+}
+/* 第一列切换：按机构 / 按行政区划 → 第二列选项联动刷新 */
+function fbTypeChange() {
+  fbFillScope(document.getElementById('fbType').value);
+}
+/* 第三列切换：按年 / 按月 → 时间区间值格式联动（yyyy / yyyy-MM） */
+function fbModeChange() {
+  var isMonth = document.getElementById('fbMode').value === 'month';
+  var s = document.getElementById('fbStart'), e = document.getElementById('fbEnd');
+  if (isMonth) {
+    if (/^\d{4}$/.test(s.value)) s.value = s.value + '-01';
+    if (/^\d{4}$/.test(e.value)) e.value = e.value + '-12';
+  } else {
+    if (/^\d{4}-\d{2}$/.test(s.value)) s.value = s.value.slice(0, 4);
+    if (/^\d{4}-\d{2}$/.test(e.value)) e.value = e.value.slice(0, 4);
+  }
+}
+/* 重置：恢复默认筛选（按机构 + 请选择机构 + 按年 + 当年区间） */
+function fbReset() {
+  document.getElementById('fbType').value = 'org';
+  fbFillScope('org');
+  document.getElementById('fbMode').value = 'year';
+  document.getElementById('fbStart').value = '2026';
+  document.getElementById('fbEnd').value = '2026';
+  toast('已重置', 'info');
+}
+/* 初始化 */
+fbFillScope('org');
+</script>
 </body>
 </html>

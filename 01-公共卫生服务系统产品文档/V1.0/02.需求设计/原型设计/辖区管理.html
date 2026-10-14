@@ -116,7 +116,8 @@
   .casc-empty{padding:14px 12px;font-size:13px;color:var(--text-placeholder)}
 
   /* ===== 页头 ===== */
-  .page-head .right{font-size:13px;color:var(--text-tertiary);gap:6px}
+  .page-head .right{font-size:13px;color:var(--text-tertiary);gap:8px}
+  .page-head .right .btn{height:30px;padding:0 14px;font-size:13px}
   .page-head .right svg{width:14px;height:14px;stroke:var(--text-tertiary);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 </style>
 </head>
@@ -133,29 +134,24 @@
 
       <div class="page-head">
         <h1>辖区管理</h1>
+        <div class="right">
+          <button class="btn btn-default" onclick="toast('导出成功','success')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            导出
+          </button>
+          <button class="btn btn-primary" onclick="openForm('create')">新建</button>
+        </div>
       </div>
 
       <div class="filter-panel">
         <div class="filter-row">
           <div class="filter-item">
-            <label>管理行政区：</label>
-            <select class="fi-select is-placeholder" id="qDistrict" onchange="markSelect(this)">
-              <option value="">请选择</option>
-              <option>仙女镇</option>
-              <option>樊川镇</option>
-              <option>大桥镇</option>
-              <option>丁伙镇</option>
-              <option>郭村镇</option>
-              <option>邵伯镇</option>
-              <option>小纪镇</option>
-              <option>真武镇</option>
-              <option>宜陵镇</option>
-              <option>浦头镇</option>
-              <option>吴桥镇</option>
-              <option>漕运镇</option>
-              <option>广陵区</option>
-              <option>江都区</option>
-            </select>
+            <label>管辖行政区：</label>
+            <div class="fcp-cas" data-fcp="cas">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="qDistrict">
+            </div>
           </div>
           <div class="filter-item">
             <label>年度：</label>
@@ -168,11 +164,6 @@
             </select>
           </div>
           <div class="filter-btns">
-            <button class="btn btn-default" onclick="toast('导出成功','success')">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              导出
-            </button>
-            <button class="btn btn-primary" onclick="openForm('create')">新建</button>
             <button class="btn btn-default" onclick="resetFilter()">重置</button>
             <button class="btn btn-primary" onclick="applyFilter()">查询</button>
           </div>
@@ -488,7 +479,6 @@
   /* ================= 筛选 ================= */
   function resetFilter() {
     $('qDistrict').value = '';
-    markSelect($('qDistrict'));
     renderTable();
     toast('已重置', 'info');
   }

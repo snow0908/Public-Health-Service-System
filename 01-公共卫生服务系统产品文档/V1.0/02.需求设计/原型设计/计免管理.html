@@ -40,6 +40,37 @@
   .fi-sep{color:var(--text-placeholder);font-size:13px}
   .fi-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer}
   .fi-check input{margin:0;accent-color:var(--primary);cursor:pointer}
+  /* 主筛选区行距/列距/标签间距（对齐设计稿：行距 10、列距 22、标签-控件 12） */
+  .filter-panel .filter-row{gap:12px 22px;margin-bottom:10px}
+  .filter-panel .filter-item{gap:12px}
+  /* 筛选区内控件统一外框宽度（仅作用于主筛选区，不影响新建专项弹框内同名类） */
+  .filter-panel .fi-ctl,.filter-panel .fi-select{width:180px}
+  /* 筛选区内统一筛选复合控件（管理机构/管辖行政区）等宽 180px */
+  .filter-panel .fcp-ms,.filter-panel .fcp-cas,.filter-panel .fcp-tree,.filter-panel .fcp-mst{width:180px}
+  .filter-panel .fcp-ms .fcp-panel{width:max-content;min-width:100%;max-width:300px}
+  .filter-panel .fcp-tree .fcp-panel{width:200px}
+  /* 日期区间：单一外框（开始日期 ~ 结束日期 + 日历图标） */
+  .fi-range{display:flex;align-items:center;gap:6px;width:232px;height:32px;padding:0 8px 0 10px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);background:var(--bg-white);transition:all var(--transition-fast)}
+  .fi-range:hover{border-color:var(--primary)}
+  .fi-range:focus-within{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-range input{flex:1 1 0;min-width:0;height:30px;border:none;background:transparent;outline:none;padding:0;font-size:14px;color:var(--text-primary);font-family:inherit}
+  .fi-range input::placeholder{color:var(--text-placeholder)}
+  .fi-range input::-webkit-calendar-picker-indicator{display:none}
+  .fi-tilde{flex-shrink:0;font-size:14px;color:var(--text-placeholder)}
+  .fi-cal{width:14px;height:14px;flex-shrink:0;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none' stroke='%23bfbfbf' stroke-width='1.2'%3E%3Crect x='1.4' y='2.4' width='11.2' height='10.2' rx='1.6'/%3E%3Cpath d='M1.4 5.6h11.2M4.6 1.4v2M9.4 1.4v2'/%3E%3C/svg%3E") no-repeat center/contain}
+  /* 只看个人管理档案 复选框（统一写法，替换各页旧版 .own-check） */
+  .fi-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer;user-select:none;white-space:nowrap;margin:0}
+  .fi-check input[type=checkbox]{width:15px;height:15px;margin:0;accent-color:var(--primary);cursor:pointer}
+  /* 可清空单选下拉（中医服务等：有值时右侧出现圆形 ✕） */
+  .fi-combo{position:relative;display:inline-flex;align-items:center}
+  .filter-panel .fi-combo .fi-select{width:180px;padding-right:30px}
+  .fi-combo.has-val .fi-select{background-image:none}
+  .fi-combo .fi-combo-x{display:none;position:absolute;right:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;box-sizing:border-box;border:1px solid #BFBFBF;border-radius:50%;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='5' viewBox='0 0 5 5'%3E%3Cpath d='M1 1l3 3M4 1L1 4' stroke='%23BFBFBF' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center/5px 5px;cursor:pointer;user-select:none}
+  .fi-combo.has-val .fi-combo-x{display:block}
+  .fi-combo .fi-combo-x:hover{border-color:var(--primary);background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='5' viewBox='0 0 5 5'%3E%3Cpath d='M1 1l3 3M4 1L1 4' stroke='%23007AFF' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E")}
+  /* 本页仅一行筛选（管理机构/姓名/出生日期区间/锁定状态 + 只看个人管理档案 + 按钮组），
+     需落在同一条线上，故列距由 22 压缩至 16 */
+  .filter-panel .filter-row{gap:12px 16px}
 
   /* ===== 数据表格 ===== */
   .table-wrap{flex:1;overflow:auto;min-height:0}
@@ -227,80 +258,37 @@
       <!-- 筛选区 -->
       <div class="filter-panel">
         <div class="filter-row">
-          <div class="filter-item"><label>管理机构</label>
-            <select id="fOrg" class="fi-select w-lg">
-              <option value="" selected>请选择</option>
-              <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
-              <option value="济南市历下区甸柳新村社区卫生服务中心">济南市历下区甸柳新村社区卫生服务中心</option>
-              <option value="济南市市中区舜玉路社区卫生服务中心">济南市市中区舜玉路社区卫生服务中心</option>
-              <option value="济南市历下区千佛山社区卫生服务中心">济南市历下区千佛山社区卫生服务中心</option>
-              <option value="济南市天桥区工人新村社区卫生服务中心">济南市天桥区工人新村社区卫生服务中心</option>
-              <option value="济南市历下区文化东路社区卫生服务中心">济南市历下区文化东路社区卫生服务中心</option>
-            </select>
+          <div class="filter-item"><label>管理机构：</label>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fOrg">
+            </div>
           </div>
-          <div class="filter-item"><label>姓名</label><input id="fName" class="fi-ctl" placeholder="请输入姓名"></div>
-          <div class="filter-item"><label>监护人姓名</label><input id="fGuard" class="fi-ctl" placeholder="请输入监护人姓名"></div>
-          <div class="filter-item"><label>与儿童关系</label>
-            <select id="fRelation" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="父亲">父亲</option>
-              <option value="母亲">母亲</option>
-              <option value="祖父">祖父</option>
-              <option value="祖母">祖母</option>
-              <option value="外祖父">外祖父</option>
-              <option value="外祖母">外祖母</option>
-            </select>
+          <div class="filter-item"><label>姓名：</label><input id="fName" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>出生日期：</label>
+            <span class="fi-range">
+              <input id="fBirthStart" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <span class="fi-tilde">~</span>
+              <input id="fBirthEnd" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <span class="fi-cal"></span>
+            </span>
           </div>
-          <div class="filter-item"><label>锁定状态</label>
+          <div class="filter-item"><label>锁定状态：</label>
             <select id="fLock" class="fi-select">
-              <option value="未上锁" selected>未上锁</option>
-              <option value="">全部</option>
+              <option value="" selected>请选择</option>
+              <option value="未上锁">未上锁</option>
               <option value="已上锁">已上锁</option>
             </select>
           </div>
-        </div>
-        <div class="filter-row">
-          <div class="filter-item"><label>联系电话</label><input id="fPhone" class="fi-ctl" placeholder="请输入联系电话"></div>
-          <div class="filter-item"><label>接种禁忌</label>
-            <select id="fTaboo" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="无">无</option>
-              <option value="有">有</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>疫苗异常反应史</label>
-            <select id="fReaction" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="无">无</option>
-              <option value="有">有</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>传染病史</label>
-            <select id="fInfect" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="无">无</option>
-              <option value="有">有</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>建卡医生</label><input id="fSpecDoc" class="fi-ctl" placeholder="请输入建卡医生"></div>
+          <div class="filter-item"><label class="fi-check"><input type="checkbox" id="fMine"> 只看个人管理档案</label></div>
           <div class="filter-btns">
             <button class="btn btn-default" onclick="resetFilter()">重置</button>
             <button class="btn btn-primary" onclick="applyFilter()">查询</button>
-            <button class="btn-plain" id="btnExpand" onclick="toggleExtra()">展开 ▼</button>
-          </div>
-        </div>
-        <div class="filter-row extra">
-          <div class="filter-item"><label>出生日期</label>
-            <input id="fBirthStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">—</span>
-            <input id="fBirthEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-          </div>
-          <div class="filter-item"><label>详细地址</label><input id="fAddress" class="fi-ctl" placeholder="请输入详细地址"></div>
-          <div class="filter-item">
-            <label class="fi-check"><input type="checkbox" id="fMine">只看个人管理档案</label>
           </div>
         </div>
       </div>
+
 
       <!-- 数据表格 -->
       <div class="table-wrap">
@@ -372,24 +360,18 @@
         </div>
         <div class="filter-row">
           <div class="filter-item"><label>管理机构</label>
-            <select id="sfOrg" class="fi-select w-lg">
-              <option value="" selected>请选择</option>
-              <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
-              <option value="扬州市江都区吴桥镇卫生院">扬州市江都区吴桥镇卫生院</option>
-              <option value="扬州市江都区宜陵镇中心卫生院">扬州市江都区宜陵镇中心卫生院</option>
-              <option value="扬州市江都区仙女镇社区卫生服务中心">扬州市江都区仙女镇社区卫生服务中心</option>
-              <option value="扬州市江都区丁沟镇卫生院">扬州市江都区丁沟镇卫生院</option>
-              <option value="扬州市江都区樊川镇卫生院">扬州市江都区樊川镇卫生院</option>
-            </select>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="sfOrg">
+            </div>
           </div>
           <div class="filter-item"><label>管辖网格</label>
-            <select id="sfGrid" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="第一网格">第一网格</option>
-              <option value="第二网格">第二网格</option>
-              <option value="第三网格">第三网格</option>
-              <option value="第四网格">第四网格</option>
-            </select>
+            <div class="fcp-tree" data-fcp="tree">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="sfGrid">
+            </div>
           </div>
           <div class="filter-btns">
             <button class="btn btn-default" onclick="resetSelectFilter()">重置</button>
@@ -556,30 +538,30 @@
 <script>
   /* ================= 模拟数据（与儿童管理页同 24 名儿童联动；证件号仅作内部标识不在列表展示） ================= */
   var immunizationData = [
-    { org:'山东大学齐鲁医院', name:'刘一诺', birth:'2026-01-12', guard:'刘志强', relation:'父亲', phone:'13905312846', address:'济南市历下区解放路105号',      taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'徐东升', lock:'未上锁', idcard:'370102202601122515' },
-    { org:'山东大学齐鲁医院', name:'王梓萱', birth:'2025-08-05', guard:'王建国', relation:'父亲', phone:'18764162853', address:'济南市历下区山大南路27号',      taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'李蕾',   lock:'未上锁', idcard:'370102202508054823' },
-    { org:'山东大学齐鲁医院', name:'张浩然', birth:'2023-04-18', guard:'张伟',   relation:'父亲', phone:'13583175246', address:'济南市历下区燕山小区东路18号',  taboo:'有', tabooNote:'对疫苗成分过敏', reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'朱劲松', lock:'未上锁', idcard:'370102202304183711' },
-    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'陈雨萌', birth:'2024-11-30', guard:'陈建国', relation:'父亲', phone:'15863771824', address:'济南市历下区甸柳新村七区3号楼',  taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'王盛',   lock:'未上锁', idcard:'370102202411304824' },
-    { org:'山东大学齐鲁医院', name:'李沐宸', birth:'2026-08-10', guard:'李强',   relation:'父亲', phone:'13006598712', address:'济南市历城区华信路3号',        taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'徐东升', lock:'未上锁', idcard:'370102202608103515' },
-    { org:'济南市市中区舜玉路社区卫生服务中心', name:'赵梓涵', birth:'2022-09-14', guard:'赵敏',   relation:'母亲', phone:'13626413789', address:'济南市市中区二环南路2766号',  taboo:'无', tabooNote:'',   reaction:'有', reactionNote:'曾有发热反应', infect:'无', infectNote:'', specDoc:'敖鹏天', lock:'未上锁', idcard:'370102202209144420' },
-    { org:'山东大学齐鲁医院', name:'孙浩然', birth:'2025-03-22', guard:'孙立军', relation:'父亲', phone:'13370585246', address:'济南市历下区和平路36号',        taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'陆柳琳', lock:'未上锁', idcard:'370102202503223719' },
-    { org:'济南市历下区千佛山社区卫生服务中心', name:'周诗涵', birth:'2024-02-08', guard:'周国强', relation:'祖父', phone:'15508662453', address:'济南市历下区经十路9777号',       taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'王盛',   lock:'未上锁', idcard:'370102202402084829' },
-    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'吴昊宇', birth:'2025-12-18', guard:'吴明',   relation:'父亲', phone:'15562591876', address:'济南市历下区甸柳新村二区4号楼',  taboo:'有', tabooNote:'免疫缺陷',       reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'王盛',   lock:'未上锁', idcard:'370102202512183716' },
-    { org:'济南市天桥区工人新村社区卫生服务中心', name:'郑子轩', birth:'2021-07-25', guard:'郑海涛', relation:'父亲', phone:'15098764213', address:'济南市天桥区堤口路92号',          taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'朱劲松', lock:'未上锁', idcard:'370102202107253513' },
-    { org:'山东大学齐鲁医院', name:'冯晓曦', birth:'2026-05-30', guard:'冯远征', relation:'父亲', phone:'15589961237', address:'济南市历下区窑头路7号',           taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'徐东升', lock:'未上锁', idcard:'370102202605304828' },
-    { org:'济南市市中区舜玉路社区卫生服务中心', name:'何俊哲', birth:'2023-11-02', guard:'何斌',   relation:'父亲', phone:'13064018573', address:'济南市市中区六里山南路20号',    taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'有', infectNote:'水痘', specDoc:'敖鹏天', lock:'未上锁', idcard:'370102202311023318' },
-    { org:'济南市历下区文化东路社区卫生服务中心', name:'高欣怡', birth:'2024-07-19', guard:'高建军', relation:'父亲', phone:'15562594387', address:'济南市历下区文化东路51号',      taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'李蕾',   lock:'未上锁', idcard:'370102202407194426' },
-    { org:'济南市天桥区工人新村社区卫生服务中心', name:'韩雨辰', birth:'2022-01-16', guard:'韩冰',   relation:'母亲', phone:'15066659432', address:'济南市天桥区工人新村北街7号',    taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'朱劲松', lock:'未上锁', idcard:'370102202201163515' },
-    { org:'山东大学齐鲁医院', name:'林晨曦', birth:'2020-10-05', guard:'林涛',   relation:'父亲', phone:'15806601245', address:'济南市历下区经十路9777号',       taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'李蕾',   lock:'已上锁', idcard:'370102202010054628' },
-    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'马一诺', birth:'2026-08-21', guard:'马天宇', relation:'父亲', phone:'15806603246', address:'济南市历下区甸柳新村八区2号楼',  taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'陆柳琳', lock:'未上锁', idcard:'370102202608213319' },
-    { org:'济南市市中区舜玉路社区卫生服务中心', name:'崔梦琪', birth:'2025-06-11', guard:'崔永军', relation:'父亲', phone:'15550061287', address:'济南市市中区七里山路15号',      taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'敖鹏天', lock:'未上锁', idcard:'370102202506114822' },
-    { org:'山东大学齐鲁医院', name:'苏子墨', birth:'2023-06-27', guard:'苏磊',   relation:'父亲', phone:'13176643578', address:'济南市历下区姚家路29号',          taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'王盛',   lock:'未上锁', idcard:'370102202306273513' },
-    { org:'济南市历下区文化东路社区卫生服务中心', name:'白悦彤', birth:'2021-03-09', guard:'白志远', relation:'外祖父', phone:'15165372948', address:'济南市历下区文化东路88号',      taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'李蕾',   lock:'未上锁', idcard:'370102202103094427' },
-    { org:'山东大学齐鲁医院', name:'潘俊宇', birth:'2024-09-28', guard:'潘鹏',   relation:'父亲', phone:'13064029137', address:'济南市历下区和平路53号',        taboo:'无', tabooNote:'',   reaction:'有', reactionNote:'曾有皮疹反应', infect:'无', infectNote:'', specDoc:'徐东升', lock:'未上锁', idcard:'370102202409283317' },
-    { org:'济南市天桥区工人新村社区卫生服务中心', name:'董佳怡', birth:'2022-05-31', guard:'董建军', relation:'父亲', phone:'15066658734', address:'济南市天桥区济泺路130号',         taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'朱劲松', lock:'未上锁', idcard:'370102202205314426' },
-    { org:'济南市历下区千佛山社区卫生服务中心', name:'贾子轩', birth:'2025-10-14', guard:'贾文军', relation:'父亲', phone:'15508664321', address:'济南市历下区科院路19号',         taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'王盛',   lock:'未上锁', idcard:'370102202510143515' },
-    { org:'济南市市中区舜玉路社区卫生服务中心', name:'万欣妍', birth:'2023-01-29', guard:'万磊',   relation:'父亲', phone:'15562587321', address:'济南市市中区玉函路39号',         taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'敖鹏天', lock:'未上锁', idcard:'370102202301294823' },
-    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'邵明轩', birth:'2026-03-05', guard:'邵峰',   relation:'父亲', phone:'13176648932', address:'济南市历下区甸柳新村五区6号楼',  taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'陆柳琳', lock:'未上锁', idcard:'370102202603053518' }
+    { org:'山东大学齐鲁医院', name:'刘一诺', birth:'2026-01-12', guard:'刘志强', relation:'父亲', phone:'13905312846', address:'济南市历下区解放路105号',      taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'徐东升', mine:true, lock:'未上锁', idcard:'370102202601122515' },
+    { org:'山东大学齐鲁医院', name:'王梓萱', birth:'2025-08-05', guard:'王建国', relation:'父亲', phone:'18764162853', address:'济南市历下区山大南路27号',      taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'李蕾',   mine:false, lock:'未上锁', idcard:'370102202508054823' },
+    { org:'山东大学齐鲁医院', name:'张浩然', birth:'2023-04-18', guard:'张伟',   relation:'父亲', phone:'13583175246', address:'济南市历下区燕山小区东路18号',  taboo:'有', tabooNote:'对疫苗成分过敏', reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'朱劲松', mine:false, lock:'未上锁', idcard:'370102202304183711' },
+    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'陈雨萌', birth:'2024-11-30', guard:'陈建国', relation:'父亲', phone:'15863771824', address:'济南市历下区甸柳新村七区3号楼',  taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'王盛',   mine:true, lock:'未上锁', idcard:'370102202411304824' },
+    { org:'山东大学齐鲁医院', name:'李沐宸', birth:'2026-08-10', guard:'李强',   relation:'父亲', phone:'13006598712', address:'济南市历城区华信路3号',        taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'徐东升', mine:false, lock:'未上锁', idcard:'370102202608103515' },
+    { org:'济南市市中区舜玉路社区卫生服务中心', name:'赵梓涵', birth:'2022-09-14', guard:'赵敏',   relation:'母亲', phone:'13626413789', address:'济南市市中区二环南路2766号',  taboo:'无', tabooNote:'',   reaction:'有', reactionNote:'曾有发热反应', infect:'无', infectNote:'', specDoc:'敖鹏天', mine:false, lock:'未上锁', idcard:'370102202209144420' },
+    { org:'山东大学齐鲁医院', name:'孙浩然', birth:'2025-03-22', guard:'孙立军', relation:'父亲', phone:'13370585246', address:'济南市历下区和平路36号',        taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'陆柳琳', mine:true, lock:'未上锁', idcard:'370102202503223719' },
+    { org:'济南市历下区千佛山社区卫生服务中心', name:'周诗涵', birth:'2024-02-08', guard:'周国强', relation:'祖父', phone:'15508662453', address:'济南市历下区经十路9777号',       taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'王盛',   mine:false, lock:'未上锁', idcard:'370102202402084829' },
+    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'吴昊宇', birth:'2025-12-18', guard:'吴明',   relation:'父亲', phone:'15562591876', address:'济南市历下区甸柳新村二区4号楼',  taboo:'有', tabooNote:'免疫缺陷',       reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'王盛',   mine:false, lock:'未上锁', idcard:'370102202512183716' },
+    { org:'济南市天桥区工人新村社区卫生服务中心', name:'郑子轩', birth:'2021-07-25', guard:'郑海涛', relation:'父亲', phone:'15098764213', address:'济南市天桥区堤口路92号',          taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'朱劲松', mine:true, lock:'未上锁', idcard:'370102202107253513' },
+    { org:'山东大学齐鲁医院', name:'冯晓曦', birth:'2026-05-30', guard:'冯远征', relation:'父亲', phone:'15589961237', address:'济南市历下区窑头路7号',           taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'徐东升', mine:false, lock:'未上锁', idcard:'370102202605304828' },
+    { org:'济南市市中区舜玉路社区卫生服务中心', name:'何俊哲', birth:'2023-11-02', guard:'何斌',   relation:'父亲', phone:'13064018573', address:'济南市市中区六里山南路20号',    taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'有', infectNote:'水痘', specDoc:'敖鹏天', mine:false, lock:'未上锁', idcard:'370102202311023318' },
+    { org:'济南市历下区文化东路社区卫生服务中心', name:'高欣怡', birth:'2024-07-19', guard:'高建军', relation:'父亲', phone:'15562594387', address:'济南市历下区文化东路51号',      taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'李蕾',   mine:true, lock:'未上锁', idcard:'370102202407194426' },
+    { org:'济南市天桥区工人新村社区卫生服务中心', name:'韩雨辰', birth:'2022-01-16', guard:'韩冰',   relation:'母亲', phone:'15066659432', address:'济南市天桥区工人新村北街7号',    taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'朱劲松', mine:false, lock:'未上锁', idcard:'370102202201163515' },
+    { org:'山东大学齐鲁医院', name:'林晨曦', birth:'2020-10-05', guard:'林涛',   relation:'父亲', phone:'15806601245', address:'济南市历下区经十路9777号',       taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'李蕾',   mine:false, lock:'已上锁', idcard:'370102202010054628' },
+    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'马一诺', birth:'2026-08-21', guard:'马天宇', relation:'父亲', phone:'15806603246', address:'济南市历下区甸柳新村八区2号楼',  taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'陆柳琳', mine:true, lock:'未上锁', idcard:'370102202608213319' },
+    { org:'济南市市中区舜玉路社区卫生服务中心', name:'崔梦琪', birth:'2025-06-11', guard:'崔永军', relation:'父亲', phone:'15550061287', address:'济南市市中区七里山路15号',      taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'敖鹏天', mine:false, lock:'未上锁', idcard:'370102202506114822' },
+    { org:'山东大学齐鲁医院', name:'苏子墨', birth:'2023-06-27', guard:'苏磊',   relation:'父亲', phone:'13176643578', address:'济南市历下区姚家路29号',          taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'王盛',   mine:false, lock:'未上锁', idcard:'370102202306273513' },
+    { org:'济南市历下区文化东路社区卫生服务中心', name:'白悦彤', birth:'2021-03-09', guard:'白志远', relation:'外祖父', phone:'15165372948', address:'济南市历下区文化东路88号',      taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'李蕾',   mine:true, lock:'未上锁', idcard:'370102202103094427' },
+    { org:'山东大学齐鲁医院', name:'潘俊宇', birth:'2024-09-28', guard:'潘鹏',   relation:'父亲', phone:'13064029137', address:'济南市历下区和平路53号',        taboo:'无', tabooNote:'',   reaction:'有', reactionNote:'曾有皮疹反应', infect:'无', infectNote:'', specDoc:'徐东升', mine:false, lock:'未上锁', idcard:'370102202409283317' },
+    { org:'济南市天桥区工人新村社区卫生服务中心', name:'董佳怡', birth:'2022-05-31', guard:'董建军', relation:'父亲', phone:'15066658734', address:'济南市天桥区济泺路130号',         taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'朱劲松', mine:false, lock:'未上锁', idcard:'370102202205314426' },
+    { org:'济南市历下区千佛山社区卫生服务中心', name:'贾子轩', birth:'2025-10-14', guard:'贾文军', relation:'父亲', phone:'15508664321', address:'济南市历下区科院路19号',         taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'王盛',   mine:true, lock:'未上锁', idcard:'370102202510143515' },
+    { org:'济南市市中区舜玉路社区卫生服务中心', name:'万欣妍', birth:'2023-01-29', guard:'万磊',   relation:'父亲', phone:'15562587321', address:'济南市市中区玉函路39号',         taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'敖鹏天', mine:false, lock:'未上锁', idcard:'370102202301294823' },
+    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'邵明轩', birth:'2026-03-05', guard:'邵峰',   relation:'父亲', phone:'13176648932', address:'济南市历下区甸柳新村五区6号楼',  taboo:'无', tabooNote:'',   reaction:'无', reactionNote:'', infect:'无', infectNote:'', specDoc:'陆柳琳', mine:false, lock:'未上锁', idcard:'370102202603053518' }
   ];
 
   /* ================= 工具函数 ================= */
@@ -597,27 +579,17 @@
 
   /* ================= 表格渲染（按筛选条件实时过滤 + 分页） ================= */
   function renderTable() {
-    var org = $('fOrg').value, name = $('fName').value.trim();
-    var guard = $('fGuard').value.trim(), relation = $('fRelation').value, lock = $('fLock').value;
-    var phone = $('fPhone').value.trim(), taboo = $('fTaboo').value;
-    var reaction = $('fReaction').value, infect = $('fInfect').value;
-    var specDoc = $('fSpecDoc').value.trim(), address = $('fAddress').value.trim();
+    var org = $('fOrg').value, name = $('fName').value.trim(), lock = $('fLock').value;
     var birthStart = $('fBirthStart').value, birthEnd = $('fBirthEnd').value;
+    var mine = $('fMine').checked;
 
     lastList = immunizationData.filter(function (r) {
-      if (org && r.org !== org) return false;
+      if (org && org.split(',').indexOf(r.org) === -1) return false;
       if (name && r.name.indexOf(name) === -1) return false;
-      if (guard && r.guard.indexOf(guard) === -1) return false;
-      if (relation && r.relation !== relation) return false;
       if (lock && r.lock !== lock) return false;
-      if (phone && r.phone.indexOf(phone) === -1) return false;
-      if (taboo && r.taboo !== taboo) return false;
-      if (reaction && r.reaction !== reaction) return false;
-      if (infect && r.infect !== infect) return false;
-      if (specDoc && r.specDoc.indexOf(specDoc) === -1) return false;
-      if (address && r.address.indexOf(address) === -1) return false;
       if (birthStart && r.birth < birthStart) return false;
       if (birthEnd && r.birth > birthEnd) return false;
+      if (mine && !r.mine) return false;
       return true;
     });
 
@@ -711,10 +683,9 @@
 
   /* ================= 交互 ================= */
   function resetFilter() {
-    ['fName', 'fGuard', 'fPhone', 'fSpecDoc', 'fAddress'].forEach(function (id) { $(id).value = ''; });
-    ['fOrg', 'fRelation', 'fTaboo', 'fReaction', 'fInfect'].forEach(function (id) { $(id).value = ''; });
+    $('fName').value = '';
+    ['fOrg', 'fLock'].forEach(function (id) { $(id).value = ''; });
     ['fBirthStart', 'fBirthEnd'].forEach(function (id) { var el = $(id); el.value = ''; el.type = 'text'; });
-    $('fLock').value = '未上锁';
     $('fMine').checked = false;
     curPage = 1;
     renderTable();
@@ -725,22 +696,6 @@
     curPage = 1;
     renderTable();
     toast('查询完成，共 ' + $('pgTotal').textContent + ' 条记录', 'success');
-  }
-
-  function toggleExtra() {
-    var rows = document.querySelectorAll('.filter-row.extra');
-    var btn = $('btnExpand');
-    var show = !rows[0].classList.contains('show');
-    rows.forEach(function (row) { row.classList.toggle('show', show); });
-    btn.textContent = show ? '收起 ▲' : '展开 ▼';
-    /* 展开：按钮组移到最后一行筛选条件右侧；收起：移回第二行末尾 */
-    var btns = document.querySelector('.filter-panel .filter-btns');
-    var mainRows = document.querySelectorAll('.filter-panel .filter-row:not(.extra)');
-    if (show) {
-      rows[rows.length - 1].appendChild(btns);
-    } else {
-      mainRows[mainRows.length - 1].appendChild(btns);
-    }
   }
 
   function showOpMenu(el, ev, idcard) {
@@ -801,14 +756,21 @@
   });
 
   /* 筛选控件输入即实时过滤（并回到第一页） */
-  ['fName', 'fGuard', 'fPhone', 'fSpecDoc', 'fAddress'].forEach(function (id) {
-    $(id).addEventListener('input', function () { curPage = 1; renderTable(); });
-  });
-  ['fOrg', 'fRelation', 'fLock', 'fTaboo', 'fReaction', 'fInfect', 'fMine'].forEach(function (id) {
+  $('fName').addEventListener('input', function () { curPage = 1; renderTable(); });
+  ['fOrg', 'fLock', 'fMine'].forEach(function (id) {
     $(id).addEventListener('change', function () { curPage = 1; renderTable(); });
   });
   ['fBirthStart', 'fBirthEnd'].forEach(function (id) {
     $(id).addEventListener('input', function () { curPage = 1; renderTable(); });
+  });
+
+  /* 复合筛选控件（管理机构/重点人群类型/管辖行政区）选择后实时过滤 */
+  document.querySelectorAll('.filter-panel [data-fcp]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      if (e.target.closest('.fcp-opt,.fcp-n,.fcp-clear')) {
+        setTimeout(function () { curPage = 1; renderTable(); }, 0);
+      }
+    });
   });
 
   /* ================= 档案选择弹框（新建专项第一步） ================= */

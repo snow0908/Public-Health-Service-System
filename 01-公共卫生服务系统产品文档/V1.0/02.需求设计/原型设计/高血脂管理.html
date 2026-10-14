@@ -35,9 +35,27 @@
   .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
   .btn-plain{height:28px;padding:0 8px;font-size:13px;color:var(--primary);border-radius:var(--r-sm)}
   .btn-plain:hover{background:var(--primary-bg)}
-  /* 只看个人管理档案 复选框 */
-  .fi-check{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;color:var(--text-secondary);user-select:none;white-space:nowrap}
-  .fi-check input[type=checkbox]{width:15px;height:15px;accent-color:var(--primary);cursor:pointer}
+  /* 主筛选区行距/列距/标签间距（对齐设计稿：行距 10、列距 22、标签-控件 12） */
+  .filter-panel .filter-row{gap:12px 22px;margin-bottom:10px}
+  .filter-panel .filter-item{gap:12px}
+  /* 筛选区内控件统一外框宽度（仅作用于主筛选区，不影响新建专项弹框内同名类） */
+  .filter-panel .fi-ctl,.filter-panel .fi-select{width:180px}
+  /* 筛选区内统一筛选复合控件（管理机构/管辖行政区）等宽 180px */
+  .filter-panel .fcp-ms,.filter-panel .fcp-cas,.filter-panel .fcp-tree,.filter-panel .fcp-mst{width:180px}
+  .filter-panel .fcp-ms .fcp-panel{width:max-content;min-width:100%;max-width:300px}
+  .filter-panel .fcp-tree .fcp-panel{width:200px}
+  /* 日期区间：单一外框（开始日期 ~ 结束日期 + 日历图标） */
+  .fi-range{display:flex;align-items:center;gap:6px;width:232px;height:32px;padding:0 8px 0 10px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);background:var(--bg-white);transition:all var(--transition-fast)}
+  .fi-range:hover{border-color:var(--primary)}
+  .fi-range:focus-within{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-range input{flex:1 1 0;min-width:0;height:30px;border:none;background:transparent;outline:none;padding:0;font-size:14px;color:var(--text-primary);font-family:inherit}
+  .fi-range input::placeholder{color:var(--text-placeholder)}
+  .fi-range input::-webkit-calendar-picker-indicator{display:none}
+  .fi-tilde{flex-shrink:0;font-size:14px;color:var(--text-placeholder)}
+  .fi-cal{width:14px;height:14px;flex-shrink:0;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none' stroke='%23bfbfbf' stroke-width='1.2'%3E%3Crect x='1.4' y='2.4' width='11.2' height='10.2' rx='1.6'/%3E%3Cpath d='M1.4 5.6h11.2M4.6 1.4v2M9.4 1.4v2'/%3E%3C/svg%3E") no-repeat center/contain}
+  /* 只看个人管理档案 复选框（统一写法，替换各页旧版 .own-check） */
+  .fi-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer;user-select:none;white-space:nowrap;margin:0}
+  .fi-check input[type=checkbox]{width:15px;height:15px;margin:0;accent-color:var(--primary);cursor:pointer}
 
   /* ===== 数据表格 ===== */
   .table-wrap{flex:1;overflow:auto;min-height:0}
@@ -226,36 +244,30 @@
       </div>
 
       <!-- 筛选区 -->
+            <!-- 筛选区（每行 4 个条件，共 2 行） -->
       <div class="filter-panel">
+        <!-- 行 1 -->
         <div class="filter-row">
-          <div class="filter-item"><label>管理机构</label>
-            <select id="fOrg" class="fi-select w-lg">
-              <option value="" selected>请选择</option>
-              <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
-              <option value="济南市历下区甸柳新村社区卫生服务中心">济南市历下区甸柳新村社区卫生服务中心</option>
-              <option value="济南市历下区姚家街道办事处社区卫生服务中心">济南市历下区姚家街道办事处社区卫生服务中心</option>
-              <option value="济南市历下区龙洞街道办事处社区卫生服务中心">济南市历下区龙洞街道办事处社区卫生服务中心</option>
-              <option value="济南市历下区智远街道办事处社区卫生服务中心">济南市历下区智远街道办事处社区卫生服务中心</option>
-            </select>
+          <div class="filter-item"><label>管理机构：</label>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fOrg">
+            </div>
           </div>
-          <div class="filter-item"><label>姓名</label><input id="fName" class="fi-ctl" placeholder="请输入"></div>
-          <div class="filter-item"><label>证件号</label><input id="fIdcard" class="fi-ctl" placeholder="请输入"></div>
-          <div class="filter-item"><label>管辖行政区</label>
-            <select id="fRegion" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="舜华社区">舜华社区</option>
-              <option value="舜耕社区">舜耕社区</option>
-              <option value="东关社区">东关社区</option>
-              <option value="文东社区">文东社区</option>
-              <option value="甸柳社区">甸柳社区</option>
-              <option value="燕山社区">燕山社区</option>
-              <option value="姚家社区">姚家社区</option>
-              <option value="龙洞社区">龙洞社区</option>
-              <option value="智远社区">智远社区</option>
-              <option value="吴汉社区">吴汉社区</option>
-            </select>
+          <div class="filter-item"><label>姓名：</label><input id="fName" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>证件号：</label><input id="fIdcard" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>管辖行政区：</label>
+            <div class="fcp-cas" data-fcp="cas" data-caret>
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fRegion">
+            </div>
           </div>
-          <div class="filter-item"><label>高血脂类型</label>
+        </div>
+        <!-- 行 2 -->
+        <div class="filter-row">
+          <div class="filter-item"><label>高血脂类型：</label>
             <select id="fHlpType" class="fi-select">
               <option value="" selected>请选择</option>
               <option value="高胆固醇血症">高胆固醇血症</option>
@@ -264,55 +276,20 @@
               <option value="低高密度脂蛋白血症">低高密度脂蛋白血症</option>
             </select>
           </div>
-          <div class="filter-item"><label>锁定状态</label>
+          <div class="filter-item"><label>锁定状态：</label>
             <select id="fLock" class="fi-select">
               <option value="" selected>请选择</option>
               <option value="未上锁">未上锁</option>
               <option value="已上锁">已上锁</option>
             </select>
           </div>
-        </div>
-        <div class="filter-row">
           <div class="filter-item">
             <label class="fi-check"><input type="checkbox" id="fOwn"> 只看个人管理档案</label>
-          </div>
-          <div class="filter-item"><label>居民状态</label>
-            <select id="fRStatus" class="fi-select">
-              <option value="正常" selected>正常</option>
-              <option value="">全部</option>
-              <option value="死亡">死亡</option>
-              <option value="迁出">迁出</option>
-              <option value="注销">注销</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>管理状态</label>
-            <select id="fMStatus" class="fi-select">
-              <option value="有效管理" selected>有效管理</option>
-              <option value="">全部</option>
-              <option value="中断管理">中断管理</option>
-              <option value="终止管理">终止管理</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>管辖网格</label>
-            <select id="fGrid" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="第一网格">第一网格</option>
-              <option value="第二网格">第二网格</option>
-              <option value="第三网格">第三网格</option>
-              <option value="第四网格">第四网格</option>
-            </select>
           </div>
           <div class="filter-btns">
             <button class="btn btn-default" onclick="resetFilter()">重置</button>
             <button class="btn btn-primary" onclick="applyFilter()">查询</button>
-            <button class="btn-plain" id="btnExpand" onclick="toggleExtra()">展开 +</button>
           </div>
-        </div>
-        <div class="filter-row extra" id="extraRow">
-          <div class="filter-item"><label>联系电话</label><input id="fPhone" class="fi-ctl" placeholder="请输入联系电话"></div>
-          <div class="filter-item"><label>出生日期</label><input id="fBirth" class="fi-ctl" placeholder="如：1954 或 1954-03"></div>
-          <div class="filter-item"><label>专项建档时间</label><input id="fSpecDate" class="fi-ctl" placeholder="如：2023 或 2023-06"></div>
-          <div class="filter-item"><label>档案编号</label><input id="fArchNo" class="fi-ctl" placeholder="请输入档案编号"></div>
         </div>
       </div>
 
@@ -393,23 +370,18 @@
         </div>
         <div class="filter-row">
           <div class="filter-item"><label>管理机构</label>
-            <select id="sfOrg" class="fi-select w-lg">
-              <option value="" selected>请选择</option>
-              <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
-              <option value="济南市历下区甸柳新村社区卫生服务中心">济南市历下区甸柳新村社区卫生服务中心</option>
-              <option value="济南市历下区姚家街道办事处社区卫生服务中心">济南市历下区姚家街道办事处社区卫生服务中心</option>
-              <option value="济南市历下区龙洞街道办事处社区卫生服务中心">济南市历下区龙洞街道办事处社区卫生服务中心</option>
-              <option value="济南市历下区智远街道办事处社区卫生服务中心">济南市历下区智远街道办事处社区卫生服务中心</option>
-            </select>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="sfOrg">
+            </div>
           </div>
           <div class="filter-item"><label>管辖网格</label>
-            <select id="sfGrid" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="第一网格">第一网格</option>
-              <option value="第二网格">第二网格</option>
-              <option value="第三网格">第三网格</option>
-              <option value="第四网格">第四网格</option>
-            </select>
+            <div class="fcp-tree" data-fcp="tree">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="sfGrid">
+            </div>
           </div>
           <div class="filter-btns">
             <button class="btn btn-default" onclick="resetSelectFilter()">重置</button>
@@ -626,9 +598,6 @@
     var org = $('fOrg').value, name = $('fName').value.trim(), idcard = $('fIdcard').value.trim();
     var region = $('fRegion').value, hlpType = $('fHlpType').value, lock = $('fLock').value;
     var own = $('fOwn').checked;
-    var rStatus = $('fRStatus').value, mStatus = $('fMStatus').value, grid = $('fGrid').value;
-    var phone = $('fPhone').value.trim(), birth = $('fBirth').value.trim();
-    var specDate = $('fSpecDate').value.trim(), archNo = $('fArchNo').value.trim();
 
     lastList = hlpData.filter(function (r) {
       if (org && r.org !== org) return false;
@@ -638,13 +607,6 @@
       if (hlpType && r.hlpType !== hlpType) return false;
       if (lock && r.lock !== lock) return false;
       if (own && !r.own) return false;
-      if (rStatus && r.rStatus !== rStatus) return false;
-      if (mStatus && r.mStatus !== mStatus) return false;
-      if (grid && r.grid !== grid) return false;
-      if (phone && r.phone.indexOf(phone) === -1) return false;
-      if (birth && r.birth.indexOf(birth) === -1) return false;
-      if (specDate && r.specDate.indexOf(specDate) === -1) return false;
-      if (archNo && r.archNo.indexOf(archNo) === -1) return false;
       return true;
     });
 
@@ -744,12 +706,10 @@
 
   /* ================= 交互 ================= */
   function resetFilter() {
-    ['fName', 'fIdcard', 'fPhone', 'fBirth', 'fSpecDate', 'fArchNo'].forEach(function (id) { $(id).value = ''; });
-    $('fOrg').value = ''; $('fRegion').value = ''; $('fGrid').value = '';
+    ['fName', 'fIdcard'].forEach(function (id) { $(id).value = ''; });
+    $('fOrg').value = ''; $('fRegion').value = '';
     $('fHlpType').value = ''; $('fLock').value = '';
     $('fOwn').checked = false;
-    $('fRStatus').value = '正常';
-    $('fMStatus').value = '有效管理';
     curPage = 1;
     renderTable();
     toast('筛选条件已重置', 'success');
@@ -759,12 +719,6 @@
     curPage = 1;
     renderTable();
     toast('查询完成，共 ' + $('pgTotal').textContent + ' 条记录', 'success');
-  }
-
-  function toggleExtra() {
-    var row = $('extraRow'), btn = $('btnExpand');
-    var show = row.classList.toggle('show');
-    btn.textContent = show ? '收起 −' : '展开 +';
   }
 
   var opMenuFloat = null;
@@ -806,10 +760,10 @@
   });
 
   /* 筛选控件输入即实时过滤（并回到第一页） */
-  ['fName', 'fIdcard', 'fPhone', 'fBirth', 'fSpecDate', 'fArchNo'].forEach(function (id) {
+  ['fName', 'fIdcard'].forEach(function (id) {
     $(id).addEventListener('input', function () { curPage = 1; renderTable(); });
   });
-  ['fOrg', 'fRegion', 'fHlpType', 'fLock', 'fRStatus', 'fMStatus', 'fGrid'].forEach(function (id) {
+  ['fOrg', 'fRegion', 'fHlpType', 'fLock'].forEach(function (id) {
     $(id).addEventListener('change', function () { curPage = 1; renderTable(); });
   });
   $('fOwn').addEventListener('change', function () { curPage = 1; renderTable(); });

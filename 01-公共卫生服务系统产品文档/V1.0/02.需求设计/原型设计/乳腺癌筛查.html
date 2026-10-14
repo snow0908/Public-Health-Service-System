@@ -23,6 +23,8 @@
   /* ===== 筛选区 ===== */
   .filter-panel{padding:14px 12px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
   .filter-row{display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:14px;align-items:center}
+  .filter-row.extra{display:none}
+  .filter-row.extra.show{display:flex}
   .filter-item{display:flex;align-items:center;gap:8px}
   .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
   .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
@@ -36,6 +38,34 @@
   .fi-sep{color:var(--text-placeholder);font-size:13px}
   .fi-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer}
   .fi-check input{margin:0;accent-color:var(--primary);cursor:pointer}
+  /* 主筛选区行距/列距/标签间距（对齐设计稿：行距 10、列距 22、标签-控件 12） */
+  .filter-panel .filter-row{gap:12px 22px;margin-bottom:10px}
+  .filter-panel .filter-item{gap:12px}
+  /* 筛选区内控件统一外框宽度（仅作用于主筛选区，不影响新建专项弹框内同名类） */
+  .filter-panel .fi-ctl,.filter-panel .fi-select{width:180px}
+  /* 筛选区内统一筛选复合控件（管理机构/管辖行政区）等宽 180px */
+  .filter-panel .fcp-ms,.filter-panel .fcp-cas,.filter-panel .fcp-tree,.filter-panel .fcp-mst{width:180px}
+  .filter-panel .fcp-ms .fcp-panel{width:max-content;min-width:100%;max-width:300px}
+  .filter-panel .fcp-tree .fcp-panel{width:200px}
+  /* 日期区间：单一外框（开始日期 ~ 结束日期 + 日历图标） */
+  .fi-range{display:flex;align-items:center;gap:6px;width:232px;height:32px;padding:0 8px 0 10px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);background:var(--bg-white);transition:all var(--transition-fast)}
+  .fi-range:hover{border-color:var(--primary)}
+  .fi-range:focus-within{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-range input{flex:1 1 0;min-width:0;height:30px;border:none;background:transparent;outline:none;padding:0;font-size:14px;color:var(--text-primary);font-family:inherit}
+  .fi-range input::placeholder{color:var(--text-placeholder)}
+  .fi-range input::-webkit-calendar-picker-indicator{display:none}
+  .fi-tilde{flex-shrink:0;font-size:14px;color:var(--text-placeholder)}
+  .fi-cal{width:14px;height:14px;flex-shrink:0;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none' stroke='%23bfbfbf' stroke-width='1.2'%3E%3Crect x='1.4' y='2.4' width='11.2' height='10.2' rx='1.6'/%3E%3Cpath d='M1.4 5.6h11.2M4.6 1.4v2M9.4 1.4v2'/%3E%3C/svg%3E") no-repeat center/contain}
+  /* 只看个人管理档案 复选框（统一写法，替换各页旧版 .own-check） */
+  .fi-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer;user-select:none;white-space:nowrap;margin:0}
+  .fi-check input[type=checkbox]{width:15px;height:15px;margin:0;accent-color:var(--primary);cursor:pointer}
+  /* 可清空单选下拉（中医服务等：有值时右侧出现圆形 ✕） */
+  .fi-combo{position:relative;display:inline-flex;align-items:center}
+  .filter-panel .fi-combo .fi-select{width:180px;padding-right:30px}
+  .fi-combo.has-val .fi-select{background-image:none}
+  .fi-combo .fi-combo-x{display:none;position:absolute;right:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;box-sizing:border-box;border:1px solid #BFBFBF;border-radius:50%;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='5' viewBox='0 0 5 5'%3E%3Cpath d='M1 1l3 3M4 1L1 4' stroke='%23BFBFBF' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center/5px 5px;cursor:pointer;user-select:none}
+  .fi-combo.has-val .fi-combo-x{display:block}
+  .fi-combo .fi-combo-x:hover{border-color:var(--primary);background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='5' viewBox='0 0 5 5'%3E%3Cpath d='M1 1l3 3M4 1L1 4' stroke='%23007AFF' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E")}
 
   /* ===== 数据表格 ===== */
   .table-wrap{flex:1;overflow:auto;min-height:0}
@@ -209,29 +239,26 @@
       <!-- 筛选区 -->
       <div class="filter-panel">
         <div class="filter-row">
-          <div class="filter-item"><label>管理机构</label>
-            <select id="fOrg" class="fi-select w-lg">
-              <option value="" selected>请选择</option>
-              <option value="扬州市江都区吴桥镇人民医院">扬州市江都区吴桥镇人民医院</option>
-              <option value="扬州市江都区宜陵镇中心卫生院">扬州市江都区宜陵镇中心卫生院</option>
-              <option value="扬州市江都区仙女镇社区卫生服务中心">扬州市江都区仙女镇社区卫生服务中心</option>
-              <option value="扬州市江都区丁沟镇卫生院">扬州市江都区丁沟镇卫生院</option>
-              <option value="扬州市江都区樊川镇卫生院">扬州市江都区樊川镇卫生院</option>
-            </select>
+          <div class="filter-item"><label>管理机构：</label>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fOrg">
+            </div>
           </div>
-          <div class="filter-item"><label>姓名</label><input id="fName" class="fi-ctl" placeholder="请输入"></div>
-          <div class="filter-item"><label>证件号</label><input id="fIdcard" class="fi-ctl" placeholder="请输入"></div>
-          <div class="filter-item"><label>登记医生</label><input id="fDoc" class="fi-ctl" placeholder="请输入"></div>
-          <div class="filter-item"><label>性别</label>
+          <div class="filter-item"><label>姓名：</label><input id="fName" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>证件号：</label><input id="fIdcard" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>登记医生：</label><input id="fDoc" class="fi-ctl" placeholder="请输入"></div>
+        </div>
+        <div class="filter-row">
+          <div class="filter-item"><label>性别：</label>
             <select id="fGender" class="fi-select">
               <option value="" selected>请选择</option>
               <option value="女">女</option>
               <option value="男">男</option>
             </select>
           </div>
-        </div>
-        <div class="filter-row">
-          <div class="filter-item"><label>管理行政区</label>
+          <div class="filter-item"><label>管辖行政区：</label>
             <select id="fRegion" class="fi-select">
               <option value="" selected>请选择</option>
               <option value="吴桥社区">吴桥社区</option>
@@ -241,32 +268,40 @@
               <option value="樊川社区">樊川社区</option>
             </select>
           </div>
-          <div class="filter-item"><label>出生日期</label>
-            <input id="fBirthStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">—</span>
-            <input id="fBirthEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+          <div class="filter-item"><label>出生日期：</label>
+            <span class="fi-range">
+              <input id="fBirthStart" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <span class="fi-tilde">~</span>
+              <input id="fBirthEnd" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <span class="fi-cal"></span>
+            </span>
           </div>
-          <div class="filter-item"><label>随访日期</label>
-            <input id="fVisitStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">—</span>
-            <input id="fVisitEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+          <div class="filter-item"><label>建档日期：</label>
+            <span class="fi-range">
+              <input id="fRegStart" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <span class="fi-tilde">~</span>
+              <input id="fRegEnd" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <span class="fi-cal"></span>
+            </span>
           </div>
-          <div class="filter-item"><label>锁定状态</label>
+          <div class="filter-btns">
+            <button class="btn btn-default" onclick="resetFilter()">重置</button>
+            <button class="btn btn-primary" onclick="applyFilter()">查询</button>
+            <button class="btn-plain" id="btnExpand" onclick="toggleExtra()">展开 ▼</button>
+          </div>
+        </div>
+        <div class="filter-row extra">
+          <div class="filter-item"><label>锁定状态：</label>
             <select id="fLock" class="fi-select">
               <option value="" selected>请选择</option>
               <option value="未上锁">未上锁</option>
               <option value="已上锁">已上锁</option>
             </select>
           </div>
-          <div class="filter-item">
-            <label class="fi-check"><input type="checkbox" id="fMine">只看个人管理档案</label>
-          </div>
-          <div class="filter-btns">
-            <button class="btn btn-default" onclick="resetFilter()">重置</button>
-            <button class="btn btn-primary" onclick="applyFilter()">查询</button>
-          </div>
+          <div class="filter-item"><label class="fi-check"><input type="checkbox" id="fMine"> 只看个人管理档案</label></div>
         </div>
       </div>
+
 
       <!-- 数据表格 -->
       <div class="table-wrap">
@@ -329,14 +364,11 @@
           <div class="filter-item"><label>姓名</label><input id="sfName" class="fi-ctl" placeholder="请输入"></div>
           <div class="filter-item"><label>证件号</label><input id="sfIdcard" class="fi-ctl" placeholder="请输入"></div>
           <div class="filter-item"><label>管理机构</label>
-            <select id="sfOrg" class="fi-select w-lg">
-              <option value="" selected>请选择</option>
-              <option value="扬州市江都区吴桥镇人民医院">扬州市江都区吴桥镇人民医院</option>
-              <option value="扬州市江都区宜陵镇中心卫生院">扬州市江都区宜陵镇中心卫生院</option>
-              <option value="扬州市江都区仙女镇社区卫生服务中心">扬州市江都区仙女镇社区卫生服务中心</option>
-              <option value="扬州市江都区丁沟镇卫生院">扬州市江都区丁沟镇卫生院</option>
-              <option value="扬州市江都区樊川镇卫生院">扬州市江都区樊川镇卫生院</option>
-            </select>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="sfOrg">
+            </div>
           </div>
           <div class="filter-btns">
             <button class="btn btn-default" onclick="resetSelectFilter()">重置</button>
@@ -607,7 +639,7 @@
     var org = $('fOrg').value, name = $('fName').value.trim(), idcard = $('fIdcard').value.trim();
     var doc = $('fDoc').value.trim(), region = $('fRegion').value, lock = $('fLock').value;
     var gender = $('fGender').value;
-    var visitStart = $('fVisitStart').value, visitEnd = $('fVisitEnd').value;
+    var regStart = $('fRegStart').value, regEnd = $('fRegEnd').value;
     var birthStart = $('fBirthStart').value, birthEnd = $('fBirthEnd').value;
     var mine = $('fMine').checked;
 
@@ -619,8 +651,8 @@
       if (gender && r.gender !== gender) return false;
       if (region && r.region !== region) return false;
       if (lock && r.lock !== lock) return false;
-      if (visitStart && r.regDate < visitStart) return false;
-      if (visitEnd && r.regDate > visitEnd) return false;
+      if (regStart && r.regDate < regStart) return false;
+      if (regEnd && r.regDate > regEnd) return false;
       if (birthStart && r.birth < birthStart) return false;
       if (birthEnd && r.birth > birthEnd) return false;
       if (mine && !r.mine) return false;
@@ -698,13 +730,49 @@
   /* ================= 筛选 ================= */
   function applyFilter() { curPage = 1; renderTable(); toast('查询完成', 'success'); }
   function resetFilter() {
-    ['fName','fIdcard','fDoc','fVisitStart','fVisitEnd','fBirthStart','fBirthEnd'].forEach(function (id) { $(id).value = ''; });
+    ['fName','fIdcard','fDoc','fRegStart','fRegEnd','fBirthStart','fBirthEnd'].forEach(function (id) { $(id).value = ''; });
     ['fOrg','fRegion','fLock','fGender'].forEach(function (id) { $(id).value = ''; });
     $('fMine').checked = false;
     curPage = 1;
     renderTable();
     toast('筛选条件已重置', 'info');
   }
+
+  function toggleExtra() {
+    var rows = document.querySelectorAll('.filter-panel .filter-row.extra');
+    var btn = $('btnExpand');
+    var show = !rows[0].classList.contains('show');
+    rows.forEach(function (row) { row.classList.toggle('show', show); });
+    btn.textContent = show ? '收起 ▲' : '展开 ▼';
+    var btns = document.querySelector('.filter-panel .filter-btns');
+    var mainRows = document.querySelectorAll('.filter-panel .filter-row:not(.extra)');
+    if (show) {
+      rows[rows.length - 1].appendChild(btns);
+    } else {
+      mainRows[mainRows.length - 1].appendChild(btns);
+    }
+  }
+
+  /* 筛选控件输入即实时过滤（并回到第一页） */
+  ['fName','fIdcard','fDoc'].forEach(function (id) {
+    $(id).addEventListener('input', function () { curPage = 1; renderTable(); });
+  });
+  ['fOrg','fRegion','fLock','fGender','fMine'].forEach(function (id) {
+    $(id).addEventListener('change', function () { curPage = 1; renderTable(); });
+  });
+  ['fRegStart','fRegEnd','fBirthStart','fBirthEnd'].forEach(function (id) {
+    $(id).addEventListener('input', function () { curPage = 1; renderTable(); });
+  });
+
+  /* 复合筛选控件（管理机构/重点人群类型/管辖行政区）选择后实时过滤 */
+  document.querySelectorAll('.filter-panel [data-fcp]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      if (e.target.closest('.fcp-opt,.fcp-n,.fcp-clear')) {
+        setTimeout(function () { curPage = 1; renderTable(); }, 0);
+      }
+    });
+  });
+
 
   /* ================= 档案选择弹框（新建第一步） ================= */
   var sfList = archiveData.slice();

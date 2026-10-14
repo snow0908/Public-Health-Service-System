@@ -40,6 +40,54 @@
   .fi-sep{color:var(--text-placeholder);font-size:13px}
   .fi-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer}
   .fi-check input{margin:0;accent-color:var(--primary);cursor:pointer}
+  /* ===== 筛选扩展控件：管理机构多选 / 管辖行政区四级级联 ===== */
+  .msel{position:relative}
+  .msel-box{display:flex;align-items:center;gap:6px;width:210px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 8px;background:var(--bg-white);cursor:pointer;font-size:14px;transition:all var(--transition-fast)}
+  .msel-box:hover,.msel-box.open{border-color:var(--primary)}
+  .msel-seg{flex:1;min-width:0;display:flex;align-items:center;gap:4px;overflow:hidden;white-space:nowrap}
+  .msel-ph{color:var(--text-placeholder)}
+  .msel-tag{flex:none;max-width:110px;overflow:hidden;text-overflow:ellipsis;height:20px;padding:0 8px;border-radius:10px;background:var(--primary-bg);color:var(--primary);font-size:12px;display:inline-flex;align-items:center}
+  .msel-panel{display:none;position:absolute;top:36px;left:0;min-width:320px;max-height:240px;overflow:auto;background:var(--bg-white);border:1px solid #E4E7ED;border-radius:6px;box-shadow:0 8px 28px rgba(0,0,0,.16);z-index:40;padding:4px 0}
+  .msel-panel.open{display:block}
+  .msel-opt{display:flex;align-items:center;gap:8px;height:30px;padding:0 12px;font-size:13px;color:var(--text-secondary);cursor:pointer;white-space:nowrap}
+  .msel-opt:hover{background:#F5F7FA}
+  .msel-opt input{width:14px;height:14px;accent-color:var(--primary);cursor:pointer}
+  .cas4{position:relative}
+  .cas4-box{display:flex;align-items:center;gap:6px;width:140px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 8px;background:var(--bg-white);cursor:pointer;font-size:14px;transition:all var(--transition-fast)}
+  .cas4-box:hover,.cas4-box.open{border-color:var(--primary)}
+  .cas4-panel{display:none;position:absolute;top:36px;left:0;width:560px;max-width:calc(100vw - 60px);background:var(--bg-white);border:1px solid #E4E7ED;border-radius:6px;box-shadow:0 8px 28px rgba(0,0,0,.16);z-index:40}
+  .cas4-panel.open{display:flex}
+  .cas4-col{flex:1;min-width:0;max-height:240px;overflow:auto;padding:4px 0}
+  .cas4-col + .cas4-col{border-left:1px solid #F0F2F5}
+  .cas4-opt{display:flex;align-items:center;gap:8px;height:30px;padding:0 12px;font-size:13px;color:var(--text-secondary);white-space:nowrap;cursor:pointer}
+  .cas4-opt:hover{background:#F5F7FA}
+  .cas4-opt input{width:14px;height:14px;accent-color:var(--primary);cursor:pointer}
+  .cas4-opt .lbl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .cas4-opt.focus .lbl{color:var(--primary);font-weight:500}
+  .cas4-empty{padding:14px 12px;font-size:13px;color:var(--text-placeholder)}
+  /* ===== 多选下拉（选中蓝字+✓，框显 已选择（N）） ===== */
+  .msel-panel .m-opt{display:flex;align-items:center;justify-content:space-between;gap:8px;height:32px;padding:0 12px;font-size:13px;color:var(--text-secondary);cursor:pointer}
+  .msel-panel .m-opt:hover{background:#F5F7FA}
+  .msel-panel .m-opt.on{color:var(--primary)}
+  .msel-panel .m-opt .ck{flex:none;visibility:hidden;font-weight:700}
+  .msel-panel .m-opt.on .ck{visibility:visible}
+  .msel-txt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-primary)}
+  .msel-box.open .msel-txt{color:var(--primary)}
+  /* ===== 管辖网格：树形级联（江都区→镇→网格） ===== */
+  .tree{position:relative}
+  .tree-box{display:flex;align-items:center;gap:6px;width:140px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 8px;background:var(--bg-white);cursor:pointer;font-size:14px;transition:all var(--transition-fast)}
+  .tree-box:hover,.tree-box.open{border-color:var(--primary)}
+  .tree-panel{display:none;position:absolute;top:36px;left:0;width:280px;max-height:300px;overflow:auto;background:var(--bg-white);border:1px solid #E4E7ED;border-radius:6px;box-shadow:0 8px 28px rgba(0,0,0,.16);z-index:40;padding:4px 0}
+  .tree-panel.open{display:block}
+  .tree-row{display:flex;align-items:center;gap:6px;height:30px;padding:0 8px;font-size:13px;color:var(--text-secondary);cursor:pointer;white-space:nowrap}
+  .tree-row:hover{background:#EAF3FF}
+  .tree-row input{width:14px;height:14px;accent-color:var(--primary);cursor:pointer;flex:none}
+  .tree-row .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .tree-arrow{flex:none;width:14px;height:14px;display:flex;align-items:center;justify-content:center;color:var(--text-tertiary);cursor:pointer}
+  .tree-arrow svg{transition:transform var(--transition-fast)}
+  .tree-arrow.open svg{transform:rotate(90deg)}
+  .tree-kids{margin-left:22px;display:none}
+  .tree-kids.open{display:block}
 
   /* ===== 数据表格 ===== */
   .table-wrap{flex:1;overflow:auto;min-height:0}
@@ -136,19 +184,15 @@
       <div class="filter-panel">
         <div class="filter-row">
           <div class="filter-item"><label>管理机构</label>
-            <select id="fOrg" class="fi-select w-lg">
-              <option value="" selected>请选择</option>
-              <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
-              <option value="济南市历下区甸柳新村社区卫生服务中心">济南市历下区甸柳新村社区卫生服务中心</option>
-              <option value="济南市市中区舜玉路社区卫生服务中心">济南市市中区舜玉路社区卫生服务中心</option>
-              <option value="济南市历下区千佛山社区卫生服务中心">济南市历下区千佛山社区卫生服务中心</option>
-              <option value="济南市天桥区工人新村社区卫生服务中心">济南市天桥区工人新村社区卫生服务中心</option>
-              <option value="济南市历下区文化东路社区卫生服务中心">济南市历下区文化东路社区卫生服务中心</option>
-            </select>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fOrg">
+            </div>
           </div>
-          <div class="filter-item"><label>姓名</label><input id="fName" class="fi-ctl" placeholder="请输入姓名"></div>
-          <div class="filter-item"><label>证件号</label><input id="fIdcard" class="fi-ctl" placeholder="请输入证件号"></div>
-          <div class="filter-item"><label>责任医生</label><input id="fDoctor" class="fi-ctl" placeholder="请输入责任医生"></div>
+          <div class="filter-item"><label>姓名</label><input id="fName" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>证件号</label><input id="fIdcard" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>责任医生</label><input id="fDoctor" class="fi-ctl" placeholder="请输入"></div>
           <div class="filter-item"><label>锁定状态</label>
             <select id="fLock" class="fi-select">
               <option value="未上锁" selected>未上锁</option>
@@ -168,44 +212,33 @@
             </select>
           </div>
           <div class="filter-item"><label>重点人群类型</label>
-            <select id="fCrowd" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="老年人">老年人</option>
-              <option value="高血压">高血压</option>
-              <option value="糖尿病">糖尿病</option>
-              <option value="慢阻肺">慢阻肺</option>
-              <option value="0-6岁儿童">0-6岁儿童</option>
-              <option value="孕产妇">孕产妇</option>
-              <option value="重性精神疾病">重性精神疾病</option>
-              <option value="结核病">结核病</option>
-              <option value="一般人群">一般人群</option>
+            <select id="fCrowdLogic" class="fi-select" style="width:72px">
+              <option value="and" selected>且</option>
+              <option value="or">或</option>
             </select>
+            <div class="msel">
+              <div class="msel-box" id="crowdMselBox" onclick="toggleCrowdPanel(event)">
+                <span class="msel-seg" id="crowdSegs"><span class="msel-ph">请选择</span></span>
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="#8c8c8c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l4 4 4-4"/></svg>
+              </div>
+              <div class="msel-panel" id="crowdPanel" onclick="event.stopPropagation()">
+                <div class="m-opt" data-v="高血压" onclick="crowdToggle('高血压')"><span class="msel-txt">高血压</span><span class="ck">✓</span></div>
+                <div class="m-opt" data-v="糖尿病" onclick="crowdToggle('糖尿病')"><span class="msel-txt">糖尿病</span><span class="ck">✓</span></div>
+                <div class="m-opt" data-v="慢阻肺" onclick="crowdToggle('慢阻肺')"><span class="msel-txt">慢阻肺</span><span class="ck">✓</span></div>
+                <div class="m-opt" data-v="老年人" onclick="crowdToggle('老年人')"><span class="msel-txt">老年人</span><span class="ck">✓</span></div>
+                <div class="m-opt" data-v="肺结核" onclick="crowdToggle('肺结核')"><span class="msel-txt">肺结核</span><span class="ck">✓</span></div>
+                <div class="m-opt" data-v="严重精神障碍" onclick="crowdToggle('严重精神障碍')"><span class="msel-txt">严重精神障碍</span><span class="ck">✓</span></div>
+                <div class="m-opt" data-v="脑卒中" onclick="crowdToggle('脑卒中')"><span class="msel-txt">脑卒中</span><span class="ck">✓</span></div>
+                <div class="m-opt" data-v="冠心病" onclick="crowdToggle('冠心病')"><span class="msel-txt">冠心病</span><span class="ck">✓</span></div>
+              </div>
+            </div>
           </div>
-          <div class="filter-item"><label>管理行政区</label>
-            <select id="fRegion" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="解放路社区">解放路社区</option>
-              <option value="千佛山社区">千佛山社区</option>
-              <option value="燕山社区">燕山社区</option>
-              <option value="姚家社区">姚家社区</option>
-              <option value="舜玉社区">舜玉社区</option>
-              <option value="甸柳社区">甸柳社区</option>
-              <option value="文化东路社区">文化东路社区</option>
-              <option value="工人新村社区">工人新村社区</option>
-              <option value="窑头社区">窑头社区</option>
-              <option value="七里山社区">七里山社区</option>
-              <option value="龙洞社区">龙洞社区</option>
-              <option value="周西社区">周西社区</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>体检次数</label>
-            <select id="fExamCnt" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="0">0次</option>
-              <option value="1">1次</option>
-              <option value="2">2次</option>
-              <option value="3">3次及以上</option>
-            </select>
+          <div class="filter-item"><label>管辖行政区</label>
+            <div class="fcp-cas" data-fcp="cas">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fRegion">
+            </div>
           </div>
           <div class="filter-btns">
             <button class="btn btn-default" onclick="resetFilter()">重置</button>
@@ -214,6 +247,76 @@
           </div>
         </div>
         <div class="filter-row extra">
+          <div class="filter-item"><label>体检次数</label>
+            <select id="fExamCntOp" class="fi-select" style="width:80px">
+              <option value="" selected>请选择</option>
+              <option value="=">=</option>
+              <option value=">">&gt;</option>
+              <option value=">=">≥</option>
+              <option value="<">&lt;</option>
+              <option value="<=">≤</option>
+            </select>
+            <input id="fExamCntVal" class="fi-ctl" type="number" min="0" style="width:110px" placeholder="次数">
+          </div>
+          <div class="filter-item"><label>体检日期</label>
+            <input id="fExamStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+            <span class="fi-sep">—</span>
+            <input id="fExamEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+          </div>
+          <div class="filter-item"><label>体检类型</label>
+            <select id="fExamType" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="健康体检">健康体检</option>
+              <option value="高血压体检">高血压体检</option>
+              <option value="糖尿病体检">糖尿病体检</option>
+              <option value="一般居民体检">一般居民体检</option>
+              <option value="慢阻肺体检">慢阻肺体检</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>数据来源</label>
+            <select id="fSource" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="本系统">本系统</option>
+              <option value="体检系统">体检系统</option>
+              <option value="体检导入">体检导入</option>
+            </select>
+          </div>
+        </div>
+        <div class="filter-row extra">
+          <div class="filter-item"><label>建档日期</label>
+            <input id="fArchStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+            <span class="fi-sep">—</span>
+            <input id="fArchEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+          </div>
+          <div class="filter-item"><label>人群性质</label>
+            <select id="fPopLogic" class="fi-select" style="width:72px">
+              <option value="and" selected>且</option>
+              <option value="or">或</option>
+            </select>
+            <div class="msel">
+              <div class="msel-box" id="popMselBox" onclick="togglePopPanel(event)">
+                <span class="msel-seg" id="popSegs"><span class="msel-ph">请选择</span></span>
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="#8c8c8c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l4 4 4-4"/></svg>
+              </div>
+              <div class="msel-panel" id="popPanel" onclick="event.stopPropagation()">
+                <div class="m-opt" data-v="普通人群" onclick="popToggle('普通人群')"><span class="msel-txt">普通人群</span><span class="ck">✓</span></div>
+                <div class="m-opt" data-v="农村建档立卡贫困人口" onclick="popToggle('农村建档立卡贫困人口')"><span class="msel-txt">农村建档立卡贫困人口</span><span class="ck">✓</span></div>
+                <div class="m-opt" data-v="城乡低保五保人口" onclick="popToggle('城乡低保五保人口')"><span class="msel-txt">城乡低保五保人口</span><span class="ck">✓</span></div>
+                <div class="m-opt" data-v="计划生育特殊家庭人口" onclick="popToggle('计划生育特殊家庭人口')"><span class="msel-txt">计划生育特殊家庭人口</span><span class="ck">✓</span></div>
+                <div class="m-opt" data-v="失业(失能)老年人" onclick="popToggle('失业(失能)老年人')"><span class="msel-txt">失业(失能)老年人</span><span class="ck">✓</span></div>
+                <div class="m-opt" data-v="残疾人" onclick="popToggle('残疾人')"><span class="msel-txt">残疾人</span><span class="ck">✓</span></div>
+                <div class="m-opt" data-v="0-6岁儿童" onclick="popToggle('0-6岁儿童')"><span class="msel-txt">0-6岁儿童</span><span class="ck">✓</span></div>
+                <div class="m-opt" data-v="高血压患者" onclick="popToggle('高血压患者')"><span class="msel-txt">高血压患者</span><span class="ck">✓</span></div>
+                <div class="m-opt" data-v="糖尿病患者" onclick="popToggle('糖尿病患者')"><span class="msel-txt">糖尿病患者</span><span class="ck">✓</span></div>
+                <div class="m-opt" data-v="65以上常住居民" onclick="popToggle('65以上常住居民')"><span class="msel-txt">65以上常住居民</span><span class="ck">✓</span></div>
+                <div class="m-opt" data-v="严重精神障碍患者" onclick="popToggle('严重精神障碍患者')"><span class="msel-txt">严重精神障碍患者</span><span class="ck">✓</span></div>
+                <div class="m-opt" data-v="肺结核患者" onclick="popToggle('肺结核患者')"><span class="msel-txt">肺结核患者</span><span class="ck">✓</span></div>
+                <div class="m-opt" data-v="离休干部" onclick="popToggle('离休干部')"><span class="msel-txt">离休干部</span><span class="ck">✓</span></div>
+                <div class="m-opt" data-v="孕13周之前建册并进行第一次产前检查的孕产妇" onclick="popToggle('孕13周之前建册并进行第一次产前检查的孕产妇')"><span class="msel-txt">孕13周之前建册并进行第一次产前检查的孕产妇</span><span class="ck">✓</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="filter-item"><label>电话号码</label><input id="fPhone" class="fi-ctl" placeholder="请输入"></div>
           <div class="filter-item"><label>性别</label>
             <select id="fGender" class="fi-select">
               <option value="" selected>请选择</option>
@@ -221,23 +324,26 @@
               <option value="女">女</option>
             </select>
           </div>
+        </div>
+        <div class="filter-row extra">
+          <div class="filter-item"><label>管辖网格</label>
+            <div class="fcp-tree" data-fcp="tree">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fGrid">
+            </div>
+          </div>
+          <div class="filter-item"><label>档案编号</label><input id="fArchNo" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>详细地址</label><input id="fAddress" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item">
+            <label class="fi-check"><input type="checkbox" id="fMine">只看个人管理档案</label>
+          </div>
+        </div>
+        <div class="filter-row extra">
           <div class="filter-item"><label>出生日期</label>
             <input id="fBirthStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
             <span class="fi-sep">—</span>
             <input id="fBirthEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-          </div>
-          <div class="filter-item"><label>档案编号</label><input id="fArchNo" class="fi-ctl" placeholder="请输入档案编号"></div>
-          <div class="filter-item"><label>建档日期</label>
-            <input id="fArchStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">—</span>
-            <input id="fArchEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-          </div>
-        </div>
-        <div class="filter-row extra">
-          <div class="filter-item"><label>电话号码</label><input id="fPhone" class="fi-ctl" placeholder="请输入电话号码"></div>
-          <div class="filter-item"><label>详细地址</label><input id="fAddress" class="fi-ctl" placeholder="请输入详细地址"></div>
-          <div class="filter-item">
-            <label class="fi-check"><input type="checkbox" id="fMine">只看个人管理档案</label>
           </div>
         </div>
       </div>
@@ -325,6 +431,335 @@
     { org:'济南市历下区文化东路社区卫生服务中心', name:'邵玉洁', idcard:'370102197006084824', idType:'居民身份证', gender:'女', age:55, birth:'1970-06-08', phone:'15562593049', examCnt:0, address:'济南市历下区文化东路51号', archNo:'370102TJ25026', region:'文化东路社区', doctor:'李蕾', archDate:'2024-08-14', crowd:['一般人群'], rStatus:'正常', lock:'未上锁' }
   ];
 
+  /* 数据后处理：补齐筛选用字段（体检日期/体检类型/数据来源/人群性质/管辖网格） */
+  examData.forEach(function (r, i) {
+    r.examDate = r.examCnt > 0 ? r.archDate : '';
+    r.examType = r.examCnt > 0
+      ? (r.crowd.indexOf('高血压') > -1 ? '高血压体检'
+        : r.crowd.indexOf('糖尿病') > -1 ? '糖尿病体检'
+        : r.crowd.indexOf('慢阻肺') > -1 ? '慢阻肺体检'
+        : r.crowd.indexOf('老年人') > -1 ? '健康体检'
+        : '一般居民体检')
+      : '';
+    r.dataSource = r.examCnt > 0 ? '本系统' : '';
+    var c0 = r.crowd[0] || '';
+    r.popNature = c0 === '0-6岁儿童' ? '0-6岁儿童'
+      : c0 === '高血压' ? '高血压患者'
+      : c0 === '糖尿病' ? '糖尿病患者'
+      : c0 === '老年人' ? '65以上常住居民'
+      : '普通人群';
+    r.grid = '第' + '一二三'[i % 3] + '网格';
+  });
+
+  /* ================= 管理机构：多选复选下拉 ================= */
+  var orgSel = {};
+  function toggleOrgPanel(e) {
+    if (e) e.stopPropagation();
+    closeCas4Panel();
+    $('orgPanel').classList.toggle('open');
+    $('orgMselBox').classList.toggle('open');
+  }
+  function closeOrgPanel() { /* 该条件已改用公共复合控件（框架.js fcp），此处保留空实现 */ }
+  function renderOrgBox() {
+    var keys = Object.keys(orgSel), seg = $('orgSegs'), html = '';
+    if (!keys.length) {
+      html = '<span class="msel-ph">请选择</span>';
+    } else {
+      keys.slice(0, 1).forEach(function (k) { html += '<span class="msel-tag">' + esc(k) + '</span>'; });
+      if (keys.length > 1) html += '<span class="msel-tag">+' + (keys.length - 1) + '</span>';
+    }
+    seg.innerHTML = html;
+  }
+  function orgChanged(inp) {
+    if (inp.checked) orgSel[inp.value] = true; else delete orgSel[inp.value];
+    renderOrgBox();
+    curPage = 1;
+    renderTable();
+  }
+  document.addEventListener('click', function () { closeOrgPanel(); });
+
+  /* ================= 管辖行政区：四级级联（省/市/区县/镇街） ================= */
+  var REG4 = {
+    '山东省': {
+      '济南市': {
+        '历下区': ['解放路社区', '千佛山社区', '燕山社区', '姚家社区', '甸柳社区', '文化东路社区', '窑头社区', '龙洞社区', '周西社区'],
+        '市中区': ['舜玉社区', '七里山社区'],
+        '天桥区': ['工人新村社区']
+      }
+    },
+    '江苏省': {
+      '扬州市': {
+        '江都区': ['大桥镇', '吴桥镇', '真武镇', '仙女镇', '小纪镇', '邵伯镇', '樊川镇', '宜陵镇', '丁沟镇', '郭村镇']
+      }
+    }
+  };
+  var cas4Sel = {};
+  var cas4Focus = { p: '', c: '', d: '' };
+  function cas4LeafKeys(p, c, d) {
+    var ks = [];
+    if (REG4[p] && REG4[p][c] && REG4[p][c][d]) REG4[p][c][d].forEach(function (t) { ks.push(p + '/' + c + '/' + d + '/' + t); });
+    return ks;
+  }
+  function cas4NodeKeys(level, p, c, d) {
+    var ks = [];
+    Object.keys(REG4).forEach(function (pp) {
+      if (level !== 'p' && pp !== p) return;
+      Object.keys(REG4[pp]).forEach(function (cc) {
+        if ((level === 'c' || level === 'd') && cc !== c) return;
+        Object.keys(REG4[pp][cc]).forEach(function (dd) {
+          if (level === 'd' && dd !== d) return;
+          cas4LeafKeys(pp, cc, dd).forEach(function (k) { ks.push(k); });
+        });
+      });
+    });
+    return ks;
+  }
+  function cas4AllSelected(ks) { return ks.length > 0 && ks.every(function (k) { return cas4Sel[k]; }); }
+  function cas4SomeSelected(ks) { return ks.some(function (k) { return cas4Sel[k]; }); }
+  function cas4Toggle(ks, on) {
+    ks.forEach(function (k) { if (on) cas4Sel[k] = true; else delete cas4Sel[k]; });
+    renderCas4Box();
+    curPage = 1;
+    renderTable();
+  }
+  function toggleCas4Panel(e) {
+    if (e) e.stopPropagation();
+    closeOrgPanel();
+    $('cas4Panel').classList.toggle('open');
+    $('regCasBox').classList.toggle('open');
+  }
+  function closeCas4Panel() { /* 该条件已改用公共复合控件（框架.js fcp），此处保留空实现 */ }
+  document.addEventListener('click', function () { closeCas4Panel(); });
+  function renderCas4Box() {
+    var keys = Object.keys(cas4Sel), seg = $('regCasSegs'), html = '';
+    if (!keys.length) {
+      html = '<span class="msel-ph">请选择</span>';
+    } else {
+      keys.slice(0, 2).forEach(function (k) {
+        var p = k.split('/');
+        html += '<span class="msel-tag">' + esc(p[2]) + '·' + esc(p[3]) + '</span>';
+      });
+      if (keys.length > 2) html += '<span class="msel-tag">+' + (keys.length - 2) + '</span>';
+    }
+    seg.innerHTML = html;
+    renderCas4Panel();
+  }
+  function renderCas4Panel() {
+    var ph = '';
+    Object.keys(REG4).forEach(function (p) {
+      var ks = cas4NodeKeys('p', p);
+      var ck = cas4AllSelected(ks), ind = !ck && cas4SomeSelected(ks);
+      ph += '<div class="cas4-opt' + (cas4Focus.p === p ? ' focus' : '') + '">'
+        + '<input type="checkbox"' + (ck ? ' checked' : '') + (ind ? ' data-ind="1"' : '')
+        + ' onclick="event.stopPropagation();cas4Toggle(cas4NodeKeys(\'p\',\'' + esc(p) + '\'),!cas4AllSelected(cas4NodeKeys(\'p\',\'' + esc(p) + '\')))">'
+        + '<span class="lbl" onclick="event.stopPropagation();cas4FocusP(\'' + esc(p) + '\')">' + esc(p) + '</span>'
+        + '</div>';
+    });
+    $('cas4ProvCol').innerHTML = ph;
+    var ch = '';
+    if (cas4Focus.p) {
+      Object.keys(REG4[cas4Focus.p]).forEach(function (c) {
+        var ks = cas4NodeKeys('c', cas4Focus.p, c);
+        var ck = cas4AllSelected(ks), ind = !ck && cas4SomeSelected(ks);
+        ch += '<div class="cas4-opt' + (cas4Focus.c === c ? ' focus' : '') + '">'
+          + '<input type="checkbox"' + (ck ? ' checked' : '') + (ind ? ' data-ind="1"' : '')
+          + ' onclick="event.stopPropagation();cas4Toggle(cas4NodeKeys(\'c\',\'' + esc(cas4Focus.p) + '\',\'' + esc(c) + '\'),!cas4AllSelected(cas4NodeKeys(\'c\',\'' + esc(cas4Focus.p) + '\',\'' + esc(c) + '\')))">'
+          + '<span class="lbl" onclick="event.stopPropagation();cas4FocusC(\'' + esc(c) + '\')">' + esc(c) + '</span>'
+          + '</div>';
+      });
+    } else {
+      ch = '<div class="cas4-empty">点击省名称查看市</div>';
+    }
+    $('cas4CityCol').innerHTML = ch;
+    var dh = '';
+    if (cas4Focus.p && cas4Focus.c) {
+      Object.keys(REG4[cas4Focus.p][cas4Focus.c]).forEach(function (d) {
+        var ks = cas4LeafKeys(cas4Focus.p, cas4Focus.c, d);
+        var ck = cas4AllSelected(ks), ind = !ck && cas4SomeSelected(ks);
+        var tog = 'cas4Toggle(cas4LeafKeys(\'' + esc(cas4Focus.p) + '\',\'' + esc(cas4Focus.c) + '\',\'' + esc(d) + '\'),!cas4AllSelected(cas4LeafKeys(\'' + esc(cas4Focus.p) + '\',\'' + esc(cas4Focus.c) + '\',\'' + esc(d) + '\')))';
+        dh += '<div class="cas4-opt' + (cas4Focus.d === d ? ' focus' : '') + '">'
+          + '<input type="checkbox"' + (ck ? ' checked' : '') + (ind ? ' data-ind="1"' : '')
+          + ' onclick="event.stopPropagation();' + tog + '">'
+          + '<span class="lbl" onclick="event.stopPropagation();cas4FocusD(\'' + esc(d) + '\')">' + esc(d) + '</span>'
+          + '</div>';
+      });
+    } else {
+      dh = '<div class="cas4-empty">点击市名称查看区县</div>';
+    }
+    $('cas4DistCol').innerHTML = dh;
+    var th = '';
+    if (cas4Focus.p && cas4Focus.c && cas4Focus.d) {
+      (REG4[cas4Focus.p][cas4Focus.c][cas4Focus.d] || []).forEach(function (t) {
+        var k = cas4Focus.p + '/' + cas4Focus.c + '/' + cas4Focus.d + '/' + t;
+        var tog = 'cas4Toggle([\'' + esc(k) + '\'],!cas4Sel[\'' + esc(k) + '\'])';
+        th += '<div class="cas4-opt' + (cas4Sel[k] ? ' focus' : '') + '" onclick="event.stopPropagation();' + tog + '">'
+          + '<input type="checkbox"' + (cas4Sel[k] ? ' checked' : '') + ' onclick="event.stopPropagation();' + tog + '">'
+          + '<span class="lbl">' + esc(t) + '</span>'
+          + '</div>';
+      });
+    } else {
+      th = '<div class="cas4-empty">点击区县名称查看镇街</div>';
+    }
+    $('cas4TownCol').innerHTML = th;
+    var inds = $('cas4Panel').querySelectorAll('input[data-ind]');
+    Array.prototype.forEach.call(inds, function (inp) { inp.indeterminate = true; });
+  }
+  function cas4FocusP(p) { cas4Focus = { p: p, c: '', d: '' }; renderCas4Panel(); }
+  function cas4FocusC(c) { cas4Focus.c = c; cas4Focus.d = ''; renderCas4Panel(); }
+  function cas4FocusD(d) { cas4Focus.d = d; renderCas4Panel(); }
+
+  /* ================= 重点人群类型 / 人群性质：多选下拉（选中蓝字+✓，框显 已选择（N）） ================= */
+  var crowdSel = {};
+  function toggleCrowdPanel(e) {
+    if (e) e.stopPropagation();
+    closePopPanel();
+    $('crowdPanel').classList.toggle('open');
+    $('crowdMselBox').classList.toggle('open');
+  }
+  function closeCrowdPanel() {
+    $('crowdPanel').classList.remove('open');
+    $('crowdMselBox').classList.remove('open');
+  }
+  function crowdToggle(v) {
+    if (crowdSel[v]) delete crowdSel[v]; else crowdSel[v] = true;
+    renderCrowdBox();
+    curPage = 1;
+    renderTable();
+  }
+  function renderCrowdBox() {
+    var n = Object.keys(crowdSel).length;
+    $('crowdSegs').innerHTML = n
+      ? '<span class="msel-txt">已选择（' + n + '）</span>'
+      : '<span class="msel-ph">请选择</span>';
+    var opts = $('crowdPanel').querySelectorAll('.m-opt');
+    Array.prototype.forEach.call(opts, function (o) {
+      o.classList.toggle('on', !!crowdSel[o.getAttribute('data-v')]);
+    });
+  }
+  document.addEventListener('click', function () { closeCrowdPanel(); });
+
+  var popSel = {};
+  function togglePopPanel(e) {
+    if (e) e.stopPropagation();
+    closeCrowdPanel();
+    closeGridTree();
+    $('popPanel').classList.toggle('open');
+    $('popMselBox').classList.toggle('open');
+  }
+  function closePopPanel() {
+    $('popPanel').classList.remove('open');
+    $('popMselBox').classList.remove('open');
+  }
+  function popToggle(v) {
+    if (popSel[v]) delete popSel[v]; else popSel[v] = true;
+    renderPopBox();
+    curPage = 1;
+    renderTable();
+  }
+  function renderPopBox() {
+    var n = Object.keys(popSel).length;
+    $('popSegs').innerHTML = n
+      ? '<span class="msel-txt">已选择（' + n + '）</span>'
+      : '<span class="msel-ph">请选择</span>';
+    var opts = $('popPanel').querySelectorAll('.m-opt');
+    Array.prototype.forEach.call(opts, function (o) {
+      o.classList.toggle('on', !!popSel[o.getAttribute('data-v')]);
+    });
+  }
+  document.addEventListener('click', function () { closePopPanel(); });
+
+  /* ================= 管辖网格：树形级联（江都区→镇→网格） ================= */
+  var GRID_TOWNS = ['郭村镇', '大桥镇', '滨江新城', '真武镇', '小纪镇', '丁沟镇', '宜陵镇', '仙女镇', '吴桥镇'];
+  var GRID_LEAVES = ['第一网格', '第二网格', '第三网格'];
+  var gridSel = {};        /* '镇/网格' -> true */
+  var gridOpen = {};       /* 节点展开状态 */
+  function toggleGridTree(e) {
+    if (e) e.stopPropagation();
+    closePopPanel();
+    $('gridTreePanel').classList.toggle('open');
+    $('gridTreeBox').classList.toggle('open');
+  }
+  function closeGridTree() { /* 该条件已改用公共复合控件（框架.js fcp），此处保留空实现 */ }
+  document.addEventListener('click', function () { closeGridTree(); });
+  function gridLeaves(town) {
+    return GRID_LEAVES.map(function (g) { return town + '/' + g; });
+  }
+  function gridAllLeaves() {
+    var ks = [];
+    GRID_TOWNS.forEach(function (t) { gridLeaves(t).forEach(function (k) { ks.push(k); }); });
+    return ks;
+  }
+  function gridAllSel(ks) { return ks.length > 0 && ks.every(function (k) { return gridSel[k]; }); }
+  function gridSomeSel(ks) { return ks.some(function (k) { return gridSel[k]; }); }
+  function gridToggleNode(town) {
+    var ks = gridLeaves(town);
+    var on = !gridAllSel(ks);
+    ks.forEach(function (k) { if (on) gridSel[k] = true; else delete gridSel[k]; });
+    renderGridTree();
+    renderGridBox();
+    curPage = 1;
+    renderTable();
+  }
+  function gridToggleLeaf(town, g) {
+    var k = town + '/' + g;
+    if (gridSel[k]) delete gridSel[k]; else gridSel[k] = true;
+    renderGridTree();
+    renderGridBox();
+    curPage = 1;
+    renderTable();
+  }
+  function gridToggleRoot() {
+    var ks = gridAllLeaves();
+    var on = !gridAllSel(ks);
+    ks.forEach(function (k) { if (on) gridSel[k] = true; else delete gridSel[k]; });
+    renderGridTree();
+    renderGridBox();
+    curPage = 1;
+    renderTable();
+  }
+  function gridToggleOpen(key) {
+    gridOpen[key] = !gridOpen[key];
+    renderGridTree();
+  }
+  function renderGridBox() {
+    var n = Object.keys(gridSel).length;
+    $('gridSegs').innerHTML = n
+      ? '<span class="msel-txt">已选择（' + n + '）</span>'
+      : '<span class="msel-ph">请选择</span>';
+  }
+  function renderGridTree() {
+    var rootKs = gridAllLeaves();
+    var rck = gridAllSel(rootKs), rind = !rck && gridSomeSel(rootKs);
+    var html = '<div class="tree-row">'
+      + '<span class="tree-arrow' + (gridOpen['root'] ? ' open' : '') + '" onclick="event.stopPropagation();gridToggleOpen(\'root\')"><svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor"><path d="M2 0l5 4-5 4z"/></svg></span>'
+      + '<input type="checkbox"' + (rck ? ' checked' : '') + (rind ? ' data-ind="1"' : '') + ' onclick="event.stopPropagation();gridToggleRoot()">'
+      + '<span class="nm" onclick="event.stopPropagation();gridToggleOpen(\'root\')">江都区</span>'
+      + '</div>'
+      + '<div class="tree-kids' + (gridOpen['root'] ? ' open' : '') + '">';
+    GRID_TOWNS.forEach(function (t) {
+      var ks = gridLeaves(t);
+      var ck = gridAllSel(ks), ind = !ck && gridSomeSel(ks);
+      html += '<div class="tree-row">'
+        + '<span class="tree-arrow' + (gridOpen[t] ? ' open' : '') + '" onclick="event.stopPropagation();gridToggleOpen(\'' + esc(t) + '\')"><svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor"><path d="M2 0l5 4-5 4z"/></svg></span>'
+        + '<input type="checkbox"' + (ck ? ' checked' : '') + (ind ? ' data-ind="1"' : '') + ' onclick="event.stopPropagation();gridToggleNode(\'' + esc(t) + '\')">'
+        + '<span class="nm" onclick="event.stopPropagation();gridToggleOpen(\'' + esc(t) + '\')">' + esc(t) + '</span>'
+        + '</div>'
+        + '<div class="tree-kids' + (gridOpen[t] ? ' open' : '') + '">';
+      GRID_LEAVES.forEach(function (g) {
+        var k = t + '/' + g;
+        html += '<div class="tree-row" onclick="event.stopPropagation();gridToggleLeaf(\'' + esc(t) + '\',\'' + esc(g) + '\')">'
+          + '<input type="checkbox"' + (gridSel[k] ? ' checked' : '') + ' onclick="event.stopPropagation();gridToggleLeaf(\'' + esc(t) + '\',\'' + esc(g) + '\')">'
+          + '<span class="nm">' + esc(g) + '</span>'
+          + '</div>';
+      });
+      html += '</div>';
+    });
+    html += '</div>';
+    $('gridTreeBody').innerHTML = html;
+    var inds = $('gridTreePanel').querySelectorAll('input[data-ind]');
+    Array.prototype.forEach.call(inds, function (inp) { inp.indeterminate = true; });
+  }
+
   /* ================= 工具函数 ================= */
   function esc(str) {
     return String(str == null ? '' : str)
@@ -347,29 +782,49 @@
 
   /* ================= 表格渲染（按筛选条件实时过滤 + 分页） ================= */
   function renderTable() {
-    var org = $('fOrg').value, name = $('fName').value.trim(), idcard = $('fIdcard').value.trim();
+    var orgKeys = ($('fOrg').value || '').split(',').filter(Boolean);     /* 管理机构：多选（任一匹配） */
+    var regKeys = ($('fRegion').value || '').split(',').filter(Boolean);  /* 管辖行政区：选中社区/镇 */
+    var name = $('fName').value.trim(), idcard = $('fIdcard').value.trim();
     var doctor = $('fDoctor').value.trim(), lock = $('fLock').value;
-    var rStatus = $('fRStatus').value, crowd = $('fCrowd').value, region = $('fRegion').value;
-    var examCnt = $('fExamCnt').value;
+    var rStatus = $('fRStatus').value, crowdLogic = $('fCrowdLogic').value;
+    var crowdKeys = Object.keys(crowdSel);           /* 重点人群类型：多选 */
+    var popLogic = $('fPopLogic').value;
+    var popKeys = Object.keys(popSel);               /* 人群性质：多选 */
+    var gridKeys = ($('fGrid').value || '').split(',').filter(Boolean);  /* 管辖网格：选中网格 */
+    var examCntOp = $('fExamCntOp').value, examCntVal = $('fExamCntVal').value;
+    var examType = $('fExamType').value, dataSource = $('fSource').value;
     var gender = $('fGender').value, archNo = $('fArchNo').value.trim();
     var phone = $('fPhone').value.trim(), address = $('fAddress').value.trim();
     var birthStart = $('fBirthStart').value, birthEnd = $('fBirthEnd').value;
     var archStart = $('fArchStart').value, archEnd = $('fArchEnd').value;
+    var examStart = $('fExamStart').value, examEnd = $('fExamEnd').value;
+    var mine = $('fMine').checked;
 
     lastList = examData.filter(function (r) {
-      if (org && r.org !== org) return false;
+      if (orgKeys.length && !orgKeys.some(function (k) { return r.org === k; })) return false;
       if (name && r.name.indexOf(name) === -1) return false;
       if (idcard && r.idcard.indexOf(idcard) === -1) return false;
       if (doctor && r.doctor.indexOf(doctor) === -1) return false;
       if (lock && r.lock !== lock) return false;
       if (rStatus && r.rStatus !== rStatus) return false;
-      if (crowd && r.crowd.indexOf(crowd) === -1) return false;
-      if (region && r.region !== region) return false;
-      if (examCnt !== '') {
-        var n = parseInt(examCnt, 10);
-        if (n === 3) { if (r.examCnt < 3) return false; }
-        else if (r.examCnt !== n) return false;
+      if (crowdKeys.length) {
+        if (crowdLogic === 'and') { if (!crowdKeys.every(function (k) { return r.crowd.indexOf(k) > -1; })) return false; }
+        else { if (!crowdKeys.some(function (k) { return r.crowd.indexOf(k) > -1; })) return false; }
       }
+      if (regKeys.length && regKeys.indexOf(r.region) === -1) return false;
+      if (examCntOp && examCntVal !== '') {
+        var n = parseFloat(examCntVal);
+        if (examCntOp === '=' && r.examCnt !== n) return false;
+        if (examCntOp === '>' && !(r.examCnt > n)) return false;
+        if (examCntOp === '>=' && !(r.examCnt >= n)) return false;
+        if (examCntOp === '<' && !(r.examCnt < n)) return false;
+        if (examCntOp === '<=' && !(r.examCnt <= n)) return false;
+      }
+      if (examType && r.examType !== examType) return false;
+      if (dataSource && r.dataSource !== dataSource) return false;
+      if (popKeys.length && popKeys.indexOf(r.popNature) === -1) return false;   /* 人群性质：单值，命中任一选中项 */
+      if (gridKeys.length && gridKeys.indexOf(r.grid) === -1) return false;
+      if (mine && r.doctor !== '吕鲁') return false;
       if (gender && r.gender !== gender) return false;
       if (archNo && r.archNo.indexOf(archNo) === -1) return false;
       if (phone && r.phone.indexOf(phone) === -1) return false;
@@ -378,6 +833,8 @@
       if (birthEnd && r.birth > birthEnd) return false;
       if (archStart && r.archDate < archStart) return false;
       if (archEnd && r.archDate > archEnd) return false;
+      if (examStart && (r.examDate || '') < examStart) return false;
+      if (examEnd && (r.examDate || '') > examEnd) return false;
       return true;
     });
 
@@ -469,11 +926,23 @@
 
   /* ================= 交互 ================= */
   function resetFilter() {
-    ['fName', 'fIdcard', 'fDoctor', 'fArchNo', 'fPhone', 'fAddress'].forEach(function (id) { $(id).value = ''; });
-    ['fOrg', 'fCrowd', 'fRegion', 'fExamCnt', 'fGender'].forEach(function (id) { $(id).value = ''; });
-    ['fBirthStart', 'fBirthEnd', 'fArchStart', 'fArchEnd'].forEach(function (id) { var el = $(id); el.value = ''; el.type = 'text'; });
+    ['fName', 'fIdcard', 'fDoctor', 'fArchNo', 'fPhone', 'fAddress', 'fExamCntVal'].forEach(function (id) { $(id).value = ''; });
+    ['fGender', 'fExamType', 'fSource', 'fExamCntOp'].forEach(function (id) { $(id).value = ''; });
+    ['fBirthStart', 'fBirthEnd', 'fArchStart', 'fArchEnd', 'fExamStart', 'fExamEnd'].forEach(function (id) { var el = $(id); el.value = ''; el.type = 'text'; });
+    orgSel = {};
+    cas4Sel = {};
+    cas4Focus = { p: '', c: '', d: '' };
+    gridSel = {};
+    gridOpen = {};
+    crowdSel = {};
+    renderCrowdBox();
+    popSel = {};
+    renderPopBox();
+    $('fOrg').value = ''; $('fRegion').value = ''; $('fGrid').value = '';
     $('fLock').value = '未上锁';
     $('fRStatus').value = '正常';
+    $('fCrowdLogic').value = 'and';
+    $('fPopLogic').value = 'and';
     $('fMine').checked = false;
     curPage = 1;
     renderTable();
@@ -525,16 +994,20 @@
   }
 
   /* 筛选控件实时过滤 */
-  ['fName', 'fIdcard', 'fDoctor', 'fArchNo', 'fPhone', 'fAddress'].forEach(function (id) {
+  ['fName', 'fIdcard', 'fDoctor', 'fArchNo', 'fPhone', 'fAddress', 'fExamCntVal'].forEach(function (id) {
     $(id).addEventListener('input', function () { curPage = 1; renderTable(); });
   });
-  ['fOrg', 'fLock', 'fRStatus', 'fCrowd', 'fRegion', 'fExamCnt', 'fGender'].forEach(function (id) {
+  ['fLock', 'fRStatus', 'fCrowdLogic', 'fPopLogic', 'fExamCntOp', 'fExamType', 'fSource', 'fGender'].forEach(function (id) {
     $(id).addEventListener('change', function () { curPage = 1; renderTable(); });
   });
-  ['fBirthStart', 'fBirthEnd', 'fArchStart', 'fArchEnd'].forEach(function (id) {
+  ['fBirthStart', 'fBirthEnd', 'fArchStart', 'fArchEnd', 'fExamStart', 'fExamEnd'].forEach(function (id) {
     $(id).addEventListener('change', function () { curPage = 1; renderTable(); });
   });
+  $('fMine').addEventListener('change', function () { curPage = 1; renderTable(); });
 
+  /* 初始渲染 */
+  renderCrowdBox();
+  renderPopBox();
   renderTable();
 </script>
 </body>

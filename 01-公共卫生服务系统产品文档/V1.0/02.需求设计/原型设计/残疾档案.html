@@ -164,12 +164,11 @@
       <div class="filter-panel">
         <div class="filter-row">
           <div class="filter-item"><label>管理机构</label>
-            <select id="fOrg" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
-              <option value="扬州市江都区郭村镇卫生院">扬州市江都区郭村镇卫生院</option>
-              <option value="扬州市江都区滨江人民医院">扬州市江都区滨江人民医院</option>
-            </select>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fOrg">
+            </div>
           </div>
           <div class="filter-item"><label>姓名</label><input id="fName" class="fi-ctl" placeholder="请输入"></div>
           <div class="filter-item"><label>性别</label>
@@ -293,12 +292,11 @@
         </div>
         <div class="sel-item"><label>证件号</label><input id="sqIdcard" class="fi-ctl" placeholder="请输入"></div>
         <div class="sel-item"><label>管理机构</label>
-          <select id="sqOrg" class="fi-select">
-            <option value="" selected>请选择</option>
-            <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
-            <option value="扬州市江都区郭村镇卫生院">扬州市江都区郭村镇卫生院</option>
-            <option value="扬州市江都区滨江人民医院">扬州市江都区滨江人民医院</option>
-          </select>
+          <div class="fcp-ms" data-fcp="ms">
+            <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+            <div class="fcp-panel"></div>
+            <input type="hidden" class="fcp-val" id="sqOrg">
+          </div>
         </div>
         <div class="sel-item"><label>管理网格</label>
           <select id="sqGrid" class="fi-select">

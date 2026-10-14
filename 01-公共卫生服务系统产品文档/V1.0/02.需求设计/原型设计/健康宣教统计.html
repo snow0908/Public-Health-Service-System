@@ -16,24 +16,45 @@
   /* ===== 页头 ===== */
   .page-head .right .btn{height:30px;padding:0 14px;font-size:13px}
 
-  /* ===== 统计 TAB ===== */
-  .stat-tabs{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px 10px;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
-  .stat-tab{height:30px;padding:0 16px;border-radius:15px;border:1px solid #DDE3EA;background:#fff;color:var(--text-secondary);font-size:13px;cursor:pointer;transition:all var(--transition-fast);display:inline-flex;align-items:center}
-  .stat-tab:hover{border-color:var(--primary);color:var(--primary)}
-  .stat-tab.active{background:var(--primary);border-color:var(--primary);color:#fff}
+  /* ===== 统计 TAB（卡片式标签：底部基准线 + 选中项描边并与内容区连通） ===== */
+  .stat-tabs{display:flex;flex-wrap:wrap;padding:14px 16px 0;border-bottom:1px solid var(--color-neutral-300);flex-shrink:0;background:var(--bg-white)}
+  .stat-tab{height:34px;padding:0 22px;margin-right:-1px;border:1px solid var(--color-neutral-300);border-bottom:0;border-radius:3px 3px 0 0;background:var(--bg-white);color:#404040;font-size:14px;cursor:pointer;transition:color var(--transition-fast),border-color var(--transition-fast);display:inline-flex;align-items:center;white-space:nowrap}
+  .stat-tab:hover{color:var(--primary);border-color:var(--primary)}
+  .stat-tab.active{position:relative;z-index:1;margin-bottom:-1px;color:var(--primary);border-color:var(--primary)}
 
   /* ===== 筛选区 ===== */
   .filter-panel{padding:14px 16px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
-  .filter-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin-bottom:14px}
-  .filter-item{display:flex;align-items:center;gap:4px}
+  .filter-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;margin-bottom:14px}
+  .filter-item{display:flex;align-items:center;gap:12px}
   .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
-  .fi-ctl{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
-  .fi-select{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
   .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
   .fi-ctl::placeholder{color:var(--text-placeholder)}
   .fi-select.is-placeholder{color:var(--text-placeholder)}
-  .fi-date{width:118px}
-  .fi-range{display:flex;align-items:center;gap:4px;color:var(--text-tertiary)}
+  /* 筛选区内复合控件统一外框宽度 180px（框架.css 默认 190px） */
+  .filter-panel .fcp-ms,.filter-panel .fcp-mst{width:180px}
+  /* 重点人群类型：关系符（且/或）窄下拉 86px（设计稿实测 97 → ÷1.1 ≈ 88） */
+  .fi-select-relation{width:86px}
+  .fi-pair{gap:6px}
+  /* 设计稿盒内「已选择（N）｜ v」：分隔竖线，仅在有值时出现（空态只留「请选择」） */
+  .fcp-mst .fcp-sep{display:none;width:1px;height:14px;background:var(--color-neutral-300);flex-shrink:0}
+  .filter-panel .fcp-mst.has-val .fcp-sep{display:block}
+  /* 设计稿该控件盒内为「文本 ｜ 箭头」，无清除按钮（清除走「重置」） */
+  .filter-panel .fcp-mst .fcp-clear{display:none}
+  /* 面板选项行高对齐设计稿（约 32~33px；框架默认 35px） */
+  .filter-panel .fcp-opt{padding:6px 12px}
+  /* 设计稿 8 项全部可见、无滚动条（框架 max-height:238px 会截断第 8 项） */
+  .filter-panel .fcp-mst .fcp-panel{max-height:none}
+  /* 日期区间：单一外框（开始日期 ~ 结束日期 + 日历图标） */
+  .fi-range{display:flex;align-items:center;gap:6px;width:232px;height:32px;padding:0 8px 0 10px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);background:var(--bg-white);transition:all var(--transition-fast)}
+  .fi-range:hover{border-color:var(--primary)}
+  .fi-range:focus-within{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-range input{flex:1 1 0;min-width:0;height:30px;border:none;background:transparent;outline:none;padding:0;font-size:14px;color:var(--text-primary);font-family:inherit}
+  .fi-range input::placeholder{color:var(--text-placeholder)}
+  .fi-range input::-webkit-calendar-picker-indicator{display:none}
+  .fi-tilde{flex-shrink:0;font-size:14px;color:var(--text-placeholder)}
+  .fi-cal{width:14px;height:14px;flex-shrink:0;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none' stroke='%23bfbfbf' stroke-width='1.2'%3E%3Crect x='1.4' y='2.4' width='11.2' height='10.2' rx='1.6'/%3E%3Cpath d='M1.4 5.6h11.2M4.6 1.4v2M9.4 1.4v2'/%3E%3C/svg%3E") no-repeat center/contain}
   .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
 
   /* ===== 数据表格 ===== */
@@ -143,11 +164,16 @@
   var SRC  = ['请选择','本系统','外系统'];
   var ORGS = ['请选择','扬州市江都区仙女镇','扬州市江都区大桥镇','大桥镇东园社区','大桥镇西园社区','仙女镇北苑社区','仙女镇东苑社区','仙女镇樊庄村卫生室','仙女镇黄阳社区','仙女镇江桥村卫生室','仙女镇孔庄村卫生室','仙女镇乐和社区','仙女镇龙城社区','仙女镇龙川社区','仙女镇龙溪社区','仙女镇明珠社区','仙女镇南吴村卫生室','仙女镇七闸村卫生室','仙女镇西苑社区卫生服务站','仙女镇仙女社区'];
   var TPLS = ['请选择','高血压健康教育处方','糖尿病健康教育处方','慢阻肺健康教育处方','肺炎','急性胃肠炎','肩周炎','慢性胃炎','慢性支气管炎','上呼吸道感染','急性气管-支气管炎','痛风'];
-  var POP1 = ['请选择','高血压患者','糖尿病患者','慢阻肺患者','老年人','孕产妇','儿童'];
-  var POP2 = ['请选择','全部','规范管理','暂缓管理','退出管理'];
+  /* 重点人群类型（多选）：与 老年人中医管理.html 的「重点人群类型」同一套 8 类 */
+  var CROWD8 = ['高血压','糖尿病','慢阻肺病','老年人','肺结核','严重精神障碍','脑卒中','冠心病'];
 
+  /* 首项一律作为占位项：值固定为空串（否则「请选择」会被当成真实筛选值，任何筛选交互都会筛出 0 条），
+     文案为「请选择」，POP2 这类无占位文案的下拉则留空 */
   function opts(arr) {
-    return arr.map(function (o) { return '<option value="' + esc(o) + '">' + esc(o) + '</option>'; }).join('');
+    return arr.map(function (o, i) {
+      if (i === 0 && (o === '请选择' || o === '')) return '<option value="">' + (o === '请选择' ? '请选择' : '') + '</option>';
+      return '<option value="' + esc(o) + '">' + esc(o) + '</option>';
+    }).join('');
   }
 
   /* ================= 数据 ================= */
@@ -200,27 +226,42 @@
   ];
 
   var DETAIL_ROWS = [
-    { org:'扬州市江都区大桥镇白于村卫生室', dept:'公卫科', tpl:'肺炎',                    doc:'何海燕', rname:'于红凤', pop:'',      sex:'女', phone:'1512575****', id:'32108819520504****', idType:'居民身份证', edate:'2026-09-02' },
-    { org:'扬州市江都区大桥镇东园社区卫生服务站', dept:'公卫科', tpl:'高血压健康教育处方', doc:'胡小利', rname:'严永梅', pop:'高血压患者', sex:'女', phone:'1515275****', id:'32108819560612****', idType:'居民身份证', edate:'2026-09-02' },
-    { org:'扬州市江都区大桥镇西园社区卫生服务站', dept:'公卫科', tpl:'急性胃肠炎',        doc:'刘大明', rname:'邓向林', pop:'',      sex:'男', phone:'1852052****', id:'32108819620819****', idType:'常住', edate:'2026-09-03' },
-    { org:'扬州市江都区仙女镇樊庄村卫生室', dept:'公卫科', tpl:'糖尿病健康教育处方',     doc:'韩巧香', rname:'杨长娣', pop:'糖尿病患者', sex:'女', phone:'1385276****', id:'32108819590227****', idType:'居民身份证', edate:'2026-09-04' },
-    { org:'扬州市江都区仙女镇孔庄村卫生室', dept:'乡村医生', tpl:'高血压健康教育处方',    doc:'李林林', rname:'王长根', pop:'高血压患者', sex:'男', phone:'1395143****', id:'32108819600605****', idType:'居民身份证', edate:'2026-09-05' },
-    { org:'扬州市江都区仙女镇黄阳社区卫生服务站', dept:'公卫科', tpl:'慢性支气管-支气管炎', doc:'王有明', rname:'李秀英', pop:'',      sex:'女', phone:'1366523****', id:'32108819541116****', idType:'居民身份证', edate:'2026-09-05' },
-    { org:'扬州市江都区仙女镇乐和社区卫生服务站', dept:'公卫科', tpl:'上呼吸道感染',      doc:'韩永进', rname:'陈长贵', pop:'',      sex:'男', phone:'1505081****', id:'32108819610530****', idType:'常住', edate:'2026-09-06' },
-    { org:'扬州市江都区仙女镇龙川社区卫生服务站', dept:'公卫科', tpl:'痛风',              doc:'杨红琴', rname:'周玉兰', pop:'',      sex:'女', phone:'1333829****', id:'32108819630311****', idType:'流动人口', edate:'2026-09-07' },
-    { org:'扬州市江都区仙女镇江桥村卫生室', dept:'公卫科', tpl:'高血压健康教育处方',      doc:'王德凤', rname:'刘万山', pop:'高血压患者', sex:'男', phone:'1370523****', id:'32108819570823****', idType:'居民身份证', edate:'2026-09-08' },
-    { org:'扬州市江都区仙女镇南吴村卫生室', dept:'公卫科', tpl:'慢性支气管炎',            doc:'何海燕', rname:'吴桂英', pop:'',      sex:'女', phone:'1589611****', id:'32108819620815****', idType:'居民身份证', edate:'2026-09-09' },
-    { org:'扬州市江都区仙女镇七闸村卫生室', dept:'公卫科', tpl:'高血压健康教育处方',      doc:'胡小利', rname:'孙长林', pop:'高血压患者', sex:'男', phone:'1891436****', id:'32108819590102****', idType:'居民身份证', edate:'2026-09-10' },
-    { org:'扬州市江都区仙女镇龙溪社区卫生服务站', dept:'公卫科', tpl:'糖尿病健康教育处方', doc:'刘大明', rname:'朱文英', pop:'糖尿病患者', sex:'女', phone:'1340553****', id:'32108819600628****', idType:'居民身份证', edate:'2026-09-11' },
-    { org:'扬州市江都区仙女镇明珠社区卫生服务站', dept:'公卫科', tpl:'高血压健康教育处方', doc:'韩巧香', rname:'蒋德全', pop:'高血压患者', sex:'男', phone:'1595076****', id:'32108819561014****', idType:'常住', edate:'2026-09-12' },
-    { org:'扬州市江都区仙女镇新火村卫生室', dept:'公卫科', tpl:'急性气管-支气管炎',      doc:'李林林', rname:'徐秀兰', pop:'',      sex:'女', phone:'1377021****', id:'32108819630919****', idType:'居民身份证', edate:'2026-09-13' },
-    { org:'扬州市江都区仙女镇周楼村卫生室', dept:'公卫科', tpl:'高血压健康教育处方',      doc:'王有明', rname:'马长龙', pop:'高血压患者', sex:'男', phone:'1319660****', id:'32108819580305****', idType:'居民身份证', edate:'2026-09-14' },
-    { org:'扬州市江都区仙女镇仙女社区卫生服务站', dept:'公卫科', tpl:'肺炎',              doc:'韩永进', rname:'何玉珍', pop:'',      sex:'女', phone:'1395218****', id:'32108819610712****', idType:'流动人口', edate:'2026-09-15' },
-    { org:'扬州市江都区大桥镇西园社区卫生服务站', dept:'公卫科', tpl:'慢阻肺健康教育处方', doc:'杨红琴', rname:'钱长顺', pop:'慢阻肺患者', sex:'男', phone:'1586172****', id:'32108819550924****', idType:'居民身份证', edate:'2026-09-16' },
-    { org:'扬州市江都区仙女镇东苑社区卫生服务站', dept:'公卫科', tpl:'高血压健康教育处方', doc:'王德凤', rname:'沈秀芳', pop:'高血压患者', sex:'女', phone:'1865154****', id:'32108819620517****', idType:'居民身份证', edate:'2026-09-17' },
-    { org:'扬州市江都区仙女镇北苑社区卫生服务站', dept:'公卫科', tpl:'糖尿病健康教育处方', doc:'何海燕', rname:'梁长宝', pop:'糖尿病患者', sex:'男', phone:'1370528****', id:'32108819581209****', idType:'居民身份证', edate:'2026-09-18' },
-    { org:'扬州市江都区仙女镇西苑社区卫生服务站', dept:'公卫科', tpl:'高血压健康教育处方', doc:'胡小利', rname:'金桂兰', pop:'高血压患者', sex:'女', phone:'1515271****', id:'32108819601021****', idType:'常住', edate:'2026-09-19' }
+    { org:'扬州市江都区大桥镇白于村卫生室', dept:'公卫科', tpl:'肺炎',                    doc:'何海燕', rname:'于红凤', crowd:[],      sex:'女', phone:'1512575****', id:'32108819520504****', idType:'居民身份证', edate:'2026-09-02' },
+    { org:'扬州市江都区大桥镇东园社区卫生服务站', dept:'公卫科', tpl:'高血压健康教育处方', doc:'胡小利', rname:'严永梅', crowd:['高血压'], sex:'女', phone:'1515275****', id:'32108819560612****', idType:'居民身份证', edate:'2026-09-02' },
+    { org:'扬州市江都区大桥镇西园社区卫生服务站', dept:'公卫科', tpl:'急性胃肠炎',        doc:'刘大明', rname:'邓向林', crowd:[],      sex:'男', phone:'1852052****', id:'32108819620819****', idType:'常住', edate:'2026-09-03' },
+    { org:'扬州市江都区仙女镇樊庄村卫生室', dept:'公卫科', tpl:'糖尿病健康教育处方',     doc:'韩巧香', rname:'杨长娣', crowd:['糖尿病','老年人'], sex:'女', phone:'1385276****', id:'32108819590227****', idType:'居民身份证', edate:'2026-09-04' },
+    { org:'扬州市江都区仙女镇孔庄村卫生室', dept:'乡村医生', tpl:'高血压健康教育处方',    doc:'李林林', rname:'王长根', crowd:['高血压','老年人'], sex:'男', phone:'1395143****', id:'32108819600605****', idType:'居民身份证', edate:'2026-09-05' },
+    { org:'扬州市江都区仙女镇黄阳社区卫生服务站', dept:'公卫科', tpl:'慢性支气管-支气管炎', doc:'王有明', rname:'李秀英', crowd:[],      sex:'女', phone:'1366523****', id:'32108819541116****', idType:'居民身份证', edate:'2026-09-05' },
+    { org:'扬州市江都区仙女镇乐和社区卫生服务站', dept:'公卫科', tpl:'上呼吸道感染',      doc:'韩永进', rname:'陈长贵', crowd:['老年人'],      sex:'男', phone:'1505081****', id:'32108819610530****', idType:'常住', edate:'2026-09-06' },
+    { org:'扬州市江都区仙女镇龙川社区卫生服务站', dept:'公卫科', tpl:'痛风',              doc:'杨红琴', rname:'周玉兰', crowd:[],      sex:'女', phone:'1333829****', id:'32108819630311****', idType:'流动人口', edate:'2026-09-07' },
+    { org:'扬州市江都区仙女镇江桥村卫生室', dept:'公卫科', tpl:'高血压健康教育处方',      doc:'王德凤', rname:'刘万山', crowd:['高血压','脑卒中'], sex:'男', phone:'1370523****', id:'32108819570823****', idType:'居民身份证', edate:'2026-09-08' },
+    { org:'扬州市江都区仙女镇南吴村卫生室', dept:'公卫科', tpl:'慢性支气管炎',            doc:'何海燕', rname:'吴桂英', crowd:[],      sex:'女', phone:'1589611****', id:'32108819620815****', idType:'居民身份证', edate:'2026-09-09' },
+    { org:'扬州市江都区仙女镇七闸村卫生室', dept:'公卫科', tpl:'高血压健康教育处方',      doc:'胡小利', rname:'孙长林', crowd:['高血压','冠心病'], sex:'男', phone:'1891436****', id:'32108819590102****', idType:'居民身份证', edate:'2026-09-10' },
+    { org:'扬州市江都区仙女镇龙溪社区卫生服务站', dept:'公卫科', tpl:'糖尿病健康教育处方', doc:'刘大明', rname:'朱文英', crowd:['糖尿病','高血压'], sex:'女', phone:'1340553****', id:'32108819600628****', idType:'居民身份证', edate:'2026-09-11' },
+    { org:'扬州市江都区仙女镇明珠社区卫生服务站', dept:'公卫科', tpl:'高血压健康教育处方', doc:'韩巧香', rname:'蒋德全', crowd:['高血压','老年人'], sex:'男', phone:'1595076****', id:'32108819561014****', idType:'常住', edate:'2026-09-12' },
+    { org:'扬州市江都区仙女镇新火村卫生室', dept:'公卫科', tpl:'急性气管-支气管炎',      doc:'李林林', rname:'徐秀兰', crowd:[],      sex:'女', phone:'1377021****', id:'32108819630919****', idType:'居民身份证', edate:'2026-09-13' },
+    { org:'扬州市江都区仙女镇周楼村卫生室', dept:'公卫科', tpl:'高血压健康教育处方',      doc:'王有明', rname:'马长龙', crowd:['高血压'], sex:'男', phone:'1319660****', id:'32108819580305****', idType:'居民身份证', edate:'2026-09-14' },
+    { org:'扬州市江都区仙女镇仙女社区卫生服务站', dept:'公卫科', tpl:'肺炎',              doc:'韩永进', rname:'何玉珍', crowd:[],      sex:'女', phone:'1395218****', id:'32108819610712****', idType:'流动人口', edate:'2026-09-15' },
+    { org:'扬州市江都区大桥镇西园社区卫生服务站', dept:'公卫科', tpl:'慢阻肺健康教育处方', doc:'杨红琴', rname:'钱长顺', crowd:['慢阻肺病','老年人'], sex:'男', phone:'1586172****', id:'32108819550924****', idType:'居民身份证', edate:'2026-09-16' },
+    { org:'扬州市江都区仙女镇东苑社区卫生服务站', dept:'公卫科', tpl:'高血压健康教育处方', doc:'王德凤', rname:'沈秀芳', crowd:['高血压','糖尿病','慢阻肺病'], sex:'女', phone:'1865154****', id:'32108819620517****', idType:'居民身份证', edate:'2026-09-17' },
+    { org:'扬州市江都区仙女镇北苑社区卫生服务站', dept:'公卫科', tpl:'糖尿病健康教育处方', doc:'何海燕', rname:'梁长宝', crowd:['糖尿病','高血压'], sex:'男', phone:'1370528****', id:'32108819581209****', idType:'居民身份证', edate:'2026-09-18' },
+    { org:'扬州市江都区仙女镇西苑社区卫生服务站', dept:'公卫科', tpl:'高血压健康教育处方', doc:'胡小利', rname:'金桂兰', crowd:['高血压','老年人'], sex:'女', phone:'1515271****', id:'32108819601021****', idType:'常住', edate:'2026-09-19' }
   ];
+
+  /* ================= 顶层机构映射 ================= */
+  /* 「宣教机构」多选列表 = 机构树顶层 5 个机构（与 框架.js 的 ORG_LIST 一致）。
+     演示数据的 org 是下属机构（社区卫生服务站/村卫生室等），这里按所属片区补一个顶层机构字段 topOrg，
+     仅用于筛选、不在表格展示，避免「按机构汇总」的机构名称被压平成 5 个。 */
+  (function assignTopOrg() {
+    var pool = ['**大学淮河医院', '温江区华西医院', '成都市新都区妇幼保健院', '山东大学齐鲁医院'];
+    [ORG_ROWS, TPL_ROWS, DETAIL_ROWS].forEach(function (rows) {
+      var k = 0;
+      rows.forEach(function (r) {
+        if (String(r.org).indexOf('大桥镇') !== -1) { r.topOrg = '江都区大桥镇'; }
+        else { r.topOrg = pool[k % pool.length]; k++; }
+      });
+    });
+  })();
 
   /* ================= TAB 配置 ================= */
   var TABS = {
@@ -230,8 +271,8 @@
       filters: [
         { row: 1, items: [
           { type: 'select', label: '数据来源', key: 'src', opts: SRC },
-          { type: 'select', label: '宣教机构', key: 'org', opts: ORGS },
-          { type: 'daterange', label: '宣教日期', key: 'date' }
+          { type: 'fcpms', label: '宣教机构', key: 'org', field: 'topOrg', id: 'fOrg' },
+          { type: 'daterange', label: '宣教日期', key: 'date', field: 'edate' }
         ] }
       ],
       cols: [
@@ -251,15 +292,13 @@
       filters: [
         { row: 1, items: [
           { type: 'select', label: '数据来源', key: 'src', opts: SRC },
-          { type: 'select', label: '宣教机构', key: 'org', opts: ORGS },
+          { type: 'fcpms', label: '宣教机构', key: 'org', field: 'topOrg', id: 'fOrg' },
           { type: 'input',  label: '宣教科室', key: 'dept', ph: '请输入' },
-          { type: 'daterange', label: '宣教日期', key: 'date' },
-          { type: 'select', label: '宣教模板', key: 'tpl', opts: TPLS },
-          { type: 'input',  label: '宣教医生', key: 'doc', ph: '请输入' }
+          { type: 'daterange', label: '宣教日期', key: 'date', field: 'edate' }
         ] },
         { row: 2, items: [
-          { type: 'select', label: '重点人群类型', key: 'pop1', opts: POP1 },
-          { type: 'select', label: '重点人群类型', key: 'pop2', opts: POP2, noLabel: true }
+          { type: 'select', label: '宣教模板', key: 'tpl', opts: TPLS },
+          { type: 'input',  label: '宣教医生', key: 'doc', ph: '请输入' }
         ] }
       ],
       cols: [
@@ -281,15 +320,14 @@
       filters: [
         { row: 1, items: [
           { type: 'select', label: '数据来源', key: 'src', opts: SRC },
-          { type: 'select', label: '宣教机构', key: 'org', opts: ORGS },
+          { type: 'fcpms', label: '宣教机构', key: 'org', field: 'topOrg', id: 'fOrg' },
           { type: 'input',  label: '宣教科室', key: 'dept', ph: '请输入' },
-          { type: 'daterange', label: '宣教日期', key: 'date' },
-          { type: 'select', label: '宣教模板', key: 'tpl', opts: TPLS },
-          { type: 'input',  label: '宣教医生', key: 'doc', ph: '请输入' }
+          { type: 'daterange', label: '宣教日期', key: 'date', field: 'edate' }
         ] },
         { row: 2, items: [
-          { type: 'select', label: '重点人群类型', key: 'pop1', opts: POP1 },
-          { type: 'select', label: '重点人群类型', key: 'pop2', opts: POP2, noLabel: true }
+          { type: 'select', label: '宣教模板', key: 'tpl', opts: TPLS },
+          { type: 'input',  label: '宣教医生', key: 'doc', ph: '请输入' },
+          { type: 'fcpmst', label: '重点人群类型', key: 'crowd', relKey: 'popRel', opts: CROWD8, id: 'fCrowd' }
         ] }
       ],
       cols: [
@@ -299,7 +337,7 @@
         { label: '模板名称', w: 150, render: function (r) { return r.tpl; } },
         { label: '宣教医生', w: 84,  render: function (r) { return r.doc; } },
         { label: '居民姓名', w: 84,  render: function (r) { return r.rname; } },
-        { label: '重点人群类型', w: 110, render: function (r) { return dash(r.pop); } },
+        { label: '重点人群类型', w: 160, render: function (r) { return dash((r.crowd || []).join('、')); } },
         { label: '居民性别', w: 84,  c: 1, render: function (r) { return r.sex; } },
         { label: '居民电话', w: 120, render: function (r) { return r.phone; } },
         { label: '证件号码', w: 160, render: function (r) { return r.id; } },
@@ -321,27 +359,59 @@
     }).join('');
   }
 
-  function filterItemHtml(f, idx) {
+  /* 日期区间内的输入框：聚焦时切原生 date 并唤起选择器，失焦且为空则还原为文本占位 */
+  function pickDate(el) { el.type = 'date'; try { el.showPicker(); } catch (e) { } }
+  function blurDate(el) { if (!el.value) el.type = 'text'; }
+
+  function filterItemHtml(f) {
     var ph = f.ph || '';
     var label = f.noLabel ? '' : f.label + '：';
     if (f.type === 'select') {
-      return '<div class="filter-item"><label>' + label + '</label><select class="fi-select is-placeholder" data-f="' + idx + '" onchange="markSelect(this);filterRows()">' + opts(f.opts) + '</select></div>';
+      var cls = 'fi-select is-placeholder' + (f.cls ? ' ' + f.cls : '');
+      return '<div class="filter-item"><label>' + label + '</label><select class="' + cls + '" data-k="' + f.key + '" onchange="markSelect(this);filterRows()">' + opts(f.opts) + '</select></div>';
     }
     if (f.type === 'daterange') {
-      return '<div class="filter-item"><label>' + f.label + '：</label><span class="fi-range"><input class="fi-ctl fi-date" value="2026-01-01" data-f="' + idx + '" oninput="filterRows()">~<input class="fi-ctl fi-date" value="2026-12-31" data-half="end" data-f="' + idx + '" oninput="filterRows()"></span></div>';
+      return '<div class="filter-item"><label>' + f.label + '：</label>'
+        + '<span class="fi-range">'
+        + '<input type="text" placeholder="开始日期" data-k="' + f.key + '-start" onfocus="pickDate(this)" onblur="blurDate(this)" oninput="filterRows()">'
+        + '<span class="fi-tilde">~</span>'
+        + '<input type="text" placeholder="结束日期" data-k="' + f.key + '-end" onfocus="pickDate(this)" onblur="blurDate(this)" oninput="filterRows()">'
+        + '<span class="fi-cal"></span>'
+        + '</span></div>';
     }
-    return '<div class="filter-item"><label>' + label + '</label><input class="fi-ctl" placeholder="' + ph + '" data-f="' + idx + '" oninput="filterRows()"></div>';
+    if (f.type === 'fcpms') {
+      /* 多选（复选框）复合控件：如「宣教机构」——列表为机构树顶层机构 */
+      var dopts = f.opts ? ' data-options="' + f.opts.join('|') + '"' : '';
+      return '<div class="filter-item"><label>' + f.label + '：</label>'
+        + '<div class="fcp-ms" data-fcp="ms"' + dopts + '>'
+        + '<div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>'
+        + '<div class="fcp-panel"></div>'
+        + '<input type="hidden" class="fcp-val" id="' + f.id + '" data-k="' + f.key + '">'
+        + '</div></div>';
+    }
+    if (f.type === 'fcpmst') {
+      /* 关系符（且/或）+ 多选（对勾）复合控件：如「重点人群类型」 */
+      var dopts2 = f.opts ? ' data-options="' + f.opts.join('|') + '"' : '';
+      return '<div class="filter-item"><label>' + f.label + '：</label>'
+        + '<div class="filter-item fi-pair">'
+        + '<select class="fi-select fi-select-relation" data-k="' + f.relKey + '" onchange="filterRows()">'
+        + '<option value="and">且</option><option value="or">或</option></select>'
+        + '<div class="fcp-mst" data-fcp="mst" data-caret' + dopts2 + '>'
+        + '<div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span><span class="fcp-sep"></span></div>'
+        + '<div class="fcp-panel"></div>'
+        + '<input type="hidden" class="fcp-val" id="' + f.id + '" data-k="' + f.key + '">'
+        + '</div></div></div>';
+    }
+    return '<div class="filter-item"><label>' + label + '</label><input class="fi-ctl" placeholder="' + ph + '" data-k="' + f.key + '" oninput="filterRows()"></div>';
   }
 
   function renderFilter() {
     var t = TABS[curTab];
     var html = '';
-    var fidx = 0;
     t.filters.forEach(function (rowDef, ri) {
       html += '<div class="filter-row">';
       rowDef.items.forEach(function (f) {
-        html += filterItemHtml(f, fidx);
-        fidx++;
+        html += filterItemHtml(f);
       });
       if (ri === t.filters.length - 1) {
         html += '<div class="filter-btns">'
@@ -351,6 +421,15 @@
       html += '</div>';
     });
     $('filterPanel').innerHTML = html;
+    /* 面板是动态重建的，需重新初始化复合控件（机构多选/重点人群多选）并重绑实时过滤 */
+    if (window.fcpInit) window.fcpInit();
+    $('filterPanel').querySelectorAll('[data-fcp]').forEach(function (el) {
+      /* 勾选复选框走 change；点击整行对勾走 click。框架用 document 级委托且不阻断冒泡，故在此可拿到 */
+      el.addEventListener('change', function () { setTimeout(filterRows, 0); });
+      el.addEventListener('click', function (e) {
+        if (e.target.closest('.fcp-opt,.fcp-n,.fcp-clear')) setTimeout(filterRows, 0);
+      });
+    });
   }
 
   function renderTable() {
@@ -385,34 +464,68 @@
     $('total').textContent = curRows.length;
   }
 
+  /* 按 data-k 取各控件当前值再逐条过滤：避免「日期区间占两个输入框」导致的下标错位 */
   function filterRows() {
     var t = TABS[curTab];
-    var fields = $('filterPanel').querySelectorAll('[data-f]');
-    var arr = [];
-    fields.forEach(function (el) { arr.push(el.value ? el.value.trim().toLowerCase() : ''); });
-    var rowDefs = [];
-    t.filters.forEach(function (rd) { rd.items.forEach(function (f) { rowDefs.push(f); }); });
+    var v = {};
+    $('filterPanel').querySelectorAll('[data-k]').forEach(function (el) {
+      v[el.getAttribute('data-k')] = el.value ? String(el.value).trim() : '';
+    });
+    var defs = [];
+    t.filters.forEach(function (rd) { rd.items.forEach(function (f) { defs.push(f); }); });
+
     curRows = t.rows.filter(function (r) {
-      return rowDefs.every(function (f, i) {
-        var v = arr[i];
-        if (!v) return true;
-        var k = f.key;
-        if (k === 'date') return true;
-        if (k === 'pop2') return true;
-        var rv = r[k];
+      return defs.every(function (f) {
+        if (f.type === 'daterange') {
+          var s = v[f.key + '-start'] || '', e = v[f.key + '-end'] || '';
+          if (!s && !e) return true;
+          var dv = f.field ? r[f.field] : '';
+          if (!dv) return true;   /* 汇总维度（按机构/按模板）无日期字段，不参与日期过滤 */
+          if (s && dv < s) return false;
+          if (e && dv > e) return false;
+          return true;
+        }
+        /* 机构多选：任一命中即保留；机构名在不同维度下写法不同，按双向包含匹配 */
+        if (f.type === 'fcpms') {
+          var orgs = (v[f.key] || '').split(',').filter(Boolean);
+          if (!orgs.length) return true;
+          var rvOrg = r[f.field || f.key];
+          if (rvOrg === undefined || rvOrg === null) return true;
+          var rsOrg = String(rvOrg);
+          if (rsOrg === '') return false;
+          return orgs.some(function (x) { return rsOrg === x || rsOrg.indexOf(x) !== -1 || x.indexOf(rsOrg) !== -1; });
+        }
+        /* 重点人群类型：多选 + 且/或关系（数据侧为多值数组） */
+        if (f.type === 'fcpmst') {
+          var selC = (v[f.key] || '').split(',').filter(Boolean);
+          if (!selC.length) return true;
+          var arrC = r[f.field || f.key] || [];
+          if (!arrC.length) return false;
+          return (v[f.relKey] === 'or')
+            ? selC.some(function (x) { return arrC.indexOf(x) !== -1; })
+            : selC.every(function (x) { return arrC.indexOf(x) !== -1; });
+        }
+        var q = v[f.key] || '';
+        if (!q) return true;
+        /* field 用于「控件 key ≠ 数据字段名」的场景，如 重点人群类型 pop1 → 数据字段 pop */
+        var rv = r[f.field || f.key];
+        /* 该行不含此维度（undefined/null）→ 不参与过滤；有维度但为空串 → 视为不匹配 */
         if (rv === undefined || rv === null) return true;
-        if (f.type === 'select') return String(rv) === v;
-        return String(rv).toLowerCase().indexOf(v) !== -1;
+        var rs = String(rv);
+        if (rs === '') return false;   /* 该行此维度为空值，不匹配 */
+        if (f.type === 'input') return rs.toLowerCase().indexOf(q.toLowerCase()) !== -1;
+        /* 下拉：同一机构在不同汇总维度下写法不同（带/不带「扬州市江都区」前缀），按双向包含匹配 */
+        return rs === q || rs.indexOf(q) !== -1 || q.indexOf(rs) !== -1;
       });
     });
     renderTable();
   }
 
   function resetFilter() {
-    $('filterPanel').querySelectorAll('[data-f]').forEach(function (el) {
-      if (el.tagName === 'SELECT') { el.value = ''; markSelect(el); }
-      else if (el.classList.contains('fi-date')) el.value = (el.getAttribute('data-half') === 'end') ? '2026-12-31' : '2026-01-01';
-      else el.value = '';
+    $('filterPanel').querySelectorAll('[data-k]').forEach(function (el) {
+      if (el.classList.contains('fi-select-relation')) { el.value = 'and'; }
+      else if (el.tagName === 'SELECT') { el.value = ''; markSelect(el); }
+      else { el.value = ''; if (el.type === 'date') el.type = 'text'; }
     });
     filterRows();
     toast('已重置', 'info');

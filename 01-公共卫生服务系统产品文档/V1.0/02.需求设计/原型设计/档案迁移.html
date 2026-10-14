@@ -246,13 +246,11 @@
           </div>
           <div class="filter-row" id="advRow">
             <div class="filter-item"><label>管辖行政区</label>
-              <select id="fDistrict" class="fi-select">
-                <option value="" selected>请选择</option>
-                <option value="仙女镇">仙女镇</option>
-                <option value="小纪镇">小纪镇</option>
-                <option value="大桥镇">大桥镇</option>
-                <option value="郭村镇">郭村镇</option>
-              </select>
+              <div class="fcp-cas" data-fcp="cas">
+                <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+                <div class="fcp-panel"></div>
+                <input type="hidden" class="fcp-val" id="fDistrict">
+              </div>
             </div>
             <div class="filter-item"><label>申请人</label><input id="fApplicant" class="fi-ctl" placeholder="请输入"></div>
             <div class="filter-item"><label>申请日期</label>
@@ -444,13 +442,11 @@
         <div class="q-item"><label>姓名：</label><input id="qName" class="q-input" placeholder="请输入"></div>
         <div class="q-item"><label>身份证号：</label><input id="qIdcard" class="q-input" placeholder="请输入"></div>
         <div class="q-item"><label>管理机构：</label>
-          <select id="qOrg" class="q-select">
-            <option value="" selected>请选择</option>
-            <option value="扬州市江都区仙女社区卫生服务中心">扬州市江都区仙女社区卫生服务中心</option>
-            <option value="扬州市江都区小纪中心卫生院">扬州市江都区小纪中心卫生院</option>
-            <option value="扬州市江都区郭村镇卫生院">扬州市江都区郭村镇卫生院</option>
-            <option value="扬州市江都区大桥镇卫生院">扬州市江都区大桥镇卫生院</option>
-          </select>
+          <div class="fcp-ms" data-fcp="ms">
+            <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+            <div class="fcp-panel"></div>
+            <input type="hidden" class="fcp-val" id="qOrg">
+          </div>
         </div>
         <div class="q-item"><label>档案编号：</label><input id="qNo" class="q-input" placeholder="请输入"></div>
         <div class="q-btns">

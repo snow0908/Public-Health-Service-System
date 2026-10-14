@@ -40,6 +40,34 @@
   .fi-sep{color:var(--text-placeholder);font-size:13px}
   .fi-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer}
   .fi-check input{margin:0;accent-color:var(--primary);cursor:pointer}
+  /* 主筛选区行距/列距/标签间距（对齐设计稿：行距 10、列距 22、标签-控件 12） */
+  .filter-panel .filter-row{gap:12px 22px;margin-bottom:10px}
+  .filter-panel .filter-item{gap:12px}
+  /* 筛选区内控件统一外框宽度（仅作用于主筛选区，不影响新建专项弹框内同名类） */
+  .filter-panel .fi-ctl,.filter-panel .fi-select{width:180px}
+  /* 筛选区内统一筛选复合控件（管理机构/管辖行政区）等宽 180px */
+  .filter-panel .fcp-ms,.filter-panel .fcp-cas,.filter-panel .fcp-tree,.filter-panel .fcp-mst{width:180px}
+  .filter-panel .fcp-ms .fcp-panel{width:max-content;min-width:100%;max-width:300px}
+  .filter-panel .fcp-tree .fcp-panel{width:200px}
+  /* 日期区间：单一外框（开始日期 ~ 结束日期 + 日历图标） */
+  .fi-range{display:flex;align-items:center;gap:6px;width:232px;height:32px;padding:0 8px 0 10px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);background:var(--bg-white);transition:all var(--transition-fast)}
+  .fi-range:hover{border-color:var(--primary)}
+  .fi-range:focus-within{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-range input{flex:1 1 0;min-width:0;height:30px;border:none;background:transparent;outline:none;padding:0;font-size:14px;color:var(--text-primary);font-family:inherit}
+  .fi-range input::placeholder{color:var(--text-placeholder)}
+  .fi-range input::-webkit-calendar-picker-indicator{display:none}
+  .fi-tilde{flex-shrink:0;font-size:14px;color:var(--text-placeholder)}
+  .fi-cal{width:14px;height:14px;flex-shrink:0;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none' stroke='%23bfbfbf' stroke-width='1.2'%3E%3Crect x='1.4' y='2.4' width='11.2' height='10.2' rx='1.6'/%3E%3Cpath d='M1.4 5.6h11.2M4.6 1.4v2M9.4 1.4v2'/%3E%3C/svg%3E") no-repeat center/contain}
+  /* 只看个人管理档案 复选框（统一写法，替换各页旧版 .own-check） */
+  .fi-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer;user-select:none;white-space:nowrap;margin:0}
+  .fi-check input[type=checkbox]{width:15px;height:15px;margin:0;accent-color:var(--primary);cursor:pointer}
+  /* 可清空单选下拉（中医服务等：有值时右侧出现圆形 ✕） */
+  .fi-combo{position:relative;display:inline-flex;align-items:center}
+  .filter-panel .fi-combo .fi-select{width:180px;padding-right:30px}
+  .fi-combo.has-val .fi-select{background-image:none}
+  .fi-combo .fi-combo-x{display:none;position:absolute;right:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;box-sizing:border-box;border:1px solid #BFBFBF;border-radius:50%;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='5' viewBox='0 0 5 5'%3E%3Cpath d='M1 1l3 3M4 1L1 4' stroke='%23BFBFBF' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center/5px 5px;cursor:pointer;user-select:none}
+  .fi-combo.has-val .fi-combo-x{display:block}
+  .fi-combo .fi-combo-x:hover{border-color:var(--primary);background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='5' viewBox='0 0 5 5'%3E%3Cpath d='M1 1l3 3M4 1L1 4' stroke='%23007AFF' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E")}
 
   /* ===== 数据表格 ===== */
   .table-wrap{flex:1;overflow:auto;min-height:0}
@@ -256,72 +284,51 @@
       <!-- 筛选区 -->
       <div class="filter-panel">
         <div class="filter-row">
-          <div class="filter-item"><label>管理机构</label>
-            <select id="fOrg" class="fi-select w-lg">
-              <option value="" selected>请选择</option>
-              <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
-              <option value="济南市历下区甸柳新村社区卫生服务中心">济南市历下区甸柳新村社区卫生服务中心</option>
-              <option value="济南市市中区舜玉路社区卫生服务中心">济南市市中区舜玉路社区卫生服务中心</option>
-              <option value="济南市历下区千佛山社区卫生服务中心">济南市历下区千佛山社区卫生服务中心</option>
-              <option value="济南市天桥区工人新村社区卫生服务中心">济南市天桥区工人新村社区卫生服务中心</option>
-              <option value="济南市历下区文化东路社区卫生服务中心">济南市历下区文化东路社区卫生服务中心</option>
-            </select>
+          <div class="filter-item"><label>管理机构：</label>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fOrg">
+            </div>
           </div>
-          <div class="filter-item"><label>姓名</label><input id="fName" class="fi-ctl" placeholder="请输入姓名"></div>
-          <div class="filter-item"><label>证件号</label><input id="fIdcard" class="fi-ctl" placeholder="请输入证件号"></div>
-          <div class="filter-item"><label>管辖行政区</label>
-            <select id="fRegion" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="解放路社区">解放路社区</option>
-              <option value="千佛山社区">千佛山社区</option>
-              <option value="燕山社区">燕山社区</option>
-              <option value="姚家社区">姚家社区</option>
-              <option value="舜玉社区">舜玉社区</option>
-              <option value="甸柳社区">甸柳社区</option>
-              <option value="文化东路社区">文化东路社区</option>
-              <option value="工人新村社区">工人新村社区</option>
-              <option value="窑头社区">窑头社区</option>
-              <option value="七里山社区">七里山社区</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>锁定状态</label>
-            <select id="fLock" class="fi-select">
-              <option value="未上锁" selected>未上锁</option>
-              <option value="">全部</option>
-              <option value="已上锁">已上锁</option>
-            </select>
+          <div class="filter-item"><label>儿童姓名：</label><input id="fName" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>档案编号：</label><input id="fArchNo" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>管辖行政区：</label>
+            <div class="fcp-cas" data-fcp="cas" data-caret>
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fRegion">
+            </div>
           </div>
         </div>
         <div class="filter-row">
-          <div class="filter-item"><label>档案编号</label><input id="fArchNo" class="fi-ctl" placeholder="请输入档案编号"></div>
-          <div class="filter-item"><label>性别</label>
-            <select id="fGender" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="男">男</option>
-              <option value="女">女</option>
+          <div class="filter-item"><label>儿童情况：</label>
+            <select id="fChildStatus" class="fi-select">
+              <option value="正常" selected>正常</option>
+              <option value="">全部</option>
+              <option value="异常">异常</option>
+              <option value="高危">高危</option>
             </select>
           </div>
-          <div class="filter-item"><label>是否畸形</label>
+          <div class="filter-item"><label>个人档案情况：</label>
+            <select id="fArchRel" class="fi-select">
+              <option value="已关联" selected>已关联</option>
+              <option value="">全部</option>
+              <option value="未关联">未关联</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>是否畸形：</label>
             <select id="fDeform" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="无">无</option>
-              <option value="有">有</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>是否合格</label>
-            <select id="fQualified" class="fi-select">
-              <option value="" selected>请选择</option>
+              <option value="" selected>全部</option>
               <option value="是">是</option>
               <option value="否">否</option>
             </select>
           </div>
-          <div class="filter-item"><label>转归类型</label>
-            <select id="fOutcome" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="在管">在管</option>
-              <option value="结案">结案</option>
-              <option value="迁出">迁出</option>
-              <option value="失访">失访</option>
+          <div class="filter-item"><label>是否6岁以下：</label>
+            <select id="fUnder6" class="fi-select">
+              <option value="是" selected>是</option>
+              <option value="">全部</option>
+              <option value="否">否</option>
             </select>
           </div>
           <div class="filter-btns">
@@ -331,48 +338,43 @@
           </div>
         </div>
         <div class="filter-row extra">
-          <div class="filter-item"><label>出生日期</label>
-            <input id="fBirthStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">—</span>
-            <input id="fBirthEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+          <div class="filter-item"><label>建档日期：</label>
+            <span class="fi-range">
+              <input id="fSpecStart" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <span class="fi-tilde">~</span>
+              <input id="fSpecEnd" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <span class="fi-cal"></span>
+            </span>
           </div>
-          <div class="filter-item"><label>出生孕周</label>
-            <select id="fGwStage" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="早产">早产(&lt;37周)</option>
-              <option value="足月产">足月产(37-41周)</option>
-              <option value="过期产">过期产(≥42周)</option>
+          <div class="filter-item"><label>建档医生：</label><input id="fSpecDoc" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>出生日期：</label>
+            <span class="fi-range">
+              <input id="fBirthStart" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <span class="fi-tilde">~</span>
+              <input id="fBirthEnd" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <span class="fi-cal"></span>
+            </span>
+          </div>
+          <div class="filter-item"><label>是否结案：</label>
+            <select id="fClosed" class="fi-select">
+              <option value="" selected>全部</option>
+              <option value="是">是</option>
+              <option value="否">否</option>
             </select>
           </div>
-          <div class="filter-item"><label>建档日期</label>
-            <input id="fSpecStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">—</span>
-            <input id="fSpecEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-          </div>
-          <div class="filter-item"><label>监护人</label><input id="fGuard" class="fi-ctl" placeholder="请输入监护人姓名"></div>
         </div>
         <div class="filter-row extra">
-          <div class="filter-item"><label>建档机构</label>
-            <select id="fSpecOrg" class="fi-select w-lg">
+          <div class="filter-item"><label>锁定状态：</label>
+            <select id="fLock" class="fi-select">
               <option value="" selected>请选择</option>
-              <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
-              <option value="济南市历下区甸柳新村社区卫生服务中心">济南市历下区甸柳新村社区卫生服务中心</option>
-              <option value="济南市市中区舜玉路社区卫生服务中心">济南市市中区舜玉路社区卫生服务中心</option>
-              <option value="济南市历下区千佛山社区卫生服务中心">济南市历下区千佛山社区卫生服务中心</option>
-              <option value="济南市天桥区工人新村社区卫生服务中心">济南市天桥区工人新村社区卫生服务中心</option>
-              <option value="济南市历下区文化东路社区卫生服务中心">济南市历下区文化东路社区卫生服务中心</option>
+              <option value="未上锁">未上锁</option>
+              <option value="已上锁">已上锁</option>
             </select>
           </div>
-          <div class="filter-item"><label>建档医生</label><input id="fSpecDoc" class="fi-ctl" placeholder="请输入建档医生"></div>
-          <div class="filter-item"><label>电话号码</label><input id="fPhone" class="fi-ctl" placeholder="请输入"></div>
-          <div class="filter-item"><label>详细地址</label><input id="fAddress" class="fi-ctl" placeholder="请输入详细地址"></div>
-        </div>
-        <div class="filter-row extra">
-          <div class="filter-item">
-            <label class="fi-check"><input type="checkbox" id="fMine">只看个人管理档案</label>
-          </div>
+          <div class="filter-item"><label class="fi-check"><input type="checkbox" id="fMine"> 只看个人管理档案</label></div>
         </div>
       </div>
+
 
       <!-- 数据表格 -->
       <div class="table-wrap">
@@ -451,24 +453,18 @@
         </div>
         <div class="filter-row">
           <div class="filter-item"><label>管理机构</label>
-            <select id="sfOrg" class="fi-select w-lg">
-              <option value="" selected>请选择</option>
-              <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
-              <option value="扬州市江都区吴桥镇卫生院">扬州市江都区吴桥镇卫生院</option>
-              <option value="扬州市江都区宜陵镇中心卫生院">扬州市江都区宜陵镇中心卫生院</option>
-              <option value="扬州市江都区仙女镇社区卫生服务中心">扬州市江都区仙女镇社区卫生服务中心</option>
-              <option value="扬州市江都区丁沟镇卫生院">扬州市江都区丁沟镇卫生院</option>
-              <option value="扬州市江都区樊川镇卫生院">扬州市江都区樊川镇卫生院</option>
-            </select>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="sfOrg">
+            </div>
           </div>
           <div class="filter-item"><label>管辖网格</label>
-            <select id="sfGrid" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="第一网格">第一网格</option>
-              <option value="第二网格">第二网格</option>
-              <option value="第三网格">第三网格</option>
-              <option value="第四网格">第四网格</option>
-            </select>
+            <div class="fcp-tree" data-fcp="tree">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="sfGrid">
+            </div>
           </div>
           <div class="filter-btns">
             <button class="btn btn-default" onclick="resetSelectFilter()">重置</button>
@@ -697,30 +693,30 @@
 <script>
   /* ================= 模拟数据（姓名/证件号/出生日期/性别/年龄相互对应；出生孕周区分早产/足月产/过期产） ================= */
   var childData = [
-    { org:'山东大学齐鲁医院', name:'刘一诺', idcard:'370102202601122515', archNo:'370102ET26001', gender:'男', age:0, birth:'2026-01-12', gestWeek:'39周+2天', gw:39, guard:'刘志强', phone:'13905312846', deformity:'无', deformityNote:'', address:'济南市历下区解放路105号',      region:'解放路社区',   specDoc:'徐东升', specOrg:'山东大学齐鲁医院',                     specDate:'2026-02-15', qualified:'是', outcome:'在管', lock:'未上锁' },
-    { org:'山东大学齐鲁医院', name:'王梓萱', idcard:'370102202508054823', archNo:'370102ET26002', gender:'女', age:1, birth:'2025-08-05', gestWeek:'40周+1天', gw:40, guard:'王建国', phone:'18764162853', deformity:'无', deformityNote:'', address:'济南市历下区山大南路27号',      region:'千佛山社区',   specDoc:'李蕾',   specOrg:'山东大学齐鲁医院',                     specDate:'2025-09-10', qualified:'是', outcome:'在管', lock:'未上锁' },
-    { org:'山东大学齐鲁医院', name:'张浩然', idcard:'370102202304183711', archNo:'370102ET26003', gender:'男', age:3, birth:'2023-04-18', gestWeek:'38周+5天', gw:38, guard:'张伟',   phone:'13583175246', deformity:'无', deformityNote:'', address:'济南市历下区燕山小区东路18号',  region:'燕山社区',     specDoc:'朱劲松', specOrg:'山东大学齐鲁医院',                     specDate:'2023-05-20', qualified:'是', outcome:'在管', lock:'未上锁' },
-    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'陈雨萌', idcard:'370102202411304824', archNo:'370102ET26004', gender:'女', age:1, birth:'2024-11-30', gestWeek:'41周',    gw:41, guard:'陈建国', phone:'15863771824', deformity:'无', deformityNote:'', address:'济南市历下区甸柳新村七区3号楼',  region:'甸柳社区',     specDoc:'王盛',   specOrg:'济南市历下区甸柳新村社区卫生服务中心', specDate:'2024-12-25', qualified:'是', outcome:'在管', lock:'未上锁' },
-    { org:'山东大学齐鲁医院', name:'李沐宸', idcard:'370102202608103515', archNo:'370102ET26005', gender:'男', age:0, birth:'2026-08-10', gestWeek:'32周+6天', gw:32, guard:'李强',   phone:'13006598712', deformity:'无', deformityNote:'', address:'济南市历城区华信路3号',        region:'姚家社区',     specDoc:'徐东升', specOrg:'山东大学齐鲁医院',                     specDate:'2026-09-02', qualified:'是', outcome:'在管', lock:'未上锁' },
-    { org:'济南市市中区舜玉路社区卫生服务中心', name:'赵梓涵', idcard:'370102202209144420', archNo:'370102ET26006', gender:'女', age:4, birth:'2022-09-14', gestWeek:'39周+3天', gw:39, guard:'赵敏',   phone:'13626413789', deformity:'无', deformityNote:'', address:'济南市市中区二环南路2766号',  region:'舜玉社区',     specDoc:'敖鹏天', specOrg:'济南市市中区舜玉路社区卫生服务中心', specDate:'2022-10-10', qualified:'是', outcome:'在管', lock:'未上锁' },
-    { org:'山东大学齐鲁医院', name:'孙浩然', idcard:'370102202503223719', archNo:'370102ET26007', gender:'男', age:1, birth:'2025-03-22', gestWeek:'40周+2天', gw:40, guard:'孙立军', phone:'13370585246', deformity:'无', deformityNote:'', address:'济南市历下区和平路36号',        region:'解放路社区',   specDoc:'陆柳琳', specOrg:'山东大学齐鲁医院',                     specDate:'2025-04-15', qualified:'是', outcome:'在管', lock:'未上锁' },
-    { org:'济南市历下区千佛山社区卫生服务中心', name:'周诗涵', idcard:'370102202402084829', archNo:'370102ET26008', gender:'女', age:2, birth:'2024-02-08', gestWeek:'38周+1天', gw:38, guard:'周国强', phone:'15508662453', deformity:'无', deformityNote:'', address:'济南市历下区经十路9777号',       region:'千佛山社区',   specDoc:'王盛',   specOrg:'济南市历下区千佛山社区卫生服务中心', specDate:'2024-03-12', qualified:'是', outcome:'在管', lock:'未上锁' },
-    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'吴昊宇', idcard:'370102202512183716', archNo:'370102ET26009', gender:'男', age:0, birth:'2025-12-18', gestWeek:'42周',    gw:42, guard:'吴明',   phone:'15562591876', deformity:'有', deformityNote:'先天性心脏病', address:'济南市历下区甸柳新村二区4号楼',  region:'甸柳社区',     specDoc:'王盛',   specOrg:'济南市历下区甸柳新村社区卫生服务中心', specDate:'2026-01-10', qualified:'是', outcome:'失访', lock:'未上锁' },
-    { org:'济南市天桥区工人新村社区卫生服务中心', name:'郑子轩', idcard:'370102202107253513', archNo:'370102ET26010', gender:'男', age:5, birth:'2021-07-25', gestWeek:'39周+4天', gw:39, guard:'郑海涛', phone:'15098764213', deformity:'无', deformityNote:'', address:'济南市天桥区堤口路92号',          region:'工人新村社区', specDoc:'朱劲松', specOrg:'济南市天桥区工人新村社区卫生服务中心', specDate:'2021-08-20', qualified:'是', outcome:'迁出', lock:'未上锁' },
-    { org:'山东大学齐鲁医院', name:'冯晓曦', idcard:'370102202605304828', archNo:'370102ET26011', gender:'女', age:0, birth:'2026-05-30', gestWeek:'34周+2天', gw:34, guard:'冯远征', phone:'15589961237', deformity:'无', deformityNote:'', address:'济南市历下区窑头路7号',           region:'窑头社区',     specDoc:'徐东升', specOrg:'山东大学齐鲁医院',                     specDate:'2026-06-25', qualified:'是', outcome:'在管', lock:'未上锁' },
-    { org:'济南市市中区舜玉路社区卫生服务中心', name:'何俊哲', idcard:'370102202311023318', archNo:'370102ET26012', gender:'男', age:2, birth:'2023-11-02', gestWeek:'40周',    gw:40, guard:'何斌',   phone:'13064018573', deformity:'无', deformityNote:'', address:'济南市市中区六里山南路20号',    region:'舜玉社区',     specDoc:'敖鹏天', specOrg:'济南市市中区舜玉路社区卫生服务中心', specDate:'2023-12-05', qualified:'是', outcome:'在管', lock:'未上锁' },
-    { org:'济南市历下区文化东路社区卫生服务中心', name:'高欣怡', idcard:'370102202407194426', archNo:'370102ET26013', gender:'女', age:2, birth:'2024-07-19', gestWeek:'39周+1天', gw:39, guard:'高建军', phone:'15562594387', deformity:'无', deformityNote:'', address:'济南市历下区文化东路51号',      region:'文化东路社区', specDoc:'李蕾',   specOrg:'济南市历下区文化东路社区卫生服务中心', specDate:'2024-08-15', qualified:'是', outcome:'在管', lock:'未上锁' },
-    { org:'济南市天桥区工人新村社区卫生服务中心', name:'韩雨辰', idcard:'370102202201163515', archNo:'370102ET26014', gender:'男', age:4, birth:'2022-01-16', gestWeek:'40周+5天', gw:40, guard:'韩冰',   phone:'15066659432', deformity:'无', deformityNote:'', address:'济南市天桥区工人新村北街7号',    region:'工人新村社区', specDoc:'朱劲松', specOrg:'济南市天桥区工人新村社区卫生服务中心', specDate:'2022-02-10', qualified:'是', outcome:'在管', lock:'未上锁' },
-    { org:'山东大学齐鲁医院', name:'林晨曦', idcard:'370102202010054628', archNo:'370102ET26015', gender:'女', age:5, birth:'2020-10-05', gestWeek:'38周+3天', gw:38, guard:'林涛',   phone:'15806601245', deformity:'无', deformityNote:'', address:'济南市历下区经十路9777号',       region:'千佛山社区',   specDoc:'李蕾',   specOrg:'山东大学齐鲁医院',                     specDate:'2020-11-01', qualified:'是', outcome:'结案', lock:'已上锁' },
-    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'马一诺', idcard:'370102202608213319', archNo:'370102ET26016', gender:'男', age:0, birth:'2026-08-21', gestWeek:'36周+4天', gw:36, guard:'马天宇', phone:'15806603246', deformity:'无', deformityNote:'', address:'济南市历下区甸柳新村八区2号楼',  region:'甸柳社区',     specDoc:'陆柳琳', specOrg:'济南市历下区甸柳新村社区卫生服务中心', specDate:'2026-09-01', qualified:'是', outcome:'在管', lock:'未上锁' },
-    { org:'济南市市中区舜玉路社区卫生服务中心', name:'崔梦琪', idcard:'370102202506114822', archNo:'370102ET26017', gender:'女', age:1, birth:'2025-06-11', gestWeek:'39周+6天', gw:39, guard:'崔永军', phone:'15550061287', deformity:'无', deformityNote:'', address:'济南市市中区七里山路15号',      region:'七里山社区',   specDoc:'敖鹏天', specOrg:'济南市市中区舜玉路社区卫生服务中心', specDate:'2025-07-08', qualified:'否', outcome:'在管', lock:'未上锁' },
-    { org:'山东大学齐鲁医院', name:'苏子墨', idcard:'370102202306273513', archNo:'370102ET26018', gender:'男', age:3, birth:'2023-06-27', gestWeek:'41周+2天', gw:41, guard:'苏磊',   phone:'13176643578', deformity:'无', deformityNote:'', address:'济南市历下区姚家路29号',          region:'姚家社区',     specDoc:'王盛',   specOrg:'山东大学齐鲁医院',                     specDate:'2023-07-20', qualified:'是', outcome:'在管', lock:'未上锁' },
-    { org:'济南市历下区文化东路社区卫生服务中心', name:'白悦彤', idcard:'370102202103094427', archNo:'370102ET26019', gender:'女', age:5, birth:'2021-03-09', gestWeek:'40周+3天', gw:40, guard:'白志远', phone:'15165372948', deformity:'无', deformityNote:'', address:'济南市历下区文化东路88号',      region:'文化东路社区', specDoc:'李蕾',   specOrg:'济南市历下区文化东路社区卫生服务中心', specDate:'2021-04-05', qualified:'是', outcome:'在管', lock:'未上锁' },
-    { org:'山东大学齐鲁医院', name:'潘俊宇', idcard:'370102202409283317', archNo:'370102ET26020', gender:'男', age:1, birth:'2024-09-28', gestWeek:'39周',    gw:39, guard:'潘鹏',   phone:'13064029137', deformity:'无', deformityNote:'', address:'济南市历下区和平路53号',        region:'解放路社区',   specDoc:'徐东升', specOrg:'山东大学齐鲁医院',                     specDate:'2024-10-20', qualified:'是', outcome:'在管', lock:'未上锁' },
-    { org:'济南市天桥区工人新村社区卫生服务中心', name:'董佳怡', idcard:'370102202205314426', archNo:'370102ET26021', gender:'女', age:4, birth:'2022-05-31', gestWeek:'38周+6天', gw:38, guard:'董建军', phone:'15066658734', deformity:'无', deformityNote:'', address:'济南市天桥区济泺路130号',         region:'工人新村社区', specDoc:'朱劲松', specOrg:'济南市天桥区工人新村社区卫生服务中心', specDate:'2022-06-25', qualified:'是', outcome:'在管', lock:'未上锁' },
-    { org:'济南市历下区千佛山社区卫生服务中心', name:'贾子轩', idcard:'370102202510143515', archNo:'370102ET26022', gender:'男', age:0, birth:'2025-10-14', gestWeek:'40周+1天', gw:40, guard:'贾文军', phone:'15508664321', deformity:'无', deformityNote:'', address:'济南市历下区科院路19号',         region:'千佛山社区',   specDoc:'王盛',   specOrg:'济南市历下区千佛山社区卫生服务中心', specDate:'2025-11-10', qualified:'是', outcome:'在管', lock:'未上锁' },
-    { org:'济南市市中区舜玉路社区卫生服务中心', name:'万欣妍', idcard:'370102202301294823', archNo:'370102ET26023', gender:'女', age:3, birth:'2023-01-29', gestWeek:'37周+5天', gw:37, guard:'万磊',   phone:'15562587321', deformity:'无', deformityNote:'', address:'济南市市中区玉函路39号',         region:'舜玉社区',     specDoc:'敖鹏天', specOrg:'济南市市中区舜玉路社区卫生服务中心', specDate:'2023-02-20', qualified:'是', outcome:'在管', lock:'未上锁' },
-    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'邵明轩', idcard:'370102202603053518', archNo:'370102ET26024', gender:'男', age:0, birth:'2026-03-05', gestWeek:'33周+1天', gw:33, guard:'邵峰',   phone:'13176648932', deformity:'有', deformityNote:'唇腭裂',     address:'济南市历下区甸柳新村五区6号楼',  region:'甸柳社区',     specDoc:'陆柳琳', specOrg:'济南市历下区甸柳新村社区卫生服务中心', specDate:'2026-04-08', qualified:'是', outcome:'在管', lock:'未上锁' }
+    { org:'山东大学齐鲁医院', name:'刘一诺', idcard:'370102202601122515', archNo:'370102ET26001', gender:'男', age:0, birth:'2026-01-12', gestWeek:'39周+2天', gw:39, guard:'刘志强', phone:'13905312846', deformity:'无', deformityNote:'', address:'济南市历下区解放路105号',      region:'解放路社区',   specDoc:'徐东升', specOrg:'山东大学齐鲁医院',                     specDate:'2026-02-15', qualified:'是', outcome:'在管', childStatus:'正常', archRel:'已关联', mine:true, lock:'未上锁' },
+    { org:'山东大学齐鲁医院', name:'王梓萱', idcard:'370102202508054823', archNo:'370102ET26002', gender:'女', age:1, birth:'2025-08-05', gestWeek:'40周+1天', gw:40, guard:'王建国', phone:'18764162853', deformity:'无', deformityNote:'', address:'济南市历下区山大南路27号',      region:'千佛山社区',   specDoc:'李蕾',   specOrg:'山东大学齐鲁医院',                     specDate:'2025-09-10', qualified:'是', outcome:'在管', childStatus:'正常', archRel:'已关联', mine:false, lock:'未上锁' },
+    { org:'山东大学齐鲁医院', name:'张浩然', idcard:'370102202304183711', archNo:'370102ET26003', gender:'男', age:3, birth:'2023-04-18', gestWeek:'38周+5天', gw:38, guard:'张伟',   phone:'13583175246', deformity:'无', deformityNote:'', address:'济南市历下区燕山小区东路18号',  region:'燕山社区',     specDoc:'朱劲松', specOrg:'山东大学齐鲁医院',                     specDate:'2023-05-20', qualified:'是', outcome:'在管', childStatus:'高危', archRel:'已关联', mine:false, lock:'未上锁' },
+    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'陈雨萌', idcard:'370102202411304824', archNo:'370102ET26004', gender:'女', age:1, birth:'2024-11-30', gestWeek:'41周',    gw:41, guard:'陈建国', phone:'15863771824', deformity:'无', deformityNote:'', address:'济南市历下区甸柳新村七区3号楼',  region:'甸柳社区',     specDoc:'王盛',   specOrg:'济南市历下区甸柳新村社区卫生服务中心', specDate:'2024-12-25', qualified:'是', outcome:'在管', childStatus:'正常', archRel:'未关联', mine:true, lock:'未上锁' },
+    { org:'山东大学齐鲁医院', name:'李沐宸', idcard:'370102202608103515', archNo:'370102ET26005', gender:'男', age:0, birth:'2026-08-10', gestWeek:'32周+6天', gw:32, guard:'李强',   phone:'13006598712', deformity:'无', deformityNote:'', address:'济南市历城区华信路3号',        region:'姚家社区',     specDoc:'徐东升', specOrg:'山东大学齐鲁医院',                     specDate:'2026-09-02', qualified:'是', outcome:'在管', childStatus:'正常', archRel:'已关联', mine:false, lock:'未上锁' },
+    { org:'济南市市中区舜玉路社区卫生服务中心', name:'赵梓涵', idcard:'370102202209144420', archNo:'370102ET26006', gender:'女', age:4, birth:'2022-09-14', gestWeek:'39周+3天', gw:39, guard:'赵敏',   phone:'13626413789', deformity:'无', deformityNote:'', address:'济南市市中区二环南路2766号',  region:'舜玉社区',     specDoc:'敖鹏天', specOrg:'济南市市中区舜玉路社区卫生服务中心', specDate:'2022-10-10', qualified:'是', outcome:'在管', childStatus:'异常', archRel:'已关联', mine:false, lock:'未上锁' },
+    { org:'山东大学齐鲁医院', name:'孙浩然', idcard:'370102202503223719', archNo:'370102ET26007', gender:'男', age:1, birth:'2025-03-22', gestWeek:'40周+2天', gw:40, guard:'孙立军', phone:'13370585246', deformity:'无', deformityNote:'', address:'济南市历下区和平路36号',        region:'解放路社区',   specDoc:'陆柳琳', specOrg:'山东大学齐鲁医院',                     specDate:'2025-04-15', qualified:'是', outcome:'在管', childStatus:'正常', archRel:'已关联', mine:true, lock:'未上锁' },
+    { org:'济南市历下区千佛山社区卫生服务中心', name:'周诗涵', idcard:'370102202402084829', archNo:'370102ET26008', gender:'女', age:2, birth:'2024-02-08', gestWeek:'38周+1天', gw:38, guard:'周国强', phone:'15508662453', deformity:'无', deformityNote:'', address:'济南市历下区经十路9777号',       region:'千佛山社区',   specDoc:'王盛',   specOrg:'济南市历下区千佛山社区卫生服务中心', specDate:'2024-03-12', qualified:'是', outcome:'在管', childStatus:'正常', archRel:'已关联', mine:false, lock:'未上锁' },
+    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'吴昊宇', idcard:'370102202512183716', archNo:'370102ET26009', gender:'男', age:0, birth:'2025-12-18', gestWeek:'42周',    gw:42, guard:'吴明',   phone:'15562591876', deformity:'有', deformityNote:'先天性心脏病', address:'济南市历下区甸柳新村二区4号楼',  region:'甸柳社区',     specDoc:'王盛',   specOrg:'济南市历下区甸柳新村社区卫生服务中心', specDate:'2026-01-10', qualified:'是', outcome:'失访', childStatus:'正常', archRel:'未关联', mine:false, lock:'未上锁' },
+    { org:'济南市天桥区工人新村社区卫生服务中心', name:'郑子轩', idcard:'370102202107253513', archNo:'370102ET26010', gender:'男', age:5, birth:'2021-07-25', gestWeek:'39周+4天', gw:39, guard:'郑海涛', phone:'15098764213', deformity:'无', deformityNote:'', address:'济南市天桥区堤口路92号',          region:'工人新村社区', specDoc:'朱劲松', specOrg:'济南市天桥区工人新村社区卫生服务中心', specDate:'2021-08-20', qualified:'是', outcome:'迁出', childStatus:'正常', archRel:'已关联', mine:true, lock:'未上锁' },
+    { org:'山东大学齐鲁医院', name:'冯晓曦', idcard:'370102202605304828', archNo:'370102ET26011', gender:'女', age:0, birth:'2026-05-30', gestWeek:'34周+2天', gw:34, guard:'冯远征', phone:'15589961237', deformity:'无', deformityNote:'', address:'济南市历下区窑头路7号',           region:'窑头社区',     specDoc:'徐东升', specOrg:'山东大学齐鲁医院',                     specDate:'2026-06-25', qualified:'是', outcome:'在管', childStatus:'高危', archRel:'已关联', mine:false, lock:'未上锁' },
+    { org:'济南市市中区舜玉路社区卫生服务中心', name:'何俊哲', idcard:'370102202311023318', archNo:'370102ET26012', gender:'男', age:2, birth:'2023-11-02', gestWeek:'40周',    gw:40, guard:'何斌',   phone:'13064018573', deformity:'无', deformityNote:'', address:'济南市市中区六里山南路20号',    region:'舜玉社区',     specDoc:'敖鹏天', specOrg:'济南市市中区舜玉路社区卫生服务中心', specDate:'2023-12-05', qualified:'是', outcome:'在管', childStatus:'正常', archRel:'已关联', mine:false, lock:'未上锁' },
+    { org:'济南市历下区文化东路社区卫生服务中心', name:'高欣怡', idcard:'370102202407194426', archNo:'370102ET26013', gender:'女', age:2, birth:'2024-07-19', gestWeek:'39周+1天', gw:39, guard:'高建军', phone:'15562594387', deformity:'无', deformityNote:'', address:'济南市历下区文化东路51号',      region:'文化东路社区', specDoc:'李蕾',   specOrg:'济南市历下区文化东路社区卫生服务中心', specDate:'2024-08-15', qualified:'是', outcome:'在管', childStatus:'正常', archRel:'已关联', mine:true, lock:'未上锁' },
+    { org:'济南市天桥区工人新村社区卫生服务中心', name:'韩雨辰', idcard:'370102202201163515', archNo:'370102ET26014', gender:'男', age:4, birth:'2022-01-16', gestWeek:'40周+5天', gw:40, guard:'韩冰',   phone:'15066659432', deformity:'无', deformityNote:'', address:'济南市天桥区工人新村北街7号',    region:'工人新村社区', specDoc:'朱劲松', specOrg:'济南市天桥区工人新村社区卫生服务中心', specDate:'2022-02-10', qualified:'是', outcome:'在管', childStatus:'异常', archRel:'未关联', mine:false, lock:'未上锁' },
+    { org:'山东大学齐鲁医院', name:'林晨曦', idcard:'370102202010054628', archNo:'370102ET26015', gender:'女', age:5, birth:'2020-10-05', gestWeek:'38周+3天', gw:38, guard:'林涛',   phone:'15806601245', deformity:'无', deformityNote:'', address:'济南市历下区经十路9777号',       region:'千佛山社区',   specDoc:'李蕾',   specOrg:'山东大学齐鲁医院',                     specDate:'2020-11-01', qualified:'是', outcome:'结案', childStatus:'正常', archRel:'已关联', mine:false, lock:'已上锁' },
+    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'马一诺', idcard:'370102202608213319', archNo:'370102ET26016', gender:'男', age:0, birth:'2026-08-21', gestWeek:'36周+4天', gw:36, guard:'马天宇', phone:'15806603246', deformity:'无', deformityNote:'', address:'济南市历下区甸柳新村八区2号楼',  region:'甸柳社区',     specDoc:'陆柳琳', specOrg:'济南市历下区甸柳新村社区卫生服务中心', specDate:'2026-09-01', qualified:'是', outcome:'在管', childStatus:'正常', archRel:'已关联', mine:true, lock:'未上锁' },
+    { org:'济南市市中区舜玉路社区卫生服务中心', name:'崔梦琪', idcard:'370102202506114822', archNo:'370102ET26017', gender:'女', age:1, birth:'2025-06-11', gestWeek:'39周+6天', gw:39, guard:'崔永军', phone:'15550061287', deformity:'无', deformityNote:'', address:'济南市市中区七里山路15号',      region:'七里山社区',   specDoc:'敖鹏天', specOrg:'济南市市中区舜玉路社区卫生服务中心', specDate:'2025-07-08', qualified:'否', outcome:'在管', childStatus:'正常', archRel:'已关联', mine:false, lock:'未上锁' },
+    { org:'山东大学齐鲁医院', name:'苏子墨', idcard:'370102202306273513', archNo:'370102ET26018', gender:'男', age:3, birth:'2023-06-27', gestWeek:'41周+2天', gw:41, guard:'苏磊',   phone:'13176643578', deformity:'无', deformityNote:'', address:'济南市历下区姚家路29号',          region:'姚家社区',     specDoc:'王盛',   specOrg:'山东大学齐鲁医院',                     specDate:'2023-07-20', qualified:'是', outcome:'在管', childStatus:'正常', archRel:'已关联', mine:false, lock:'未上锁' },
+    { org:'济南市历下区文化东路社区卫生服务中心', name:'白悦彤', idcard:'370102202103094427', archNo:'370102ET26019', gender:'女', age:5, birth:'2021-03-09', gestWeek:'40周+3天', gw:40, guard:'白志远', phone:'15165372948', deformity:'无', deformityNote:'', address:'济南市历下区文化东路88号',      region:'文化东路社区', specDoc:'李蕾',   specOrg:'济南市历下区文化东路社区卫生服务中心', specDate:'2021-04-05', qualified:'是', outcome:'在管', childStatus:'高危', archRel:'未关联', mine:true, lock:'未上锁' },
+    { org:'山东大学齐鲁医院', name:'潘俊宇', idcard:'370102202409283317', archNo:'370102ET26020', gender:'男', age:1, birth:'2024-09-28', gestWeek:'39周',    gw:39, guard:'潘鹏',   phone:'13064029137', deformity:'无', deformityNote:'', address:'济南市历下区和平路53号',        region:'解放路社区',   specDoc:'徐东升', specOrg:'山东大学齐鲁医院',                     specDate:'2024-10-20', qualified:'是', outcome:'在管', childStatus:'正常', archRel:'已关联', mine:false, lock:'未上锁' },
+    { org:'济南市天桥区工人新村社区卫生服务中心', name:'董佳怡', idcard:'370102202205314426', archNo:'370102ET26021', gender:'女', age:4, birth:'2022-05-31', gestWeek:'38周+6天', gw:38, guard:'董建军', phone:'15066658734', deformity:'无', deformityNote:'', address:'济南市天桥区济泺路130号',         region:'工人新村社区', specDoc:'朱劲松', specOrg:'济南市天桥区工人新村社区卫生服务中心', specDate:'2022-06-25', qualified:'是', outcome:'在管', childStatus:'正常', archRel:'已关联', mine:false, lock:'未上锁' },
+    { org:'济南市历下区千佛山社区卫生服务中心', name:'贾子轩', idcard:'370102202510143515', archNo:'370102ET26022', gender:'男', age:0, birth:'2025-10-14', gestWeek:'40周+1天', gw:40, guard:'贾文军', phone:'15508664321', deformity:'无', deformityNote:'', address:'济南市历下区科院路19号',         region:'千佛山社区',   specDoc:'王盛',   specOrg:'济南市历下区千佛山社区卫生服务中心', specDate:'2025-11-10', qualified:'是', outcome:'在管', childStatus:'异常', archRel:'已关联', mine:true, lock:'未上锁' },
+    { org:'济南市市中区舜玉路社区卫生服务中心', name:'万欣妍', idcard:'370102202301294823', archNo:'370102ET26023', gender:'女', age:3, birth:'2023-01-29', gestWeek:'37周+5天', gw:37, guard:'万磊',   phone:'15562587321', deformity:'无', deformityNote:'', address:'济南市市中区玉函路39号',         region:'舜玉社区',     specDoc:'敖鹏天', specOrg:'济南市市中区舜玉路社区卫生服务中心', specDate:'2023-02-20', qualified:'是', outcome:'在管', childStatus:'正常', archRel:'已关联', mine:false, lock:'未上锁' },
+    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'邵明轩', idcard:'370102202603053518', archNo:'370102ET26024', gender:'男', age:0, birth:'2026-03-05', gestWeek:'33周+1天', gw:33, guard:'邵峰',   phone:'13176648932', deformity:'有', deformityNote:'唇腭裂',     address:'济南市历下区甸柳新村五区6号楼',  region:'甸柳社区',     specDoc:'陆柳琳', specOrg:'济南市历下区甸柳新村社区卫生服务中心', specDate:'2026-04-08', qualified:'是', outcome:'在管', childStatus:'正常', archRel:'未关联', mine:false, lock:'未上锁' }
   ];
 
   /* ================= 工具函数 ================= */
@@ -738,40 +734,32 @@
 
   /* ================= 表格渲染（按筛选条件实时过滤 + 分页） ================= */
   function renderTable() {
-    var org = $('fOrg').value, name = $('fName').value.trim(), idcard = $('fIdcard').value.trim();
+    var org = $('fOrg').value, name = $('fName').value.trim(), archNo = $('fArchNo').value.trim();
     var region = $('fRegion').value, lock = $('fLock').value;
-    var archNo = $('fArchNo').value.trim(), gender = $('fGender').value;
-    var deform = $('fDeform').value, qualified = $('fQualified').value, outcome = $('fOutcome').value;
-    var gwStage = $('fGwStage').value, guard = $('fGuard').value.trim();
-    var specOrg = $('fSpecOrg').value, specDoc = $('fSpecDoc').value.trim();
-    var phone = $('fPhone').value.trim(), address = $('fAddress').value.trim();
+    var childStatus = $('fChildStatus').value, archRel = $('fArchRel').value;
+    var deform = $('fDeform').value, under6 = $('fUnder6').value, closed = $('fClosed').value;
+    var specDoc = $('fSpecDoc').value.trim();
     var birthStart = $('fBirthStart').value, birthEnd = $('fBirthEnd').value;
     var specStart = $('fSpecStart').value, specEnd = $('fSpecEnd').value;
+    var mine = $('fMine').checked;
 
     lastList = childData.filter(function (r) {
-      if (org && r.org !== org) return false;
+      if (org && org.split(',').indexOf(r.org) === -1) return false;
       if (name && r.name.indexOf(name) === -1) return false;
-      if (idcard && r.idcard.indexOf(idcard) === -1) return false;
+      if (archNo && r.archNo.indexOf(archNo) === -1) return false;
       if (region && r.region !== region) return false;
       if (lock && r.lock !== lock) return false;
-      if (archNo && r.archNo.indexOf(archNo) === -1) return false;
-      if (gender && r.gender !== gender) return false;
-      if (deform && r.deformity !== deform) return false;
-      if (qualified && r.qualified !== qualified) return false;
-      if (outcome && r.outcome !== outcome) return false;
-      /* 出生孕周阶段：早产 <37 / 足月产 37-41 / 过期产 ≥42 */
-      if (gwStage === '早产' && !(r.gw < 37)) return false;
-      if (gwStage === '足月产' && !(r.gw >= 37 && r.gw <= 41)) return false;
-      if (gwStage === '过期产' && !(r.gw >= 42)) return false;
-      if (guard && r.guard.indexOf(guard) === -1) return false;
-      if (specOrg && r.specOrg !== specOrg) return false;
+      if (childStatus && (r.childStatus || '正常') !== childStatus) return false;
+      if (archRel && (r.archRel || '已关联') !== archRel) return false;
+      if (deform && (r.deformity === '有' ? '是' : '否') !== deform) return false;
+      if (under6 && (under6 === '是') !== (r.age < 6)) return false;
+      if (closed && (closed === '是') !== (r.outcome === '结案')) return false;
       if (specDoc && r.specDoc.indexOf(specDoc) === -1) return false;
-      if (phone && r.phone.indexOf(phone) === -1) return false;
-      if (address && r.address.indexOf(address) === -1) return false;
       if (birthStart && r.birth < birthStart) return false;
       if (birthEnd && r.birth > birthEnd) return false;
       if (specStart && r.specDate < specStart) return false;
       if (specEnd && r.specDate > specEnd) return false;
+      if (mine && !r.mine) return false;
       return true;
     });
 
@@ -865,10 +853,12 @@
 
   /* ================= 交互 ================= */
   function resetFilter() {
-    ['fName', 'fIdcard', 'fArchNo', 'fGuard', 'fSpecDoc', 'fPhone', 'fAddress'].forEach(function (id) { $(id).value = ''; });
-    ['fOrg', 'fRegion', 'fGender', 'fDeform', 'fQualified', 'fOutcome', 'fGwStage', 'fSpecOrg'].forEach(function (id) { $(id).value = ''; });
+    ['fName', 'fArchNo', 'fSpecDoc'].forEach(function (id) { $(id).value = ''; });
+    ['fOrg', 'fRegion', 'fLock', 'fDeform', 'fClosed'].forEach(function (id) { $(id).value = ''; });
     ['fBirthStart', 'fBirthEnd', 'fSpecStart', 'fSpecEnd'].forEach(function (id) { var el = $(id); el.value = ''; el.type = 'text'; });
-    $('fLock').value = '未上锁';
+    $('fChildStatus').value = '正常';
+    $('fArchRel').value = '已关联';
+    $('fUnder6').value = '是';
     $('fMine').checked = false;
     curPage = 1;
     renderTable();
@@ -882,7 +872,7 @@
   }
 
   function toggleExtra() {
-    var rows = document.querySelectorAll('.filter-row.extra');
+    var rows = document.querySelectorAll('.filter-panel .filter-row.extra');
     var btn = $('btnExpand');
     var show = !rows[0].classList.contains('show');
     rows.forEach(function (row) { row.classList.toggle('show', show); });
@@ -983,14 +973,23 @@
   });
 
   /* 筛选控件输入即实时过滤（并回到第一页） */
-  ['fName', 'fIdcard', 'fArchNo', 'fGuard', 'fSpecDoc', 'fPhone', 'fAddress'].forEach(function (id) {
+  ['fName', 'fArchNo', 'fSpecDoc'].forEach(function (id) {
     $(id).addEventListener('input', function () { curPage = 1; renderTable(); });
   });
-  ['fOrg', 'fRegion', 'fLock', 'fGender', 'fDeform', 'fQualified', 'fOutcome', 'fGwStage', 'fSpecOrg', 'fMine'].forEach(function (id) {
+  ['fOrg', 'fRegion', 'fLock', 'fChildStatus', 'fArchRel', 'fDeform', 'fUnder6', 'fClosed', 'fMine'].forEach(function (id) {
     $(id).addEventListener('change', function () { curPage = 1; renderTable(); });
   });
   ['fBirthStart', 'fBirthEnd', 'fSpecStart', 'fSpecEnd'].forEach(function (id) {
     $(id).addEventListener('input', function () { curPage = 1; renderTable(); });
+  });
+
+  /* 复合筛选控件（管理机构/重点人群类型/管辖行政区）选择后实时过滤 */
+  document.querySelectorAll('.filter-panel [data-fcp]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      if (e.target.closest('.fcp-opt,.fcp-n,.fcp-clear')) {
+        setTimeout(function () { curPage = 1; renderTable(); }, 0);
+      }
+    });
   });
 
   /* ================= 档案选择弹框（新建专项第一步） ================= */

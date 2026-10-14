@@ -312,15 +312,19 @@
             <div class="cas-col-title">村</div>
             <div id="casVilCol"></div>
           </div>
+          <div class="cas-col" id="casGroupColWrap" style="display:none">
+            <div class="cas-col-title">组</div>
+            <div id="casGroupCol"></div>
+          </div>
         </div>
       </div>
       <button class="btn-add-grid" id="btnAddGrid" onclick="addGrid()" disabled>添加所选</button>
     </div>
-    <div style="font-size:12px;color:var(--text-tertiary);line-height:1.6;margin-top:6px">勾选区或镇可一次性选中其下辖所有村，支持跨区 / 跨镇多选，勾选后点击「添加所选」加入管辖网格。</div>
+    <div style="font-size:12px;color:var(--text-tertiary);line-height:1.6;margin-top:6px">勾选区或镇可一次性选中其下辖所有村，支持跨区 / 跨镇多选；行政村下存在组信息时，点击村名称可展开「组」列，支持精确勾选到组。勾选后点击「添加所选」加入管辖网格。</div>
     <div style="margin-top:14px">
       <table class="grid-list-tbl">
-        <colgroup><col style="width:46px"><col style="width:110px"><col style="width:130px"><col><col style="width:60px"></colgroup>
-        <thead><tr><th>序号</th><th>区</th><th>镇</th><th>村</th><th>操作</th></tr></thead>
+        <colgroup><col style="width:46px"><col style="width:100px"><col style="width:110px"><col><col style="width:80px"><col style="width:60px"></colgroup>
+        <thead><tr><th>序号</th><th>区</th><th>镇</th><th>村</th><th>组</th><th>操作</th></tr></thead>
         <tbody id="gridBody"></tbody>
       </table>
     </div>
@@ -372,6 +376,14 @@ var ADMIN = {
   ]
 };
 var REGIONS = ['江都区', '邗江区', '广陵区'];
+
+/* 村民小组数据（仅部分行政村下设组；存在组信息的村支持在级联中选到组） */
+var VILLAGE_GROUPS = {
+  '江都区/仙女镇/双沟村': ['双东组', '双西组', '双南组', '双北组'],
+  '江都区/仙女镇/三荡村': ['荡东组', '荡西组', '荡南组'],
+  '江都区/大桥镇/昌西村': ['昌一组', '昌二组', '昌三组']
+};
+function vilGroups(r, t, v) { return VILLAGE_GROUPS[r + '/' + t + '/' + v] || []; }
 
 /* ================= 医生用户数据 ================= */
 var DOCTORS = [
@@ -651,7 +663,7 @@ function openDrawer(id) {
   var d = findDoc(id);
   if (!d) return;
   editId = id;
-  drawerGrids = d.grids.map(function (g) { return { r: g.r, t: g.t, v: g.v }; });
+  drawerGrids = d.grids.map(function (g) { return { r: g.r, t: g.t, v: g.v, g: g.g || '' }; });
   $('docInfo').innerHTML =
     '<div class="dc-row"><span class="k">姓名</span><span class="v">' + esc(d.name) + '</span></div>'
     + '<div class="dc-row"><span class="k">性别</span><span class="v">' + esc(d.gender) + '</span></div>'
@@ -661,9 +673,10 @@ function openDrawer(id) {
     + '<div class="dc-row"><span class="k">已配网格</span><span class="v">' + d.grids.length + ' 个</span></div>';
   casSel = {};
   /* 回选：将已配置网格在级联多选中勾选回显，便于查看与追加 */
-  d.grids.forEach(function (g) { casSel[gkey(g.r, g.t, g.v)] = true; });
+  d.grids.forEach(function (g) { casSel[gkey(g.r, g.t, g.v, g.g || '')] = true; });
   casFocusRegion = d.grids.length ? d.grids[0].r : REGIONS[0];
   casFocusTown = d.grids.length ? d.grids[0].t : '';
+  casFocusVillage = '';
   renderCasBox();
   closeCasPanel();
   renderGridList();
@@ -676,11 +689,15 @@ function closeDrawer() {
   $('gridDrawer').classList.remove('show');
 }
 
-/* ---- 级联多选（区 / 镇 / 村），勾选上级一次性选中全部下级 ---- */
-var casSel = {};               // 'r/t/v' -> true（待添加的勾选集）
-var casFocusRegion = '', casFocusTown = '';
+/* ---- 级联多选（区 / 镇 / 村 / 组），勾选上级一次性选中全部下级 ---- */
+var casSel = {};               // 'r/t/v[/g]' -> true（g 为空串表示整村；待添加的勾选集）
+var casFocusRegion = '', casFocusTown = '', casFocusVillage = '';
 
-function gkey(r, t, v) { return r + '/' + t + '/' + v; }
+function gkey(r, t, v, g) { return r + '/' + t + '/' + v + (g ? '/' + g : ''); }
+function vilWholeKey(r, t, v) { return gkey(r, t, v, ''); }
+function vilGroupKeys(r, t, v) {
+  return vilGroups(r, t, v).map(function (g) { return gkey(r, t, v, g); });
+}
 function selCount() { return Object.keys(casSel).length; }
 
 function regionKeys(rg) {
@@ -703,20 +720,40 @@ function setKeys(ks, on) {
 }
 function toggleRegion(rg) { setKeys(regionKeys(rg), !allSelected(regionKeys(rg))); }
 function toggleTown(rg, t) { setKeys(townKeys(rg, t), !allSelected(townKeys(rg, t))); }
+/* 勾选村：有组的村勾选即整村选中（同时清掉已有的分组勾选）；再次点击取消整村 */
 function toggleVillage(r, t, v) {
-  var k = gkey(r, t, v);
-  if (casSel[k]) delete casSel[k]; else casSel[k] = true;
+  var wk = vilWholeKey(r, t, v);
+  if (casSel[wk]) {
+    delete casSel[wk];
+  } else {
+    casSel[wk] = true;
+    vilGroupKeys(r, t, v).forEach(function (k) { delete casSel[k]; });
+  }
   renderCasBox();
 }
-function focusRegion(rg) { casFocusRegion = rg; casFocusTown = ''; renderCasBox(); }
-function focusTown(t) { casFocusTown = t; renderCasBox(); }
+/* 勾选组：若当前为整村选中，则先拆为「除该组外的全部组」，实现精确到组 */
+function toggleGroup(r, t, v, g) {
+  var wk = vilWholeKey(r, t, v), k = gkey(r, t, v, g);
+  if (casSel[k]) {
+    delete casSel[k];
+  } else if (casSel[wk]) {
+    delete casSel[wk];
+    vilGroupKeys(r, t, v).forEach(function (gk) { if (gk !== k) casSel[gk] = true; });
+  } else {
+    casSel[k] = true;
+  }
+  renderCasBox();
+}
+function focusRegion(rg) { casFocusRegion = rg; casFocusTown = ''; casFocusVillage = ''; renderCasBox(); }
+function focusTown(t) { casFocusTown = t; casFocusVillage = ''; renderCasBox(); }
+function focusVillage(v) { casFocusVillage = v; renderCasBox(); }
 
 function renderCasBox() {
   var n = selCount(), html = '';
   if (n) {
     Object.keys(casSel).slice(0, 2).forEach(function (k) {
       var p = k.split('/');
-      html += '<span class="cas-tag">' + esc(p[1]) + '·' + esc(p[2]) + '</span>';
+      html += '<span class="cas-tag">' + esc(p[1]) + '·' + esc(p[2]) + (p[3] ? '·' + esc(p[3]) : '') + '</span>';
     });
     if (n > 2) html += '<span class="cas-more">+' + (n - 2) + '</span>';
     html += '<span class="cas-count">已选 ' + n + ' 个</span>';
@@ -761,17 +798,53 @@ function renderCasPanel() {
   if (casFocusRegion && casFocusTown) {
     var hit = ADMIN[casFocusRegion].filter(function (x) { return x.t === casFocusTown; })[0];
     if (hit) hit.v.forEach(function (v) {
-      var k = gkey(casFocusRegion, casFocusTown, v);
-      var tog = 'toggleVillage(\'' + esc(casFocusRegion) + '\',\'' + esc(casFocusTown) + '\',\'' + esc(v) + '\')';
-      vh += '<div class="cas-opt leaf' + (casSel[k] ? ' sel' : '') + '" onclick="event.stopPropagation();' + tog + '">'
-        + '<input type="checkbox"' + (casSel[k] ? ' checked' : '') + ' onclick="event.stopPropagation();' + tog + '">'
-        + '<span class="lbl">' + esc(v) + '</span>'
-        + '</div>';
+      var gs = vilGroups(casFocusRegion, casFocusTown, v);
+      var wk = vilWholeKey(casFocusRegion, casFocusTown, v);
+      var gks = vilGroupKeys(casFocusRegion, casFocusTown, v);
+      if (gs.length) {
+        /* 有组信息的村：点复选框整村勾选，点村名称展开「组」列精确到组 */
+        var vck = casSel[wk] || gks.every(function (k) { return casSel[k]; });
+        var vind = !vck && gks.some(function (k) { return casSel[k]; });
+        vh += '<div class="cas-opt">'
+          + '<input type="checkbox"' + (vck ? ' checked' : '') + (vind ? ' data-ind="1"' : '')
+          + ' onclick="event.stopPropagation();toggleVillage(\'' + esc(casFocusRegion) + '\',\'' + esc(casFocusTown) + '\',\'' + esc(v) + '\')">'
+          + '<span class="lbl" onclick="event.stopPropagation();focusVillage(\'' + esc(v) + '\')">' + esc(v) + '</span>'
+          + '</div>';
+      } else {
+        /* 无组信息的村：整行点击即勾选（与原逻辑一致） */
+        var k = wk;
+        var tog = 'toggleVillage(\'' + esc(casFocusRegion) + '\',\'' + esc(casFocusTown) + '\',\'' + esc(v) + '\')';
+        vh += '<div class="cas-opt leaf' + (casSel[k] ? ' sel' : '') + '" onclick="event.stopPropagation();' + tog + '">'
+          + '<input type="checkbox"' + (casSel[k] ? ' checked' : '') + ' onclick="event.stopPropagation();' + tog + '">'
+          + '<span class="lbl">' + esc(v) + '</span>'
+          + '</div>';
+      }
     });
   } else {
     vh = '<div class="cas-empty">点击镇名称查看下辖村</div>';
   }
   $('casVilCol').innerHTML = vh;
+
+  /* 组列：仅当前聚焦村存在组信息时展示 */
+  var gh = '', showGroup = false;
+  if (casFocusRegion && casFocusTown && casFocusVillage) {
+    var glist = vilGroups(casFocusRegion, casFocusTown, casFocusVillage);
+    if (glist.length) {
+      showGroup = true;
+      var wkey = vilWholeKey(casFocusRegion, casFocusTown, casFocusVillage);
+      glist.forEach(function (g) {
+        var k = gkey(casFocusRegion, casFocusTown, casFocusVillage, g);
+        var gck = casSel[wkey] || casSel[k];
+        var tog = 'toggleGroup(\'' + esc(casFocusRegion) + '\',\'' + esc(casFocusTown) + '\',\'' + esc(casFocusVillage) + '\',\'' + esc(g) + '\')';
+        gh += '<div class="cas-opt leaf' + (gck ? ' sel' : '') + '" onclick="event.stopPropagation();' + tog + '">'
+          + '<input type="checkbox"' + (gck ? ' checked' : '') + ' onclick="event.stopPropagation();' + tog + '">'
+          + '<span class="lbl">' + esc(g) + '</span>'
+          + '</div>';
+      });
+    }
+  }
+  $('casGroupCol').innerHTML = gh || '<div class="cas-empty">该行政村下暂无组信息</div>';
+  $('casGroupColWrap').style.display = showGroup ? '' : 'none';
 
   var inds = $('casPanel').querySelectorAll('input[data-ind]');
   Array.prototype.forEach.call(inds, function (inp) { inp.indeterminate = true; });
@@ -793,7 +866,7 @@ document.addEventListener('click', function () { closeCasPanel(); });
 function renderGridList() {
   $('gridCnt').textContent = '（已配置 ' + drawerGrids.length + ' 个）';
   if (!drawerGrids.length) {
-    $('gridBody').innerHTML = '<tr><td colspan="5"><div class="grid-list-empty">暂未配置管辖网格，请在上方勾选区 / 镇 / 村后点击「添加所选」</div></td></tr>';
+    $('gridBody').innerHTML = '<tr><td colspan="6"><div class="grid-list-empty">暂未配置管辖网格，请在上方勾选区 / 镇 / 村 / 组后点击「添加所选」</div></td></tr>';
     return;
   }
   var html = '';
@@ -803,6 +876,7 @@ function renderGridList() {
       + '<td>' + esc(g.r) + '</td>'
       + '<td>' + esc(g.t) + '</td>'
       + '<td>' + esc(g.v) + '</td>'
+      + '<td>' + (g.g ? esc(g.g) : '<span style="color:var(--text-tertiary)">全村</span>') + '</td>'
       + '<td><span class="op-link danger" onclick="removeGrid(' + i + ')">移除</span></td>'
       + '</tr>';
   });
@@ -815,9 +889,9 @@ function addGrid() {
   var added = 0, dup = 0;
   keys.forEach(function (k) {
     var p = k.split('/');
-    var exists = drawerGrids.some(function (g) { return gkey(g.r, g.t, g.v) === k; });
+    var exists = drawerGrids.some(function (g) { return gkey(g.r, g.t, g.v, g.g || '') === k; });
     if (exists) { dup++; return; }
-    drawerGrids.push({ r: p[0], t: p[1], v: p[2] });
+    drawerGrids.push({ r: p[0], t: p[1], v: p[2], g: p[3] || '' });
     added++;
   });
   casSel = {};
@@ -843,7 +917,7 @@ function saveGrids() {
 }
 
 function doSaveGrids(d) {
-  d.grids = drawerGrids.map(function (g) { return { r: g.r, t: g.t, v: g.v }; });
+  d.grids = drawerGrids.map(function (g) { return { r: g.r, t: g.t, v: g.v, g: g.g || '' }; });
   d.time = drawerGrids.length ? '2026-09-28' : '';
   closeDrawer();
   renderTable();

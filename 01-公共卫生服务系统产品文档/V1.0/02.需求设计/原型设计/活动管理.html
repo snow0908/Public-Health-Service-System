@@ -36,11 +36,20 @@
   .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
   .btn-plain{height:28px;padding:0 8px;font-size:13px;color:var(--primary);border-radius:var(--r-sm)}
   .btn-plain:hover{background:var(--primary-bg)}
-  /* 日期区间 */
-  .fi-date-range{display:flex;align-items:center;gap:6px}
-  .fi-date{width:130px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 28px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-size:14px;appearance:none;-webkit-appearance:none}
-  .fi-date:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
-  .fi-sep{color:var(--text-placeholder);font-size:13px}
+  /* 主筛选区行距/列距/标签间距（对齐设计稿：行距 10、列距 22、标签-控件 12） */
+  .filter-panel .filter-row{gap:12px 22px;margin-bottom:10px}
+  .filter-panel .filter-item{gap:12px}
+  /* 筛选区内控件统一外框宽度（仅作用于主筛选区，不影响弹窗内同名类） */
+  .filter-panel .fi-ctl,.filter-panel .fi-select{width:180px}
+  /* 日期区间：单一外框（开始日期 ~ 结束日期 + 日历图标） */
+  .fi-range{display:flex;align-items:center;gap:6px;width:232px;height:32px;padding:0 8px 0 10px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);background:var(--bg-white);transition:all var(--transition-fast)}
+  .fi-range:hover{border-color:var(--primary)}
+  .fi-range:focus-within{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-range input{flex:1 1 0;min-width:0;height:30px;border:none;background:transparent;outline:none;padding:0;font-size:14px;color:var(--text-primary);font-family:inherit}
+  .fi-range input::placeholder{color:var(--text-placeholder)}
+  .fi-range input::-webkit-calendar-picker-indicator{display:none}
+  .fi-tilde{flex-shrink:0;font-size:14px;color:var(--text-placeholder)}
+  .fi-cal{width:14px;height:14px;flex-shrink:0;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none' stroke='%23bfbfbf' stroke-width='1.2'%3E%3Crect x='1.4' y='2.4' width='11.2' height='10.2' rx='1.6'/%3E%3Cpath d='M1.4 5.6h11.2M4.6 1.4v2M9.4 1.4v2'/%3E%3C/svg%3E") no-repeat center/contain}
 
   /* ===== 数据表格 ===== */
   .table-wrap{flex:1;overflow:auto;min-height:0}
@@ -117,6 +126,49 @@
   .upload-box:hover{border-color:var(--primary);background:var(--primary-bg)}
   .upload-box .plus{font-size:28px;color:var(--text-tertiary);line-height:1;margin-bottom:4px}
   .upload-tip{width:100%;font-size:12px;color:var(--text-tertiary);margin-top:4px}
+
+  /* 活动人员 */
+  .info-tbl tr.people-row th,.info-tbl tr.people-row td{height:auto;vertical-align:top;padding-top:14px;padding-bottom:14px}
+  .people-wrap{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+  .people-wrap .fm-textarea{min-height:64px}
+  .people-wrap .fm-textarea[readonly]{background:#F5F7FA;color:var(--text-primary);cursor:default;resize:none}
+  .people-wrap .fm-textarea[readonly]:focus{border-color:var(--color-neutral-300);box-shadow:none}
+
+  /* ===== 选择人员弹窗（参照高血压管理「新建专项」弹框表格，新增多选、去掉操作列） ===== */
+  .modal-overlay.select-modal .modal{width:980px;max-width:94vw;max-height:88vh}
+  .modal-overlay.select-modal .modal-body{padding:12px 0 0;display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+  .modal-overlay.select-modal .modal-foot{justify-content:space-between}
+  .pk-sel-count{font-size:13px;color:var(--text-secondary)}
+  .pk-sel-count b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pk-foot-btns{display:flex;gap:8px;align-items:center}
+  .select-filter{padding:0 16px 10px;border-bottom:1px solid #E8E8E8;flex-shrink:0}
+  .select-filter .filter-row{margin-bottom:10px}
+  .select-filter .fi-ctl{width:150px;height:30px;font-size:13px}
+  .select-filter .fi-select{width:130px;height:30px;font-size:13px}
+  .select-filter .btn{height:28px;padding:0 12px;font-size:13px}
+  .select-filter .btn-plain{height:28px;padding:0 6px;font-size:13px;color:var(--primary);background:none;border:none;cursor:pointer}
+  .select-filter .btn-plain:hover{text-decoration:underline}
+  .select-table-wrap{flex:1;overflow:auto;min-height:0;min-width:0}
+  .select-tbl{width:100%;min-width:1312px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .select-tbl th{position:sticky;top:0;z-index:5;height:34px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .select-tbl td{height:34px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .select-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .select-tbl th.center,.select-tbl td.center{text-align:center}
+  .select-tbl .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .select-tbl .op-none{color:var(--text-tertiary);font-size:13px}
+  .select-tbl .crowd-tag{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .select-tbl .chk-col{text-align:center}
+  .select-tbl .chk-col input{width:14px;height:14px;cursor:pointer;accent-color:var(--primary);vertical-align:middle}
+  .select-pagefoot{display:flex;align-items:center;justify-content:flex-end;gap:10px;height:44px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .select-pagefoot .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .select-pagefoot .pg-size select{height:24px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 20px 0 6px;font-size:12px;color:var(--text-secondary);background:#fff;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 5px center;cursor:pointer}
+  .select-pagefoot .pg-pager{display:flex;align-items:center;gap:3px}
+  .select-pagefoot .pg-btn{min-width:24px;height:24px;padding:0 5px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:12px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff}
+  .select-pagefoot .pg-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .select-pagefoot .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .select-pagefoot .pg-btn.disabled{opacity:0.5;pointer-events:none}
+  .select-pagefoot .pg-jump input{width:36px;height:24px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 5px;font-size:12px;text-align:center;color:var(--text-primary);outline:none}
+  .select-pagefoot .pg-jump input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
 
   /* 参与居民 */
   .resident-row{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text-secondary)}
@@ -219,26 +271,33 @@
                 <option value="">请选择</option>
                 <option>高血压</option>
                 <option>糖尿病</option>
-                <option>慢阻肺</option>
+                <option>高血脂</option>
+                <option>艾滋病</option>
+                <option>结核病</option>
+                <option>麻风病</option>
+                <option>免疫规划</option>
+                <option>肿瘤</option>
               </select>
             </div>
             <div class="filter-item">
               <label>活动时间：</label>
-              <div class="fi-date-range">
-                <input class="fi-date" placeholder="开始日期" type="text">
-                <span class="fi-sep">~</span>
-                <input class="fi-date" placeholder="结束日期" type="text">
-              </div>
+              <span class="fi-range">
+                <input type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+                <span class="fi-tilde">~</span>
+                <input type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+                <span class="fi-cal"></span>
+              </span>
             </div>
           </div>
           <div class="filter-row">
             <div class="filter-item">
               <label>填表日期：</label>
-              <div class="fi-date-range">
-                <input class="fi-date" placeholder="开始日期" type="text">
-                <span class="fi-sep">~</span>
-                <input class="fi-date" placeholder="结束日期" type="text">
-              </div>
+              <span class="fi-range">
+                <input type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+                <span class="fi-tilde">~</span>
+                <input type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+                <span class="fi-cal"></span>
+              </span>
             </div>
             <div class="filter-item">
               <label>填表人：</label>
@@ -526,6 +585,15 @@
               </td>
               <th class="required">教育发放资料数量</th>
               <td><input class="fm-ctl" placeholder="请输入" type="text"></td>
+            </tr>
+            <tr class="people-row">
+              <th>活动人员</th>
+              <td colspan="3">
+                <div class="people-wrap">
+                  <button class="btn btn-default" onclick="openPeoplePicker()">选择人员</button>
+                  <textarea class="fm-textarea" id="fmPeople" placeholder="请点击上方「选择人员」按钮选择居民" readonly></textarea>
+                </div>
+              </td>
             </tr>
             <tr class="textarea-row">
               <th class="required">活动内容</th>
@@ -866,6 +934,119 @@
     </div>
   </div>
 
+  <!-- ========== 弹窗：选择人员 ========== -->
+  <div class="modal-overlay select-modal" id="modal-people">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>选择人员</h3>
+        <span class="modal-close" onclick="closeModal('modal-people')">×</span>
+      </div>
+      <div class="modal-body">
+        <!-- 筛选区 -->
+        <div class="select-filter">
+          <div class="filter-row">
+            <div class="filter-item"><label>姓名</label><input id="pkName" class="fi-ctl" placeholder="请输入"></div>
+            <div class="filter-item"><label>证件类型</label>
+              <select id="pkIdType" class="fi-select">
+                <option value="" selected>请选择</option>
+                <option value="居民身份证">居民身份证</option>
+                <option value="居民户口簿">居民户口簿</option>
+                <option value="护照">护照</option>
+              </select>
+            </div>
+            <div class="filter-item"><label>证件号</label><input id="pkIdcard" class="fi-ctl" placeholder="请输入"></div>
+          </div>
+          <div class="filter-row">
+            <div class="filter-item"><label>管理机构</label>
+              <div class="fcp-ms" data-fcp="ms">
+                <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+                <div class="fcp-panel"></div>
+                <input type="hidden" class="fcp-val" id="pkOrg">
+              </div>
+            </div>
+            <div class="filter-item"><label>管辖网格</label>
+              <div class="fcp-tree" data-fcp="tree">
+                <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+                <div class="fcp-panel"></div>
+                <input type="hidden" class="fcp-val" id="pkGrid">
+              </div>
+            </div>
+            <div class="filter-btns">
+              <button class="btn btn-default" onclick="resetPkFilter()">重置</button>
+              <button class="btn btn-primary" onclick="renderPkTable()">查询</button>
+              <button class="btn-plain" id="pkExpand" onclick="togglePkExtra()">展开 ▼</button>
+            </div>
+          </div>
+          <div class="filter-row" id="pkExtraRow" style="display:none">
+            <div class="filter-item"><label>性别</label>
+              <select id="pkGender" class="fi-select">
+                <option value="" selected>请选择</option>
+                <option value="男">男</option>
+                <option value="女">女</option>
+              </select>
+            </div>
+            <div class="filter-item"><label>年龄</label><input id="pkAge" class="fi-ctl" placeholder="如：60"></div>
+            <div class="filter-item"><label>人群类型</label>
+              <select id="pkCrowd" class="fi-select">
+                <option value="" selected>请选择</option>
+                <option value="老年人">老年人</option>
+                <option value="高血压">高血压</option>
+                <option value="糖尿病">糖尿病</option>
+                <option value="儿童">儿童</option>
+              </select>
+            </div>
+            <div class="filter-item"><label>管辖行政村</label><input id="pkRegion" class="fi-ctl" placeholder="请输入"></div>
+          </div>
+        </div>
+        <!-- 居民列表表格 -->
+        <div class="select-table-wrap">
+          <table class="select-tbl">
+            <colgroup>
+              <col style="width:44px"><col style="width:50px"><col style="width:160px"><col style="width:72px"><col style="width:48px"><col style="width:48px"><col style="width:92px"><col style="width:168px"><col style="width:100px"><col style="width:90px"><col style="width:200px"><col style="width:80px"><col style="width:80px">
+            </colgroup>
+            <thead>
+              <tr>
+                <th class="chk-col"><input type="checkbox" id="pkAll" onchange="toggleAllPeople(this)"></th>
+                <th class="center">序号</th>
+                <th>档案编号</th>
+                <th>姓名</th>
+                <th class="center">性别</th>
+                <th class="center">年龄</th>
+                <th>证件类型</th>
+                <th>证件号</th>
+                <th>人群类型</th>
+                <th>管辖行政村</th>
+                <th>管辖机构</th>
+                <th>居民状态</th>
+                <th>锁定状态</th>
+              </tr>
+            </thead>
+            <tbody id="pkBody"></tbody>
+          </table>
+        </div>
+        <!-- 分页 -->
+        <div class="select-pagefoot">
+          <span class="pg-total">共 <b id="pkTotal">0</b> 条</span>
+          <span class="pg-size">
+            <select onchange="toast('原型演示：每页条数固定 20 条','info')">
+              <option selected>20条/页</option>
+              <option>50条/页</option>
+            </select>
+          </span>
+          <span class="pg-pager" id="pkPager"></span>
+          <span class="pg-jump">跳至第 <input id="pkJump" value="1" onkeydown="if(event.key==='Enter'){pkJumpPage()}"> 页</span>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <span class="pk-sel-count">已选 <b id="pkCount">0</b> 人</span>
+        <span class="pk-foot-btns">
+          <button class="btn btn-default" onclick="closeModal('modal-people')">取消</button>
+          <button class="btn btn-primary" onclick="confirmPeople()">确定</button>
+        </span>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script src="框架.js" data-page="activity-management" data-embed="auto"></script>
@@ -941,6 +1122,172 @@
       if (e.target === overlay) overlay.classList.remove('show');
     });
   });
+
+  /* ================= 选择人员 ================= */
+  /* 居民列表数据（参照高血压管理「新建专项」弹框） */
+  var PK_RESIDENTS = [
+    { archNo:'32101211811812487', name:'王海云',     gender:'女', age:76, idType:'居民身份证', idcard:'411602195001222883', crowd:'老年人',       region:'善玉村',   org:'山东大学齐鲁医院', rStatus:'正常', lock:'未上锁' },
+    { archNo:'32101210010000322', name:'测试',       gender:'男', age:62, idType:'居民身份证', idcard:'35873119631111269X', crowd:'',             region:'东苑社区', org:'山东大学齐鲁医院', rStatus:'正常', lock:'未上锁' },
+    { archNo:'32101210010000321', name:'测试',       gender:'男', age:59, idType:'居民身份证', idcard:'81994719661217461X', crowd:'',             region:'东苑社区', org:'山东大学齐鲁医院', rStatus:'正常', lock:'未上锁' },
+    { archNo:'32101210010000320', name:'测试',       gender:'男', age:50, idType:'居民身份证', idcard:'15827819751024691X', crowd:'',             region:'东苑社区', org:'山东大学齐鲁医院', rStatus:'正常', lock:'未上锁' },
+    { archNo:'32101210010000319', name:'测试',       gender:'男', age:24, idType:'居民身份证', idcard:'51032220011213837X', crowd:'',             region:'东苑社区', org:'山东大学齐鲁医院', rStatus:'正常', lock:'未上锁' },
+    { archNo:'32101210010000318', name:'自动化测试', gender:'男', age:24, idType:'居民身份证', idcard:'51033320011215847X', crowd:'',             region:'东苑社区', org:'山东大学齐鲁医院', rStatus:'正常', lock:'未上锁' },
+    { archNo:'32101211811812486', name:'李大海',     gender:'女', age:46, idType:'居民身份证', idcard:'110101198005010149', crowd:'',             region:'善玉村',   org:'山东大学齐鲁医院', rStatus:'正常', lock:'未上锁' },
+    { archNo:'32101210010000308', name:'李文顺',     gender:'男', age:27, idType:'居民身份证', idcard:'51013219990514121X', crowd:'',             region:'龙川社区', org:'山东大学齐鲁医院', rStatus:'正常', lock:'未上锁' },
+    { archNo:'51011500100100070', name:'刘柳',       gender:'女', age:36, idType:'居民身份证', idcard:'510123199001010026', crowd:'',             region:'北街社区', org:'山东大学齐鲁医院', rStatus:'正常', lock:'未上锁' },
+    { archNo:'51011500100100076', name:'小山东高速', gender:'女', age:36, idType:'居民身份证', idcard:'510123199001010106', crowd:'高血压 糖尿病', region:'北街社区', org:'山东大学齐鲁医院', rStatus:'正常', lock:'未上锁' },
+    { archNo:'51011500100100074', name:'徐华',       gender:'男', age:50, idType:'居民身份证', idcard:'31011019760306201X', crowd:'',             region:'西街社区', org:'山东大学齐鲁医院', rStatus:'正常', lock:'未上锁' },
+    { archNo:'51011500100100073', name:'张兰之子',   gender:'女', age:3,  idType:'居民身份证', idcard:'',                   crowd:'儿童',         region:'西街社区', org:'山东大学齐鲁医院', rStatus:'正常', lock:'未上锁' }
+  ];
+
+  var PK_PAGE_SIZE = 20;
+  var pkCurPage = 1;
+  var pkLastList = [];
+  var pkSelected = [];   /* 已勾选的居民姓名 */
+
+  function pkEl(id) { return document.getElementById(id); }
+
+  function openPeoplePicker() {
+    pkCurPage = 1;
+    pkSelected = [];
+    resetPkFilter();
+    renderPkTable();
+    openModal('modal-people');
+  }
+
+  function resetPkFilter() {
+    ['pkName', 'pkIdcard', 'pkAge', 'pkRegion', 'pkOrg', 'pkGrid'].forEach(function (id) {
+      var el = pkEl(id); if (el) el.value = '';
+    });
+    ['pkIdType', 'pkGender', 'pkCrowd'].forEach(function (id) {
+      var el = pkEl(id); if (el) el.value = '';
+    });
+    var extra = pkEl('pkExtraRow');
+    if (extra) extra.style.display = 'none';
+    var btn = pkEl('pkExpand');
+    if (btn) btn.textContent = '展开 ▼';
+  }
+
+  function togglePkExtra() {
+    var row = pkEl('pkExtraRow');
+    var btn = pkEl('pkExpand');
+    var show = row.style.display === 'none';
+    row.style.display = show ? 'flex' : 'none';
+    btn.textContent = show ? '收起 ▲' : '展开 ▼';
+  }
+
+  function renderPkTable() {
+    var name = pkEl('pkName').value.trim(), idType = pkEl('pkIdType').value, idcard = pkEl('pkIdcard').value.trim();
+    var gender = pkEl('pkGender').value, age = pkEl('pkAge').value.trim();
+    var crowd = pkEl('pkCrowd').value, region = pkEl('pkRegion').value.trim();
+
+    pkLastList = PK_RESIDENTS.filter(function (r) {
+      if (name && r.name.indexOf(name) === -1) return false;
+      if (idType && r.idType !== idType) return false;
+      if (idcard && r.idcard.indexOf(idcard) === -1) return false;
+      if (gender && r.gender !== gender) return false;
+      if (age && String(r.age) !== age) return false;
+      if (crowd && r.crowd.indexOf(crowd) === -1) return false;
+      if (region && r.region.indexOf(region) === -1) return false;
+      return true;
+    });
+
+    var total = Math.max(1, Math.ceil(pkLastList.length / PK_PAGE_SIZE));
+    if (pkCurPage > total) pkCurPage = total;
+    var start = (pkCurPage - 1) * PK_PAGE_SIZE;
+    var slice = pkLastList.slice(start, start + PK_PAGE_SIZE);
+
+    var html = '';
+    if (!slice.length) {
+      html = '<tr><td colspan="13" style="text-align:center;padding:24px;color:var(--text-tertiary)">暂无符合条件的居民档案</td></tr>';
+    } else {
+      slice.forEach(function (r, i) {
+        var crowdHtml = r.crowd ? '<span class="crowd-tag" title="' + r.crowd + '">' + r.crowd + '</span>' : '<span class="op-none">-</span>';
+        html += '<tr>'
+          + '<td class="chk-col"><input type="checkbox" value="' + r.name + '"' + (pkSelected.indexOf(r.name) > -1 ? ' checked' : '') + ' onchange="togglePerson(this)"></td>'
+          + '<td class="center">' + (start + i + 1) + '</td>'
+          + '<td title="' + r.archNo + '"><span class="cell">' + r.archNo + '</span></td>'
+          + '<td>' + r.name + '</td>'
+          + '<td class="center">' + r.gender + '</td>'
+          + '<td class="center">' + r.age + '</td>'
+          + '<td>' + r.idType + '</td>'
+          + '<td title="' + r.idcard + '"><span class="cell">' + (r.idcard || '-') + '</span></td>'
+          + '<td>' + crowdHtml + '</td>'
+          + '<td>' + r.region + '</td>'
+          + '<td title="' + r.org + '"><span class="cell">' + r.org + '</span></td>'
+          + '<td>' + r.rStatus + '</td>'
+          + '<td>' + r.lock + '</td>'
+          + '</tr>';
+      });
+    }
+    pkEl('pkBody').innerHTML = html;
+    pkEl('pkTotal').textContent = pkLastList.length;
+    renderPkPager(total);
+    pkEl('pkJump').value = pkCurPage;
+    syncPkAll();
+    updatePeopleCount();
+  }
+
+  function renderPkPager(total) {
+    var html = '';
+    html += '<span class="pg-btn' + (pkCurPage === 1 ? ' disabled' : '') + '" onclick="pkGoPage(' + (pkCurPage - 1) + ')">‹</span>';
+    for (var p = 1; p <= total; p++) {
+      html += '<span class="pg-btn' + (p === pkCurPage ? ' active' : '') + '" onclick="pkGoPage(' + p + ')">' + p + '</span>';
+    }
+    html += '<span class="pg-btn' + (pkCurPage === total ? ' disabled' : '') + '" onclick="pkGoPage(' + (pkCurPage + 1) + ')">›</span>';
+    pkEl('pkPager').innerHTML = html;
+  }
+
+  function pkGoPage(p) {
+    var total = Math.max(1, Math.ceil(pkLastList.length / PK_PAGE_SIZE));
+    if (p < 1 || p > total) return;
+    pkCurPage = p;
+    renderPkTable();
+  }
+
+  function pkJumpPage() {
+    var v = parseInt(pkEl('pkJump').value, 10);
+    if (!isNaN(v)) pkGoPage(v);
+  }
+
+  function togglePerson(el) {
+    var idx = pkSelected.indexOf(el.value);
+    if (el.checked && idx === -1) pkSelected.push(el.value);
+    if (!el.checked && idx > -1) pkSelected.splice(idx, 1);
+    syncPkAll();
+    updatePeopleCount();
+  }
+
+  function toggleAllPeople(el) {
+    document.querySelectorAll('#pkBody input[type=checkbox]').forEach(function (c) {
+      c.checked = el.checked;
+      var idx = pkSelected.indexOf(c.value);
+      if (el.checked && idx === -1) pkSelected.push(c.value);
+      if (!el.checked && idx > -1) pkSelected.splice(idx, 1);
+    });
+    updatePeopleCount();
+  }
+
+  function syncPkAll() {
+    var boxes = document.querySelectorAll('#pkBody input[type=checkbox]');
+    var checked = document.querySelectorAll('#pkBody input[type=checkbox]:checked');
+    var all = pkEl('pkAll');
+    if (!all) return;
+    all.checked = boxes.length > 0 && checked.length === boxes.length;
+    all.indeterminate = checked.length > 0 && checked.length < boxes.length;
+  }
+
+  function updatePeopleCount() {
+    var el = pkEl('pkCount');
+    if (el) el.textContent = pkSelected.length;
+  }
+
+  function confirmPeople() {
+    var ta = pkEl('fmPeople');
+    if (ta) ta.value = pkSelected.join('、');
+    closeModal('modal-people');
+    if (pkSelected.length) { toast('已选择 ' + pkSelected.length + ' 人', 'success'); }
+  }
 </script>
 </body>
 </html>

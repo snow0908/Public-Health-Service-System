@@ -26,8 +26,17 @@
   .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
   .fi-ctl::placeholder{color:var(--text-placeholder)}
   .fi-select.is-placeholder{color:var(--text-placeholder)}
-  .fi-date{width:118px}
-  .fi-range{display:flex;align-items:center;gap:4px;color:var(--text-tertiary)}
+  /* 巡查日期：单框区间 */
+  .fi-range{display:flex;align-items:center;gap:6px;width:210px;height:32px;padding:0 8px 0 10px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);background:var(--bg-white);transition:all var(--transition-fast)}
+  .fi-range:hover{border-color:var(--primary)}
+  .fi-range:focus-within{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-range input{flex:1 1 0;min-width:0;height:30px;border:none;background:transparent;outline:none;padding:0;font-size:13px;color:var(--text-primary);font-family:inherit}
+  .fi-range input:focus{box-shadow:none}
+  .fi-range input::placeholder{color:var(--text-placeholder)}
+  .fi-range input::-webkit-calendar-picker-indicator{display:none}
+  .fi-tilde{flex-shrink:0;font-size:13px;color:var(--text-placeholder)}
+  .fi-cal{width:14px;height:14px;flex-shrink:0;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none' stroke='%23bfbfbf' stroke-width='1.2'%3E%3Crect x='1.4' y='2.4' width='11.2' height='10.2' rx='1.6'/%3E%3Cpath d='M1.4 5.6h11.2M4.6 1.4v2M9.4 1.4v2'/%3E%3C/svg%3E") no-repeat center/contain}
+  .filter-row + .filter-row{margin-top:12px}
   .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
 
   /* ===== 数据表格 ===== */
@@ -161,11 +170,12 @@
             </div>
             <div class="filter-item">
               <label>巡查日期：</label>
-              <span class="fi-range">
-                <input class="fi-ctl fi-date" id="qDateStart" type="date" placeholder="开始日期">
-                <span>~</span>
-                <input class="fi-ctl fi-date" id="qDateEnd" type="date" placeholder="结束日期">
-              </span>
+              <div class="fi-range">
+                <input id="qDateStart" type="text" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}" placeholder="开始日期">
+                <span class="fi-tilde">~</span>
+                <input id="qDateEnd" type="text" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}" placeholder="结束日期">
+                <span class="fi-cal"></span>
+              </div>
             </div>
             <div class="filter-item">
               <label>巡查类别：</label>
@@ -173,6 +183,8 @@
                 <option value="">请选择</option>
               </select>
             </div>
+          </div>
+          <div class="filter-row">
             <div class="filter-item">
               <label>巡查地点：</label>
               <select class="fi-select is-placeholder" id="qLocation" onchange="markSelect(this)">
@@ -330,7 +342,7 @@ var ORGS = [
   '扬州市江都区仙女镇卫生院',
   '扬州市江都区樊川镇卫生院'
 ];
-var CATEGORIES = ['公共场所', '医疗机构', '学校卫生', '生活饮用水', '职业卫生', '餐饮服务'];
+var CATEGORIES = ['食源性疾病', '饮用水卫生', '学校卫生', '非法行医(供采血)', '计划生育', '公共场所'];
 var INSPECTORS = ['朱劲松', '吕雪', '宋劲松', '高素芹'];
 
 /* 巡查地点库：机构 -> 地点（含联系人 / 电话，与 地点维护 数据联动） */
@@ -369,15 +381,15 @@ var INSPECTIONS = [
   { id: 'I20220911001', org: '扬州市江都区大桥镇高巷村卫生室', location: '香王村', contact: '高素芹', phone: '13101010101', category: '公共场所', activity: '对村内公共场所进行例行卫生巡查。', issues: '正常', remark: '', date: '2022-09-11', inspector: '高素芹', entryUser: '朱劲松', entryDate: '2022-09-11' },
   { id: 'I20220902001', org: '扬州市江都区滨江人民医院', location: '滨江公园广场', contact: '王建国', phone: '13601455678', category: '公共场所', activity: '检查广场环境卫生及公共设施消毒情况。', issues: '广场垃圾桶未及时清运，已现场督促整改。', remark: '整改完成后复查', date: '2022-09-02', inspector: '吕雪', entryUser: '朱劲松', entryDate: '2022-09-02' },
   { id: 'I20220826001', org: '扬州市江都区大桥镇花荡村卫生室', location: '花荡村小学', contact: '吕雪', phone: '13905141234', category: '学校卫生', activity: '开学前学校卫生专项巡查，检查教室通风、饮用水安全。', issues: '正常', remark: '', date: '2022-08-26', inspector: '宋劲松', entryUser: '宋劲松', entryDate: '2022-08-26' },
-  { id: 'I20220815001', org: '扬州市江都区大桥镇顾巷村卫生室', location: '顾巷村', contact: '高家芹', phone: '13805216789', category: '生活饮用水', activity: '检查村供水点水质消毒记录及储水设施卫生状况。', issues: '供水点消毒记录缺失近一周，已要求补齐。', remark: '', date: '2022-08-15', inspector: '高素芹', entryUser: '朱劲松', entryDate: '2022-08-15' },
+  { id: 'I20220815001', org: '扬州市江都区大桥镇顾巷村卫生室', location: '顾巷村', contact: '高家芹', phone: '13805216789', category: '饮用水卫生', activity: '检查村供水点水质消毒记录及储水设施卫生状况。', issues: '供水点消毒记录缺失近一周，已要求补齐。', remark: '', date: '2022-08-15', inspector: '高素芹', entryUser: '朱劲松', entryDate: '2022-08-15' },
   { id: 'I20220730001', org: '扬州市江都区滨江人民医院', location: '滨江影剧院', contact: '赵文华', phone: '13801345678', category: '公共场所', activity: '影剧院集中空调通风系统卫生检查。', issues: '正常', remark: '', date: '2022-07-30', inspector: '吕雪', entryUser: '吕雪', entryDate: '2022-07-30' },
-  { id: 'I20220718001', org: '扬州市江都区仙女镇卫生院', location: '仙女农贸市场', contact: '张秀兰', phone: '13505132345', category: '职业卫生', activity: '市场内职业防护与病媒生物防制检查。', issues: '部分摊贩防蝇设施不到位，已现场指导。', remark: '一周内复查', date: '2022-07-18', inspector: '宋劲松', entryUser: '宋劲松', entryDate: '2022-07-18' },
-  { id: 'I20220628001', org: '扬州市江都区樊川镇卫生院', location: '樊川敬老院', contact: '李秀英', phone: '13805164567', category: '医疗机构', activity: '敬老院医务室院感防控与消毒隔离检查。', issues: '正常', remark: '', date: '2022-06-28', inspector: '朱劲松', entryUser: '朱劲松', entryDate: '2022-06-28' },
-  { id: 'I20220612001', org: '扬州市江都区大桥镇高巷村卫生室', location: '高巷村卫生室', contact: '高素芹', phone: '13101010101', category: '医疗机构', activity: '村卫生室依法执业与医疗废物处置检查。', issues: '正常', remark: '', date: '2022-06-12', inspector: '高素芹', entryUser: '吕雪', entryDate: '2022-06-12' },
-  { id: 'I20220520001', org: '扬州市江都区滨江人民医院', location: '滨江街道菜场', contact: '刘德海', phone: '13901455678', category: '餐饮服务', activity: '菜场餐饮摊点食品安全与健康证检查。', issues: '2名从业人员健康证过期，已要求限期补办。', remark: '2022-05-27复查', date: '2022-05-20', inspector: '吕雪', entryUser: '朱劲松', entryDate: '2022-05-20' },
+  { id: 'I20220718001', org: '扬州市江都区仙女镇卫生院', location: '仙女农贸市场', contact: '张秀兰', phone: '13505132345', category: '计划生育', activity: '市场内计划生育宣传服务与避孕药具管理检查。', issues: '避孕药具发放登记不完整，已现场指导。', remark: '一周内复查', date: '2022-07-18', inspector: '宋劲松', entryUser: '宋劲松', entryDate: '2022-07-18' },
+  { id: 'I20220628001', org: '扬州市江都区樊川镇卫生院', location: '樊川敬老院', contact: '李秀英', phone: '13805164567', category: '非法行医(供采血)', activity: '敬老院医务室院感防控与消毒隔离检查。', issues: '正常', remark: '', date: '2022-06-28', inspector: '朱劲松', entryUser: '朱劲松', entryDate: '2022-06-28' },
+  { id: 'I20220612001', org: '扬州市江都区大桥镇高巷村卫生室', location: '高巷村卫生室', contact: '高素芹', phone: '13101010101', category: '非法行医(供采血)', activity: '村卫生室依法执业与医疗废物处置检查。', issues: '正常', remark: '', date: '2022-06-12', inspector: '高素芹', entryUser: '吕雪', entryDate: '2022-06-12' },
+  { id: 'I20220520001', org: '扬州市江都区滨江人民医院', location: '滨江街道菜场', contact: '刘德海', phone: '13901455678', category: '食源性疾病', activity: '菜场餐饮摊点食品安全与健康证检查。', issues: '2名从业人员健康证过期，已要求限期补办。', remark: '2022-05-27复查', date: '2022-05-20', inspector: '吕雪', entryUser: '朱劲松', entryDate: '2022-05-20' },
   { id: 'I20220508001', org: '扬州市江都区仙女镇卫生院', location: '仙女中学', contact: '吴志明', phone: '13505131234', category: '学校卫生', activity: '中考前考点学校卫生保障巡查。', issues: '正常', remark: '', date: '2022-05-08', inspector: '宋劲松', entryUser: '宋劲松', entryDate: '2022-05-08' },
   { id: 'I20220425001', org: '扬州市江都区樊川镇卫生院', location: '樊川中心市场', contact: '钱桂芳', phone: '13901452345', category: '公共场所', activity: '市场公共区域卫生与通风检查。', issues: '正常', remark: '', date: '2022-04-25', inspector: '朱劲松', entryUser: '吕雪', entryDate: '2022-04-25' },
-  { id: 'I20220411001', org: '扬州市江都区大桥镇花荡村卫生室', location: '花荡村', contact: '吕雪', phone: '13905141234', category: '生活饮用水', activity: '村自来水站水质余氯检测。', issues: '余氯检测值偏低，已通知供水站调整。', remark: '次日复查正常', date: '2022-04-11', inspector: '高素芹', entryUser: '朱劲松', entryDate: '2022-04-11' }
+  { id: 'I20220411001', org: '扬州市江都区大桥镇花荡村卫生室', location: '花荡村', contact: '吕雪', phone: '13905141234', category: '饮用水卫生', activity: '村自来水站水质余氯检测。', issues: '余氯检测值偏低，已通知供水站调整。', remark: '次日复查正常', date: '2022-04-11', inspector: '高素芹', entryUser: '朱劲松', entryDate: '2022-04-11' }
 ];
 var inspSeq = 13;
 
@@ -422,8 +434,8 @@ function resetFilter() {
     markSelect($(id));
   });
   $('qInspector').value = '';
-  $('qDateStart').value = '';
-  $('qDateEnd').value = '';
+  $('qDateStart').value = ''; $('qDateStart').type = 'text';
+  $('qDateEnd').value = ''; $('qDateEnd').type = 'text';
   curPage = 1;
   renderTable();
   toastMsg('筛选条件已重置');

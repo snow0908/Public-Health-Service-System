@@ -71,7 +71,7 @@
   .nav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--primary);border-radius:0 2px 2px 0}
   .nav-item.locked{color:var(--text-placeholder);cursor:not-allowed}
   .nav-item.locked:hover{background:transparent}
-  .pv-content{flex:1;overflow-y:auto;padding:16px 6px;min-width:0}
+  .pv-content{flex:1;overflow-y:auto;padding:6px 6px;min-width:0}
 
   /* ===== 通用表单控件 ===== */
   .ctl{height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:13px;color:var(--text-primary);background:#fff;outline:none;transition:all var(--transition-fast);flex:1;min-width:0;max-width:280px;font-family:inherit}
@@ -339,10 +339,32 @@
   #viewCardioFollowup .fv-body > .hp-row{padding-left:72px}
   #viewCardioFollowup .fv-body > .hp-row > .hp-label,
   #viewCardioFollowup .fv-body > .hp-row > .hp-cell:first-child > .hp-label{width:192px;margin-left:-72px}
-  /* 健康信息卡 */
-  #viewHealthCard .hp-label, #viewHealthCard .hp-cell .hp-label{width:150px;justify-content:center;text-align:center}
-  #viewHealthCard .hc-sec{display:flex;align-items:center;font-size:14px;font-weight:var(--font-weight-semibold);color:var(--text-primary);margin:16px 20px 10px;padding-left:10px;border-left:3px solid var(--primary);border-radius:2px}
-  #viewHealthCard .hp-body{border-top:1px solid #EEF0F4}
+  /* 健康信息卡：表格式布局（label #E0EFFF 居中 + 网格 #BFDEFF + 行高 33，按设计稿） */
+  #viewHealthCard .hp-card{max-width:none}
+  #viewHealthCard .hp-head{padding:12px 20px}
+  #viewHealthCard .hp-head .hp-actions{margin-left:auto}
+  #viewHealthCard .hc-sec{display:flex;align-items:center;font-size:14px;font-weight:var(--font-weight-semibold);color:var(--text-primary);margin:16px 0 10px;padding-left:10px;border-left:3px solid var(--primary);border-radius:2px}
+  #viewHealthCard .hp-body{border:1px solid #BFDEFF;margin:0}
+  #viewHealthCard .hp-row{border-bottom:1px solid #BFDEFF;min-height:33px;height:33px}
+  #viewHealthCard .hp-row:last-child{border-bottom:none}
+  #viewHealthCard .hp-cell{border-right:1px solid #BFDEFF;min-height:33px}
+  /* 4 列比例 13.697% : 36.303%（label : field），cell 占 50% → label 占 cell 的 27.394% */
+  #viewHealthCard .hp-label,
+  #viewHealthCard .hp-cell .hp-label{width:27.394%;justify-content:center;text-align:center;color:var(--text-primary);
+                                     background:#E0EFFF;border-right:1px solid #BFDEFF;padding:0 8px;
+                                     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #viewHealthCard .hp-field{padding:0 14px}
+  #viewHealthCard .hp-field .ctl,
+  #viewHealthCard .hp-cell .hp-field .ctl{max-width:none;width:176px;height:28px;font-size:13px;flex:none}
+  /* 高行（过敏史 / 其他说明）：行高 45，正文框撑满，字数计数叠加在右下角 */
+  #viewHealthCard .hp-row.tall{height:auto;min-height:45px}
+  #viewHealthCard .hp-row.tall .hp-label{align-items:center;padding-top:0}
+  #viewHealthCard .hp-row.tall .hp-field{padding:6px 14px;align-items:center;position:relative}
+  #viewHealthCard .hp-row.tall textarea.ctl{flex:1;width:100%;max-width:none;height:33px;min-height:33px}
+  #viewHealthCard .hp-row.tall .char-count{position:absolute;right:16px;bottom:3px;align-self:auto;padding-left:0}
+  /* 只读字段：无边框纯文本（按设计稿） */
+  #viewHealthCard .hc-ro{font-size:13px;color:var(--text-primary);line-height:1.5;
+                         white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* 高血脂专项表（表格式表单） */
   #viewHyperlipidemia .hp-card{max-width:none}
   #viewHyperlipidemia .hp-head{padding:12px 12px}
@@ -1039,6 +1061,28 @@
   .vc-tbl td.opts-cell .rad input[type="radio"]:checked::after{
     content:'';position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;
     border-radius:50%;background:var(--primary)}
+  /* ---- 预防接种记录：历史填报记录浮层（点击头部「记录」图标按钮弹出） ---- */
+  #viewVaccineRecord .hp-head{position:relative}
+  .vcr-rec-btn{width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;
+    border-radius:4px;background:var(--primary);color:#fff;border:none;cursor:pointer;flex-shrink:0}
+  .vcr-rec-btn:hover{background:#0062CC}
+  .vcr-rec-pop{display:none;position:absolute;top:100%;right:12px;margin-top:6px;width:720px;
+    max-width:calc(100% - 24px);background:#fff;border:1px solid #EEF0F4;border-radius:8px;
+    box-shadow:0 8px 24px rgba(15,35,70,.14);z-index:60;padding:14px 16px 16px}
+  .vcr-rec-pop.open{display:block}
+  .vcr-rec-pop h4{margin:0 0 10px;font-size:15px;font-weight:var(--font-weight-semibold);color:var(--text-primary)}
+  .vcr-rec-pop table{width:100%;border-collapse:collapse;table-layout:fixed}
+  .vcr-rec-pop th,.vcr-rec-pop td{height:32px;padding:0 10px;font-size:13px;text-align:left;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .vcr-rec-pop th{background:#EAF3FF;color:var(--text-primary);font-weight:var(--font-weight-semibold)}
+  .vcr-rec-pop tbody tr:nth-child(even){background:#FAFCFF}
+  .vcr-rec-pop tbody tr:hover{background:#F5F9FF}
+  .vcr-rec-pop .vcr-del{color:#F53F3F;cursor:pointer}
+  .vcr-rec-pop .vcr-del:hover{text-decoration:underline}
+  .vcr-rec-empty{padding:18px 0;text-align:center;font-size:13px;color:var(--text-tertiary)}
+  /* ---- 健康教育记录表：历史填报记录浮层（复用 vcr-rec-pop 样式） ---- */
+  #viewHealthEdu .hp-head{position:relative}
+  .he-rec-pop h4{color:var(--primary)}
 
   /* ============================================================
      健康体检：五页合并为一张连续长表单 + 右侧锚点定位
@@ -1625,6 +1669,74 @@
   .bl{display:inline-block;min-width:64px;margin:0 14px 0 2px;padding:0 6px 1px;border-bottom:1px solid #C4CDDA;color:#262626;white-space:nowrap}
   .bl.w80{min-width:80px}
   .bl.empty{min-width:96px}
+  /* ============================================================
+     中医管理：儿童中医药健康管理服务（儿童中医药健康管理服务记录表）
+     设计稿实测（稿缩放 ≈1.15）：
+       表单 4 列 → 176 / 540 / 176 / 540（按百分比等比，label 宽 176）
+       行高 33px；标签格底色 #E0EFFF / 网格线 #BFDEFF
+       控件 176×28（复用 .wm-tbl .ctl）
+       正文格：外层 1px #D9D9D9，工具栏 40 + 编辑区 290，格内边距 3px 10px
+       记录浮层：宽 586，右对齐贴卡片右缘，表头 #E0EFFF，行高 30，删除红字
+       按钮组：初始只有「保存」；有记录后「新建 | 保存 | 打印」
+     ============================================================ */
+  #viewChildTcmService .hp-card{max-width:none;position:relative}
+  #viewChildTcmService .hp-head{display:block;padding:12px 20px}
+  #viewChildTcmService .wm-body{padding:0 12px 12px}
+
+  /* ① 姓名 / 档案编号 行（无下边框，紧贴表格） */
+  /* 顶部按钮组：「保存」与「服务记录」图标之间的竖线分隔（设计稿） */
+  #viewChildTcmService .cts-sep{width:1px;height:20px;background:#D9D9D9;flex:none}
+  .cts-head-line{padding:12px 0 10px}
+
+  /* ② 记录表单网格 */
+  .cts-tbl{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px}
+  .cts-tbl td{height:33px;border:1px solid #BFDEFF;vertical-align:middle;color:var(--text-primary)}
+  .cts-tbl td.lb{background:#E0EFFF;text-align:center;padding:0 6px;white-space:nowrap}
+  .cts-tbl td.lb i{color:var(--danger);font-style:normal;margin-right:2px}
+  .cts-tbl td.vf{padding:0 10px}
+  .cts-tbl td.blank{background:#fff}
+  .cts-tbl .ctl{width:176px;max-width:none;height:28px;font-size:13px;flex:none}
+  .cts-tbl .wm-date{width:176px}
+  .cts-tbl .wm-date .ctl{width:100%}
+
+  /* 中医药健康管理服务：多选项目（勾选后文字变蓝；勾「其他」出现输入框） */
+  .cts-svcs{display:flex;align-items:center;flex-wrap:nowrap;gap:8px 22px}
+  .cts-svcs .chk{font-size:13px;color:var(--text-primary);line-height:1.9}
+  .cts-svcs .chk.on{color:var(--primary)}
+  .cts-svcs .chk input{accent-color:var(--primary)}
+  .cts-svcs .cts-other{width:176px;height:28px;flex:none}
+
+  /* ③ 正文格：工具栏 + 编辑区（一个外框，中间 1px 分隔线） */
+  .cts-tbl td.cts-ed-cell{height:auto;padding:3px 10px}
+  .cts-ed-wrap{background:#fff}
+  .cts-ed-wrap .ets-edit-bar{border-color:#D9D9D9;border-bottom:1px solid #EEEEEE;padding:4px 4px}
+  .cts-ed-wrap .ets-edit-btn{width:30px;height:30px;font-size:14px;margin-right:6px}
+  .cts-ed-wrap .ets-edit{min-height:290px;border-color:#D9D9D9;border-top:0;padding:10px 12px}
+  .cts-ed-wrap.fullscreen{position:fixed;inset:28px;z-index:calc(var(--z-modal) + 1);background:#fff;
+                          display:flex;flex-direction:column;
+                          box-shadow:0 12px 40px rgba(0,0,0,0.35);border-radius:var(--r-sm)}
+  .cts-ed-wrap.fullscreen .ets-edit{flex:1;min-height:0;overflow:auto}
+
+  /* ④ 记录列表浮层 */
+  .cts-pop{position:absolute;top:56px;right:12px;width:586px;background:#fff;
+           border:1px solid #BFDEFF;border-radius:var(--r-sm);
+           box-shadow:0 6px 20px rgba(0,0,0,0.12);z-index:30;display:none}
+  .cts-pop.show{display:block}
+  .cts-pop-t{height:46px;padding:0 14px;display:flex;align-items:center;
+             font-size:16px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+  .cts-pop-body{min-height:120px;max-height:246px;overflow:auto}
+  .cts-pop-tbl{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px}
+  .cts-pop-tbl th{height:30px;padding:0 8px;background:#E0EFFF;border:1px solid #BFDEFF;
+                  font-weight:var(--font-weight-medium);color:var(--text-primary);
+                  text-align:left;white-space:nowrap}
+  .cts-pop-tbl td{height:31px;padding:0 8px;border:1px solid #BFDEFF;color:var(--text-primary);
+                  vertical-align:middle;white-space:nowrap}
+  .cts-pop-tbl th.c,.cts-pop-tbl td.c{text-align:center}
+  .cts-pop-tbl td.sel{cursor:pointer}
+  .cts-pop-tbl tr:hover td{background:var(--primary-bg)}
+  .cts-pop-tbl td.del{text-align:center}
+  .cts-pop-tbl td.del a{color:var(--danger);cursor:pointer}
+
 </style>
 </head>
 <body>
@@ -1807,6 +1919,7 @@
         <div class="nav-sub-item" id="navElderTcmService" onclick="switchView('elderTcmService')">老年人中医药健康管理服务</div>
         <div class="nav-sub-item" id="navTcmGuide" onclick="switchView('tcmGuide')">中医健康指导</div>
         <div class="nav-sub-item" id="navTcmConst" onclick="switchView('tcmConst')">中医体质辨识</div>
+        <div class="nav-sub-item" id="navChildTcmService" onclick="switchView('childTcmService')">儿童中医药健康管理服务</div>
       </div>
     </div>
     <div class="nav-group" id="navTbGroup">
@@ -9469,16 +9582,27 @@
           <div class="he-head-top">
             <h3>健康教育记录表</h3>
             <div class="hp-actions">
+              <button class="btn btn-default" id="heBtnNew" style="display:none;border-color:var(--primary);color:var(--primary)" onclick="newHealthEdu()">新建</button>
               <button class="btn btn-primary" onclick="saveHealthEdu()">保存</button>
-              <span class="he-vline"></span>
-              <div class="he-icon-btn" onclick="toast('健康教育记录列表功能建设中','info')" title="记录列表">
+              <button class="vcr-rec-btn he-icon-btn" type="button" title="历史填报记录" onclick="toggleHeRecords(event)" style="width:30px;height:30px">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="15" height="18" rx="2" stroke="#fff" stroke-width="1.5"/><path d="M8 8h7M8 12h7M8 16h4" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><circle cx="18" cy="17.5" r="4.6" fill="#007AFF"/><path d="M18 15.6v3.8M16.1 17.5h3.8" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg>
-              </div>
+              </button>
             </div>
           </div>
           <div class="he-head-sub">
             <span>姓名：<b id="heName">--</b></span>
             <span>档案编号：<b id="heArchNo">--</b></span>
+          </div>
+          <!-- 历史填报记录浮层（点击头部「记录」图标弹出） -->
+          <div class="vcr-rec-pop he-rec-pop" id="heRecPop" onclick="event.stopPropagation()">
+            <h4>健康教育记录</h4>
+            <table>
+              <colgroup><col style="width:60px"><col style="width:150px"><col><col style="width:120px"><col style="width:80px"></colgroup>
+              <thead>
+                <tr><th>序号</th><th>干预日期</th><th>干预方式</th><th>干预医生</th><th>操作</th></tr>
+              </thead>
+              <tbody id="heRecTbody"></tbody>
+            </table>
           </div>
         </div>
         <div class="hp-body">
@@ -16519,6 +16643,111 @@
       </div>
     </div>
 
+    <!-- ===== 视图：儿童中医药健康管理服务记录表（中医管理） ===== -->
+    <div class="pv-view hidden" id="viewChildTcmService">
+      <div class="hp-card" id="ctsCard">
+        <div class="hp-head">
+          <div class="wm-head-top">
+            <h3>儿童中医药健康管理服务记录表</h3>
+            <div class="hp-actions">
+              <button class="btn btn-default" id="ctsBtnNew" onclick="ctsNew()">新建</button>
+              <button class="btn btn-primary" onclick="ctsSave()">保存</button>
+              <span class="cts-sep" id="ctsSep"></span>
+              <button class="he-icon-sq" id="ctsBtnRec" title="服务记录" onclick="ctsOpenRec()"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M3.6 2.2H7.1V1.1A0.9 0.9 0 0 1 8 0.2H14.6A0.9 0.9 0 0 1 15.5 1.1V2.2H18A2.4 2.4 0 0 1 20.4 4.6V21.6A2.4 2.4 0 0 1 18 24H3.6A2.4 2.4 0 0 1 1.2 21.6V4.6A2.4 2.4 0 0 1 3.6 2.2ZM4.6 6.1H16.7V7.9H4.6ZM4.6 10.9H16.7V12.8H4.6ZM4.6 15.5H10.7V17.3H4.6Z"/><circle cx="18" cy="19.1" r="4.7" fill="currentColor"/><circle cx="18" cy="19.1" r="5.15" fill="none" style="stroke:var(--primary)" stroke-width="0.9"/><path style="fill:var(--primary)" d="M17.15 16.5H18.85V18.25H20.6V19.95H18.85V21.7H17.15V19.95H15.4V18.25H17.15Z"/></svg></button>
+            </div>
+          </div>
+        </div>
+        <div class="wm-body">
+          <!-- ① 姓名（左）/ 档案编号（右） -->
+          <div class="ets-head-line cts-head-line">
+            <span class="ets-lab">姓名：<b id="ctsNameTxt">--</b></span>
+            <span class="ets-arcno">档案编号：<b id="ctsArchNo">--</b></span>
+          </div>
+
+          <!-- ② 记录表单 -->
+          <table class="cts-tbl">
+            <colgroup>
+              <col style="width:12.317%"><col style="width:37.683%">
+              <col style="width:12.317%"><col style="width:37.683%">
+            </colgroup>
+            <tbody>
+              <tr>
+                <td class="lb"><i>*</i>月龄</td>
+                <td class="vf">
+                  <select class="ctl" id="ctsMonth" onchange="ctsOnMonth()">
+                    <option value="" selected>请选择</option>
+                    <option value="6月龄">6月龄</option>
+                    <option value="12月龄">12月龄</option>
+                    <option value="18月龄">18月龄</option>
+                    <option value="24月龄">24月龄</option>
+                    <option value="30月龄">30月龄</option>
+                    <option value="3岁">3岁</option>
+                  </select>
+                </td>
+                <td class="lb"><i>*</i>随访日期</td>
+                <td class="vf">
+                  <span class="wm-date">
+                    <input class="ctl" id="ctsDate" type="text" placeholder="请选择" onclick="wsaPickDate(this)" onblur="wsaBlurDate(this)">
+                    <svg class="cal-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9AA7B8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/></svg>
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td class="lb">中医药健康管理服务</td>
+                <td class="vf" colspan="3"><div class="cts-svcs" id="ctsSvcBox"></div></td>
+              </tr>
+              <tr>
+                <td class="lb">下次随访日期</td>
+                <td class="vf">
+                  <span class="wm-date">
+                    <input class="ctl" id="ctsNextDate" type="text" placeholder="请选择" onclick="wsaPickDate(this)" onblur="wsaBlurDate(this)">
+                    <svg class="cal-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9AA7B8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/></svg>
+                  </span>
+                </td>
+                <td class="lb"><i>*</i>随访医生签名</td>
+                <td class="vf">
+                  <select class="ctl" id="ctsDoctor">
+                    <option value="" selected>请选择</option>
+                    <option value="吕雪">吕雪</option>
+                    <option value="张丽">张丽</option>
+                    <option value="康丽建">康丽建</option>
+                    <option value="盖丽清">盖丽清</option>
+                    <option value="张德卿">张德卿</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td class="lb">中医药健康管理服务内容</td>
+                <td class="cts-ed-cell" colspan="3">
+                  <div class="cts-ed-wrap" id="ctsEdWrap">
+                    <div class="ets-edit-bar" id="ctsEditBar"></div>
+                    <div class="ets-edit" id="ctsEditBody" contenteditable="true" data-ph="请输入正文"></div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- ③ 儿童中医药健康管理服务记录（点「新建」弹出） -->
+          <div class="cts-pop" id="ctsPop">
+            <div class="cts-pop-t">儿童中医药健康管理服务记录</div>
+            <div class="cts-pop-body">
+              <table class="cts-pop-tbl">
+                <colgroup>
+                  <col style="width:42px"><col style="width:163px"><col style="width:163px">
+                  <col style="width:163px"><col style="width:55px">
+                </colgroup>
+                <thead>
+                  <tr><th class="c">序号</th><th>随访日期</th><th>月龄</th><th>下次随访日期</th><th class="c">操作</th></tr>
+                </thead>
+                <tbody id="ctsPopBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ===== 视图：残疾人基本信息（残疾人管理） ===== -->
     <div class="pv-view hidden" id="viewDisability">
       <div class="hp-card" id="disCard">
@@ -16772,14 +17001,31 @@
     <div class="pv-view hidden" id="viewVaccineRecord">
       <div class="hp-card">
         <div class="hp-head">
-          <div class="wm-head-top">
-            <h3>预防接种记录</h3>
-            <div class="hp-actions"><button class="btn btn-primary" onclick="saveVaccineRecord()">保存</button></div>
+        <div class="wm-head-top">
+          <h3>预防接种记录</h3>
+          <div class="hp-actions">
+            <button class="btn btn-default" id="vcrBtnNew" style="display:none;border-color:var(--primary);color:var(--primary)" onclick="newVaccineRecord()">新建</button>
+            <button class="btn btn-primary" onclick="saveVaccineRecord()">保存</button>
+            <button class="vcr-rec-btn" type="button" title="历史填报记录" onclick="toggleVcrRecords(event)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 4.5l1.2 1.2L7.5 3.4"/><path d="M4 10.5l1.2 1.2 2.3-2.3"/><path d="M4 16.5l1.2 1.2 2.3-2.3"/></svg>
+            </button>
           </div>
-          <div class="wm-head-sub">
-            <span>姓名：<b id="vcrNameTxt">--</b></span>
-            <span>档案编号：<b id="vcrArchNo">--</b></span>
-          </div>
+        </div>
+        <div class="wm-head-sub">
+          <span>姓名：<b id="vcrNameTxt">--</b></span>
+          <span>档案编号：<b id="vcrArchNo">--</b></span>
+        </div>
+        <!-- 历史填报记录浮层（点击头部「记录」图标弹出） -->
+        <div class="vcr-rec-pop" id="vcrRecPop" onclick="event.stopPropagation()">
+          <h4>预防接种记录</h4>
+          <table>
+            <colgroup><col style="width:60px"><col style="width:150px"><col><col style="width:120px"><col style="width:80px"></colgroup>
+            <thead>
+              <tr><th>序号</th><th>接种日期</th><th>接种疫苗</th><th>接种针次</th><th>操作</th></tr>
+            </thead>
+            <tbody id="vcrRecTbody"></tbody>
+          </table>
+        </div>
         </div>
         <div class="wm-body">
           <table class="wm-tbl vc-tbl">
@@ -17979,13 +18225,13 @@
             <div class="hp-cell">
               <div class="hp-label">姓名</div>
               <div class="hp-field">
-                <input class="ctl" id="hcName" placeholder="请输入">
+                <span class="hc-ro" id="hcName">--</span>
               </div>
             </div>
             <div class="hp-cell">
               <div class="hp-label">性别</div>
               <div class="hp-field">
-                <input class="ctl" id="hcGender" placeholder="请输入">
+                <span class="hc-ro" id="hcGender">--</span>
               </div>
             </div>
           </div>
@@ -17994,13 +18240,13 @@
             <div class="hp-cell">
               <div class="hp-label">出生日期</div>
               <div class="hp-field">
-                <input class="ctl" id="hcBirth" type="date">
+                <span class="hc-ro" id="hcBirth">--</span>
               </div>
             </div>
             <div class="hp-cell">
               <div class="hp-label">健康档案编号</div>
               <div class="hp-field">
-                <input class="ctl" id="hcArchNo" placeholder="请输入">
+                <span class="hc-ro" id="hcArchNo">--</span>
               </div>
             </div>
           </div>
@@ -18032,7 +18278,7 @@
           </div>
           <!-- 慢性患病情况 -->
           <div class="hp-row">
-            <div class="hp-label">慢性患病情况</div>
+            <div class="hp-label">慢性病患病情况</div>
             <div class="hp-field">
               <div class="opts" id="hcChronicBox">
                 <label class="chk"><input type="checkbox" name="hcChronic" value="无">无</label>
@@ -18062,7 +18308,7 @@
             <div class="hp-cell">
               <div class="hp-label">家庭住址</div>
               <div class="hp-field">
-                <input class="ctl" id="hcAddr" placeholder="请输入" style="max-width:420px">
+                <span class="hc-ro" id="hcAddr">--</span>
               </div>
             </div>
             <div class="hp-cell">
@@ -18092,7 +18338,7 @@
             <div class="hp-cell">
               <div class="hp-label">建档机构名称</div>
               <div class="hp-field">
-                <input class="ctl" id="hcOrgName" placeholder="请输入">
+                <span class="hc-ro" id="hcOrgName">--</span>
               </div>
             </div>
             <div class="hp-cell">
@@ -18107,7 +18353,7 @@
             <div class="hp-cell">
               <div class="hp-label">责任医生或护士</div>
               <div class="hp-field">
-                <input class="ctl" id="hcDoctorName" placeholder="请输入">
+                <span class="hc-ro" id="hcDoctorName">--</span>
               </div>
             </div>
             <div class="hp-cell">
@@ -20486,8 +20732,100 @@
     if (!$('hePlace').value) missing.push('干预地点');
     if (!$('heOrg').value) missing.push('所在机构');
     if (missing.length) { toast('请完善必填项：' + missing.join('、'), 'warning'); return; }
+    /* 写入历史填报记录（点击头部「记录」图标可查看，点击行可回显到表单） */
+    heRecords.push({
+      date: $('heDate').value,
+      way: $('heWay').value,
+      place: $('hePlace').value,
+      doctor: $('heDoctor').value || '--',
+      org: $('heOrg').value,
+      rx: $('heRx').innerHTML,
+      advice: $('heAdvice').value,
+      remark: $('heRemark').value
+    });
+    renderHeRecords();
+    updateHeNewBtn();
     toast('保存成功：健康教育记录已归档', 'success');
   }
+  /* ---- 健康教育记录表：历史填报记录浮层 + 新建 ---- */
+  var heRecords = [];
+  var HE_FIELD_IDS = ['heDate','heWay','hePlace','heDoctor','heOrg','heAdvice','heRemark'];
+  /* 表单内已有内容时显示「新建」按钮（填报/保存后出现 新建/保存/记录 三枚按钮） */
+  function updateHeNewBtn() {
+    var has = HE_FIELD_IDS.some(function (id) {
+      var el = $(id); return el && String(el.value).trim() !== '';
+    });
+    var rx = $('heRx');
+    if (!has && rx && rx.textContent.trim() !== '') has = true;
+    var btn = $('heBtnNew');
+    if (btn) btn.style.display = has ? '' : 'none';
+  }
+  function renderHeRecords() {
+    var tb = $('heRecTbody'); if (!tb) return;
+    if (!heRecords.length) {
+      tb.innerHTML = '<tr><td colspan="5" class="vcr-rec-empty">暂无历史填报记录</td></tr>';
+      return;
+    }
+    tb.innerHTML = heRecords.map(function (r, i) {
+      return '<tr style="cursor:pointer" onclick="loadHeRecord(' + i + ')"><td>' + (i + 1) + '</td><td>' + vcrEsc(r.date) + '</td><td>' + vcrEsc(r.way) +
+             '</td><td>' + vcrEsc(r.doctor) + '</td><td><span class="vcr-del" onclick="event.stopPropagation();delHeRecord(' + i + ')">删除</span></td></tr>';
+    }).join('');
+  }
+  function toggleHeRecords(e) {
+    if (e) e.stopPropagation();
+    var pop = $('heRecPop'); if (!pop) return;
+    if (pop.classList.contains('open')) { pop.classList.remove('open'); return; }
+    renderHeRecords();
+    pop.classList.add('open');
+  }
+  function closeHeRecords() {
+    var pop = $('heRecPop');
+    if (pop) pop.classList.remove('open');
+  }
+  function delHeRecord(i) {
+    heRecords.splice(i, 1);
+    renderHeRecords();
+    toast('已删除该条健康教育记录', 'success');
+  }
+  /* 点击浮层行：将该条历史填报记录回显到表单 */
+  function loadHeRecord(i) {
+    var r = heRecords[i]; if (!r) return;
+    setVal('heDate', r.date);
+    setVal('heWay', r.way);
+    setVal('hePlace', r.place);
+    setVal('heDoctor', r.doctor === '--' ? '' : r.doctor);
+    setVal('heOrg', r.org);
+    var rx = $('heRx'); if (rx) rx.innerHTML = r.rx || '';
+    setVal('heAdvice', r.advice || '');
+    setVal('heRemark', r.remark || '');
+    var c1 = $('heAdviceCnt'); if (c1) c1.textContent = (r.advice || '').length + '/300';
+    var c2 = $('heRemarkCnt'); if (c2) c2.textContent = (r.remark || '').length + '/300';
+    closeHeRecords();
+    updateHeNewBtn();
+    toast('已回显第 ' + (i + 1) + ' 条填报记录', 'success');
+  }
+  /* 新建：清空表单回到空白填报状态（隐藏「新建」按钮，仅保留 保存/记录） */
+  function newHealthEdu() {
+    HE_FIELD_IDS.forEach(function (id) { setVal(id, ''); });
+    var rx = $('heRx'); if (rx) rx.innerHTML = '';
+    var c1 = $('heAdviceCnt'); if (c1) c1.textContent = '0/300';
+    var c2 = $('heRemarkCnt'); if (c2) c2.textContent = '0/300';
+    closeHeRecords();
+    updateHeNewBtn();
+    toast('已新建空白记录，可继续填报', 'success');
+  }
+  /* 点击浮层外部关闭浮层 */
+  document.addEventListener('click', function (e) {
+    var pop = $('heRecPop');
+    if (pop && pop.classList.contains('open') && !pop.contains(e.target)) pop.classList.remove('open');
+  });
+  /* 表单内容变化时同步「新建」按钮显隐 */
+  (function () {
+    var view = $('viewHealthEdu');
+    if (!view) return;
+    view.addEventListener('input', updateHeNewBtn);
+    view.addEventListener('change', updateHeNewBtn);
+  })();
 
   /* =========================================================================
      妇女管理模块：妇女档案信息 / 婚前医学检查表 / 叶酸发放登记表
@@ -20672,7 +21010,7 @@
   }
   /* 预防接种记录：清空「接种医生」（设计稿右侧 ⊗ 图标） */
   function clearVaccineDoctor() { setVal('vcrDoctor', ''); }
-  /* 预防接种记录：保存 */
+  /* 预防接种记录：保存（保存后写入历史填报记录，并显示「新建」按钮） */
   function saveVaccineRecord() {
     var miss = wmMissing([
       { t: 'val', id: 'vcrVaccine', label: '疫苗名称' },
@@ -20685,8 +21023,77 @@
     ]);
     if (miss.length) { toast('请完善必填项：' + miss.join('、'), 'warning'); return; }
     vcFillHead();
+    vcrRecords.unshift({
+      date: $('vcrDate').value.trim(),
+      vaccine: $('vcrVaccine').value.trim(),
+      dose: $('vcrDose').value.trim()
+    });
+    renderVcrRecords();
+    updateVcrNewBtn();
     wmToastSaved('保存成功：预防接种记录已登记');
   }
+  /* ---- 预防接种记录：历史填报记录浮层 + 新建 ---- */
+  var vcrRecords = [];
+  var VCR_FIELD_IDS = ['vcrVaccine','vcrDose','vcrDate','vcrSite','vcrOrg','vcrDoctor',
+                       'vcrFactory','vcrBatch','vcrValid','vcrRemark','vcrRegOrg','vcrRegDoc'];
+  function vcrEsc(s){ return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  /* 表单内已有内容时显示「新建」按钮（对应设计稿：填报完出现 新建/保存/记录 三枚按钮） */
+  function updateVcrNewBtn() {
+    var has = VCR_FIELD_IDS.some(function (id) {
+      var el = $(id); return el && String(el.value).trim() !== '';
+    });
+    var btn = $('vcrBtnNew');
+    if (btn) btn.style.display = has ? '' : 'none';
+  }
+  function renderVcrRecords() {
+    var tb = $('vcrRecTbody'); if (!tb) return;
+    if (!vcrRecords.length) {
+      tb.innerHTML = '<tr><td colspan="5" class="vcr-rec-empty">暂无历史填报记录</td></tr>';
+      return;
+    }
+    tb.innerHTML = vcrRecords.map(function (r, i) {
+      return '<tr><td>' + (i + 1) + '</td><td>' + vcrEsc(r.date) + '</td><td>' + vcrEsc(r.vaccine) +
+             '</td><td>' + vcrEsc(r.dose) + '</td><td><span class="vcr-del" onclick="delVcrRecord(' + i + ')">删除</span></td></tr>';
+    }).join('');
+  }
+  function toggleVcrRecords(e) {
+    if (e) e.stopPropagation();
+    var pop = $('vcrRecPop'); if (!pop) return;
+    if (pop.classList.contains('open')) { pop.classList.remove('open'); return; }
+    renderVcrRecords();
+    pop.classList.add('open');
+  }
+  function closeVcrRecords() {
+    var pop = $('vcrRecPop');
+    if (pop) pop.classList.remove('open');
+  }
+  function delVcrRecord(i) {
+    vcrRecords.splice(i, 1);
+    renderVcrRecords();
+    toast('已删除该条接种记录', 'success');
+  }
+  /* 新建：清空表单回到空白填报状态（隐藏「新建」按钮，仅保留 保存/记录） */
+  function newVaccineRecord() {
+    VCR_FIELD_IDS.forEach(function (id) { setVal(id, ''); });
+    document.querySelectorAll('input[name="vcrImmType"]').forEach(function (r) { r.checked = false; });
+    var cnt = $('vcrRemarkCnt'); if (cnt) cnt.textContent = '0/200';
+    closeVcrRecords();
+    updateVcrNewBtn();
+    toast('已新建空白记录，可继续填报', 'success');
+  }
+  /* 点击浮层外部关闭浮层 */
+  document.addEventListener('click', function (e) {
+    var pop = $('vcrRecPop');
+    if (pop && pop.classList.contains('open') && !pop.contains(e.target)) pop.classList.remove('open');
+  });
+  /* 表单内容变化时同步「新建」按钮显隐 */
+  (function () {
+    var view = $('viewVaccineRecord');
+    if (!view) return;
+    view.addEventListener('input', updateVcrNewBtn);
+    view.addEventListener('change', updateVcrNewBtn);
+  })();
   /* 预防接种记录：按设计稿回填 */
   function mockVaccineRecord() {
     vcFillHead();
@@ -20702,6 +21109,7 @@
     setVal('vcrRemark', '');
     setVal('vcrRegOrg', '山东大学齐鲁医院');
     setVal('vcrRegDoc', '吕雪');
+    updateVcrNewBtn();
   }
 
   /* 妇女档案信息：保存 */
@@ -21140,6 +21548,8 @@
   }
 
   function switchView(name) {
+    if (typeof closeVcrRecords === 'function') closeVcrRecords();
+    if (typeof closeHeRecords === 'function') closeHeRecords();
     var isHome = name === 'home';
     var isGg = name === 'genogram';
     var isLt = name === 'lifeTree';
@@ -21203,6 +21613,7 @@
     var isEts = name === 'elderTcmService';
     var isTcg = name === 'tcmGuide';
     var isTcc = name === 'tcmConst';
+    var isCts = name === 'childTcmService';
     var isDis = name === 'disability';
     var isVi = name === 'vaccineInfo';
     var isVr = name === 'vaccineRecord';
@@ -21212,7 +21623,7 @@
     var isChildAny = isCh || isCbc || isCnv || isCh18 || isCh1230 || isCh36 ||
       isCvs || isChs || isCds || isCen || isCei || isCet || isCep || isCgr || isCdt;
     /* 顶部信息栏：儿童相关视图（含预防接种）展示儿童本人信息，其余视图回到居民本人信息 */
-    if (isChildAny || isVcAny) {
+    if (isChildAny || isVcAny || isCts) {
       renderChildBar();
     } else if (isLt) {
       ltEnsure();
@@ -21284,6 +21695,7 @@
     $('viewElderTcmService').classList.toggle('hidden', !isEts);
     $('viewTcmGuide').classList.toggle('hidden', !isTcg);
     $('viewTcmConst').classList.toggle('hidden', !isTcc);
+    $('viewChildTcmService').classList.toggle('hidden', !isCts);
     $('viewDisability').classList.toggle('hidden', !isDis);
     $('viewVaccineInfo').classList.toggle('hidden', !isVi);
     $('viewVaccineRecord').classList.toggle('hidden', !isVr);
@@ -21351,11 +21763,12 @@
     $('navElderTcmService').classList.toggle('active', isEts);
     $('navTcmGuide').classList.toggle('active', isTcg);
     $('navTcmConst').classList.toggle('active', isTcc);
+    $('navChildTcmService').classList.toggle('active', isCts);
     $('navDisability').classList.toggle('active', isDis);
     $('navVaccineInfo').classList.toggle('active', isVi);
     $('navVaccineRecord').classList.toggle('active', isVr);
     $('navHealthCheckup').classList.toggle('active', isHce);
-    $('btnSave').style.display = (isCover || isHc || isDt || isSa || isHe || isWa || isPm || isFa || isPpg || isWd || isChildAny || isMsAny || isEa || isDis || isVcAny || isHce || isHome || isGg || isLt) ? 'none' : '';
+    $('btnSave').style.display = (isCover || isHc || isDt || isSa || isHe || isWa || isPm || isFa || isPpg || isWd || isChildAny || isMsAny || isEa || isDis || isCts || isVcAny || isHce || isHome || isGg || isLt) ? 'none' : '';
     if (isHp || isFu || isAs) {
       $('navHpGroup').classList.add('open');
       $('pvContent').scrollTop = 0;
@@ -21402,6 +21815,9 @@
       $('navTcmGroup').classList.add('open');
       $('pvContent').scrollTop = 0;
     } else if (isTcc) {
+      $('navTcmGroup').classList.add('open');
+      $('pvContent').scrollTop = 0;
+    } else if (isCts) {
       $('navTcmGroup').classList.add('open');
       $('pvContent').scrollTop = 0;
     } else if (isVcAny) {
@@ -23423,6 +23839,7 @@
     buildFamTable();
     /* 中医管理：老年人中医药健康管理服务记录表（33 题量表）构建 */
     etsBuild();
+    ctsBuild();
     bindFamMutex();    bindMutex('allergyBox', '无');
     bindMutex('exposureBox', '无');
     bindMutex('disabilityBox', '无残疾');
@@ -23669,6 +24086,7 @@
     $('heArchNo').textContent = QS.get('archNo') || $('cvArchNo').value || '--';
     $('heDate').value = todayStr();
     $('heDoctor').value = QS.get('doctor') || '吕雪';
+    if (typeof updateHeNewBtn === 'function') updateHeNewBtn();
 
     /* 妇女管理模块：表头姓名/档案编号 + 时间字段默认当天 */
     ['wa', 'pm', 'fa', 'ppg', 'wd'].forEach(function (p) {
@@ -23741,13 +24159,17 @@
     bindHlpFuSymptomMutex();
     if (QS.get('height')) $('cvHeight').textContent = QS.get('height');
 
-    /* 健康信息卡预填 */
-    $('hcName').value = P.name;
-    $('hcGender').value = (QS.get('gender') || P.gender || '').replace(/性$/, '');
-    $('hcBirth').value = P.birth;
-    $('hcArchNo').value = QS.get('archNo') || $('cvArchNo').value || '';
-    $('hcAddr').value = QS.get('addr') || '';
+    /* 健康信息卡预填（姓名/性别/出生日期/健康档案编号/家庭住址/建档机构名称/责任医生或护士 = 只读文本） */
+    setVal('hcName', P.name);
+    setVal('hcGender', (QS.get('gender') || P.gender || '').replace(/性$/, ''));
+    setVal('hcBirth', P.birth);
+    setVal('hcArchNo', QS.get('archNo') || $('cvArchNo').value || '');
+    setVal('hcAddr', QS.get('addr') || '');
+    setVal('hcOrgName', QS.get('specOrg') || '山东大学齐鲁医院');
+    setVal('hcDoctorName', QS.get('doctor') || '吕雪');
     $('hcTel').value = P.phone;
+    $('hcEmgName').value = QS.get('emgName') || '这周';
+    $('hcEmgTel').value = QS.get('emgTel') || '15589898089';
     bindCopdMutex('hcChronicBox', 'hcChronic');
 
     /* 死亡登记表（居民死亡医学证明（推断）书）预填 */
@@ -23938,6 +24360,11 @@
       tcqFillHead();
       tcqBuild();
       switchView('tcmConst');
+    }
+    /* 中医管理：儿童中医药健康管理服务记录表 */
+    else if (initView === 'childTcmService') {
+      ctsFillHead();
+      switchView('childTcmService');
     }
     else if (initView === 'disability') {
       switchView('disability');
@@ -24232,7 +24659,7 @@
   function eaFillHead() {
     var t = $('eaNameTxt'), a = $('eaArchNo');
     if (t) t.textContent = P.name;
-    if (a) a.textContent = EA_ARCH_NO;
+    if (a) a.textContent = QS.get('archNo') || EA_ARCH_NO;
   }
   function saveEaSelfCare() {
     var missing = wmMissing([
@@ -24358,6 +24785,265 @@
     { c: '⤺', t: '撤销', cmd: 'undo' },
     { c: '⤻', t: '重做', cmd: 'redo' }
   ];
+  /* =========================================================================
+     中医管理 · 儿童中医药健康管理服务（儿童中医药健康管理服务记录表）
+     设计稿：初始态只有「保存」；保存成功后为「新建 | 保存 | 打印」；
+             点「新建」弹出「儿童中医药健康管理服务记录」浮层，
+             再点「新建」→ 关闭浮层并进入空白新建态（只剩「保存 | 打印」）
+     ========================================================================= */
+  var CTS_ARCH_NO = '32101210310300001';
+  /* 月龄 → 传授的保健方法（未选月龄时只有「饮食/起居调养指导 + 其他」三项） */
+  var CTS_SVC_MAP = {
+    '6月龄': '传授摩腹、捏脊方法',
+    '12月龄': '传授摩腹、捏脊方法',
+    '18月龄': '传授按揉迎香穴，足三里穴方法',
+    '24月龄': '传授按揉迎香穴，足三里穴方法',
+    '30月龄': '传授按揉四神聪穴方法',
+    '3岁': '传授按揉四神聪穴方法'
+  };
+  var CTS_IMG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+    + 'stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" '
+    + 'height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 16l-5-5L5 20"/></svg>';
+  var CTS_TOOLS = [
+    { c: 'H', t: '标题', cmd: 'formatBlock', v: '<h4>', w: 'bold' },
+    { c: 'B', t: '加粗', cmd: 'bold', w: 'bold' },
+    { c: 'T↕', t: '字号', cmd: 'fontSize', v: '4' },
+    { c: '<i>F</i>', t: '字体', cmd: 'fontName', v: '宋体' },
+    { c: 'I', t: '斜体', cmd: 'italic', w: 'italic' },
+    { c: 'U', t: '下划线', cmd: 'underline', w: 'underline' },
+    { c: 'S', t: '删除线', cmd: 'strikeThrough', w: 'line-through' },
+    { c: '✎', t: '清除格式', cmd: 'removeFormat' },
+    { c: '•', t: '无序列表', cmd: 'insertUnorderedList' },
+    { c: '≡', t: '左对齐', cmd: 'justifyLeft' },
+    { c: CTS_IMG, t: '插入图片', cmd: '__image__' },
+    { c: '↺', t: '撤销', cmd: 'undo' },
+    { c: '↻', t: '重做', cmd: 'redo' },
+    { c: '⛶', t: '全屏', cmd: '__full__' }
+  ];
+  var CTS_RECORDS = [];
+  var CTS_CUR = -1;
+  var CTS_STATE = 'view';
+
+  /* 渲染工具栏；表单复位为设计稿初始态（月龄未选 → 3 个服务项） */
+  function ctsBuild() {
+    var bar = $('ctsEditBar');
+    if (bar) {
+      bar.innerHTML = CTS_TOOLS.map(function (o) {
+        return '<button type="button" class="ets-edit-btn" title="' + o.t + '"'
+          + (o.w ? ' style="font-weight:' + o.w + '"' : '')
+          + ' onmousedown="event.preventDefault()" onclick="ctsEditCmd(\'' + o.cmd + '\',\'' + (o.v || '') + '\')">'
+          + o.c + '</button>';
+      }).join('');
+    }
+    ctsResetForm();
+    ctsSyncButtons();
+  }
+
+  /* 当前月龄对应的服务项：饮食调养 + 起居调养 + （传授方法）+ 其他 */
+  function ctsSvcList() {
+    var m = $('ctsMonth') ? $('ctsMonth').value : '';
+    return ['中医饮食调养指导', '中医起居调养指导', CTS_SVC_MAP[m] || '', '其他'].filter(function (t) { return t; });
+  }
+
+  /* 渲染服务项多选；checked 为需要回填勾选的项 */
+  function ctsRenderSvc(checked) {
+    var box = $('ctsSvcBox');
+    if (!box) return;
+    var ck = checked || [];
+    box.innerHTML = ctsSvcList().map(function (t) {
+      var on = ck.indexOf(t) !== -1;
+      return '<label class="chk' + (on ? ' on' : '') + '"><input type="checkbox" value="' + t + '"'
+        + (on ? ' checked' : '') + ' onchange="ctsSvcChanged(this)">' + t + '</label>';
+    }).join('') + '<input class="ctl cts-other" id="ctsOther" type="text" placeholder="请输入">';
+    ctsSyncOther();
+  }
+
+  function ctsSvcChanged(el) {
+    var lb = el.parentNode;
+    if (lb && lb.classList) lb.classList.toggle('on', el.checked);
+    ctsSyncOther();
+  }
+
+  /* 勾「其他」时在其后出现输入框 */
+  function ctsSyncOther() {
+    var box = $('ctsOther');
+    if (!box) return;
+    var ck = document.querySelector('#ctsSvcBox input[type="checkbox"][value="其他"]');
+    var on = !!(ck && ck.checked);
+    box.style.display = on ? '' : 'none';
+    if (!on) box.value = '';
+  }
+
+  function ctsGetSvc() {
+    var out = [];
+    Array.prototype.forEach.call(document.querySelectorAll('#ctsSvcBox input[type="checkbox"]:checked'), function (b) {
+      out.push(b.value);
+    });
+    return out;
+  }
+
+  function ctsOnMonth() { ctsRenderSvc(); }
+
+  function ctsEditCmd(cmd, v) {
+    if (cmd === '__image__') { ctsImage(); return; }
+    if (cmd === '__full__') { ctsFull(); return; }
+    var box = $('ctsEditBody');
+    if (!box) return;
+    box.focus();
+    try { document.execCommand(cmd, false, v || null); } catch (e) {}
+  }
+
+  function ctsImage() {
+    var box = $('ctsEditBody');
+    if (!box) return;
+    box.focus();
+    var uri = 'data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27640%27'
+      + ' height=%27180%27%3E%3Crect width=%27640%27 height=%27180%27 fill=%27%23EEF3FA%27/%3E%3Ctext x=%27264%27'
+      + ' y=%27100%27 font-size=%2722%27 fill=%27%238FA8C8%27%3E图片占位%3C/text%3E%3C/svg%3E';
+    try { document.execCommand('insertImage', false, uri); } catch (e) {}
+  }
+
+  function ctsFull() {
+    var w = $('ctsEdWrap');
+    if (w) w.classList.toggle('fullscreen');
+  }
+
+  /* 顶部按钮组按状态显隐：view = 仅「保存」/ edit = 「新建|保存|服务记录」/ draft = 「保存|服务记录」 */
+  function ctsSyncButtons() {
+    var n = $('ctsBtnNew'), p = $('ctsBtnRec'), s = $('ctsSep'), b = $('ctsEditBody');
+    if (n) n.style.display = (CTS_STATE === 'edit') ? '' : 'none';
+    if (p) p.style.display = (CTS_STATE === 'view') ? 'none' : '';
+    if (s) s.style.display = (CTS_STATE === 'view') ? 'none' : '';
+    /* 设计稿：初始态正文不显示占位，进入新建/编辑态才显示「请输入正文」 */
+    if (b) b.setAttribute('data-ph', (CTS_STATE === 'view') ? '' : '请输入正文');
+  }
+
+  function ctsResetForm() {
+    setVal('ctsMonth', '');
+    setVal('ctsDate', '');
+    setVal('ctsNextDate', '');
+    setVal('ctsDoctor', '吕雪');
+    var body = $('ctsEditBody');
+    if (body) body.innerHTML = '';
+    ctsRenderSvc();
+  }
+
+  /* 姓名 / 档案编号 */
+  function ctsFillHead() {
+    var t = $('ctsNameTxt'), a = $('ctsArchNo');
+    if (t) t.textContent = QS.get('name') || cnFirstVal(['chName']) || P.name;
+    if (a) a.textContent = QS.get('archNo') || CTS_ARCH_NO;
+  }
+
+  function ctsRecord() {
+    var body = $('ctsEditBody'), other = $('ctsOther');
+    return {
+      month: $('ctsMonth') ? $('ctsMonth').value : '',
+      date: $('ctsDate') ? $('ctsDate').value.trim() : '',
+      next: $('ctsNextDate') ? $('ctsNextDate').value.trim() : '',
+      doctor: $('ctsDoctor') ? $('ctsDoctor').value : '',
+      svc: ctsGetSvc(),
+      other: (other && other.style.display !== 'none') ? other.value.trim() : '',
+      content: body ? body.innerHTML : ''
+    };
+  }
+
+  /* 把第 i 条记录载入表单 */
+  function ctsApply(i) {
+    var r = CTS_RECORDS[i];
+    if (!r) return;
+    setVal('ctsMonth', r.month);
+    setVal('ctsDate', r.date);
+    setVal('ctsNextDate', r.next);
+    setVal('ctsDoctor', r.doctor);
+    ctsRenderSvc(r.svc);
+    var o = $('ctsOther');
+    if (o) {
+      o.style.display = (r.svc.indexOf('其他') !== -1) ? '' : 'none';
+      if (r.svc.indexOf('其他') !== -1) o.value = r.other || '';
+    }
+    var b = $('ctsEditBody');
+    if (b) b.innerHTML = r.content || '';
+    CTS_CUR = i;
+    CTS_STATE = 'edit';
+    ctsSyncButtons();
+  }
+
+  function ctsRenderPop() {
+    var tb = $('ctsPopBody');
+    if (!tb) return;
+    if (!CTS_RECORDS.length) {
+      tb.innerHTML = '<tr><td class="c" colspan="5" style="color:var(--text-tertiary)">暂无记录</td></tr>';
+      return;
+    }
+    tb.innerHTML = CTS_RECORDS.map(function (r, i) {
+      return '<tr>'
+        + '<td class="c">' + (i + 1) + '</td>'
+        + '<td class="sel" onclick="ctsPick(' + i + ')">' + (r.date || '-') + '</td>'
+        + '<td class="sel" onclick="ctsPick(' + i + ')">' + (r.month || '-') + '</td>'
+        + '<td class="sel" onclick="ctsPick(' + i + ')">' + (r.next || '-') + '</td>'
+        + '<td class="del"><a onclick="ctsDel(' + i + ')">删除</a></td>'
+        + '</tr>';
+    }).join('');
+  }
+
+  function ctsShowPop() { ctsRenderPop(); var p = $('ctsPop'); if (p) p.classList.add('show'); }
+  function ctsHidePop() { var p = $('ctsPop'); if (p) p.classList.remove('show'); }
+
+  function ctsPick(i) { ctsHidePop(); ctsApply(i); }
+
+  function ctsDel(i) {
+    if (!CTS_RECORDS[i]) return;
+    CTS_RECORDS.splice(i, 1);
+    if (!CTS_RECORDS.length) {
+      CTS_CUR = -1;
+      CTS_STATE = 'view';
+      ctsResetForm();
+      ctsHidePop();
+    } else if (CTS_CUR === i) {
+      CTS_CUR = -1;
+      CTS_STATE = 'view';
+      ctsResetForm();
+    } else if (CTS_CUR > i) {
+      CTS_CUR--;
+    }
+    ctsRenderPop();
+    ctsSyncButtons();
+    toast('已删除该条随访记录', 'success');
+  }
+
+  /* 顶部「新建」：直接重置表单，进入空白填报态（数据填报）；记录列表由右侧图标打开 */
+  function ctsNew() {
+    ctsHidePop();
+    CTS_STATE = 'draft';
+    CTS_CUR = -1;
+    ctsResetForm();
+    ctsSyncButtons();
+    var b = $('ctsEditBody');
+    if (b) b.focus();
+  }
+
+  function ctsSave() {
+    var miss = wmMissing([
+      { t: 'val', id: 'ctsMonth', label: '月龄' },
+      { t: 'val', id: 'ctsDate', label: '随访日期' },
+      { t: 'val', id: 'ctsDoctor', label: '随访医生签名' }
+    ]);
+    if (miss.length) { toast('请完善必填项：' + miss.join('、'), 'warning'); return; }
+    var rec = ctsRecord();
+    if (CTS_STATE === 'edit' && CTS_CUR >= 0) { CTS_RECORDS[CTS_CUR] = rec; }
+    else { CTS_RECORDS.push(rec); CTS_CUR = CTS_RECORDS.length - 1; }
+    CTS_STATE = 'edit';
+    ctsHidePop();
+    ctsSyncButtons();
+    wmToastSaved('保存成功：' + rec.month + '儿童中医药健康管理服务记录已保存');
+  }
+
+  /* 右侧图标：打开「儿童中医药健康管理服务记录」列表浮层 */
+  function ctsOpenRec() {
+    ctsShowPop();
+  }
+
   var ETS_ARCH_NO = '321012103103000004';
 
   /* 渲染 33 道题（表单式列表）+ 保健指导行 + 保健方法工具栏 */

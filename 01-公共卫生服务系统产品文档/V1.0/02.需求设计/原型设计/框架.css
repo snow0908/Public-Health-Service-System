@@ -161,3 +161,54 @@ a{color:var(--text-link);text-decoration:none;cursor:pointer}
 .toast.success{background:var(--success-bg);border-color:var(--success)}
 .toast.warning{background:var(--warning-bg);border-color:var(--warning)}
 .toast.error{background:var(--danger-bg);border-color:var(--danger-border)}
+
+/* ==========================================================================
+   统一筛选复合控件（管理机构 / 管辖行政区 / 管辖网格）
+   样式与交互对齐「居民档案列表.html」中这三个条件；class 前缀 fcp- 避免与页面样式冲突
+   结构：
+     <div class="fcp-ms|fcp-cas|fcp-tree" data-fcp="ms|cas|tree">
+       <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+       <div class="fcp-panel"></div>
+       <input type="hidden" class="fcp-val" id="原控件id">
+     </div>
+   ========================================================================== */
+.fcp-ms,.fcp-cas,.fcp-tree,.fcp-mst{position:relative;flex:0 0 auto;width:190px;max-width:100%}
+.fcp-box{display:flex;align-items:center;gap:6px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 8px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);cursor:pointer;transition:all var(--transition-fast)}
+.fcp-box:hover{border-color:var(--primary)}
+.fcp-ms.open .fcp-box,.fcp-cas.open .fcp-box,.fcp-tree.open .fcp-box,.fcp-mst.open .fcp-box{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+/* 下拉指示箭头：容器加 data-caret 时在框右侧显示 */
+.fcp-caret{width:10px;height:6px;flex-shrink:0;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center;transition:transform var(--transition-fast)}
+.fcp-cas.open .fcp-caret,.fcp-tree.open .fcp-caret,.fcp-mst.open .fcp-caret{transform:rotate(180deg)}
+.fcp-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fcp-text.is-ph{color:var(--text-placeholder)}
+.fcp-clear{display:none;width:16px;height:16px;line-height:15px;text-align:center;border-radius:50%;background:#c9c9c9;color:#fff;font-size:12px;flex-shrink:0;cursor:pointer}
+.fcp-ms.has-val .fcp-clear,.fcp-cas.has-val .fcp-clear,.fcp-tree.has-val .fcp-clear,.fcp-mst.has-val .fcp-clear{display:block}
+.fcp-clear:hover{background:#a9a9a9}
+.fcp-panel{position:absolute;left:0;top:calc(100% + 4px);min-width:100%;max-height:238px;overflow:auto;padding:4px 0;background:#fff;border:1px solid #d9d9d9;border-radius:var(--r-sm);box-shadow:0 6px 16px rgba(0,0,0,0.14);display:none;z-index:80}
+.fcp-ms.open .fcp-panel,.fcp-mst.open .fcp-panel{display:block}
+.fcp-ms.open,.fcp-cas.open,.fcp-tree.open,.fcp-mst.open{z-index:70}
+/* 多选项（管理机构） */
+.fcp-opt{display:flex;align-items:center;gap:8px;padding:7px 12px;font-size:14px;color:var(--text-primary);white-space:nowrap;cursor:pointer}
+.fcp-opt:hover{background:var(--primary-bg)}
+.fcp-opt input{width:14px;height:14px;margin:0;accent-color:var(--primary);cursor:pointer;flex-shrink:0}
+.fcp-opt.on{color:var(--primary)}
+/* 多选项（随访类型）：无复选框，选中右侧显示对勾 */
+.fcp-opt.tick{justify-content:space-between;gap:16px}
+.fcp-opt .fcp-lab{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.fcp-opt .fcp-ck{display:none;flex-shrink:0;color:var(--primary);font-size:13px;line-height:1}
+.fcp-opt.on .fcp-ck{display:block}
+/* 级联（管辖行政区：省 / 市 / 区 / 街道） */
+.fcp-cas .fcp-panel{min-width:0;max-height:none;overflow:visible;padding:0}
+.fcp-cas.open .fcp-panel{display:flex}
+.fcp-col{width:150px;max-height:232px;overflow:auto;padding:4px 0;border-right:1px solid #F0F0F0}
+.fcp-col:last-child{border-right:none}
+.fcp-n{display:flex;align-items:center;gap:6px;padding:7px 10px;font-size:14px;color:var(--text-primary);white-space:nowrap;cursor:pointer}
+.fcp-n:hover{background:var(--primary-bg)}
+.fcp-n.on{background:var(--primary-bg);color:var(--primary)}
+.fcp-n.sel{color:var(--primary)}
+.fcp-n input{width:14px;height:14px;margin:0;accent-color:var(--primary);cursor:pointer;flex-shrink:0}
+.fcp-n .fcp-arrow{margin-left:auto;padding-left:8px;color:var(--text-placeholder);font-size:12px}
+/* 树形（管辖网格） */
+.fcp-tree .fcp-panel{min-width:0;width:232px;max-height:250px}
+.fcp-tree.open .fcp-panel{display:block}
+.fcp-n .fcp-tgl{width:12px;text-align:center;font-size:11px;color:var(--text-placeholder);flex-shrink:0}

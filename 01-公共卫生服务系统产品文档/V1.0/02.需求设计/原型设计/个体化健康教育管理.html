@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>个体化健康教育管理 - 健教管理</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  /* ===== 个体化健康教育管理页面特有样式（设计变量与公共样式见 框架.css） ===== */
+
+  /* ===== 嵌入模式（被 index.html 壳子以 iframe 内嵌时，框架.js 自动加 html.embed-mode） ===== */
+  html.embed-mode .main-area{height:100%}      /* 壳子内自适应：无顶部导航栏包裹 */
+  html.embed-mode .tabbar{display:none}        /* 标签栏由壳子统一管理，本页隐藏 */
+  html.embed-mode .toast{top:24px}             /* 壳内提示位置上移 */
+
+  /* ===== 布局：content 改为 flex，content-card 撑满并让表格区内部滚动 ===== */
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0}
+
+  /* ===== 页头按钮 ===== */
+  .page-head .right .btn{height:28px;padding:0 14px;font-size:13px}
+
+  /* ===== 筛选区 ===== */
+  .filter-panel{padding:14px 12px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:14px;align-items:center}
+  .filter-row.extra{display:none}
+  .filter-row.extra.show{display:flex}
+  .filter-item{display:flex;align-items:center;gap:8px}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:140px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-select.w-lg{width:210px}
+  .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-ctl::placeholder{color:var(--text-placeholder)}
+  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .btn-plain{height:28px;padding:0 8px;font-size:13px;color:var(--primary);border-radius:var(--r-sm)}
+  .btn-plain:hover{background:var(--primary-bg)}
+  /* 主筛选区行距/列距/标签间距（对齐设计稿：行距 10、列距 22、标签-控件 12） */
+  .filter-panel .filter-row{gap:12px 22px;margin-bottom:10px}
+  .filter-panel .filter-item{gap:12px}
+  /* 筛选区内控件统一外框宽度（仅作用于主筛选区，不影响新建弹框内同名类） */
+  .filter-panel .fi-ctl,.filter-panel .fi-select{width:180px}
+  .filter-panel .fcp-ms,.filter-panel .fcp-cas,.filter-panel .fcp-tree,.filter-panel .fcp-mst{width:180px}
+  .filter-panel .fcp-ms .fcp-panel{width:max-content;min-width:100%;max-width:300px}
+  /* 日期区间：单一外框（开始日期 ~ 结束日期 + 日历图标） */
+  .fi-range{display:flex;align-items:center;gap:6px;width:232px;height:32px;padding:0 8px 0 10px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);background:var(--bg-white);transition:all var(--transition-fast)}
+  .fi-range:hover{border-color:var(--primary)}
+  .fi-range:focus-within{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-range input{flex:1 1 0;min-width:0;height:30px;border:none;background:transparent;outline:none;padding:0;font-size:14px;color:var(--text-primary);font-family:inherit}
+  .fi-range input::placeholder{color:var(--text-placeholder)}
+  .fi-range input::-webkit-calendar-picker-indicator{display:none}
+  .fi-tilde{flex-shrink:0;font-size:14px;color:var(--text-placeholder)}
+  .fi-cal{width:14px;height:14px;flex-shrink:0;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none' stroke='%23bfbfbf' stroke-width='1.2'%3E%3Crect x='1.4' y='2.4' width='11.2' height='10.2' rx='1.6'/%3E%3Cpath d='M1.4 5.6h11.2M4.6 1.4v2M9.4 1.4v2'/%3E%3C/svg%3E") no-repeat center/contain}
+  /* 只看个人管理档案 复选框 */
+  .fi-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer;user-select:none;white-space:nowrap;margin:0}
+  .fi-check input[type=checkbox]{width:15px;height:15px;margin:0;accent-color:var(--primary);cursor:pointer}
+
+  /* ===== 数据表格 ===== */
+  .table-wrap{flex:1;overflow:auto;min-height:0}
+
+  /* 横向滚动时前 4 列冻结（序号/管理机构/档案编号/姓名） */
+  .list-tbl th:nth-child(-n+4),.list-tbl td:nth-child(-n+4){position:sticky}
+  .list-tbl td:nth-child(-n+4){z-index:2;background:var(--bg-white)}
+  .list-tbl th:nth-child(-n+4){z-index:6}
+  .list-tbl th:nth-child(1),.list-tbl td:nth-child(1){left:0}
+  .list-tbl th:nth-child(2),.list-tbl td:nth-child(2){left:44px}
+  .list-tbl th:nth-child(3),.list-tbl td:nth-child(3){left:194px}
+  .list-tbl th:nth-child(4),.list-tbl td:nth-child(4){left:344px}
+  .list-tbl th:nth-child(4),.list-tbl td:nth-child(4){box-shadow:6px 0 8px -6px rgba(0,0,0,0.2)}
+  /* 横向滚动时操作列（末列）冻结在右侧 */
+  .list-tbl th:last-child,.list-tbl td:last-child{position:sticky;right:0}
+  .list-tbl td:last-child{z-index:2;background:var(--bg-white)}
+  .list-tbl th:last-child{z-index:6}
+  .list-tbl th:last-child,.list-tbl td:last-child{box-shadow:-6px 0 8px -6px rgba(0,0,0,0.2)}
+  .list-tbl tr.empty-row td:last-child{position:static;box-shadow:none}
+  .list-tbl{width:100%;min-width:1500px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:36px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:nth-child(even) td{background:var(--bg-table-even)}
+  .list-tbl tbody tr:nth-child(even) td:nth-child(-n+4){background:var(--bg-table-even)}
+  .list-tbl tbody tr:hover td,.list-tbl tbody tr:hover td:nth-child(-n+4){background:var(--primary-bg)}
+  .list-tbl th.center,.list-tbl td.center{text-align:center}
+  .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* 状态圆点（居民状态/锁定状态） */
+  .st-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  .st-dot.ok{background:var(--success)}
+  .st-dot.warn{background:#FF9500}
+
+  /* 操作列 */
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px}
+  .op-link:hover{text-decoration:underline}
+  .op-link.op-danger{color:var(--danger)}
+  .op-gap{display:inline-block;width:8px}
+
+  /* ===== 分页 ===== */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:52px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-size select{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 22px 0 8px;font-size:13px;color:var(--text-secondary);background:#fff;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;cursor:pointer}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-ellipsis{display:inline-block;padding:0 4px;line-height:26px;color:var(--text-tertiary)}
+  .pg-jump input{width:40px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 6px;font-size:13px;text-align:center;color:var(--text-primary);outline:none}
+  .pg-jump input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+
+  /* ===== 档案选择弹框（新建个体健康教育记录：选择居民后「新建服务」跳转档案维护） ===== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .modal-overlay.show{opacity:1;pointer-events:auto}
+  .modal{width:980px;max-width:94vw;max-height:88vh;background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 8px 32px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden;transform:translateY(10px);transition:transform var(--transition-normal)}
+  .modal-overlay.show .modal{transform:translateY(0)}
+  .modal-head{height:48px;display:flex;align-items:center;padding:0 16px;flex-shrink:0}
+  .modal-head h3{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+  .modal-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:16px}
+  .modal-close:hover{background:var(--primary-bg);color:var(--primary)}
+  .modal-body{padding:12px 0 0;display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+  .select-filter{padding:0 16px 10px;border-bottom:1px solid #E8E8E8;flex-shrink:0}
+  .select-filter .filter-row{margin-bottom:10px}
+  .select-filter .fi-ctl{width:150px;height:30px;font-size:13px}
+  .select-filter .fi-select{width:130px;height:30px;font-size:13px}
+  .select-filter .fi-select.w-lg{width:170px}
+  .select-filter .btn{height:28px;padding:0 12px;font-size:13px}
+  .select-filter .btn-plain{height:28px;padding:0 6px;font-size:13px;color:var(--primary);background:none;border:none;cursor:pointer}
+  .select-filter .btn-plain:hover{text-decoration:underline}
+  .select-table-wrap{flex:1;overflow:auto;min-height:0;min-width:0}
+  .select-tbl{width:100%;min-width:1180px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .select-tbl th{position:sticky;top:0;z-index:5;height:34px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .select-tbl td{height:34px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* 横向滚动时前 3 列（序号/档案编号/姓名）冻结在左侧 */
+  .select-tbl th:nth-child(-n+3),.select-tbl td:nth-child(-n+3){position:sticky}
+  .select-tbl td:nth-child(-n+3){z-index:2;background:var(--bg-white)}
+  .select-tbl th:nth-child(-n+3){z-index:6}
+  .select-tbl th:nth-child(1),.select-tbl td:nth-child(1){left:0}
+  .select-tbl th:nth-child(2),.select-tbl td:nth-child(2){left:50px}
+  .select-tbl th:nth-child(3),.select-tbl td:nth-child(3){left:210px}
+  .select-tbl th:nth-child(3),.select-tbl td:nth-child(3){box-shadow:6px 0 8px -6px rgba(0,0,0,0.2)}
+  /* 操作列（末列）冻结在右侧 */
+  .select-tbl th:last-child,.select-tbl td:last-child{position:sticky;right:0}
+  .select-tbl td:last-child{z-index:2;background:var(--bg-white)}
+  .select-tbl th:last-child{z-index:6}
+  .select-tbl th:last-child,.select-tbl td:last-child{box-shadow:-6px 0 8px -6px rgba(0,0,0,0.2)}
+  .select-tbl tr.empty-row td:last-child{position:static;box-shadow:none}
+  .select-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .select-tbl th.center,.select-tbl td.center{text-align:center}
+  .select-tbl .cell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .select-tbl .op-create{color:var(--primary);cursor:pointer;font-size:13px}
+  .select-tbl .op-create:hover{text-decoration:underline}
+  .select-tbl .crowd-tag{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .select-pagefoot{display:flex;align-items:center;justify-content:flex-end;gap:10px;height:44px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .select-pagefoot .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .select-pagefoot .pg-size select{height:24px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 20px 0 6px;font-size:12px;color:var(--text-secondary);background:#fff;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 5px center;cursor:pointer}
+  .select-pagefoot .pg-pager{display:flex;align-items:center;gap:3px}
+  .select-pagefoot .pg-btn{min-width:24px;height:24px;padding:0 5px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:12px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff}
+  .select-pagefoot .pg-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .select-pagefoot .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .select-pagefoot .pg-ellipsis{display:inline-block;padding:0 3px;line-height:24px;color:var(--text-tertiary)}
+  .select-pagefoot .pg-jump input{width:36px;height:24px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 5px;font-size:12px;text-align:center;color:var(--text-primary);outline:none}
+  .select-pagefoot .pg-jump input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+
+</style>
+</head>
+<body>
+
+<!-- ===== 主内容区（顶部导航栏与左侧菜单栏由 框架.js 注入） ===== -->
+<div class="main-area">
+
+  <!-- 页面标签条（嵌入模式下隐藏，由壳子统一管理） -->
+  <div class="tabbar">
+    <div class="tab-item active" onclick="toast('当前已在「个体教育管理」页','info')">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 010 7.07"/></svg>
+      个体教育管理
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <!-- 页头 -->
+      <div class="page-head">
+        <h1>个体化健康教育管理</h1>
+        <div class="right">
+          <button class="btn btn-default" onclick="toast('导出功能建设中','info')">导出</button>
+          <button class="btn btn-default" onclick="toast('请连接身份证读卡器','info')">身份证读卡</button>
+          <button class="btn btn-primary" onclick="openSelectModal()">新建</button>
+        </div>
+      </div>
+
+      <!-- 筛选区 -->
+      <div class="filter-panel">
+        <div class="filter-row">
+          <div class="filter-item"><label>管理机构：</label>
+            <div class="fcp-ms" data-fcp="ms" data-caret>
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fOrg">
+            </div>
+          </div>
+          <div class="filter-item"><label>姓名：</label><input id="fName" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>证件号：</label><input id="fIdcard" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>干预方式：</label>
+            <select id="fMethod" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="上门治疗">上门治疗</option>
+              <option value="上门随访">上门随访</option>
+              <option value="义诊咨询活动">义诊咨询活动</option>
+            </select>
+          </div>
+        </div>
+        <div class="filter-row">
+          <div class="filter-item"><label>锁定状态：</label>
+            <select id="fLock" class="fi-select">
+              <option value="未上锁" selected>未上锁</option>
+              <option value="">全部</option>
+              <option value="已上锁">已上锁</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>居民状态：</label>
+            <select id="fRStatus" class="fi-select">
+              <option value="正常" selected>正常</option>
+              <option value="">全部</option>
+              <option value="死亡">死亡</option>
+              <option value="迁出">迁出</option>
+              <option value="注销">注销</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>干预日期：</label>
+            <span class="fi-range">
+              <input id="fStart" type="text" placeholder="开始日期" value="2026-01-01" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <span class="fi-tilde">~</span>
+              <input id="fEnd" type="text" placeholder="结束日期" value="2026-10-13" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <span class="fi-cal"></span>
+            </span>
+          </div>
+          <div class="filter-item"><label>管辖行政区：</label>
+            <div class="fcp-cas" data-fcp="cas" data-caret>
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fRegion">
+            </div>
+          </div>
+          <div class="filter-btns">
+            <button class="btn btn-default" onclick="resetFilter()">重置</button>
+            <button class="btn btn-primary" onclick="applyFilter()">查询</button>
+            <button class="btn-plain" id="btnExpand" onclick="toggleExtra()">展开 ▼</button>
+          </div>
+        </div>
+        <div class="filter-row extra">
+          <div class="filter-item"><label>干预医生：</label><input id="fDoctor" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>疾病类型：</label>
+            <select id="fDisease" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="高血压">高血压</option>
+              <option value="糖尿病">糖尿病</option>
+              <option value="慢阻肺">慢阻肺</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>档案编号：</label><input id="fArchNo" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>出生日期：</label>
+            <span class="fi-range">
+              <input id="fBirthStart" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <span class="fi-tilde">~</span>
+              <input id="fBirthEnd" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <span class="fi-cal"></span>
+            </span>
+          </div>
+        </div>
+        <div class="filter-row extra">
+          <div class="filter-item"><label class="fi-check"><input type="checkbox" id="fMine"> 只看个人管理档案</label></div>
+        </div>
+      </div>
+
+      <!-- 数据表格（列组/表头/表体均由 JS 按「展开/收起」模式渲染） -->
+      <div class="table-wrap">
+        <table class="list-tbl" id="listTbl">
+          <colgroup id="tblCols"></colgroup>
+          <thead id="tblHead"></thead>
+          <tbody id="tbBody"></tbody>
+        </table>
+      </div>
+
+      <!-- 分页 -->
+      <div class="page-foot">
+        <span class="pg-total">共 <b id="pgTotal">0</b> 条</span>
+        <span class="pg-size">
+          <select onchange="toast('原型演示：每页条数固定 20 条','info')">
+            <option selected>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+        </span>
+        <span class="pg-pager" id="pgPager"></span>
+        <span class="pg-jump">跳至第 <input id="pgJump" value="1" onkeydown="if(event.key==='Enter'){jumpPage()}"> 页</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== 新建个体健康教育记录弹框（选择居民档案 → 新建服务） ===== -->
+<div class="modal-overlay" id="selectModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>新建个体健康教育记录</h3>
+      <span class="modal-close" onclick="closeSelectModal()">×</span>
+    </div>
+    <div class="modal-body">
+      <!-- 筛选区 -->
+      <div class="select-filter">
+        <div class="filter-row">
+          <div class="filter-item"><label>姓名</label><input id="sfName" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>证件类型</label>
+            <select id="sfIdType" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="居民身份证">居民身份证</option>
+              <option value="居民户口簿">居民户口簿</option>
+              <option value="护照">护照</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>证件号</label><input id="sfIdcard" class="fi-ctl" placeholder="请输入"></div>
+        </div>
+        <div class="filter-row">
+          <div class="filter-item"><label>管理机构</label>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="sfOrg">
+            </div>
+          </div>
+          <div class="filter-item"><label>管辖网格</label>
+            <div class="fcp-tree" data-fcp="tree">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="sfGrid">
+            </div>
+          </div>
+          <div class="filter-btns">
+            <button class="btn btn-default" onclick="resetSelectFilter()">重置</button>
+            <button class="btn btn-primary" onclick="applySelectFilter()">查询</button>
+            <button class="btn-plain" id="sfExpand" onclick="toggleSelectExtra()">展开 ▼</button>
+          </div>
+        </div>
+        <div class="filter-row" id="sfExtraRow" style="display:none">
+          <div class="filter-item"><label>性别</label>
+            <select id="sfGender" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="男">男</option>
+              <option value="女">女</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>年龄</label><input id="sfAge" class="fi-ctl" placeholder="如：60"></div>
+          <div class="filter-item"><label>人群类型</label>
+            <select id="sfCrowd" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="老年人">老年人</option>
+              <option value="高血压">高血压</option>
+              <option value="糖尿病">糖尿病</option>
+              <option value="儿童">儿童</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>管辖行政区</label><div class="fcp-cas" data-fcp="cas">
+            <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+            <div class="fcp-panel"></div>
+            <input type="hidden" class="fcp-val" id="sfRegion">
+          </div></div>
+        </div>
+      </div>
+      <!-- 居民档案列表表格 -->
+      <div class="select-table-wrap">
+        <table class="select-tbl">
+          <colgroup>
+            <col style="width:50px"><col style="width:170px"><col style="width:72px"><col style="width:48px"><col style="width:48px"><col style="width:92px"><col style="width:168px"><col style="width:110px"><col style="width:110px"><col style="width:80px">
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="center">序号</th>
+              <th>档案编号</th>
+              <th>姓名</th>
+              <th class="center">性别</th>
+              <th class="center">年龄</th>
+              <th>证件类型</th>
+              <th>证件号</th>
+              <th>人群类型</th>
+              <th>管辖行政区</th>
+              <th class="center">操作</th>
+            </tr>
+          </thead>
+          <tbody id="sfTbBody"></tbody>
+        </table>
+      </div>
+      <!-- 分页 -->
+      <div class="select-pagefoot">
+        <span class="pg-total">共 <b id="sfTotal">0</b> 条</span>
+        <span class="pg-size">
+          <select onchange="toast('原型演示：每页条数固定 20 条','info')">
+            <option selected>20条/页</option>
+            <option>50条/页</option>
+          </select>
+        </span>
+        <span class="pg-pager" id="sfPager"></span>
+        <span class="pg-jump">跳至第 <input id="sfJump" value="1" onkeydown="if(event.key==='Enter'){sfJumpPage()}"> 页</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="框架.js" data-page="individual-education" data-embed="auto"></script>
+<script>
+/* ==========================================================================
+ * 个体化健康教育管理（健教管理 · 个体教育管理）
+ * 参考 高血压管理.html 列表范式：
+ *   筛选区 + 列表表格（默认/展开两套列）+ 分页 + 新建弹框（选择居民）
+ * 「新建服务」→ 跳转 档案维护.html?view=healthEdu 健康教育记录表填报界面
+ * ========================================================================== */
+
+/* ================= 工具函数 ================= */
+function esc(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function $(id) { return document.getElementById(id); }
+
+/* ================= 模拟数据：个体化健康教育记录列表 ================= */
+/* org 必须取自 框架.js 的 ORG_LIST，「管理机构」多选筛选才可演示 */
+var eduData = [
+  { org:'山东大学齐鲁医院', archNo:'32101210610600006', name:'李富贵', gender:'女', age:41, birth:'1985-04-20',
+    idType:'居民身份证', idcard:'110101198504203228', phone:'13111111111', address:'1', region:'樊汉社区',
+    method:'上门随访', disease:'高血压', advice:'', doctor:'吕雪', date:'2026-09-21', rStatus:'正常', lock:'未上锁', mine:false },
+  { org:'山东大学齐鲁医院', archNo:'32101210610600007', name:'王海云', gender:'女', age:76, birth:'1950-01-22',
+    idType:'居民身份证', idcard:'411602195001222883', phone:'13800000002', address:'鲁玉村2号', region:'鲁玉村',
+    method:'上门治疗', disease:'糖尿病', advice:'低盐低脂饮食，规律监测血糖', doctor:'马思唯', date:'2026-09-28', rStatus:'正常', lock:'未上锁', mine:true },
+  { org:'温江区华西医院', archNo:'32101210610600008', name:'张喜喜', gender:'女', age:39, birth:'1987-03-03',
+    idType:'居民身份证', idcard:'510623198703031220', phone:'13800000003', address:'周西社区3号', region:'周西社区',
+    method:'义诊咨询活动', disease:'慢阻肺', advice:'', doctor:'陈渣渣', date:'2026-10-02', rStatus:'正常', lock:'已上锁', mine:false },
+  { org:'江都区大桥镇', archNo:'32101210610600009', name:'弥妮', gender:'女', age:28, birth:'1998-03-15',
+    idType:'居民身份证', idcard:'189878199603151298', phone:'13800000004', address:'周西社区5号', region:'周西社区',
+    method:'上门随访', disease:'高血压', advice:'按时服药，每月复测血压', doctor:'吕雪', date:'2026-10-05', rStatus:'正常', lock:'未上锁', mine:true },
+  { org:'山东大学齐鲁医院', archNo:'32101210610600010', name:'赵建国', gender:'男', age:68, birth:'1958-06-12',
+    idType:'居民身份证', idcard:'110101195806121235', phone:'13800000005', address:'东苑社区8号', region:'东苑社区',
+    method:'上门治疗', disease:'糖尿病', advice:'控制主食摄入，每周监测空腹血糖', doctor:'马思唯', date:'2026-10-08', rStatus:'正常', lock:'已上锁', mine:false },
+  { org:'成都市新都区妇幼保健院', archNo:'32101210610600011', name:'孙淑华', gender:'女', age:57, birth:'1969-11-03',
+    idType:'居民身份证', idcard:'110101196911031244', phone:'13800000006', address:'龙川社区11号', region:'龙川社区',
+    method:'义诊咨询活动', disease:'高血压', advice:'', doctor:'陈渣渣', date:'2026-10-10', rStatus:'正常', lock:'未上锁', mine:true },
+  { org:'山东大学齐鲁医院', archNo:'32101210610600012', name:'周德海', gender:'男', age:72, birth:'1954-02-18',
+    idType:'居民身份证', idcard:'110101195402181253', phone:'13800000007', address:'善玉村6号', region:'善玉村',
+    method:'上门随访', disease:'慢阻肺', advice:'戒烟，注意保暖，坚持呼吸功能锻炼', doctor:'吕雪', date:'2026-10-11', rStatus:'迁出', lock:'已上锁', mine:false },
+  { org:'江都区大桥镇', archNo:'32101210610600013', name:'吴玉珍', gender:'女', age:63, birth:'1963-08-25',
+    idType:'居民身份证', idcard:'110101196308251262', phone:'13800000008', address:'北街社区4号', region:'北街社区',
+    method:'上门治疗', disease:'高血压', advice:'', doctor:'马思唯', date:'2026-10-12', rStatus:'正常', lock:'未上锁', mine:true }
+];
+
+/* ================= 工具：跳转档案维护页（健康教育记录表） ================= */
+function buildEduParams(r, extra) {
+  var params = [
+    'view=healthEdu',
+    'name=' + encodeURIComponent(r.name),
+    'gender=' + encodeURIComponent(r.gender === '男' ? '男性' : '女性'),
+    'idcard=' + encodeURIComponent(r.idcard || ''),
+    'idType=' + encodeURIComponent(r.idType || '居民身份证'),
+    'archNo=' + encodeURIComponent(r.archNo || '')
+  ];
+  if (r.idcard && /^\d{17}[\dXx]$/.test(r.idcard)) {
+    params.push('birth=' + r.idcard.slice(6, 10) + '-' + r.idcard.slice(10, 12) + '-' + r.idcard.slice(12, 14));
+  }
+  if (r.phone) params.push('phone=' + encodeURIComponent(r.phone));
+  (extra || []).forEach(function (kv) { params.push(kv); });
+  return params;
+}
+
+/* ================= 列表表格：默认/展开两套列 ================= */
+var expandMode = false;
+
+/* 基础列（默认）：序号 管理机构 档案编号 姓名 性别 年龄 出生日期 证件类型 证件号 电话号码 详细地址 管辖行政区 操作 */
+var COLS_BASIC = [
+  { w:44,   key:'seq',     label:'序号', center:true },
+  { w:150,  key:'org',     label:'管理机构' },
+  { w:150,  key:'archNo',  label:'档案编号' },
+  { w:70,   key:'name',    label:'姓名' },
+  { w:44,   key:'gender',  label:'性别', center:true },
+  { w:44,   key:'age',     label:'年龄', center:true },
+  { w:92,   key:'birth',   label:'出生日期' },
+  { w:92,   key:'idType',  label:'证件类型' },
+  { w:160,  key:'idcard',  label:'证件号' },
+  { w:120,  key:'phone',   label:'电话号码' },
+  { w:110,  key:'address', label:'详细地址' },
+  { w:100,  key:'region',  label:'管辖行政区' },
+  { w:110,  key:'op',      label:'操作', center:true, stickyRight:true }
+];
+/* 展开列：序号 管理机构 档案编号 姓名 详细地址 管辖行政区 干预方式 健康指导意见 干预医生 干预日期 居民状态 锁定状态 操作 */
+var COLS_EXPAND = [
+  { w:44,   key:'seq',     label:'序号', center:true },
+  { w:150,  key:'org',     label:'管理机构' },
+  { w:150,  key:'archNo',  label:'档案编号' },
+  { w:70,   key:'name',    label:'姓名' },
+  { w:110,  key:'address', label:'详细地址' },
+  { w:100,  key:'region',  label:'管辖行政区' },
+  { w:90,   key:'method',  label:'干预方式' },
+  { w:180,  key:'advice',  label:'健康指导意见' },
+  { w:80,   key:'doctor',  label:'干预医生' },
+  { w:100,  key:'date',    label:'干预日期' },
+  { w:90,   key:'rStatus', label:'居民状态' },
+  { w:90,   key:'lock',    label:'锁定状态' },
+  { w:110,  key:'op',      label:'操作', center:true, stickyRight:true }
+];
+
+function currentCols() { return expandMode ? COLS_EXPAND : COLS_BASIC; }
+
+function renderTableShell() {
+  var cols = currentCols();
+  $('tblCols').innerHTML = cols.map(function (c) { return '<col style="width:' + c.w + 'px">'; }).join('');
+  $('tblHead').innerHTML = '<tr>' + cols.map(function (c) {
+    return '<th' + (c.center ? ' class="center"' : '') + '>' + c.label + '</th>';
+  }).join('') + '</tr>';
+  $('listTbl').style.minWidth = expandMode ? '1420px' : '1500px';
+}
+
+function cellHtml(r, key) {
+  switch (key) {
+    case 'seq':     return '<td class="center">' + r._seq + '</td>';
+    case 'org':     return '<td title="' + esc(r.org) + '"><span class="cell">' + esc(r.org) + '</span></td>';
+    case 'archNo':  return '<td title="' + esc(r.archNo) + '"><span class="cell">' + esc(r.archNo) + '</span></td>';
+    case 'name':    return '<td>' + esc(r.name) + '</td>';
+    case 'gender':  return '<td class="center">' + esc(r.gender) + '</td>';
+    case 'age':     return '<td class="center">' + r.age + '</td>';
+    case 'birth':   return '<td>' + esc(r.birth) + '</td>';
+    case 'idType':  return '<td>' + esc(r.idType) + '</td>';
+    case 'idcard':  return '<td title="' + esc(r.idcard) + '"><span class="cell">' + esc(r.idcard) + '</span></td>';
+    case 'phone':   return '<td title="' + esc(r.phone) + '"><span class="cell">' + esc(r.phone) + '</span></td>';
+    case 'address': return '<td title="' + esc(r.address) + '"><span class="cell">' + esc(r.address) + '</span></td>';
+    case 'region':  return '<td>' + esc(r.region) + '</td>';
+    case 'method':  return '<td>' + esc(r.method || '-') + '</td>';
+    case 'advice':  return '<td title="' + esc(r.advice || '') + '"><span class="cell">' + (r.advice ? esc(r.advice) : '-') + '</span></td>';
+    case 'doctor':  return '<td>' + esc(r.doctor || '-') + '</td>';
+    case 'date':    return '<td>' + esc(r.date || '-') + '</td>';
+    case 'rStatus': {
+      var rsDot = r.rStatus === '正常' ? 'ok' : 'warn';
+      return '<td><span class="st-dot ' + rsDot + '"></span>' + esc(r.rStatus) + '</td>';
+    }
+    case 'lock': {
+      var lkDot = r.lock === '未上锁' ? 'ok' : 'warn';
+      return '<td><span class="st-dot ' + lkDot + '"></span>' + esc(r.lock) + '</td>';
+    }
+    case 'op':
+      return '<td class="center">'
+        + '<a class="op-link" onclick="editEdu(\'' + esc(r.archNo) + '\')">编辑</a>'
+        + '<span class="op-gap"></span>'
+        + '<a class="op-link" onclick="viewEdu(\'' + esc(r.archNo) + '\')">查看</a>'
+        + '<span class="op-gap"></span>'
+        + '<a class="op-link op-danger" onclick="cancelEdu(\'' + esc(r.archNo) + '\')">注销</a>'
+        + '</td>';
+  }
+  return '<td>-</td>';
+}
+
+/* ================= 列表渲染（按筛选条件过滤 + 分页） ================= */
+var PAGE_SIZE = 20;
+var curPage = 1;
+var lastList = [];
+
+function renderTable() {
+  var org = $('fOrg').value, name = $('fName').value.trim(), idcard = $('fIdcard').value.trim();
+  var method = $('fMethod').value, lock = $('fLock').value, rStatus = $('fRStatus').value;
+  var region = $('fRegion').value;
+  var start = $('fStart').value, end = $('fEnd').value;
+  /* 展开行条件 */
+  var doctor = $('fDoctor').value.trim(), disease = $('fDisease').value, archNo = $('fArchNo').value.trim();
+  var birthStart = $('fBirthStart').value, birthEnd = $('fBirthEnd').value;
+  var mine = $('fMine').checked;
+  /* fcp-ms 隐藏域为逗号分隔多值，多选语义取 OR */
+  var orgSel = org ? org.split(',') : [];
+
+  lastList = eduData.filter(function (r) {
+    if (orgSel.length && orgSel.indexOf(r.org) === -1) return false;
+    if (name && r.name.indexOf(name) === -1) return false;
+    if (idcard && r.idcard.indexOf(idcard) === -1) return false;
+    if (method && r.method !== method) return false;
+    if (lock && r.lock !== lock) return false;
+    if (rStatus && r.rStatus !== rStatus) return false;
+    if (region && r.region !== region) return false;
+    if (doctor && (r.doctor || '').indexOf(doctor) === -1) return false;
+    if (disease && r.disease !== disease) return false;
+    if (archNo && (r.archNo || '').indexOf(archNo) === -1) return false;
+    if (birthStart && (!r.birth || r.birth < birthStart)) return false;
+    if (birthEnd && (!r.birth || r.birth > birthEnd)) return false;
+    if (mine && !r.mine) return false;
+    if (start && (!r.date || r.date < start)) return false;
+    if (end && (!r.date || r.date > end)) return false;
+    return true;
+  });
+
+  var total = Math.max(1, Math.ceil(lastList.length / PAGE_SIZE));
+  if (curPage > total) curPage = total;
+  var from = (curPage - 1) * PAGE_SIZE;
+  var slice = lastList.slice(from, from + PAGE_SIZE);
+
+  var html = '';
+  if (slice.length === 0) {
+    html = '<tr class="empty-row"><td colspan="' + currentCols().length + '"><div class="ico">📭</div>暂无符合条件的个体化健康教育记录</td></tr>';
+  } else {
+    slice.forEach(function (r, i) {
+      r._seq = from + i + 1;
+      html += '<tr>' + currentCols().map(function (c) { return cellHtml(r, c.key); }).join('') + '</tr>';
+    });
+  }
+  renderTableShell();
+  $('tbBody').innerHTML = html;
+  $('pgTotal').textContent = lastList.length;
+  renderPager(total);
+  $('pgJump').value = curPage;
+}
+
+/* ================= 分页器 ================= */
+function renderPager(total) {
+  var nums = [];
+  if (total <= 7) {
+    for (var i = 1; i <= total; i++) nums.push(i);
+  } else {
+    nums.push(1);
+    if (curPage > 3) nums.push('…');
+    for (var j = Math.max(2, curPage - 1); j <= Math.min(total - 1, curPage + 1); j++) nums.push(j);
+    if (curPage < total - 2) nums.push('…');
+    nums.push(total);
+  }
+  var h = '<button class="pg-btn" onclick="gotoPage(' + (curPage - 1) + ')">‹</button>';
+  nums.forEach(function (n) {
+    h += n === '…'
+      ? '<span class="pg-ellipsis">…</span>'
+      : '<button class="pg-btn' + (n === curPage ? ' active' : '') + '" onclick="gotoPage(' + n + ')">' + n + '</button>';
+  });
+  h += '<button class="pg-btn" onclick="gotoPage(' + (curPage + 1) + ')">›</button>';
+  $('pgPager').innerHTML = h;
+}
+
+function gotoPage(p) {
+  var total = Math.max(1, Math.ceil(lastList.length / PAGE_SIZE));
+  if (p < 1) { toast('已是第一页', 'info'); return; }
+  if (p > total) { toast('已是最后一页', 'info'); return; }
+  if (p === curPage) { toast('已在第 ' + p + ' 页', 'info'); return; }
+  curPage = p;
+  renderTable();
+}
+
+function jumpPage() {
+  var v = parseInt($('pgJump').value, 10);
+  if (isNaN(v)) { toast('请输入页码', 'warning'); return; }
+  gotoPage(v);
+}
+
+/* ================= 交互 ================= */
+function resetFilter() {
+  $('fName').value = ''; $('fIdcard').value = '';
+  ['fOrg','fMethod','fRegion','fDoctor','fDisease','fArchNo'].forEach(function (id) { $(id).value = ''; });
+  $('fLock').value = '未上锁';
+  $('fRStatus').value = '正常';
+  ['fStart','fEnd','fBirthStart','fBirthEnd'].forEach(function (id) { var el = $(id); el.value = ''; el.type = 'text'; });
+  $('fMine').checked = false;
+  curPage = 1;
+  renderTable();
+  toast('筛选条件已重置', 'success');
+}
+
+function applyFilter() {
+  curPage = 1;
+  renderTable();
+  toast('查询完成，共 ' + $('pgTotal').textContent + ' 条记录', 'success');
+}
+
+/* 展开/收起：显示/隐藏扩展筛选行（干预医生/疾病类型/档案编号/出生日期 + 只看个人管理档案），
+   同时切换表格为「干预信息」扩展列（对应设计稿两套列），按钮组随当前末行迁移 */
+function toggleExtra() {
+  var rows = document.querySelectorAll('.filter-panel .filter-row.extra');
+  var btn = $('btnExpand');
+  var show = !rows[0].classList.contains('show');
+  rows.forEach(function (row) { row.classList.toggle('show', show); });
+  btn.textContent = show ? '收起 ▲' : '展开 ▼';
+  var btns = document.querySelector('.filter-panel .filter-btns');
+  var mainRows = document.querySelectorAll('.filter-panel .filter-row:not(.extra)');
+  if (show) {
+    rows[rows.length - 1].appendChild(btns);
+  } else {
+    mainRows[mainRows.length - 1].appendChild(btns);
+  }
+  expandMode = show;
+  curPage = 1;
+  renderTable();
+}
+
+/* 列表操作列：编辑/查看 → 档案维护页健康教育记录表；注销 → 提示 */
+function findEdu(archNo) {
+  for (var i = 0; i < eduData.length; i++) {
+    if (eduData[i].archNo === archNo) return eduData[i];
+  }
+  return null;
+}
+function editEdu(archNo) {
+  var r = findEdu(archNo); if (!r) return;
+  var params = buildEduParams(r, ['edit=1']);
+  location.href = '档案维护.html?' + params.join('&');
+}
+function viewEdu(archNo) {
+  var r = findEdu(archNo); if (!r) return;
+  location.href = '档案维护.html?' + buildEduParams(r).join('&');
+}
+function cancelEdu(archNo) {
+  var r = findEdu(archNo); if (!r) return;
+  toast('注销：' + r.name + '（功能建设中）', 'info');
+}
+
+/* ================= 档案选择弹框（新建个体健康教育记录） ================= */
+/* 手工底册：贴合设计稿前 13 行 */
+var selectArchiveData = [
+  { archNo:'3210121010000323',  name:'王一丁',   gender:'男', age:55, idType:'居民身份证', idcard:'510623197012011256', crowd:'',             region:'东苑社区', org:'山东大学齐鲁医院', grid:'第一网格' },
+  { archNo:'32101210310300004', name:'产钢好',   gender:'女', age:41, idType:'居民身份证', idcard:'510623198508121365', crowd:'',             region:'黄思社区', org:'山东大学齐鲁医院', grid:'第二网格' },
+  { archNo:'32101210310300003', name:'张晓璐',   gender:'女', age:5,  idType:'居民身份证', idcard:'110113202010301777', crowd:'儿童',   region:'五会村',   org:'山东大学齐鲁医院', grid:'第一网格' },
+  { archNo:'32101210310300002', name:'张喜喜',   gender:'女', age:39, idType:'居民身份证', idcard:'510623198603031220', crowd:'',             region:'周西社区', org:'山东大学齐鲁医院', grid:'第三网格' },
+  { archNo:'32101210310300001', name:'弥妮',     gender:'女', age:28, idType:'居民身份证', idcard:'189878198603151298', crowd:'精神病 辅助管理', region:'周西社区', org:'山东大学齐鲁医院', grid:'第三网格' },
+  { archNo:'32101211811812487', name:'王海云',   gender:'女', age:76, idType:'居民身份证', idcard:'411602195001222883', crowd:'高血压 糖尿病', region:'鲁玉村',   org:'山东大学齐鲁医院', grid:'第二网格' },
+  { archNo:'32101210010000322', name:'测试',     gender:'男', age:62, idType:'居民身份证', idcard:'35873119631111269X', crowd:'',             region:'东苑社区', org:'山东大学齐鲁医院', grid:'第一网格' },
+  { archNo:'32101210010000321', name:'测试',     gender:'男', age:59, idType:'居民身份证', idcard:'81994719661217461X', crowd:'',             region:'东苑社区', org:'山东大学齐鲁医院', grid:'第一网格' },
+  { archNo:'32101210010000320', name:'测试',     gender:'男', age:50, idType:'居民身份证', idcard:'15827819751024691X', crowd:'',             region:'东苑社区', org:'山东大学齐鲁医院', grid:'第二网格' },
+  { archNo:'32101210010000319', name:'测试',     gender:'男', age:24, idType:'居民身份证', idcard:'51032220011213837X', crowd:'',             region:'东苑社区', org:'山东大学齐鲁医院', grid:'第三网格' },
+  { archNo:'32101210010000318', name:'自动化测试', gender:'男', age:24, idType:'居民身份证', idcard:'51033320011215847X', crowd:'',           region:'东苑社区', org:'山东大学齐鲁医院', grid:'第一网格' },
+  { archNo:'32101211811812486', name:'李大海',   gender:'女', age:46, idType:'居民身份证', idcard:'110101198005010149', crowd:'',             region:'鲁玉村',   org:'山东大学齐鲁医院', grid:'第二网格' },
+  { archNo:'32101210010000308', name:'李文顺',   gender:'男', age:27, idType:'居民身份证', idcard:'51013219990514121X', crowd:'',             region:'龙川社区', org:'山东大学齐鲁医院', grid:'第三网格' }
+];
+
+/* 补齐至 404 条（贴合设计稿「共 404 条 / 21 页」）：批量生成确定性的模拟居民 */
+(function fillSelectData() {
+  var surnames = ['张','王','李','赵','刘','陈','杨','黄','周','吴','徐','孙','马','朱','胡','郭','何','林','罗','郑'];
+  var given = ['建国','秀兰','志强','桂英','文军','淑华','明辉','丽娟','国栋','春梅','海涛','雪梅','长顺','玉珍','德海','凤仙','振华','金凤','广田','玉洁'];
+  var regions = ['东苑社区','西街社区','北街社区','龙川社区','樊汉社区','善玉村','五会村','周西社区'];
+  var grids = ['第一网格','第二网格','第三网格','第四网格'];
+  var crowds = ['', '', '', '老年人', '高血压', '糖尿病', '儿童'];
+  var i, seq = selectArchiveData.length;
+  for (i = 0; i < 391 && seq < 404; i++, seq++) {
+    var name = surnames[i % surnames.length] + given[(i * 7 + 3) % given.length] + (i >= 200 ? String(i % 100) : '');
+    var y = 1948 + (i * 13) % 62;                       /* 1948 ~ 2009 */
+    var m = String(1 + (i * 5) % 12);  if (m.length < 2) m = '0' + m;
+    var d = String(1 + (i * 11) % 28); if (d.length < 2) d = '0' + d;
+    var male = i % 2 === 0;
+    var idcard = '110101' + y + m + d + String(100 + (i * 17) % 900) + (male ? '1' : '2');
+    var age = 2026 - y;
+    selectArchiveData.push({
+      archNo: '3210121001' + String(100000 + i * 37 % 900000),
+      name: name,
+      gender: male ? '男' : '女',
+      age: age,
+      idType: '居民身份证',
+      idcard: idcard,
+      crowd: crowds[i % crowds.length],
+      region: regions[i % regions.length],
+      org: i % 3 === 0 ? '扬州市江都区吴桥镇卫生院' : '山东大学齐鲁医院',
+      grid: grids[i % grids.length]
+    });
+  }
+})();
+
+var SF_PAGE_SIZE = 20;
+var sfCurPage = 1;
+var sfLastList = [];
+
+function renderSelectTable() {
+  var name = $('sfName').value.trim(), idType = $('sfIdType').value, idcard = $('sfIdcard').value.trim();
+  var org = $('sfOrg').value, grid = $('sfGrid').value.trim();
+  var gender = $('sfGender').value, age = $('sfAge').value.trim(), crowd = $('sfCrowd').value, region = $('sfRegion').value.trim();
+  /* fcp-ms 隐藏域为逗号分隔多值，多选语义取 OR */
+  var sfOrgSel = org ? org.split(',') : [];
+
+  sfLastList = selectArchiveData.filter(function (r) {
+    if (name && r.name.indexOf(name) === -1) return false;
+    if (idType && r.idType !== idType) return false;
+    if (idcard && r.idcard.indexOf(idcard) === -1) return false;
+    if (sfOrgSel.length && sfOrgSel.indexOf(r.org) === -1) return false;
+    if (grid && r.grid !== grid) return false;
+    if (gender && r.gender !== gender) return false;
+    if (age && String(r.age) !== age) return false;
+    if (crowd && r.crowd.indexOf(crowd) === -1) return false;
+    if (region && r.region.indexOf(region) === -1) return false;
+    return true;
+  });
+
+  var total = Math.max(1, Math.ceil(sfLastList.length / SF_PAGE_SIZE));
+  if (sfCurPage > total) sfCurPage = total;
+  var start = (sfCurPage - 1) * SF_PAGE_SIZE;
+  var slice = sfLastList.slice(start, start + SF_PAGE_SIZE);
+
+  var html = '';
+  if (slice.length === 0) {
+    html = '<tr class="empty-row"><td colspan="10" style="text-align:center;padding:24px;color:var(--text-tertiary)">暂无符合条件的居民档案</td></tr>';
+  } else {
+    slice.forEach(function (r, i) {
+      var crowdHtml = r.crowd ? '<span class="crowd-tag" title="' + esc(r.crowd) + '">' + esc(r.crowd) + '</span>' : '-';
+      html += '<tr>'
+        + '<td class="center">' + (start + i + 1) + '</td>'
+        + '<td title="' + esc(r.archNo) + '"><span class="cell">' + esc(r.archNo) + '</span></td>'
+        + '<td>' + esc(r.name) + '</td>'
+        + '<td class="center">' + esc(r.gender) + '</td>'
+        + '<td class="center">' + r.age + '</td>'
+        + '<td>' + esc(r.idType) + '</td>'
+        + '<td title="' + esc(r.idcard) + '"><span class="cell">' + (r.idcard || '-') + '</span></td>'
+        + '<td>' + crowdHtml + '</td>'
+        + '<td>' + esc(r.region) + '</td>'
+        + '<td class="center"><a class="op-create" onclick="createEduService(\'' + esc(r.archNo) + '\')">新建服务</a></td>'
+        + '</tr>';
+    });
+  }
+  $('sfTbBody').innerHTML = html;
+  $('sfTotal').textContent = sfLastList.length;
+  renderSelectPager(total);
+  $('sfJump').value = sfCurPage;
+}
+
+function renderSelectPager(total) {
+  var nums = [];
+  if (total <= 7) {
+    for (var i = 1; i <= total; i++) nums.push(i);
+  } else {
+    nums.push(1);
+    if (sfCurPage > 3) nums.push('…');
+    for (var j = Math.max(2, sfCurPage - 1); j <= Math.min(total - 1, sfCurPage + 1); j++) nums.push(j);
+    if (sfCurPage < total - 2) nums.push('…');
+    nums.push(total);
+  }
+  var h = '<button class="pg-btn" onclick="sfGotoPage(' + (sfCurPage - 1) + ')">‹</button>';
+  nums.forEach(function (n) {
+    h += n === '…'
+      ? '<span class="pg-ellipsis">…</span>'
+      : '<button class="pg-btn' + (n === sfCurPage ? ' active' : '') + '" onclick="sfGotoPage(' + n + ')">' + n + '</button>';
+  });
+  h += '<button class="pg-btn" onclick="sfGotoPage(' + (sfCurPage + 1) + ')">›</button>';
+  $('sfPager').innerHTML = h;
+}
+
+function sfGotoPage(p) {
+  var total = Math.max(1, Math.ceil(sfLastList.length / SF_PAGE_SIZE));
+  if (p < 1 || p > total || p === sfCurPage) return;
+  sfCurPage = p;
+  renderSelectTable();
+}
+
+function sfJumpPage() {
+  var v = parseInt($('sfJump').value, 10);
+  if (!isNaN(v)) sfGotoPage(v);
+}
+
+function resetSelectFilter() {
+  ['sfName','sfIdcard','sfGrid','sfAge','sfRegion'].forEach(function (id) { $(id).value = ''; });
+  $('sfIdType').value = ''; $('sfOrg').value = '';
+  $('sfGender').value = ''; $('sfCrowd').value = '';
+  sfCurPage = 1;
+  renderSelectTable();
+}
+
+function applySelectFilter() {
+  sfCurPage = 1;
+  renderSelectTable();
+  toast('查询完成，共 ' + $('sfTotal').textContent + ' 条记录', 'success');
+}
+
+function toggleSelectExtra() {
+  var row = $('sfExtraRow'), btn = $('sfExpand');
+  var show = row.style.display !== 'none';
+  row.style.display = show ? 'none' : 'flex';
+  btn.textContent = show ? '展开 ▼' : '收起 ▲';
+}
+
+function openSelectModal() {
+  sfCurPage = 1;
+  renderSelectTable();
+  $('selectModal').classList.add('show');
+}
+
+function closeSelectModal() {
+  $('selectModal').classList.remove('show');
+}
+
+/* 点击遮罩关闭弹框 */
+document.querySelectorAll('.modal-overlay').forEach(function (ov) {
+  ov.addEventListener('click', function (e) { if (e.target === ov) ov.classList.remove('show'); });
+});
+
+/* 弹框内点击「新建服务」：跳转至档案维护页健康教育记录表填报界面 */
+function createEduService(archNo) {
+  var r = null;
+  for (var i = 0; i < selectArchiveData.length; i++) {
+    if (selectArchiveData[i].archNo === archNo) { r = selectArchiveData[i]; break; }
+  }
+  if (!r) return;
+  closeSelectModal();
+  location.href = '档案维护.html?' + buildEduParams(r, ['edit=1']).join('&');
+}
+
+/* 筛选控件输入即实时过滤（并回到第一页） */
+['fName', 'fIdcard', 'fDoctor', 'fArchNo'].forEach(function (id) {
+  $(id).addEventListener('input', function () { curPage = 1; renderTable(); });
+});
+['fOrg', 'fMethod', 'fLock', 'fRStatus', 'fRegion', 'fStart', 'fEnd',
+ 'fDisease', 'fBirthStart', 'fBirthEnd', 'fMine'].forEach(function (id) {
+  $(id).addEventListener('change', function () { curPage = 1; renderTable(); });
+});
+['sfName', 'sfIdcard', 'sfGrid', 'sfAge', 'sfRegion'].forEach(function (id) {
+  $(id).addEventListener('input', function () { sfCurPage = 1; renderSelectTable(); });
+});
+['sfIdType', 'sfOrg', 'sfGender', 'sfCrowd'].forEach(function (id) {
+  $(id).addEventListener('change', function () { sfCurPage = 1; renderSelectTable(); });
+});
+
+/* ================= 初始化 ================= */
+renderTable();
+</script>
+</body>
+</html>

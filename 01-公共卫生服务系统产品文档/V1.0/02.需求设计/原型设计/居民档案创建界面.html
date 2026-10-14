@@ -131,19 +131,21 @@
     background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='2' y='3.5' width='12' height='9' rx='1.5' fill='none' stroke='%23C0C4CC' stroke-width='1.2'/%3E%3Ccircle cx='6' cy='7' r='1.4' fill='%23C0C4CC'/%3E%3Cpath d='M4.5 10.5c.6-1.2 3.4-1.2 4 0M10 7h2.5M10 9.5h2' stroke='%23C0C4CC' stroke-width='1.1' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat; }
 
   /* ============ 第二步：档案封面 ============ */
-  .cover-card { width: 580px; margin: 0 auto; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 6px rgba(31,35,41,.06); }
+  .cover-card { width: 580px; margin: 0 auto; border-radius: 8px; overflow: visible; box-shadow: 0 1px 6px rgba(31,35,41,.06); }
   .cover-head {
     background: linear-gradient(90deg, #EEF6FF 0%, #E5EFFF 55%, #DBE9FF 100%);
     padding: 14px 20px 16px; display: flex; align-items: center;
+    border-radius: 8px 8px 0 0;
     position: relative; min-height: 78px;
   }
   .cover-head h2 { color: #1A66D9; font-size: 20px; font-weight: 700; letter-spacing: 1px; }
   .cover-head .no { color: var(--text-1); margin-top: 8px; font-size: 13.5px; font-weight: 600; }
   .cover-illus { position: absolute; right: 8px; top: 2px; pointer-events: none; }
-  .cover-body { background: #fff; padding: 20px 44px 28px; }
+  .cover-body { background: #fff; padding: 20px 44px 28px; border-radius: 0 0 8px 8px; }
   .cover-form .form-row { margin-bottom: 4px; }
-  .cover-form .flabel { width: 122px; margin-right: 12px; line-height: 32px; font-size: 13px; }
+  .cover-form .flabel { width: 125px; margin-right: 12px; line-height: 32px; font-size: 13px; }
   .cover-form .u-input, .cover-form .u-select { height: 32px; }
+  .cover-form .addr-trigger { height: 32px; }
 
   /* ============ 第三步 / 个人基本信息表 ============ */
   .step3-card { background: #fff; border-radius: 8px; padding: 16px 20px 24px; box-shadow: 0 1px 4px rgba(31,35,41,.05); }
@@ -179,6 +181,65 @@
   .cert-table th { background: var(--primary-light); color: var(--text-2); font-weight: 500; }
   .cert-table th, .cert-table td { border: 1px solid var(--border-light); padding: 7px 10px; text-align: left; }
   .cert-table td { padding: 6px 8px; }
+
+  /* ============ 联系地址：五级级联选择（省/市/区县/乡镇街道/社区村） ============ */
+  .addr-cascade { position: relative; flex: none; width: 152px; }
+  .addr-trigger {
+    height: 34px; border: 1px solid var(--border); border-radius: var(--radius); background: #fff;
+    padding: 0 28px 0 10px; display: flex; align-items: center; position: relative; cursor: pointer;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .addr-trigger:hover { border-color: #C9CDD4; }
+  .addr-cascade.open .addr-trigger { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(35,120,245,.12); }
+  .addr-trigger .addr-text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .addr-trigger .addr-text.placeholder { color: #C0C4CC; }
+  .addr-trigger .addr-arrow {
+    position: absolute; right: 10px; top: 50%; width: 12px; height: 12px; margin-top: -6px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%2386909C' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+    transition: transform .2s;
+  }
+  .addr-cascade.open .addr-arrow { transform: rotate(180deg); }
+
+  .addr-panel {
+    display: none; position: absolute; top: calc(100% + 4px); left: 0;
+    background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: 0 6px 20px rgba(31,35,41,.12); padding: 4px 0; z-index: 60;
+  }
+  .addr-cascade.open .addr-panel { display: flex; }
+  .addr-col { width: 168px; max-height: 228px; overflow-y: auto; border-right: 1px solid var(--border-light); }
+  .addr-col:last-child { border-right: 0; }
+  .addr-col::-webkit-scrollbar { width: 6px; }
+  .addr-col::-webkit-scrollbar-thumb { background: #D8DADF; border-radius: 3px; }
+  .addr-opt {
+    height: 34px; padding: 0 10px 0 12px; display: flex; align-items: center; gap: 6px;
+    cursor: pointer; white-space: nowrap; color: var(--text-1); transition: background .12s, color .12s;
+  }
+  .addr-opt > span:first-child { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .addr-opt:hover { background: var(--primary-light); }
+  .addr-opt.active { color: var(--primary); }
+  .addr-opt.selected { background: var(--primary-light); color: var(--primary); }
+  .addr-opt .addr-chev {
+    flex: none; width: 10px; height: 10px; opacity: .8;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M3.5 1.5L7 5l-3.5 3.5' fill='none' stroke='%2386909C' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+  }
+  /* 封面表单内的级联：占满整格 */
+  .addr-cascade.wide { flex: 1 1 auto; width: 100%; }
+  /* 已选值时右侧出现清空按钮 */
+  .addr-trigger.has-value { padding-right: 46px; }
+  .addr-clear {
+    position: absolute; right: 30px; top: 50%; width: 14px; height: 14px; margin-top: -7px; display: none;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Ccircle cx='7' cy='7' r='6.2' fill='%23fff' stroke='%23C0C4CC' stroke-width='1'/%3E%3Cpath d='M4.9 4.9l4.2 4.2M9.1 4.9L4.9 4.9' stroke='%23A8ABB2' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;
+    cursor: pointer;
+  }
+  .addr-trigger.has-value .addr-clear { display: block; }
+  .addr-clear:hover {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Ccircle cx='7' cy='7' r='6.2' fill='%23fff' stroke='%2386909C' stroke-width='1'/%3E%3Cpath d='M4.9 4.9l4.2 4.2M9.1 4.9L4.9 4.9' stroke='%234E5969' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E");
+  }
+  /* 末级已选项右侧的对勾 */
+  .addr-opt .addr-check {
+    flex: none; width: 12px; height: 12px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.4 6.3l2.5 2.5 4.7-5.1' fill='none' stroke='%232378F5' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+  }
 
   /* toast */
   #toast {
@@ -319,13 +380,7 @@
         <div class="addr-row">
           <div class="flabel req">联系地址</div>
           <div class="cell-flex" style="flex:none;width:512px;position:relative;">
-            <select class="u-select flex-none" id="s1Addr" style="width:152px;">
-              <option value="">请选择现住址</option>
-              <option>江苏省 / 扬州市 / 江都区 / 小纪镇 / 九龙社区</option>
-              <option>江苏省 / 扬州市 / 邗江区</option>
-              <option>江苏省 / 扬州市 / 广陵区</option>
-              <option>江苏省 / 南京市 / 玄武区</option>
-            </select>
+            <div class="addr-cascade" id="addrCascade"></div>
             <input class="u-input has-count" id="s1AddrDetail" maxlength="50" placeholder="请输入详细地址">
             <span class="cell-count" id="s1AddrCount">0/50</span>
           </div>
@@ -377,13 +432,7 @@
             <div class="form-row">
               <div class="flabel req">现住址：</div>
               <div class="fcell">
-                <select class="u-select" id="s2LiveAddr">
-                  <option value="">请选择现住址</option>
-                  <option selected>江苏省 / 扬州市 / 江都区 / 仙女镇 / 东苑社区</option>
-                  <option>江苏省 / 扬州市 / 江都区 / 小纪镇 / 九龙社区</option>
-                  <option>江苏省 / 扬州市 / 邗江区</option>
-                  <option>江苏省 / 扬州市 / 广陵区</option>
-                </select>
+                <div class="addr-cascade wide" id="cvLiveAddr"></div>
               </div>
             </div>
             <div class="form-row">
@@ -391,7 +440,7 @@
               <div class="fcell">
                 <select class="u-select" id="s2Grid">
                   <option value="">请选择</option>
-                  <option selected>321012103002</option>
+                  <option>321012103002</option>
                   <option>321012103001</option>
                   <option>321012105006</option>
                 </select>
@@ -407,12 +456,7 @@
             <div class="form-row">
               <div class="flabel req">户籍地址：</div>
               <div class="fcell">
-                <select class="u-select" id="s2RegAddr">
-                  <option value="">请选择户籍地址</option>
-                  <option selected>江苏省 / 扬州市 / 江都区 / 武坚镇 / 周西社区</option>
-                  <option>江苏省 / 扬州市 / 江都区 / 仙女镇 / 东苑社区</option>
-                  <option>江苏省 / 扬州市 / 邗江区</option>
-                </select>
+                <div class="addr-cascade wide" id="cvRegAddr"></div>
               </div>
             </div>
             <div class="form-row">
@@ -954,8 +998,8 @@
   var $ = function (s, p) { return (p || document).querySelector(s); };
   var $$ = function (s, p) { return Array.prototype.slice.call((p || document).querySelectorAll(s)); };
 
-  /* 档案维护页地址（同仓库「原型设计」目录下的档案维护.html，?view=basic 直达「个人基本信息」） */
-  var MAINTAIN_URL = '01-公共卫生服务系统产品文档/V1.0/02.需求设计/原型设计/档案维护.html?view=basic';
+  /* 档案维护页地址（与本页同目录的档案维护.html，?view=basic 直达「个人基本信息」） */
+  var MAINTAIN_URL = '档案维护.html?view=basic';
 
   /* ---------- toast ---------- */
   var toastTimer;
@@ -1009,6 +1053,210 @@
   bindCount('s2LiveDetail', 's2LiveDetailCount');
   bindCount('s2RegDetail', 's2RegDetailCount');
 
+  /* ---------- 联系地址：五级级联选择（省 / 市 / 区县 / 乡镇街道 / 社区村） ---------- */
+  var ADDR_TREE = [
+    { n: '内蒙古自治区', c: [
+      { n: '呼和浩特市', c: [
+        { n: '新城区', c: [
+          { n: '中山东路街道', c: [{ n: '新华社区' }, { n: '团结社区' }] }
+        ] }
+      ] }
+    ] },
+    { n: '辽宁省', c: [
+      { n: '沈阳市', c: [
+        { n: '和平区', c: [
+          { n: '南站街道', c: [{ n: '太原街社区' }, { n: '沈阳站社区' }] }
+        ] }
+      ] }
+    ] },
+    { n: '吉林省', c: [
+      { n: '长春市', c: [
+        { n: '南关区', c: [
+          { n: '长通街道', c: [{ n: '东大社区' }, { n: '光复路社区' }] }
+        ] }
+      ] }
+    ] },
+    { n: '黑龙江省', c: [
+      { n: '哈尔滨市', c: [
+        { n: '道里区', c: [
+          { n: '兆麟街道', c: [{ n: '中央大街社区' }, { n: '兆麟社区' }] }
+        ] }
+      ] }
+    ] },
+    { n: '上海市', c: [
+      { n: '黄浦区', c: [
+        { n: '外滩街道', c: [{ n: '南京东路社区' }, { n: '宁波路社区' }] }
+      ] }
+    ] },
+    { n: '江苏省', c: [
+      { n: '苏州市', c: [
+        { n: '姑苏区', c: [{ n: '观前街道', c: [{ n: '察院场社区' }, { n: '旧学前社区' }] }] }
+      ] },
+      { n: '南通市', c: [
+        { n: '崇川区', c: [{ n: '和平桥街道', c: [{ n: '濠阳社区' }, { n: '北濠社区' }] }] }
+      ] },
+      { n: '连云港市', c: [
+        { n: '海州区', c: [{ n: '新浦街道', c: [{ n: '同兴社区' }, { n: '民主社区' }] }] }
+      ] },
+      { n: '淮安市', c: [
+        { n: '清江浦区', c: [{ n: '长东街道', c: [{ n: '运河社区' }, { n: '新民社区' }] }] }
+      ] },
+      { n: '盐城市', c: [
+        { n: '亭湖区', c: [{ n: '五星街道', c: [{ n: '印汽社区' }, { n: '毓龙社区' }] }] }
+      ] },
+      { n: '扬州市', c: [
+        { n: '广陵区', c: [
+          { n: '东关街道', c: [{ n: '个园社区' }, { n: '彩衣街社区' }] },
+          { n: '汶河街道', c: [{ n: '荷花池社区' }, { n: '通泗社区' }] }
+        ] },
+        { n: '邗江区', c: [
+          { n: '双桥街道', c: [{ n: '康乐社区居民委员会' }, { n: '石桥社区居民委员会' }] },
+          { n: '邗上街道', c: [{ n: '文昌社区' }, { n: '兰庄社区' }] }
+        ] },
+        { n: '江都区', c: [
+          { n: '仙女镇', c: [{ n: '东苑社区' }, { n: '龙川社区' }, { n: '龙城社区' }, { n: '玉带社区' }, { n: '高阳社区' }, { n: '引江社区' }] },
+          { n: '小纪镇', c: [{ n: '九龙社区' }, { n: '纪东社区' }, { n: '高徐社区' }] },
+          { n: '武坚镇', c: [{ n: '民乐社区' }, { n: '周西社区' }, { n: '黄思社区' }, { n: '五舍村' }, { n: '花庄村' }, { n: '龙河村' }] },
+          { n: '樊川镇', c: [{ n: '樊川社区' }, { n: '三阳社区' }] },
+          { n: '真武镇', c: [{ n: '真武社区' }, { n: '杨庄社区' }] },
+          { n: '宜陵镇', c: [{ n: '宜陵社区' }, { n: '焦庄社区' }] }
+        ] },
+        { n: '宝应县', c: [
+          { n: '安宜镇', c: [{ n: '世纪园社区' }, { n: '安宜社区' }] },
+          { n: '氾水镇', c: [{ n: '氾水社区' }] }
+        ] },
+        { n: '扬州经济技术开发区', c: [
+          { n: '文汇街道', c: [{ n: '花园社区' }] },
+          { n: '扬子津街道', c: [{ n: '大学南路社区' }] }
+        ] },
+        { n: '仪征市', c: [
+          { n: '真州镇', c: [{ n: '鼓楼社区' }, { n: '新村社区' }] }
+        ] }
+      ] }
+    ] }
+  ];
+  var addrOpenRoot = null;   // 同一时刻只允许展开一个级联面板
+
+  function makeAddrCascade(root, opts) {
+    opts = opts || {};
+    var placeholder = opts.placeholder || '请选择';
+    root.innerHTML =
+      '<div class="addr-trigger">' +
+        '<span class="addr-text placeholder"></span>' +
+        '<span class="addr-clear"></span>' +
+        '<span class="addr-arrow"></span>' +
+      '</div>' +
+      '<div class="addr-panel"></div>';
+    var trigger = root.querySelector('.addr-trigger');
+    var textEl = root.querySelector('.addr-text');
+    var panel = root.querySelector('.addr-panel');
+    var path = [];   // 已选节点（按层级顺序）
+
+    function nodesAt(level) {
+      if (level === 0) return ADDR_TREE;
+      var p = path[level - 1];
+      return (p && p.c) || [];
+    }
+    function updateText() {
+      if (path.length) {
+        textEl.textContent = path.map(function (nd) { return nd.n; }).join(' / ');
+        textEl.classList.remove('placeholder');
+        trigger.classList.add('has-value');
+      } else {
+        textEl.textContent = placeholder;
+        textEl.classList.add('placeholder');
+        trigger.classList.remove('has-value');
+      }
+    }
+    function render() {
+      var nodes = ADDR_TREE, level = 0, html = '';
+      while (nodes && nodes.length) {
+        var cur = path[level], isLast = (level === path.length - 1);
+        html += '<div class="addr-col">';
+        for (var j = 0; j < nodes.length; j++) {
+          var nd = nodes[j], cls = '';
+          if (cur === nd) cls = isLast ? ' selected' : ' active';
+          var icon = (nd.c && nd.c.length)
+            ? '<i class="addr-chev"></i>'
+            : ((cur === nd && isLast) ? '<i class="addr-check"></i>' : '');
+          html += '<div class="addr-opt' + cls + '" data-lv="' + level + '" data-idx="' + j + '">' +
+                  '<span>' + nd.n + '</span>' + icon + '</div>';
+        }
+        html += '</div>';
+        if (!cur) break;
+        nodes = cur.c || [];
+        level++;
+      }
+      panel.innerHTML = html;
+      position();
+    }
+    /* 面板整体超出视口右侧时向左偏移，保证五列完整可见 */
+    function position() {
+      panel.style.left = '0px';
+      var w = panel.offsetWidth;
+      var maxWidth = window.innerWidth - 12 - trigger.getBoundingClientRect().left;
+      if (w > maxWidth) panel.style.left = -(w - maxWidth) + 'px';
+    }
+    function open() {
+      if (addrOpenRoot && addrOpenRoot !== root) addrOpenRoot.classList.remove('open');
+      addrOpenRoot = root;
+      root.classList.add('open');
+      render();
+    }
+    function close() {
+      if (addrOpenRoot === root) addrOpenRoot = null;
+      root.classList.remove('open');
+    }
+    function getValue() {
+      return path.length ? path.map(function (nd) { return nd.n; }).join(' / ') : '';
+    }
+    function setValue(str) {
+      path = [];
+      var names = (str || '').split(' / '), nodes = ADDR_TREE;
+      for (var i = 0; i < names.length; i++) {
+        var hit = null;
+        for (var j = 0; j < nodes.length; j++) {
+          if (nodes[j].n === names[i]) { hit = nodes[j]; break; }
+        }
+        if (!hit) break;
+        path.push(hit);
+        nodes = hit.c || [];
+      }
+      updateText();
+      if (root.classList.contains('open')) render();
+    }
+    trigger.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      if (ev.target.closest('.addr-clear')) { setValue(''); return; }
+      if (root.classList.contains('open')) close(); else open();
+    });
+    panel.addEventListener('click', function (ev) {
+      ev.stopPropagation();   // 防止面板重建后被判为「点击外部」而关闭
+      var opt = ev.target.closest('.addr-opt');
+      if (!opt) return;
+      var level = Number(opt.getAttribute('data-lv'));
+      var node = nodesAt(level)[Number(opt.getAttribute('data-idx'))];
+      if (!node) return;
+      path = path.slice(0, level);
+      path.push(node);
+      updateText();
+      if (node.c && node.c.length) render(); else close();
+    });
+    document.addEventListener('click', close);
+    window.addEventListener('resize', function () {
+      if (root.classList.contains('open')) position();
+    });
+
+    updateText();
+    return { get: getValue, set: setValue, open: open, close: close };
+  }
+
+  var addrCascade = makeAddrCascade($('#addrCascade'), { placeholder: '请选择现住址' });
+  var cvLiveAddr = makeAddrCascade($('#cvLiveAddr'), { placeholder: '请选择现住址' });
+  var cvRegAddr = makeAddrCascade($('#cvRegAddr'), { placeholder: '请选择户籍地址' });
+  cvLiveAddr.set('江苏省 / 扬州市 / 江都区 / 仙女镇 / 东苑社区');
+  cvRegAddr.set('江苏省 / 扬州市 / 江都区 / 武坚镇 / 黄思社区');
+
   /* ---------- 第一步：身份证读卡 ---------- */
   $('#btnReadCard').addEventListener('click', function () {
     var data = {
@@ -1021,7 +1269,7 @@
     $('#s1Gender').value = '女';
     $('#s1Nation').value = data.nation;
     $('#s1Birth').value = data.birth;
-    $('#s1Addr').value = '江苏省 / 扬州市 / 江都区 / 小纪镇 / 九龙社区';
+    addrCascade.set('江苏省 / 扬州市 / 江都区 / 小纪镇 / 九龙社区');
     $('#icName').textContent = data.name;
     $('#icNation').textContent = data.nation;
     $('#icBirth').textContent = data.birth;
@@ -1038,22 +1286,39 @@
     '江苏省 / 扬州市 / 江都区 / 仙女镇 / 东苑社区': ['仙女镇', '东苑社区居委会'],
     '江苏省 / 扬州市 / 江都区 / 武坚镇 / 周西社区': ['武坚镇', '周西社区居委会'],
     '江苏省 / 扬州市 / 江都区 / 小纪镇 / 九龙社区': ['小纪镇', '九龙社区居委会'],
-    '江苏省 / 扬州市 / 邗江区': ['双桥街道', '康乐社区居民委员会']
+    '江苏省 / 扬州市 / 邗江区 / 双桥街道 / 康乐社区居民委员会': ['双桥街道', '康乐社区居民委员会']
   };
+  /* 当前登录上下文：所选机构 + 登录人（原型模拟值） */
+  var CURRENT_LOGIN = { org: '山东大学齐鲁医院', user: '吕雪' };
+  function todayStr() {
+    var d = new Date(), m = d.getMonth() + 1, day = d.getDate();
+    return d.getFullYear() + '-' + (m < 10 ? '0' + m : m) + '-' + (day < 10 ? '0' + day : day);
+  }
+  /* 建档单位取当前登录所选机构，建档人/责任医生取当前登录人，建档日期取当前日期 */
+  function fillCoverMeta() {
+    syncSelect($('#s2Org'), CURRENT_LOGIN.org);
+    syncSelect($('#s2Creator'), CURRENT_LOGIN.user);
+    syncSelect($('#s2Doctor'), CURRENT_LOGIN.user);
+    $('#s2Date').value = todayStr();
+  }
+  fillCoverMeta();
   $('#btnStep1Next').addEventListener('click', function () {
-    // 同步数据到第二步封面（第一步已填写时才覆盖封面示例数据）
+    // 封面内容自动取基本信息（第一步）的填报内容
     var name = $('#s1Name').value;
     if (name) { $('#s2Name').value = name; $('#s2Name').dispatchEvent(new Event('input')); }
     var phone = $('#s1Phone').value;
     if (phone) { $('#s2Phone').value = phone; }
-    var addr = $('#s1Addr').value;
+    var addr = addrCascade.get();
     if (addr) {
-      $('#s2LiveAddr').value = addr;
+      cvLiveAddr.set(addr);
       // 选择现住址后自动带出乡镇/村居
       var mapped = addrMap[addr];
       if (mapped) {
         $('#s2Town').value = mapped[0];
         $('#s2Village').value = mapped[1];
+      } else {
+        var segs = addr.split(' / ');
+        if (segs.length >= 5) { $('#s2Town').value = segs[3]; $('#s2Village').value = segs[4]; }
       }
     }
     var detail = $('#s1AddrDetail').value;
@@ -1061,6 +1326,7 @@
       $('#s2LiveDetail').value = detail; $('#s2LiveDetail').dispatchEvent(new Event('input'));
       $('#s2RegDetail').value = detail;  $('#s2RegDetail').dispatchEvent(new Event('input'));
     }
+    fillCoverMeta();
     goStep(2);
   });
   $('#btnStep1Cancel').addEventListener('click', function () { toast('已取消创建居民档案'); });

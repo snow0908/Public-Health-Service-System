@@ -80,14 +80,7 @@
     { key: 'elderly-management', label: '老年人管理', url: '老年人管理.html',
       icon: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' },
     { type: 'divider' },
-    { type: 'group', key: 'tcm', label: '中医管理',
-      icon: '<path d="M11 20A7 7 0 019.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',
-      children: [
-        { key: 'elderly-tcm-management', label: '老年人中医管理', url: '老年人中医管理.html' },
-        { key: 'child-tcm-management',   label: '儿童中医管理',   url: '儿童中医管理.html' },
-        { key: 'tcm-health-guidance',    label: '中医健康指导',   url: '中医健康指导.html' }
-      ] },
-    { type: 'divider' },
+    
     { type: 'group', key: 'women-child', label: '妇幼管理',
       icon: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/>',
       children: [
@@ -111,6 +104,14 @@
         { key: 'maternal-health-care',             label: '孕产妇保健', url: '孕产妇保健.html' }
       ] },
     { type: 'divider' },
+    { type: 'group', key: 'tcm', label: '中医管理',
+      icon: '<path d="M11 20A7 7 0 019.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',
+      children: [
+        { key: 'elderly-tcm-management', label: '老年人中医管理', url: '老年人中医管理.html' },
+        { key: 'child-tcm-management',   label: '儿童中医管理',   url: '儿童中医管理.html' },
+        { key: 'tcm-health-guidance',    label: '中医健康指导',   url: '中医健康指导.html' }
+      ] },
+    { type: 'divider' },
     { type: 'group', key: 'jianjiao', label: '健教管理',
       icon: '<path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 010 7.07"/><path d="M19.07 4.93a10 10 0 010 14.14"/>',
       children: [
@@ -118,7 +119,7 @@
         { key: 'billboard-management',      label: '宣传栏管理', url: '宣传栏管理.html' },
         { key: 'audiovisual-management',    label: '音像管理', url: '音像管理.html' },
         { key: 'broadcast-management',      label: '广播管理', url: '广播管理.html' },
-        { key: 'individual-education',      label: '个体教育管理' },
+        { key: 'individual-education',      label: '个体教育管理', url: '个体化健康教育管理.html' },
         { key: 'plan-management',           label: '计划管理', url: '计划管理.html' }
       ] },
     { type: 'divider' },
@@ -434,4 +435,317 @@
   };
 
   inject();
+})();
+
+/* ==========================================================================
+   统一筛选复合控件：管理机构(多选) / 管辖行政区(级联) / 管辖网格(树形)
+   样式与交互对齐「居民档案列表.html」中这三个条件
+   页面只需放置带 data-fcp 的容器 + 隐藏域，本模块自动渲染面板与交互
+   ========================================================================== */
+(function () {
+  if (window.__FCP_INITED__) return;
+  window.__FCP_INITED__ = true;
+
+  /* ---- 演示数据（与 居民档案列表.html 保持一致） ---- */
+  var ORG_LIST = ['**大学淮河医院', '温江区华西医院', '成都市新都区妇幼保健院', '江都区大桥镇', '山东大学齐鲁医院'];
+
+  var REGION_TREE = {
+    '江苏省': {
+      '南京市': {
+        '玄武区': ['梅园新村街道', '新街口街道', '玄武门街道', '锁金村街道', '红山街道', '孝陵卫街道'],
+        '秦淮区': ['夫子庙街道', '朝天宫街道', '双塘街道', '中华门街道'],
+        '建邺区': ['莫愁湖街道', '南苑街道', '兴隆街道', '沙洲街道'],
+        '鼓楼区': ['华侨路街道', '宁海路街道', '湖南路街道', '中央门街道'],
+        '浦口区': ['泰山街道', '顶山街道', '江浦街道', '沿江街道'],
+        '栖霞区': ['尧化街道', '马群街道', '迈皋桥街道', '燕子矶街道']
+      },
+      '无锡市': { '梁溪区': ['崇安寺街道', '清名桥街道'], '滨湖区': ['河埒街道', '蠡湖街道'] },
+      '徐州市': { '云龙区': ['彭城街道', '子房街道'], '鼓楼区': ['黄楼街道', '牌楼街道'] },
+      '常州市': { '天宁区': ['雕庄街道', '青龙街道'], '钟楼区': ['南大街街道', '荷花池街道'] },
+      '苏州市': { '姑苏区': ['观前街道', '平江街道'], '吴中区': ['长桥街道', '木渎镇'] },
+      '南通市': { '崇川区': ['城东街道', '和平桥街道'], '通州区': ['金沙街道', '金新街道'] }
+    }
+  };
+
+  var GRID_TREE = [{
+    name: '江都区',
+    children: [{ name: '郭村镇', children: ['郭村村', '韩阳村', '庄桥村', '东进村', '前巷村', '南荀村', '张倪村'] }]
+  }];
+
+  function all(sel, root) {
+    return Array.prototype.slice.call((root || document).querySelectorAll(sel));
+  }
+  function closeAll(except) {
+    all('.fcp-ms.open,.fcp-cas.open,.fcp-tree.open,.fcp-mst.open').forEach(function (el) {
+      if (el !== except) el.classList.remove('open');
+    });
+  }
+  function setText(el, text, hasVal) {
+    var t = el.querySelector('.fcp-text');
+    if (t) { t.textContent = text; t.classList.toggle('is-ph', !hasVal); }
+    el.classList.toggle('has-val', !!hasVal);
+  }
+  /* 写回隐藏域；劫持后走原生 setter，避免递归 */
+  function writeVal(el, v) {
+    var inp = el.querySelector('.fcp-val');
+    if (!inp) return;
+    if (el.__rawSet) { el.__rawSet(v); return; }
+    inp.value = v;
+  }
+
+  /* ---------------- 数据源：页面可用 data-options / data-tree 覆盖默认值 ---------------- */
+  function optsOf(el) {
+    var s = el.getAttribute('data-options');
+    return s ? s.split('|') : ORG_LIST;
+  }
+  function treeOf(el) {
+    var s = el.getAttribute('data-tree');
+    if (!s) return GRID_TREE;
+    try {
+      var conv = function (n) {
+        return (typeof n === 'string')
+          ? { name: n, children: [] }
+          : { name: n.n, children: (n.c || []).map(conv) };
+      };
+      return JSON.parse(s).map(conv);
+    } catch (e) { return GRID_TREE; }
+  }
+
+  /* ---------------- 管理机构 / 专项建档机构：多选（复选框） ---------------- */
+  function renderMs(el) {
+    var sel = el._sel || [];
+    el.querySelector('.fcp-panel').innerHTML = optsOf(el).map(function (n) {
+      var on = sel.indexOf(n) !== -1;
+      return '<label class="fcp-opt' + (on ? ' on' : '') + '"><input type="checkbox" value="' + n + '"'
+        + (on ? ' checked' : '') + '><span>' + n + '</span></label>';
+    }).join('');
+    setText(el, sel.length ? '已选择（' + sel.length + '）' : '请选择', sel.length > 0);
+    writeVal(el, sel.join(','));
+  }
+
+  /* ---------------- 随访类型：多选（无复选框，选中右侧对勾） ---------------- */
+  function renderMst(el) {
+    var sel = el._sel || [];
+    el.querySelector('.fcp-panel').innerHTML = optsOf(el).map(function (n) {
+      var on = sel.indexOf(n) !== -1;
+      return '<div class="fcp-opt tick' + (on ? ' on' : '') + '" data-v="' + n + '">'
+        + '<span class="fcp-lab">' + n + '</span><span class="fcp-ck">✓</span></div>';
+    }).join('');
+    setText(el, sel.length ? '已选择（' + sel.length + '）' : '请选择', sel.length > 0);
+    writeVal(el, sel.join(','));
+  }
+
+  /* ---------------- 管辖行政区：级联 ---------------- */
+  function casNames(path) {
+    var node = REGION_TREE;
+    for (var i = 0; i < path.length; i++) node = node ? node[path[i]] : null;
+    if (Array.isArray(node)) return node;
+    return node ? Object.keys(node) : [];
+  }
+  function casColHtml(el, level, names) {
+    var drill = el._drill || [], sel = el._selPath || [];
+    var parents = drill.slice(0, level), active = drill[level], selKey = sel.join('/');
+    return '<div class="fcp-col">' + names.map(function (n) {
+      var path = parents.concat([n]), key = path.join('/');
+      return '<div class="fcp-n' + (n === active ? ' on' : '') + (key === selKey ? ' sel' : '')
+        + '" data-lv="' + level + '" data-nm="' + n + '">'
+        + '<input type="checkbox"' + (key === selKey ? ' checked' : '') + '>'
+        + '<span>' + n + '</span>'
+        + (casNames(path).length ? '<span class="fcp-arrow">›</span>' : '') + '</div>';
+    }).join('') + '</div>';
+  }
+  function renderCas(el) {
+    var drill = el._drill || [], sel = el._selPath || [];
+    var html = casColHtml(el, 0, Object.keys(REGION_TREE));
+    for (var k = 0; k < drill.length; k++) {
+      var names = casNames(drill.slice(0, k + 1));
+      if (!names.length) break;
+      html += casColHtml(el, k + 1, names);
+    }
+    el.querySelector('.fcp-panel').innerHTML = html;
+    setText(el, sel.length ? sel.join(' / ') : '请选择', sel.length > 0);
+    writeVal(el, sel.length ? sel[sel.length - 1] : '');
+    positionCas(el);
+  }
+  /* 级联列数增加后面板变宽，可能被内容容器 overflow 裁掉，按需整体左移 */
+  function positionCas(el) {
+    if (!el.classList.contains('open')) return;
+    var panel = el.querySelector('.fcp-panel');
+    var host = el.closest('.content-card,.content,.modal,.modal-body,.filter-panel') || document.documentElement;
+    var hr = host.getBoundingClientRect(), br = el.getBoundingClientRect();
+    var maxRight = Math.min(hr.right, window.innerWidth) - 8;
+    var minLeft = Math.max(hr.left, 0) + 8;
+    var left = 0;
+    if (br.left + panel.offsetWidth > maxRight) left -= (br.left + panel.offsetWidth - maxRight);
+    if (br.left + left < minLeft) left = minLeft - br.left;
+    panel.style.left = Math.round(left) + 'px';
+  }
+
+  /* ---------------- 管辖网格：树形 ---------------- */
+  function treeRowHtml(el, name, depth, hasKids, expanded) {
+    var sel = el._selT || [];
+    return '<div class="fcp-n" style="padding-left:' + (6 + depth * 18) + 'px" data-nm="' + name
+      + '" data-kids="' + (hasKids ? 1 : 0) + '">'
+      + '<span class="fcp-tgl">' + (hasKids ? (expanded ? '▾' : '▸') : '') + '</span>'
+      + '<input type="checkbox"' + (sel.indexOf(name) !== -1 ? ' checked' : '') + '>'
+      + '<span>' + name + '</span></div>';
+  }
+  /* 树节点名：默认 GRID_TREE 的子节点是字符串，data-tree 经 treeOf() 归一为 {name} 对象，两种都要兼容 */
+  function nodeName(n) { return (typeof n === 'string') ? n : (n && n.name); }
+  function renderTree(el) {
+    var open = el._openT || {}, html = '';
+    treeOf(el).forEach(function (n1) {
+      var n1n = nodeName(n1), kids1 = !!(n1.children && n1.children.length);
+      html += treeRowHtml(el, n1n, 0, kids1, !!open[n1n]);
+      if (!kids1 || !open[n1n]) return;
+      n1.children.forEach(function (n2) {
+        /* 第 2/3 层是否有下级决定展开三角，避免叶子节点出现无效三角 */
+        var n2n = nodeName(n2), kids2 = !!(n2.children && n2.children.length);
+        html += treeRowHtml(el, n2n, 1, kids2, !!open[n2n]);
+        if (!kids2 || !open[n2n]) return;
+        n2.children.forEach(function (n3) {
+          var n3n = nodeName(n3), kids3 = !!(n3.children && n3.children.length);
+          html += treeRowHtml(el, n3n, 2, kids3, !!open[n3n]);
+          if (!kids3 || !open[n3n]) return;
+          n3.children.forEach(function (n4) { html += treeRowHtml(el, nodeName(n4), 3, false, false); });
+        });
+      });
+    });
+    el.querySelector('.fcp-panel').innerHTML = html;
+    var sel = el._selT || [];
+    setText(el, sel.length ? '已选择（' + sel.length + '）' : '请选择', sel.length > 0);
+    writeVal(el, sel.join(','));
+  }
+
+  /* ---------------- 初始化 ---------------- */
+  /* 劫持隐藏域 value，使页面脚本 $('fOrg').value='' 时视图同步回「请选择」 */
+  function hookVal(el, sync) {
+    var inp = el.querySelector('.fcp-val');
+    if (!inp || inp.__fcpHooked) return;
+    inp.__fcpHooked = true;
+    var v = inp.value || '', internal = false;
+    el.__rawSet = function (nv) { internal = true; inp.value = nv; v = nv == null ? '' : String(nv); internal = false; };
+    try {
+      Object.defineProperty(inp, 'value', {
+        configurable: true,
+        get: function () { return v; },
+        set: function (nv) { v = nv == null ? '' : String(nv); if (!internal) sync(v); }
+      });
+    } catch (e) { }
+  }
+  function initEl(el) {
+    var kind = el.getAttribute('data-fcp');
+    /* 可选：框右侧显示下拉箭头 */
+    if (el.hasAttribute('data-caret') && !el.querySelector('.fcp-caret')) {
+      el.querySelector('.fcp-box').insertAdjacentHTML('beforeend', '<span class="fcp-caret"></span>');
+    }
+    if (kind === 'ms' || kind === 'mst') {
+      el._sel = [];
+      if (kind === 'ms') {
+        renderMs(el);
+        hookVal(el, function (v) { el._sel = v ? v.split(',') : []; renderMs(el); });
+      } else {
+        renderMst(el);
+        hookVal(el, function (v) { el._sel = v ? v.split(',') : []; renderMst(el); });
+      }
+    } else if (kind === 'cas') {
+      el._drill = []; el._selPath = [];
+      renderCas(el);
+      hookVal(el, function (v) { el._drill = []; el._selPath = v ? [v] : []; renderCas(el); });
+    } else if (kind === 'tree') {
+      /* 默认展开根节点与其第一个子节点（与「居民档案列表」观感一致） */
+      var t = treeOf(el); el._openT = {};
+      if (t[0]) {
+        el._openT[t[0].name] = true;
+        if (t[0].children && t[0].children[0]) el._openT[t[0].children[0].name] = true;
+      }
+      el._selT = [];
+      renderTree(el);
+      hookVal(el, function (v) { el._selT = v ? v.split(',') : []; renderTree(el); });
+    }
+  }
+  function initAll() { all('[data-fcp]').forEach(initEl); }
+  window.fcpInit = initAll;
+
+  /* ---------------- 事件委托 ---------------- */
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var clear = t.closest('.fcp-clear');
+    if (clear) {
+      e.preventDefault();
+      var hi = clear.closest('[data-fcp]');
+      if (hi) {
+        var kd = hi.getAttribute('data-fcp');
+        if (kd === 'ms') { hi._sel = []; renderMs(hi); }
+        else if (kd === 'mst') { hi._sel = []; renderMst(hi); }
+        else if (kd === 'cas') { hi._drill = []; hi._selPath = []; renderCas(hi); }
+        else { hi._selT = []; renderTree(hi); }
+      }
+      return;
+    }
+    /* 随访类型：多选项无复选框，点击整行切换选中（右侧显示对勾） */
+    var tickOpt = t.closest('.fcp-opt.tick');
+    if (tickOpt) {
+      var tickHost = tickOpt.closest('[data-fcp]');
+      if (tickHost) {
+        var tv = tickOpt.getAttribute('data-v'), ti = tickHost._sel.indexOf(tv);
+        if (ti === -1) tickHost._sel.push(tv); else tickHost._sel.splice(ti, 1);
+        renderMst(tickHost);
+      }
+      return;
+    }
+    var box = t.closest('.fcp-box');
+    if (box) {
+      var el = box.closest('[data-fcp]');
+      if (!el) return;
+      var was = el.classList.contains('open');
+      closeAll(el);
+      el.classList.toggle('open', !was);
+      if (!was && el.getAttribute('data-fcp') === 'cas') positionCas(el);
+      return;
+    }
+    var node = t.closest('.fcp-n');
+    if (node) {
+      var host = node.closest('[data-fcp]');
+      if (!host) return;
+      var name = node.getAttribute('data-nm'), lv = parseInt(node.getAttribute('data-lv'), 10);
+      if (host.getAttribute('data-fcp') === 'cas') {
+        var path = (host._drill || []).slice(0, lv).concat([name]);
+        if (casNames(path).length) host._drill = path;   /* 有下级：仅下钻 */
+        else host._selPath = path;                        /* 末级：选中 */
+        renderCas(host);
+      } else {
+        if (node.getAttribute('data-kids') === '1') host._openT[name] = !host._openT[name];
+        else {
+          var i = host._selT.indexOf(name);
+          if (i === -1) host._selT.push(name); else host._selT.splice(i, 1);
+        }
+        renderTree(host);
+      }
+      return;
+    }
+    if (t.closest('.fcp-panel')) return;      /* 面板内其它点击不关闭 */
+    if (t.closest('[data-fcp]')) return;
+    closeAll(null);
+  });
+
+  /* 多选项勾选（label 内 checkbox） */
+  document.addEventListener('change', function (e) {
+    var inp = e.target;
+    if (!inp || inp.tagName !== 'INPUT' || inp.type !== 'checkbox') return;
+    var opt = inp.closest('.fcp-opt');
+    if (!opt) return;
+    var host = opt.closest('[data-fcp]');
+    if (!host) return;
+    var v = inp.value, i = host._sel.indexOf(v);
+    if (inp.checked) { if (i === -1) host._sel.push(v); }
+    else if (i !== -1) host._sel.splice(i, 1);
+    if (host.getAttribute('data-fcp') === 'mst') renderMst(host); else renderMs(host);
+  });
+
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAll(null); });
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initAll);
+  else initAll();
 })();

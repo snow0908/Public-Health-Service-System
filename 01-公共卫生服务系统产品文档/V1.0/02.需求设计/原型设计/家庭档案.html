@@ -37,6 +37,41 @@
   .btn-plain:hover{background:var(--primary-bg)}
   .btn-plain .tri{width:10px;height:6px;fill:currentColor;flex:none;transition:transform var(--transition-fast)}
   .btn-plain.open .tri{transform:rotate(180deg)}
+  /* ---- 管理机构：多选复选下拉 ---- */
+  .msel{position:relative}
+  .msel-box{display:flex;align-items:center;gap:6px;width:160px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 8px;background:var(--bg-white);cursor:pointer;font-size:13px;transition:all var(--transition-fast)}
+  .msel-box:hover,.msel-box.open{border-color:var(--primary)}
+  .msel-seg{flex:1;min-width:0;display:flex;align-items:center;gap:4px;overflow:hidden;white-space:nowrap}
+  .msel-ph{color:var(--text-placeholder)}
+  .msel-tag{flex:none;height:20px;padding:0 8px;border-radius:10px;background:var(--primary-bg);color:var(--primary);font-size:12px;display:inline-flex;align-items:center}
+  .msel-panel{display:none;position:absolute;top:36px;left:0;min-width:230px;max-height:240px;overflow:auto;background:var(--bg-white);border:1px solid #E4E7ED;border-radius:6px;box-shadow:0 8px 28px rgba(0,0,0,.16);z-index:40;padding:4px 0}
+  .msel-panel.open{display:block}
+  .msel-opt{display:flex;align-items:center;gap:8px;height:30px;padding:0 12px;font-size:13px;color:var(--text-secondary);cursor:pointer;white-space:nowrap}
+  .msel-opt:hover{background:#F5F7FA}
+  .msel-opt input{width:14px;height:14px;accent-color:var(--primary);cursor:pointer}
+  /* ---- 管辖行政区：四级级联（省/市/区县/镇） ---- */
+  .cas4{position:relative}
+  .cas4-box{display:flex;align-items:center;gap:6px;width:160px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 8px;background:var(--bg-white);cursor:pointer;font-size:13px;transition:all var(--transition-fast)}
+  .cas4-box:hover,.cas4-box.open{border-color:var(--primary)}
+  .cas4-panel{display:none;position:absolute;top:36px;left:0;width:560px;max-width:calc(100vw - 60px);background:var(--bg-white);border:1px solid #E4E7ED;border-radius:6px;box-shadow:0 8px 28px rgba(0,0,0,.16);z-index:40}
+  .cas4-panel.open{display:flex}
+  .cas4-col{flex:1;min-width:0;max-height:240px;overflow:auto;padding:4px 0}
+  .cas4-col + .cas4-col{border-left:1px solid #F0F2F5}
+  .cas4-opt{display:flex;align-items:center;gap:8px;height:30px;padding:0 12px;font-size:13px;color:var(--text-secondary);white-space:nowrap;cursor:pointer}
+  .cas4-opt:hover{background:#F5F7FA}
+  .cas4-opt input{width:14px;height:14px;accent-color:var(--primary);cursor:pointer}
+  .cas4-opt .lbl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .cas4-opt.focus .lbl{color:var(--primary);font-weight:500}
+  .cas4-empty{padding:14px 12px;font-size:13px;color:var(--text-placeholder)}
+  /* ---- 家庭状态：可清除选择 ---- */
+  .st-wrap{position:relative}
+  .st-wrap .fi-select{padding-right:26px}
+  .st-clear{position:absolute;right:7px;top:50%;transform:translateY(-50%);width:16px;height:16px;display:none;align-items:center;justify-content:center;color:var(--text-tertiary);cursor:pointer;border-radius:50%;font-size:12px;line-height:1}
+  .st-clear:hover{background:#F0F2F5;color:var(--text-secondary)}
+  .st-clear.show{display:flex}
+  /* ---- 只看个人管理档案 ---- */
+  .mine-chk{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);cursor:pointer;white-space:nowrap}
+  .mine-chk input{width:14px;height:14px;accent-color:var(--primary);cursor:pointer}
   .date-range{display:flex;align-items:center;gap:4px}
   .date-range .fi-ctl{width:120px;padding-right:26px;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 7px center}
   .date-sep{color:var(--text-tertiary)}
@@ -347,34 +382,42 @@
       <!-- 筛选区 -->
       <div class="filter-panel">
         <div class="filter-row">
-          <div class="filter-item"><label>管理机构</label><input id="fOrg" class="fi-ctl" placeholder="请输入管理机构"></div>
-          <div class="filter-item"><label>户主姓名</label><input id="fOwner" class="fi-ctl" placeholder="请输入户主姓名"></div>
-          <div class="filter-item"><label>证件号</label><input id="fIdcard" class="fi-ctl" placeholder="请输入证件号"></div>
-          <div class="filter-item"><label>家庭档案编号</label><input id="fFamNo" class="fi-ctl" placeholder="请输入家庭档案编号"></div>
+          <div class="filter-item"><label>管理机构</label>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fOrg">
+            </div>
+          </div>
+          <div class="filter-item"><label>户主姓名</label><input id="fOwner" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>证件号</label><input id="fIdcard" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>家庭档案编号</label><input id="fFamNo" class="fi-ctl" placeholder="请输入"></div>
         </div>
         <div class="filter-row">
           <div class="filter-item"><label>建档日期</label>
             <span class="date-range">
-              <input id="fDateStart" class="fi-ctl" type="text" placeholder="开始日期" onfocus="this.type='date'" onblur="if(!this.value){this.type='text'}">
+              <input id="fDateStart" class="fi-ctl" type="date" value="2026-01-01">
               <span class="date-sep">—</span>
-              <input id="fDateEnd" class="fi-ctl" type="text" placeholder="结束日期" onfocus="this.type='date'" onblur="if(!this.value){this.type='text'}">
+              <input id="fDateEnd" class="fi-ctl" type="date" value="2026-10-12">
             </span>
           </div>
-          <div class="filter-item"><label>详细地址</label><input id="fAddr" class="fi-ctl" placeholder="请输入详细地址"></div>
-          <div class="filter-item"><label>管理行政区</label>
-            <select id="fRegion" class="fi-select">
-              <option value="" selected>全部</option>
-              <option value="大桥镇">大桥镇</option>
-              <option value="吴桥镇">吴桥镇</option>
-              <option value="真武镇">真武镇</option>
-              <option value="仙女镇">仙女镇</option>
-            </select>
+          <div class="filter-item"><label>详细地址</label><input id="fAddr" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>管辖行政区</label>
+            <div class="fcp-cas" data-fcp="cas">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fRegion">
+            </div>
           </div>
           <div class="filter-item"><label>家庭状态</label>
-            <select id="fStatus" class="fi-select">
-              <option value="正常" selected>正常</option>
-              <option value="注销">注销</option>
-            </select>
+            <span class="st-wrap">
+              <select id="fStatus" class="fi-select" onchange="statusChanged()">
+                <option value="">全部</option>
+                <option value="正常" selected>正常</option>
+                <option value="删除">删除</option>
+              </select>
+              <span class="st-clear" id="statusClear" onclick="statusClear()" title="清除">✕</span>
+            </span>
           </div>
           <div class="filter-btns">
             <button class="btn btn-default" onclick="resetFilter()">
@@ -383,7 +426,7 @@
             </button>
             <button class="btn btn-primary" onclick="applyFilter()">
               <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
-              查看
+              查询
             </button>
             <button class="btn-plain" id="btnExpand" onclick="toggleExtra()">
               <span id="btnExpandLab">展开</span>
@@ -392,15 +435,14 @@
           </div>
         </div>
         <div class="filter-row extra" id="extraRow">
-          <div class="filter-item"><label>建档医生</label><input id="fDoctor" class="fi-ctl" placeholder="请输入建档医生"></div>
-          <div class="filter-item"><label>建档机构</label><input id="fBuildOrg" class="fi-ctl" placeholder="请输入建档机构"></div>
-          <div class="filter-item"><label>贫困情况</label>
+          <div class="filter-item"><label>扶贫状态</label>
             <select id="fPoverty" class="fi-select">
-              <option value="" selected>全部</option>
+              <option value="已精准扶贫">已精准扶贫</option>
               <option value="未扶贫">未扶贫</option>
-              <option value="贫困户">贫困户</option>
+              <option value="" selected>全部</option>
             </select>
           </div>
+          <label class="mine-chk"><input type="checkbox" id="fMine" onchange="renderTable()">只看个人管理档案</label>
         </div>
       </div>
 
@@ -1074,25 +1116,26 @@
     /* 重渲染后行 id 已失效，同步关闭底部成员浮层 */
     drawerFamId = null;
     $('memberDrawer').classList.remove('show');
-    var org = $('fOrg').value.trim(), owner = $('fOwner').value.trim();
+    var orgKeys = ($('fOrg').value || '').split(',').filter(Boolean);     /* 管理机构：多选（子串匹配任一） */
+    var regKeys = ($('fRegion').value || '').split(',').filter(Boolean);  /* 管辖行政区：选中镇 */
+    var owner = $('fOwner').value.trim();
     var idcard = $('fIdcard').value.trim(), famNo = $('fFamNo').value.trim();
     var dateStart = $('fDateStart').value, dateEnd = $('fDateEnd').value;
-    var addr = $('fAddr').value.trim(), region = $('fRegion').value;
-    var status = $('fStatus').value, doctor = $('fDoctor').value.trim();
-    var buildOrg = $('fBuildOrg').value.trim(), poverty = $('fPoverty').value;
+    var addr = $('fAddr').value.trim();
+    var status = $('fStatus').value, mine = $('fMine').checked;
+    var poverty = $('fPoverty').value;
 
     var list = familyData.filter(function (r) {
-      if (org && r.org.indexOf(org) === -1) return false;
+      if (orgKeys.length && !orgKeys.some(function (k) { return r.org.indexOf(k) !== -1; })) return false;
       if (owner && r.owner.indexOf(owner) === -1) return false;
       if (idcard && r.idcard.indexOf(idcard) === -1) return false;
       if (famNo && r.famNo.indexOf(famNo) === -1) return false;
       if (dateStart && r.created < dateStart) return false;
       if (dateEnd && r.created > dateEnd) return false;
       if (addr && r.addr.indexOf(addr) === -1) return false;
-      if (region && r.region !== region) return false;
+      if (regKeys.length && regKeys.indexOf(r.region) === -1) return false;
       if (status && (r.status || '正常') !== status) return false;
-      if (doctor && r.doctor.indexOf(doctor) === -1) return false;
-      if (buildOrg && r.buildOrg.indexOf(buildOrg) === -1) return false;
+      if (mine && r.doctor !== '吕雪') return false;
       if (poverty && r.poverty !== poverty) return false;
       return true;
     });
@@ -1986,21 +2029,201 @@
     }
   });
 
+  /* ================= 管理机构：多选复选下拉 ================= */
+  var orgSel = {};   /* 机构名 -> true */
+  function toggleOrgPanel(e) {
+    if (e) e.stopPropagation();
+    closeCas4Panel();
+    $('orgPanel').classList.toggle('open');
+    $('orgMselBox').classList.toggle('open');
+  }
+  function closeOrgPanel() { /* 该条件已改用公共复合控件（框架.js fcp），此处保留空实现 */ }
+  function renderOrgBox() {
+    var keys = Object.keys(orgSel), seg = $('orgSegs'), html = '';
+    if (!keys.length) {
+      html = '<span class="msel-ph">请选择</span>';
+    } else {
+      keys.slice(0, 2).forEach(function (k) { html += '<span class="msel-tag">' + esc(k) + '</span>'; });
+      if (keys.length > 2) html += '<span class="msel-tag">+' + (keys.length - 2) + '</span>';
+    }
+    seg.innerHTML = html;
+  }
+  function orgChanged(inp) {
+    if (inp.checked) orgSel[inp.value] = true; else delete orgSel[inp.value];
+    renderOrgBox();
+    renderTable();
+  }
+  document.addEventListener('click', function () { closeOrgPanel(); });
+
+  /* ================= 管辖行政区：四级级联（省/市/区县/镇） ================= */
+  var REG4 = {
+    '江苏省': {
+      '扬州市': {
+        '江都区': ['大桥镇', '吴桥镇', '真武镇', '仙女镇', '小纪镇', '邵伯镇', '樊川镇', '宜陵镇', '丁沟镇', '郭村镇'],
+        '邗江区': ['瓜洲镇', '槐泗镇']
+      },
+      '南京市': { '鼓楼区': ['热河南路街道', '江东街道'] }
+    },
+    '四川省': {
+      '成都市': { '新都区': ['大丰街道', '三河街道'], '温江区': ['柳城街道', '天府街道'] }
+    }
+  };
+  var cas4Sel = {};                 /* '省/市/区县/镇' -> true */
+  var cas4Focus = { p: '', c: '', d: '' };
+  function cas4LeafKeys(p, c, d) {
+    var ks = [];
+    if (REG4[p] && REG4[p][c] && REG4[p][c][d]) REG4[p][c][d].forEach(function (t) { ks.push(p + '/' + c + '/' + d + '/' + t); });
+    return ks;
+  }
+  function cas4NodeKeys(level, p, c, d) {
+    /* 某节点下辖全部叶键（省/市/区县三级聚合用） */
+    var ks = [];
+    Object.keys(REG4).forEach(function (pp) {
+      if (level !== 'p' && pp !== p) return;
+      Object.keys(REG4[pp]).forEach(function (cc) {
+        if ((level === 'c' || level === 'd') && cc !== c) return;
+        Object.keys(REG4[pp][cc]).forEach(function (dd) {
+          if (level === 'd' && dd !== d) return;
+          cas4LeafKeys(pp, cc, dd).forEach(function (k) { ks.push(k); });
+        });
+      });
+    });
+    return ks;
+  }
+  function cas4AllSelected(ks) { return ks.length > 0 && ks.every(function (k) { return cas4Sel[k]; }); }
+  function cas4SomeSelected(ks) { return ks.some(function (k) { return cas4Sel[k]; }); }
+  function cas4Toggle(ks, on) {
+    ks.forEach(function (k) { if (on) cas4Sel[k] = true; else delete cas4Sel[k]; });
+    renderCas4Box();
+  }
+  function toggleCas4Panel(e) {
+    if (e) e.stopPropagation();
+    closeOrgPanel();
+    $('cas4Panel').classList.toggle('open');
+    $('regCasBox').classList.toggle('open');
+  }
+  function closeCas4Panel() { /* 该条件已改用公共复合控件（框架.js fcp），此处保留空实现 */ }
+  document.addEventListener('click', function () { closeCas4Panel(); });
+  function renderCas4Box() {
+    var keys = Object.keys(cas4Sel), seg = $('regCasSegs'), html = '';
+    if (!keys.length) {
+      html = '<span class="msel-ph">请选择</span>';
+    } else {
+      keys.slice(0, 2).forEach(function (k) {
+        var p = k.split('/');
+        html += '<span class="msel-tag">' + esc(p[2]) + '·' + esc(p[3]) + '</span>';
+      });
+      if (keys.length > 2) html += '<span class="msel-tag">+' + (keys.length - 2) + '</span>';
+    }
+    seg.innerHTML = html;
+    renderCas4Panel();
+  }
+  function renderCas4Panel() {
+    /* 省 */
+    var ph = '';
+    Object.keys(REG4).forEach(function (p) {
+      var ks = cas4NodeKeys('p', p);
+      var ck = cas4AllSelected(ks), ind = !ck && cas4SomeSelected(ks);
+      ph += '<div class="cas4-opt' + (cas4Focus.p === p ? ' focus' : '') + '">'
+        + '<input type="checkbox"' + (ck ? ' checked' : '') + (ind ? ' data-ind="1"' : '')
+        + ' onclick="event.stopPropagation();cas4Toggle(cas4NodeKeys(\'p\',\'' + esc(p) + '\'),!cas4AllSelected(cas4NodeKeys(\'p\',\'' + esc(p) + '\')))">'
+        + '<span class="lbl" onclick="event.stopPropagation();cas4FocusP(\'' + esc(p) + '\')">' + esc(p) + '</span>'
+        + '</div>';
+    });
+    $('cas4ProvCol').innerHTML = ph;
+    /* 市 */
+    var ch = '';
+    if (cas4Focus.p) {
+      Object.keys(REG4[cas4Focus.p]).forEach(function (c) {
+        var ks = cas4NodeKeys('c', cas4Focus.p, c);
+        var ck = cas4AllSelected(ks), ind = !ck && cas4SomeSelected(ks);
+        ch += '<div class="cas4-opt' + (cas4Focus.c === c ? ' focus' : '') + '">'
+          + '<input type="checkbox"' + (ck ? ' checked' : '') + (ind ? ' data-ind="1"' : '')
+          + ' onclick="event.stopPropagation();cas4Toggle(cas4NodeKeys(\'c\',\'' + esc(cas4Focus.p) + '\',\'' + esc(c) + '\'),!cas4AllSelected(cas4NodeKeys(\'c\',\'' + esc(cas4Focus.p) + '\',\'' + esc(c) + '\')))">'
+          + '<span class="lbl" onclick="event.stopPropagation();cas4FocusC(\'' + esc(c) + '\')">' + esc(c) + '</span>'
+          + '</div>';
+      });
+    } else {
+      ch = '<div class="cas4-empty">点击省名称查看市</div>';
+    }
+    $('cas4CityCol').innerHTML = ch;
+    /* 区县 */
+    var dh = '';
+    if (cas4Focus.p && cas4Focus.c) {
+      Object.keys(REG4[cas4Focus.p][cas4Focus.c]).forEach(function (d) {
+        var ks = cas4LeafKeys(cas4Focus.p, cas4Focus.c, d);
+        var ck = cas4AllSelected(ks), ind = !ck && cas4SomeSelected(ks);
+        var tog = 'cas4Toggle(cas4LeafKeys(\'' + esc(cas4Focus.p) + '\',\'' + esc(cas4Focus.c) + '\',\'' + esc(d) + '\'),!cas4AllSelected(cas4LeafKeys(\'' + esc(cas4Focus.p) + '\',\'' + esc(cas4Focus.c) + '\',\'' + esc(d) + '\')))';
+        dh += '<div class="cas4-opt' + (cas4Focus.d === d ? ' focus' : '') + '">'
+          + '<input type="checkbox"' + (ck ? ' checked' : '') + (ind ? ' data-ind="1"' : '')
+          + ' onclick="event.stopPropagation();' + tog + '">'
+          + '<span class="lbl" onclick="event.stopPropagation();cas4FocusD(\'' + esc(d) + '\')">' + esc(d) + '</span>'
+          + '</div>';
+      });
+    } else {
+      dh = '<div class="cas4-empty">点击市名称查看区县</div>';
+    }
+    $('cas4DistCol').innerHTML = dh;
+    /* 镇 */
+    var th = '';
+    if (cas4Focus.p && cas4Focus.c && cas4Focus.d) {
+      (REG4[cas4Focus.p][cas4Focus.c][cas4Focus.d] || []).forEach(function (t) {
+        var k = cas4Focus.p + '/' + cas4Focus.c + '/' + cas4Focus.d + '/' + t;
+        var tog = 'cas4Toggle([\'' + esc(k) + '\'],!cas4Sel[\'' + esc(k) + '\'])';
+        th += '<div class="cas4-opt' + (cas4Sel[k] ? ' focus' : '') + '" onclick="event.stopPropagation();' + tog + '">'
+          + '<input type="checkbox"' + (cas4Sel[k] ? ' checked' : '') + ' onclick="event.stopPropagation();' + tog + '">'
+          + '<span class="lbl">' + esc(t) + '</span>'
+          + '</div>';
+      });
+    } else {
+      th = '<div class="cas4-empty">点击区县名称查看镇</div>';
+    }
+    $('cas4TownCol').innerHTML = th;
+    var inds = $('cas4Panel').querySelectorAll('input[data-ind]');
+    Array.prototype.forEach.call(inds, function (inp) { inp.indeterminate = true; });
+  }
+  function cas4FocusP(p) { cas4Focus = { p: p, c: '', d: '' }; renderCas4Panel(); }
+  function cas4FocusC(c) { cas4Focus.c = c; cas4Focus.d = ''; renderCas4Panel(); }
+  function cas4FocusD(d) { cas4Focus.d = d; renderCas4Panel(); }
+
+  /* ================= 家庭状态：可清除 ================= */
+  function statusChanged() {
+    syncStatusClear();
+    renderTable();
+  }
+  function statusClear() {
+    $('fStatus').value = '';
+    syncStatusClear();
+    renderTable();
+  }
+  function syncStatusClear() {
+    $('statusClear').classList.toggle('show', $('fStatus').value !== '');
+  }
+
   function resetFilter() {
-    ['fOrg','fOwner','fIdcard','fFamNo','fDateStart','fDateEnd','fAddr','fDoctor','fBuildOrg'].forEach(function (id) { $(id).value = ''; });
-    $('fRegion').value = ''; $('fPoverty').value = '';
+    ['fOwner', 'fIdcard', 'fFamNo', 'fAddr'].forEach(function (id) { $(id).value = ''; });
+    $('fDateStart').value = '2026-01-01';
+    $('fDateEnd').value = '2026-10-12';
+    orgSel = {};
+    cas4Sel = {};
+    cas4Focus = { p: '', c: '', d: '' };
+    $('fOrg').value = ''; $('fRegion').value = '';
     $('fStatus').value = '正常';
+    $('fPoverty').value = '';
+    $('fMine').checked = false;
+    syncStatusClear();
     renderTable();
   }
 
-  ['fOrg','fOwner','fIdcard','fFamNo','fAddr','fDoctor','fBuildOrg'].forEach(function (id) {
+  ['fOwner','fIdcard','fFamNo','fAddr'].forEach(function (id) {
     $(id).addEventListener('input', renderTable);
   });
-  ['fRegion','fStatus','fPoverty','fDateStart','fDateEnd'].forEach(function (id) {
+  ['fStatus','fPoverty','fDateStart','fDateEnd'].forEach(function (id) {
     $(id).addEventListener('change', renderTable);
   });
 
   /* 初始渲染 */
+  syncStatusClear();
   renderTable();
   window.addEventListener('resize', syncFreezeCols);
   window.addEventListener('load', syncFreezeCols);

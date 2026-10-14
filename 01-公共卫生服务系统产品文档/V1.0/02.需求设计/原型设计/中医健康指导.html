@@ -46,6 +46,34 @@
   .fi-radio input{margin:0;accent-color:var(--primary);cursor:pointer}
   .fi-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer}
   .fi-check input{margin:0;accent-color:var(--primary);cursor:pointer}
+  /* 主筛选区行距/列距/标签间距（对齐设计稿：行距 10、列距 22、标签-控件 12） */
+  .filter-panel .filter-row{gap:12px 22px;margin-bottom:10px}
+  .filter-panel .filter-item{gap:12px}
+  /* 筛选区内控件统一外框宽度（仅作用于主筛选区，不影响新建专项弹框内同名类） */
+  .filter-panel .fi-ctl,.filter-panel .fi-select{width:180px}
+  /* 筛选区内统一筛选复合控件（管理机构/管辖行政区）等宽 180px */
+  .filter-panel .fcp-ms,.filter-panel .fcp-cas,.filter-panel .fcp-tree,.filter-panel .fcp-mst{width:180px}
+  .filter-panel .fcp-ms .fcp-panel{width:max-content;min-width:100%;max-width:300px}
+  .filter-panel .fcp-tree .fcp-panel{width:200px}
+  /* 日期区间：单一外框（开始日期 ~ 结束日期 + 日历图标） */
+  .fi-range{display:flex;align-items:center;gap:6px;width:232px;height:32px;padding:0 8px 0 10px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);background:var(--bg-white);transition:all var(--transition-fast)}
+  .fi-range:hover{border-color:var(--primary)}
+  .fi-range:focus-within{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-range input{flex:1 1 0;min-width:0;height:30px;border:none;background:transparent;outline:none;padding:0;font-size:14px;color:var(--text-primary);font-family:inherit}
+  .fi-range input::placeholder{color:var(--text-placeholder)}
+  .fi-range input::-webkit-calendar-picker-indicator{display:none}
+  .fi-tilde{flex-shrink:0;font-size:14px;color:var(--text-placeholder)}
+  .fi-cal{width:14px;height:14px;flex-shrink:0;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none' stroke='%23bfbfbf' stroke-width='1.2'%3E%3Crect x='1.4' y='2.4' width='11.2' height='10.2' rx='1.6'/%3E%3Cpath d='M1.4 5.6h11.2M4.6 1.4v2M9.4 1.4v2'/%3E%3C/svg%3E") no-repeat center/contain}
+  /* 只看个人管理档案 复选框（统一写法，替换各页旧版 .own-check） */
+  .fi-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer;user-select:none;white-space:nowrap;margin:0}
+  .fi-check input[type=checkbox]{width:15px;height:15px;margin:0;accent-color:var(--primary);cursor:pointer}
+  /* 可清空单选下拉（中医服务等：有值时右侧出现圆形 ✕） */
+  .fi-combo{position:relative;display:inline-flex;align-items:center}
+  .filter-panel .fi-combo .fi-select{width:180px;padding-right:30px}
+  .fi-combo.has-val .fi-select{background-image:none}
+  .fi-combo .fi-combo-x{display:none;position:absolute;right:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;box-sizing:border-box;border:1px solid #BFBFBF;border-radius:50%;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='5' viewBox='0 0 5 5'%3E%3Cpath d='M1 1l3 3M4 1L1 4' stroke='%23BFBFBF' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center/5px 5px;cursor:pointer;user-select:none}
+  .fi-combo.has-val .fi-combo-x{display:block}
+  .fi-combo .fi-combo-x:hover{border-color:var(--primary);background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='5' viewBox='0 0 5 5'%3E%3Cpath d='M1 1l3 3M4 1L1 4' stroke='%23007AFF' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E")}
 
   /* ===== 数据表格 ===== */
   .table-wrap{flex:1;overflow:auto;min-height:0}
@@ -245,36 +273,35 @@
       <!-- 筛选区 -->
       <div class="filter-panel">
         <div class="filter-row">
-          <div class="filter-item"><label>管理机构</label>
-            <select id="fOrg" class="fi-select w-lg">
-              <option value="" selected>请选择</option>
-              <option value="扬州市江都区仙女镇龙溪社区">扬州市江都区仙女镇龙溪社区</option>
-              <option value="扬州市江都区仙女镇北苑社区">扬州市江都区仙女镇北苑社区</option>
-              <option value="扬州市江都区仙女镇龙城社区">扬州市江都区仙女镇龙城社区</option>
-              <option value="扬州市江都区仙女镇东苑社区">扬州市江都区仙女镇东苑社区</option>
-              <option value="扬州市江都区仙女镇西苑社区">扬州市江都区仙女镇西苑社区</option>
-              <option value="扬州市江都区仙女镇南苑社区">扬州市江都区仙女镇南苑社区</option>
-            </select>
+          <div class="filter-item"><label>管理机构：</label>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fOrg">
+            </div>
           </div>
-          <div class="filter-item"><label>姓名</label><input id="fName" class="fi-ctl" placeholder="请输入姓名"></div>
-          <div class="filter-item"><label>证件号</label><input id="fIdcard" class="fi-ctl" placeholder="请输入证件号"></div>
-          <div class="filter-item"><label>数据来源</label>
-            <select id="fDataSrc" class="fi-select">
-              <option value="本系统" selected>本系统</option>
-              <option value="">全部</option>
-              <option value="外系统导入">外系统导入</option>
-            </select>
+          <div class="filter-item"><label>姓名：</label><input id="fName" class="fi-ctl" placeholder="请输入姓名"></div>
+          <div class="filter-item"><label>证件号：</label><input id="fIdcard" class="fi-ctl" placeholder="请输入证件号"></div>
+          <div class="filter-item"><label>中医服务：</label>
+            <span class="fi-combo" id="svcCombo">
+              <select id="fSvc" class="fi-select">
+                <option value="" selected>请选择</option>
+                <option value="中医健康指导">中医健康指导</option>
+                <option value="中医体质辨识">中医体质辨识</option>
+              </select>
+              <span class="fi-combo-x" title="清空" onclick="clearSvc()"></span>
+            </span>
           </div>
-          <div class="filter-item"><label>锁定状态</label>
+        </div>
+        <div class="filter-row">
+          <div class="filter-item"><label>锁定状态：</label>
             <select id="fLock" class="fi-select">
               <option value="未上锁" selected>未上锁</option>
               <option value="">全部</option>
               <option value="已上锁">已上锁</option>
             </select>
           </div>
-        </div>
-        <div class="filter-row">
-          <div class="filter-item"><label>居民状态</label>
+          <div class="filter-item"><label>居民状态：</label>
             <select id="fRStatus" class="fi-select">
               <option value="正常" selected>正常</option>
               <option value="">全部</option>
@@ -283,28 +310,25 @@
               <option value="注销">注销</option>
             </select>
           </div>
-          <div class="filter-item"><label>指导类别</label>
-            <select id="fGuideType" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="情志调摄">情志调摄</option>
-              <option value="饮食调养">饮食调养</option>
-              <option value="起居调摄">起居调摄</option>
-              <option value="运动保健">运动保健</option>
-              <option value="穴位保健">穴位保健</option>
-            </select>
+          <div class="filter-item"><label>随访日期：</label>
+            <span class="fi-range">
+              <input id="fGuideStart" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <span class="fi-tilde">~</span>
+              <input id="fGuideEnd" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <span class="fi-cal"></span>
+            </span>
           </div>
-          <div class="filter-item"><label>指导日期</label>
-            <input id="fGuideStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">—</span>
-            <input id="fGuideEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-          </div>
-          <div class="filter-item"><label>指导机构</label>
-            <select id="fGuideOrg" class="fi-select w-lg">
+          <div class="filter-item"><label>人群分类：</label>
+            <select id="fCrowd" class="fi-select">
               <option value="" selected>请选择</option>
-              <option value="扬州市江都区仙女社区卫生服务中心">扬州市江都区仙女社区卫生服务中心</option>
-              <option value="扬州市江都区大桥中心卫生院">扬州市江都区大桥中心卫生院</option>
-              <option value="扬州市江都区宜陵镇中心卫生院">扬州市江都区宜陵镇中心卫生院</option>
-              <option value="扬州市江都区吴桥镇卫生院">扬州市江都区吴桥镇卫生院</option>
+              <option value="0-3岁儿童">0-3岁儿童</option>
+              <option value="3-6岁儿童">3-6岁儿童</option>
+              <option value="老年人">老年人</option>
+              <option value="高血压">高血压</option>
+              <option value="糖尿病">糖尿病</option>
+              <option value="慢阻肺病">慢阻肺病</option>
+              <option value="冠心病">冠心病</option>
+              <option value="脑卒中">脑卒中</option>
             </select>
           </div>
           <div class="filter-btns">
@@ -314,80 +338,10 @@
           </div>
         </div>
         <div class="filter-row extra">
-          <div class="filter-item"><label>指导内容</label><input id="fGuideContent" class="fi-ctl" placeholder="请输入"></div>
-          <div class="filter-item"><label>年龄</label><input id="fAge" class="fi-ctl fi-num" placeholder="如：75"></div>
-          <div class="filter-item"><label>性别</label>
-            <select id="fGender" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="男">男</option>
-              <option value="女">女</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>出生日期</label>
-            <input id="fBirthStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">—</span>
-            <input id="fBirthEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-          </div>
-        </div>
-        <div class="filter-row extra">
-          <div class="filter-item"><label>档案编号</label><input id="fArchNo" class="fi-ctl" placeholder="请输入档案编号"></div>
-          <div class="filter-item"><label>管辖行政区</label>
-            <select id="fRegion" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="龙溪社区">龙溪社区</option>
-              <option value="北苑社区">北苑社区</option>
-              <option value="龙城社区">龙城社区</option>
-              <option value="东苑社区">东苑社区</option>
-              <option value="西苑社区">西苑社区</option>
-              <option value="南苑社区">南苑社区</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>详细地址</label><input id="fAddress" class="fi-ctl" placeholder="请输入详细地址"></div>
-          <div class="filter-item"><label>电话号码</label><input id="fPhone" class="fi-ctl" placeholder="请输入"></div>
-          <div class="filter-item"><label>建档机构</label>
-            <select id="fArchOrg" class="fi-select w-lg">
-              <option value="" selected>请选择</option>
-              <option value="扬州市江都区仙女社区卫生服务中心">扬州市江都区仙女社区卫生服务中心</option>
-              <option value="扬州市江都区大桥中心卫生院">扬州市江都区大桥中心卫生院</option>
-              <option value="扬州市江都区宜陵镇中心卫生院">扬州市江都区宜陵镇中心卫生院</option>
-              <option value="扬州市江都区吴桥镇卫生院">扬州市江都区吴桥镇卫生院</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>建档医生</label><input id="fArchDoc" class="fi-ctl" placeholder="请输入"></div>
-        </div>
-        <div class="filter-row extra">
-          <div class="filter-item"><label>建档日期</label>
-            <input id="fArchStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">—</span>
-            <input id="fArchEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-          </div>
-          <div class="filter-item"><label>档案完整度</label>
-            <select id="fFullOp" class="fi-select fi-cmp">
-              <option value="" selected>请选择</option>
-              <option value="≥">≥</option>
-              <option value="≤">≤</option>
-              <option value="＝">＝</option>
-            </select>
-            <input id="fFullVal" class="fi-ctl fi-num" placeholder="请输入">
-            <span class="fi-unit">%</span>
-          </div>
-          <div class="filter-item"><label>居民类型</label>
-            <select id="fResidentType" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="常住">常住</option>
-              <option value="流动">流动</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>居住类型</label>
-            <select id="fLiveType" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="常住">常住</option>
-              <option value="暂住">暂住</option>
-              <option value="人户分离">人户分离</option>
-            </select>
-          </div>
+          <div class="filter-item"><label>服务医生：</label><input id="fSvcDoc" class="fi-ctl" placeholder="请输入"></div>
         </div>
       </div>
+
 
       <!-- 数据表格 -->
       <div class="table-wrap">
@@ -464,15 +418,11 @@
         <div class="filter-row">
           <div class="filter-item"><label>身份证号：</label><input id="sfIdcard" class="fi-ctl" placeholder="请输入"></div>
           <div class="filter-item"><label>管理机构：</label>
-            <select id="sfOrg" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="扬州市江都区仙女镇黄思社区">扬州市江都区仙女镇黄思社区</option>
-              <option value="扬州市江都区仙女镇五舍村">扬州市江都区仙女镇五舍村</option>
-              <option value="扬州市江都区仙女镇周西社区">扬州市江都区仙女镇周西社区</option>
-              <option value="扬州市江都区仙女镇善玉村">扬州市江都区仙女镇善玉村</option>
-              <option value="扬州市江都区仙女镇东苑社区">扬州市江都区仙女镇东苑社区</option>
-              <option value="扬州市江都区仙女镇龙川社区">扬州市江都区仙女镇龙川社区</option>
-            </select>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="sfOrg">
+            </div>
           </div>
           <div class="filter-btns">
             <button class="btn btn-default" onclick="resetSelectFilter()">重置</button>
@@ -639,28 +589,28 @@
 <script>
   /* ================= 模拟数据（姓名/证件号/出生日期/性别/年龄相互对应；指导记录按中医健康指导类别分布） ================= */
   var guideData = [
-    { org:'扬州市江都区仙女镇龙溪社区', name:'吴学广', idcard:'321012194905215312', idType:'居民身份证', crowd:'老年人', gender:'男', age:76, birth:'1949-05-21', phone:'13705204501', guides:['情志调摄','饮食调养'], guideContent:'保持心情舒畅，饮食清淡有节，起居有时', guideDate:'2026-09-21', guideDoc:'张丽',   guideOrg:'扬州市江都区仙女社区卫生服务中心', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇金域花园3幢502室', archNo:'3210121000120600001', region:'龙溪社区', archOrg:'扬州市江都区仙女社区卫生服务中心', archDate:'2026-09-21', archDoc:'张丽',   full:100, residentType:'常住', liveType:'常住' },
-    { org:'扬州市江都区仙女镇北苑社区', name:'李顺贵', idcard:'321012195111305317', idType:'居民身份证', crowd:'老年人', gender:'男', age:74, birth:'1951-11-30', phone:'13605204502', guides:['起居调摄','运动保健'], guideContent:'早睡早起，适量散步，避免久坐', guideDate:'2026-09-21', guideDoc:'康丽建', guideOrg:'扬州市江都区仙女社区卫生服务中心', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇北苑新村6幢301室', archNo:'3210121000120600002', region:'北苑社区', archOrg:'扬州市江都区仙女社区卫生服务中心', archDate:'2026-09-21', archDoc:'康丽建', full:100, residentType:'常住', liveType:'常住' },
-    { org:'扬州市江都区仙女镇龙溪社区', name:'张华珠', idcard:'321012194803154326', idType:'居民身份证', crowd:'老年人', gender:'女', age:78, birth:'1948-03-15', phone:'13805204503', guides:['饮食调养','穴位保健'], guideContent:'少食肥甘厚味，常按足三里、涌泉穴', guideDate:'2026-09-21', guideDoc:'张丽',   guideOrg:'扬州市江都区仙女社区卫生服务中心', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇金域花园1幢201室', archNo:'3210121000120600003', region:'龙溪社区', archOrg:'扬州市江都区仙女社区卫生服务中心', archDate:'2026-09-21', archDoc:'张丽',   full:100, residentType:'常住', liveType:'常住' },
-    { org:'扬州市江都区仙女镇龙城社区', name:'尹文光', idcard:'321012194607223318', idType:'居民身份证', crowd:'老年人', gender:'男', age:80, birth:'1946-07-22', phone:'13905204504', guides:['情志调摄'], guideContent:'培养兴趣爱好，避免情志过激', guideDate:'2026-09-21', guideDoc:'盖丽清', guideOrg:'扬州市江都区大桥中心卫生院', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇龙城路别墅区12号', archNo:'3210121000120600004', region:'龙城社区', archOrg:'扬州市江都区大桥中心卫生院', archDate:'2026-09-21', archDoc:'盖丽清', full:100, residentType:'常住', liveType:'常住' },
-    { org:'扬州市江都区仙女镇东苑社区', name:'李敏',   idcard:'321012195502084326', idType:'居民身份证', crowd:'老年人', gender:'女', age:71, birth:'1955-02-08', phone:'15005204505', guides:['饮食调养','起居调摄'], guideContent:'多食蔬果，少油少盐，规律作息', guideDate:'2026-09-21', guideDoc:'张丽',   guideOrg:'扬州市江都区仙女社区卫生服务中心', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇东苑小区9幢403室', archNo:'3210121000120600005', region:'东苑社区', archOrg:'扬州市江都区仙女社区卫生服务中心', archDate:'2026-09-21', archDoc:'张丽',   full:95,  residentType:'常住', liveType:'常住' },
-    { org:'扬州市江都区仙女镇龙溪社区', name:'顾顺桃', idcard:'321012195309174328', idType:'居民身份证', crowd:'老年人', gender:'女', age:73, birth:'1953-09-17', phone:'15105204506', guides:['运动保健','情志调摄'], guideContent:'每日晨练八段锦，保持情绪稳定', guideDate:'2026-09-21', guideDoc:'张丽',   guideOrg:'扬州市江都区仙女社区卫生服务中心', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇金域花园5幢102室', archNo:'3210121000120600006', region:'龙溪社区', archOrg:'扬州市江都区仙女社区卫生服务中心', archDate:'2026-09-21', archDoc:'张丽',   full:100, residentType:'常住', liveType:'常住' },
-    { org:'扬州市江都区仙女镇西苑社区', name:'许宝林', idcard:'321012194901123314', idType:'居民身份证', crowd:'老年人', gender:'男', age:77, birth:'1949-01-12', phone:'15205204507', guides:['起居调摄'], guideContent:'注意保暖，睡前温水泡脚', guideDate:'2026-09-21', guideDoc:'康丽建', guideOrg:'扬州市江都区仙女社区卫生服务中心', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇西苑小区3幢501室', archNo:'3210121000120600007', region:'西苑社区', archOrg:'扬州市江都区仙女社区卫生服务中心', archDate:'2026-09-21', archDoc:'康丽建', full:100, residentType:'常住', liveType:'常住' },
-    { org:'扬州市江都区仙女镇南苑社区', name:'韩树安', idcard:'321012194404053315', idType:'居民身份证', crowd:'老年人', gender:'男', age:82, birth:'1944-04-05', phone:'15305204508', guides:['饮食调养','穴位保健'], guideContent:'清淡饮食，按揉内关、足三里穴', guideDate:'2026-09-05', guideDoc:'盖丽清', guideOrg:'扬州市江都区大桥中心卫生院', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇南苑小区7幢204室', archNo:'3210121000120600008', region:'南苑社区', archOrg:'扬州市江都区大桥中心卫生院', archDate:'2026-09-05', archDoc:'盖丽清', full:100, residentType:'常住', liveType:'常住' },
-    { org:'扬州市江都区仙女镇龙溪社区', name:'薛承英', idcard:'321012195106284324', idType:'居民身份证', crowd:'老年人', gender:'女', age:75, birth:'1951-06-28', phone:'15505204509', guides:['情志调摄','运动保健'], guideContent:'乐观豁达，量力锻炼', guideDate:'2026-09-21', guideDoc:'张丽',   guideOrg:'扬州市江都区仙女社区卫生服务中心', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇金域花园8幢302室', archNo:'3210121000120600009', region:'龙溪社区', archOrg:'扬州市江都区仙女社区卫生服务中心', archDate:'2026-09-21', archDoc:'张丽',   full:100, residentType:'常住', liveType:'常住' },
-    { org:'扬州市江都区仙女镇北苑社区', name:'徐桂英', idcard:'321012194710094322', idType:'居民身份证', crowd:'老年人', gender:'女', age:79, birth:'1947-10-09', phone:'15605204510', guides:['饮食调养'], guideContent:'细嚼慢咽，定时定量进餐', guideDate:'2026-09-21', guideDoc:'张德卿', guideOrg:'扬州市江都区宜陵镇中心卫生院', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇北苑新村2幢502室', archNo:'3210121000120600010', region:'北苑社区', archOrg:'扬州市江都区宜陵镇中心卫生院', archDate:'2026-09-21', archDoc:'张德卿', full:100, residentType:'常住', liveType:'常住' },
-    { org:'扬州市江都区仙女镇龙城社区', name:'曹宏林', idcard:'321012195403193317', idType:'居民身份证', crowd:'老年人', gender:'男', age:72, birth:'1954-03-19', phone:'15805204511', guides:['穴位保健'], guideContent:'每日按揉足三里、三阴交各3分钟', guideDate:'2026-08-18', guideDoc:'盖丽清', guideOrg:'扬州市江都区大桥中心卫生院', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇龙城路21号',        archNo:'3210121000120600011', region:'龙城社区', archOrg:'扬州市江都区大桥中心卫生院', archDate:'2026-08-18', archDoc:'盖丽清', full:90,  residentType:'常住', liveType:'常住' },
-    { org:'扬州市江都区仙女镇东苑社区', name:'梁万明', idcard:'321012194208263316', idType:'居民身份证', crowd:'老年人', gender:'男', age:84, birth:'1942-08-26', phone:'15905204512', guides:['情志调摄','起居调摄'], guideContent:'静心安神，劳逸结合', guideDate:'2026-09-21', guideDoc:'张丽',   guideOrg:'扬州市江都区仙女社区卫生服务中心', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇东苑小区11幢101室', archNo:'3210121000120600012', region:'东苑社区', archOrg:'扬州市江都区仙女社区卫生服务中心', archDate:'2026-09-21', archDoc:'张丽',   full:100, residentType:'常住', liveType:'常住' },
-    { org:'扬州市江都区仙女镇西苑社区', name:'高欣',   idcard:'321012195612034321', idType:'居民身份证', crowd:'老年人', gender:'女', age:70, birth:'1956-12-03', phone:'13005204513', guides:['饮食调养','情志调摄'], guideContent:'均衡营养，乐观开朗', guideDate:'2026-09-21', guideDoc:'康丽建', guideOrg:'扬州市江都区仙女社区卫生服务中心', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇西苑小区5幢402室', archNo:'3210121000120600013', region:'西苑社区', archOrg:'扬州市江都区仙女社区卫生服务中心', archDate:'2026-09-21', archDoc:'康丽建', full:95,  residentType:'常住', liveType:'常住' },
-    { org:'扬州市江都区仙女镇龙溪社区', name:'杨树兰', idcard:'321012195005144324', idType:'居民身份证', crowd:'老年人', gender:'女', age:76, birth:'1950-05-14', phone:'13105204514', guides:['起居调摄','穴位保健'], guideContent:'顺应四时作息，按揉神阙穴', guideDate:'2026-07-30', guideDoc:'张德卿', guideOrg:'扬州市江都区宜陵镇中心卫生院', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇金域花园9幢401室', archNo:'3210121000120600014', region:'龙溪社区', archOrg:'扬州市江都区宜陵镇中心卫生院', archDate:'2026-07-30', archDoc:'张德卿', full:100, residentType:'常住', liveType:'常住' },
-    { org:'扬州市江都区仙女镇南苑社区', name:'薛秀英', idcard:'321012194502204325', idType:'居民身份证', crowd:'老年人', gender:'女', age:81, birth:'1945-02-20', phone:'13205204515', guides:['运动保健'], guideContent:'坚持散步或打太极拳', guideDate:'2026-09-21', guideDoc:'盖丽清', guideOrg:'扬州市江都区大桥中心卫生院', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇南苑小区2幢601室', archNo:'3210121000120600015', region:'南苑社区', archOrg:'扬州市江都区大桥中心卫生院', archDate:'2026-09-21', archDoc:'盖丽清', full:100, residentType:'常住', liveType:'常住' },
-    { org:'扬州市江都区仙女镇龙城社区', name:'周荣发', idcard:'321012195304273312', idType:'居民身份证', crowd:'老年人', gender:'男', age:73, birth:'1953-04-27', phone:'13305204516', guides:['情志调摄','饮食调养'], guideContent:'疏解不良情绪，戒烟限酒', guideDate:'2026-06-12', guideDoc:'张丽',   guideOrg:'扬州市江都区吴桥镇卫生院', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇龙城路33号',        archNo:'3210121000120600016', region:'龙城社区', archOrg:'扬州市江都区吴桥镇卫生院', archDate:'2026-06-12', archDoc:'张丽',   full:85,  residentType:'常住', liveType:'常住' },
-    { org:'扬州市江都区仙女镇北苑社区', name:'黄桂兰', idcard:'321012194908084322', idType:'居民身份证', crowd:'老年人', gender:'女', age:77, birth:'1949-08-08', phone:'13505204517', guides:['起居调摄'], guideContent:'保证充足睡眠，午后小憩', guideDate:'2026-09-21', guideDoc:'张德卿', guideOrg:'扬州市江都区宜陵镇中心卫生院', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇北苑新村8幢303室', archNo:'3210121000120600017', region:'北苑社区', archOrg:'扬州市江都区宜陵镇中心卫生院', archDate:'2026-09-21', archDoc:'张德卿', full:100, residentType:'常住', liveType:'常住' },
-    { org:'扬州市江都区仙女镇龙溪社区', name:'周仁建', idcard:'321012195101303316', idType:'居民身份证', crowd:'老年人', gender:'男', age:75, birth:'1951-01-30', phone:'13605204518', guides:['穴位保健','运动保健'], guideContent:'按揉合谷、足三里，做保健操', guideDate:'2026-09-21', guideDoc:'张丽',   guideOrg:'扬州市江都区仙女社区卫生服务中心', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇金域花园2幢601室', archNo:'3210121000120600018', region:'龙溪社区', archOrg:'扬州市江都区仙女社区卫生服务中心', archDate:'2026-09-21', archDoc:'张丽',   full:100, residentType:'常住', liveType:'常住' },
-    { org:'扬州市江都区仙女镇东苑社区', name:'沈三小', idcard:'321012194306153310', idType:'居民身份证', crowd:'老年人', gender:'男', age:83, birth:'1943-06-15', phone:'13705204519', guides:['饮食调养'], guideContent:'食物宜软烂易消化，少食多餐', guideDate:'2026-09-21', guideDoc:'康丽建', guideOrg:'扬州市江都区仙女社区卫生服务中心', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇东苑小区1幢502室', archNo:'3210121000120600019', region:'东苑社区', archOrg:'扬州市江都区仙女社区卫生服务中心', archDate:'2026-09-21', archDoc:'康丽建', full:100, residentType:'常住', liveType:'常住' },
-    { org:'扬州市江都区仙女镇西苑社区', name:'毛少华', idcard:'321012195604113319', idType:'居民身份证', crowd:'老年人', gender:'男', age:70, birth:'1956-04-11', phone:'13805204520', guides:['情志调摄','穴位保健'], guideContent:'调畅情志，按揉百会、风池穴', guideDate:'2026-09-21', guideDoc:'盖丽清', guideOrg:'扬州市江都区大桥中心卫生院', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇西苑小区9幢203室', archNo:'3210121000120600020', region:'西苑社区', archOrg:'扬州市江都区大桥中心卫生院', archDate:'2026-09-21', archDoc:'盖丽清', full:100, residentType:'常住', liveType:'常住' },
-    { org:'扬州市江都区仙女镇北苑社区', name:'刘玉兰', idcard:'321012194809294324', idType:'居民身份证', crowd:'老年人', gender:'女', age:78, birth:'1948-09-29', phone:'13905204521', guides:['饮食调养','起居调摄'], guideContent:'饮食温补为主，注意防寒保暖', guideDate:'2026-09-21', guideDoc:'张丽',   guideOrg:'扬州市江都区仙女社区卫生服务中心', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇北苑新村5幢102室', archNo:'3210121000120600021', region:'北苑社区', archOrg:'扬州市江都区仙女社区卫生服务中心', archDate:'2026-09-21', archDoc:'张丽',   full:100, residentType:'常住', liveType:'常住' },
-    { org:'扬州市江都区仙女镇龙城社区', name:'陈国栋', idcard:'321012195207073314', idType:'居民身份证', crowd:'老年人', gender:'男', age:74, birth:'1952-07-07', phone:'15005204522', guides:['运动保健','情志调摄'], guideContent:'适度运动，心态平和', guideDate:'2026-09-05', guideDoc:'张德卿', guideOrg:'扬州市江都区宜陵镇中心卫生院', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇龙城路45号',        archNo:'3210121000120600022', region:'龙城社区', archOrg:'扬州市江都区宜陵镇中心卫生院', archDate:'2026-09-05', archDoc:'张德卿', full:90,  residentType:'常住', liveType:'常住' }
+    { org:'山东大学齐鲁医院', name:'吴学广', idcard:'321012194905215312', idType:'居民身份证', crowd:'老年人', gender:'男', age:76, birth:'1949-05-21', phone:'13705204501', svc:'中医健康指导', guides:['情志调摄','饮食调养'], guideContent:'保持心情舒畅，饮食清淡有节，起居有时', guideDate:'2026-09-21', guideDoc:'张丽',   guideOrg:'扬州市江都区仙女社区卫生服务中心', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇金域花园3幢502室', archNo:'3210121000120600001', region:'龙溪社区', archOrg:'扬州市江都区仙女社区卫生服务中心', archDate:'2026-09-21', archDoc:'张丽',   full:100, residentType:'常住', liveType:'常住' },
+    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'李顺贵', idcard:'321012195111305317', idType:'居民身份证', crowd:'老年人', gender:'男', age:74, birth:'1951-11-30', phone:'13605204502', svc:'中医健康指导', guides:['起居调摄','运动保健'], guideContent:'早睡早起，适量散步，避免久坐', guideDate:'2026-09-21', guideDoc:'康丽建', guideOrg:'扬州市江都区仙女社区卫生服务中心', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇北苑新村6幢301室', archNo:'3210121000120600002', region:'北苑社区', archOrg:'扬州市江都区仙女社区卫生服务中心', archDate:'2026-09-21', archDoc:'康丽建', full:100, residentType:'常住', liveType:'常住' },
+    { org:'扬州市江都区大桥镇中心卫生院', name:'张华珠', idcard:'321012194803154326', idType:'居民身份证', crowd:'老年人', gender:'女', age:78, birth:'1948-03-15', phone:'13805204503', svc:'中医健康指导', guides:['饮食调养','穴位保健'], guideContent:'少食肥甘厚味，常按足三里、涌泉穴', guideDate:'2026-09-21', guideDoc:'张丽',   guideOrg:'扬州市江都区仙女社区卫生服务中心', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇金域花园1幢201室', archNo:'3210121000120600003', region:'龙溪社区', archOrg:'扬州市江都区仙女社区卫生服务中心', archDate:'2026-09-21', archDoc:'张丽',   full:100, residentType:'常住', liveType:'常住' },
+    { org:'扬州市江都区宜陵镇中心卫生院', name:'尹文光', idcard:'321012194607223318', idType:'居民身份证', crowd:'老年人', gender:'男', age:80, birth:'1946-07-22', phone:'13905204504', svc:'中医健康指导', guides:['情志调摄'], guideContent:'培养兴趣爱好，避免情志过激', guideDate:'2026-09-21', guideDoc:'盖丽清', guideOrg:'扬州市江都区大桥中心卫生院', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇龙城路别墅区12号', archNo:'3210121000120600004', region:'龙城社区', archOrg:'扬州市江都区大桥中心卫生院', archDate:'2026-09-21', archDoc:'盖丽清', full:100, residentType:'常住', liveType:'常住' },
+    { org:'扬州市江都区吴桥镇卫生院', name:'李敏',   idcard:'321012195502084326', idType:'居民身份证', crowd:'老年人', gender:'女', age:71, birth:'1955-02-08', phone:'15005204505', svc:'中医体质辨识', guides:['饮食调养','起居调摄'], guideContent:'多食蔬果，少油少盐，规律作息', guideDate:'2026-09-21', guideDoc:'张丽',   guideOrg:'扬州市江都区仙女社区卫生服务中心', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇东苑小区9幢403室', archNo:'3210121000120600005', region:'东苑社区', archOrg:'扬州市江都区仙女社区卫生服务中心', archDate:'2026-09-21', archDoc:'张丽',   full:95,  residentType:'常住', liveType:'常住' },
+    { org:'山东大学齐鲁医院', name:'顾顺桃', idcard:'321012195309174328', idType:'居民身份证', crowd:'老年人', gender:'女', age:73, birth:'1953-09-17', phone:'15105204506', svc:'中医健康指导', guides:['运动保健','情志调摄'], guideContent:'每日晨练八段锦，保持情绪稳定', guideDate:'2026-09-21', guideDoc:'张丽',   guideOrg:'扬州市江都区仙女社区卫生服务中心', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇金域花园5幢102室', archNo:'3210121000120600006', region:'龙溪社区', archOrg:'扬州市江都区仙女社区卫生服务中心', archDate:'2026-09-21', archDoc:'张丽',   full:100, residentType:'常住', liveType:'常住' },
+    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'许宝林', idcard:'321012194901123314', idType:'居民身份证', crowd:'老年人', gender:'男', age:77, birth:'1949-01-12', phone:'15205204507', svc:'中医健康指导', guides:['起居调摄'], guideContent:'注意保暖，睡前温水泡脚', guideDate:'2026-09-21', guideDoc:'康丽建', guideOrg:'扬州市江都区仙女社区卫生服务中心', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇西苑小区3幢501室', archNo:'3210121000120600007', region:'西苑社区', archOrg:'扬州市江都区仙女社区卫生服务中心', archDate:'2026-09-21', archDoc:'康丽建', full:100, residentType:'常住', liveType:'常住' },
+    { org:'扬州市江都区大桥镇中心卫生院', name:'韩树安', idcard:'321012194404053315', idType:'居民身份证', crowd:'老年人', gender:'男', age:82, birth:'1944-04-05', phone:'15305204508', svc:'中医健康指导', guides:['饮食调养','穴位保健'], guideContent:'清淡饮食，按揉内关、足三里穴', guideDate:'2026-09-05', guideDoc:'盖丽清', guideOrg:'扬州市江都区大桥中心卫生院', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇南苑小区7幢204室', archNo:'3210121000120600008', region:'南苑社区', archOrg:'扬州市江都区大桥中心卫生院', archDate:'2026-09-05', archDoc:'盖丽清', full:100, residentType:'常住', liveType:'常住' },
+    { org:'扬州市江都区宜陵镇中心卫生院', name:'薛承英', idcard:'321012195106284324', idType:'居民身份证', crowd:'老年人', gender:'女', age:75, birth:'1951-06-28', phone:'15505204509', svc:'中医健康指导', guides:['情志调摄','运动保健'], guideContent:'乐观豁达，量力锻炼', guideDate:'2026-09-21', guideDoc:'张丽',   guideOrg:'扬州市江都区仙女社区卫生服务中心', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇金域花园8幢302室', archNo:'3210121000120600009', region:'龙溪社区', archOrg:'扬州市江都区仙女社区卫生服务中心', archDate:'2026-09-21', archDoc:'张丽',   full:100, residentType:'常住', liveType:'常住' },
+    { org:'扬州市江都区吴桥镇卫生院', name:'徐桂英', idcard:'321012194710094322', idType:'居民身份证', crowd:'老年人', gender:'女', age:79, birth:'1947-10-09', phone:'15605204510', svc:'中医体质辨识', guides:['饮食调养'], guideContent:'细嚼慢咽，定时定量进餐', guideDate:'2026-09-21', guideDoc:'张德卿', guideOrg:'扬州市江都区宜陵镇中心卫生院', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇北苑新村2幢502室', archNo:'3210121000120600010', region:'北苑社区', archOrg:'扬州市江都区宜陵镇中心卫生院', archDate:'2026-09-21', archDoc:'张德卿', full:100, residentType:'常住', liveType:'常住' },
+    { org:'山东大学齐鲁医院', name:'曹宏林', idcard:'321012195403193317', idType:'居民身份证', crowd:'老年人', gender:'男', age:72, birth:'1954-03-19', phone:'15805204511', svc:'中医健康指导', guides:['穴位保健'], guideContent:'每日按揉足三里、三阴交各3分钟', guideDate:'2026-08-18', guideDoc:'盖丽清', guideOrg:'扬州市江都区大桥中心卫生院', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇龙城路21号',        archNo:'3210121000120600011', region:'龙城社区', archOrg:'扬州市江都区大桥中心卫生院', archDate:'2026-08-18', archDoc:'盖丽清', full:90,  residentType:'常住', liveType:'常住' },
+    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'梁万明', idcard:'321012194208263316', idType:'居民身份证', crowd:'老年人', gender:'男', age:84, birth:'1942-08-26', phone:'15905204512', svc:'中医健康指导', guides:['情志调摄','起居调摄'], guideContent:'静心安神，劳逸结合', guideDate:'2026-09-21', guideDoc:'张丽',   guideOrg:'扬州市江都区仙女社区卫生服务中心', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇东苑小区11幢101室', archNo:'3210121000120600012', region:'东苑社区', archOrg:'扬州市江都区仙女社区卫生服务中心', archDate:'2026-09-21', archDoc:'张丽',   full:100, residentType:'常住', liveType:'常住' },
+    { org:'扬州市江都区大桥镇中心卫生院', name:'高欣',   idcard:'321012195612034321', idType:'居民身份证', crowd:'老年人', gender:'女', age:70, birth:'1956-12-03', phone:'13005204513', svc:'中医健康指导', guides:['饮食调养','情志调摄'], guideContent:'均衡营养，乐观开朗', guideDate:'2026-09-21', guideDoc:'康丽建', guideOrg:'扬州市江都区仙女社区卫生服务中心', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇西苑小区5幢402室', archNo:'3210121000120600013', region:'西苑社区', archOrg:'扬州市江都区仙女社区卫生服务中心', archDate:'2026-09-21', archDoc:'康丽建', full:95,  residentType:'常住', liveType:'常住' },
+    { org:'扬州市江都区宜陵镇中心卫生院', name:'杨树兰', idcard:'321012195005144324', idType:'居民身份证', crowd:'老年人', gender:'女', age:76, birth:'1950-05-14', phone:'13105204514', svc:'中医健康指导', guides:['起居调摄','穴位保健'], guideContent:'顺应四时作息，按揉神阙穴', guideDate:'2026-07-30', guideDoc:'张德卿', guideOrg:'扬州市江都区宜陵镇中心卫生院', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇金域花园9幢401室', archNo:'3210121000120600014', region:'龙溪社区', archOrg:'扬州市江都区宜陵镇中心卫生院', archDate:'2026-07-30', archDoc:'张德卿', full:100, residentType:'常住', liveType:'常住' },
+    { org:'扬州市江都区吴桥镇卫生院', name:'薛秀英', idcard:'321012194502204325', idType:'居民身份证', crowd:'老年人', gender:'女', age:81, birth:'1945-02-20', phone:'13205204515', svc:'中医体质辨识', guides:['运动保健'], guideContent:'坚持散步或打太极拳', guideDate:'2026-09-21', guideDoc:'盖丽清', guideOrg:'扬州市江都区大桥中心卫生院', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇南苑小区2幢601室', archNo:'3210121000120600015', region:'南苑社区', archOrg:'扬州市江都区大桥中心卫生院', archDate:'2026-09-21', archDoc:'盖丽清', full:100, residentType:'常住', liveType:'常住' },
+    { org:'山东大学齐鲁医院', name:'周荣发', idcard:'321012195304273312', idType:'居民身份证', crowd:'老年人', gender:'男', age:73, birth:'1953-04-27', phone:'13305204516', svc:'中医健康指导', guides:['情志调摄','饮食调养'], guideContent:'疏解不良情绪，戒烟限酒', guideDate:'2026-06-12', guideDoc:'张丽',   guideOrg:'扬州市江都区吴桥镇卫生院', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇龙城路33号',        archNo:'3210121000120600016', region:'龙城社区', archOrg:'扬州市江都区吴桥镇卫生院', archDate:'2026-06-12', archDoc:'张丽',   full:85,  residentType:'常住', liveType:'常住' },
+    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'黄桂兰', idcard:'321012194908084322', idType:'居民身份证', crowd:'老年人', gender:'女', age:77, birth:'1949-08-08', phone:'13505204517', svc:'中医健康指导', guides:['起居调摄'], guideContent:'保证充足睡眠，午后小憩', guideDate:'2026-09-21', guideDoc:'张德卿', guideOrg:'扬州市江都区宜陵镇中心卫生院', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇北苑新村8幢303室', archNo:'3210121000120600017', region:'北苑社区', archOrg:'扬州市江都区宜陵镇中心卫生院', archDate:'2026-09-21', archDoc:'张德卿', full:100, residentType:'常住', liveType:'常住' },
+    { org:'扬州市江都区大桥镇中心卫生院', name:'周仁建', idcard:'321012195101303316', idType:'居民身份证', crowd:'老年人', gender:'男', age:75, birth:'1951-01-30', phone:'13605204518', svc:'中医健康指导', guides:['穴位保健','运动保健'], guideContent:'按揉合谷、足三里，做保健操', guideDate:'2026-09-21', guideDoc:'张丽',   guideOrg:'扬州市江都区仙女社区卫生服务中心', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇金域花园2幢601室', archNo:'3210121000120600018', region:'龙溪社区', archOrg:'扬州市江都区仙女社区卫生服务中心', archDate:'2026-09-21', archDoc:'张丽',   full:100, residentType:'常住', liveType:'常住' },
+    { org:'扬州市江都区宜陵镇中心卫生院', name:'沈三小', idcard:'321012194306153310', idType:'居民身份证', crowd:'老年人', gender:'男', age:83, birth:'1943-06-15', phone:'13705204519', svc:'中医健康指导', guides:['饮食调养'], guideContent:'食物宜软烂易消化，少食多餐', guideDate:'2026-09-21', guideDoc:'康丽建', guideOrg:'扬州市江都区仙女社区卫生服务中心', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇东苑小区1幢502室', archNo:'3210121000120600019', region:'东苑社区', archOrg:'扬州市江都区仙女社区卫生服务中心', archDate:'2026-09-21', archDoc:'康丽建', full:100, residentType:'常住', liveType:'常住' },
+    { org:'扬州市江都区吴桥镇卫生院', name:'毛少华', idcard:'321012195604113319', idType:'居民身份证', crowd:'老年人', gender:'男', age:70, birth:'1956-04-11', phone:'13805204520', svc:'中医体质辨识', guides:['情志调摄','穴位保健'], guideContent:'调畅情志，按揉百会、风池穴', guideDate:'2026-09-21', guideDoc:'盖丽清', guideOrg:'扬州市江都区大桥中心卫生院', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇西苑小区9幢203室', archNo:'3210121000120600020', region:'西苑社区', archOrg:'扬州市江都区大桥中心卫生院', archDate:'2026-09-21', archDoc:'盖丽清', full:100, residentType:'常住', liveType:'常住' },
+    { org:'山东大学齐鲁医院', name:'刘玉兰', idcard:'321012194809294324', idType:'居民身份证', crowd:'老年人', gender:'女', age:78, birth:'1948-09-29', phone:'13905204521', svc:'中医健康指导', guides:['饮食调养','起居调摄'], guideContent:'饮食温补为主，注意防寒保暖', guideDate:'2026-09-21', guideDoc:'张丽',   guideOrg:'扬州市江都区仙女社区卫生服务中心', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇北苑新村5幢102室', archNo:'3210121000120600021', region:'北苑社区', archOrg:'扬州市江都区仙女社区卫生服务中心', archDate:'2026-09-21', archDoc:'张丽',   full:100, residentType:'常住', liveType:'常住' },
+    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'陈国栋', idcard:'321012195207073314', idType:'居民身份证', crowd:'老年人', gender:'男', age:74, birth:'1952-07-07', phone:'15005204522', svc:'中医健康指导', guides:['运动保健','情志调摄'], guideContent:'适度运动，心态平和', guideDate:'2026-09-05', guideDoc:'张德卿', guideOrg:'扬州市江都区宜陵镇中心卫生院', rStatus:'正常', lock:'未上锁', address:'扬州市江都区仙女镇龙城路45号',        archNo:'3210121000120600022', region:'龙城社区', archOrg:'扬州市江都区宜陵镇中心卫生院', archDate:'2026-09-05', archDoc:'张德卿', full:90,  residentType:'常住', liveType:'常住' }
   ];
 
   /* ================= 工具函数 ================= */
@@ -692,53 +642,22 @@
   /* ================= 表格渲染（按筛选条件实时过滤 + 分页） ================= */
   function renderTable() {
     var org = $('fOrg').value, name = $('fName').value.trim(), idcard = $('fIdcard').value.trim();
-    var dataSrc = $('fDataSrc').value, lock = $('fLock').value, rStatus = $('fRStatus').value;
-    var guideType = $('fGuideType').value;
+    var svc = $('fSvc').value;
+    var lock = $('fLock').value, rStatus = $('fRStatus').value;
     var guideStart = $('fGuideStart').value, guideEnd = $('fGuideEnd').value;
-    var guideOrg = $('fGuideOrg').value, guideContent = $('fGuideContent').value.trim();
-    var age = $('fAge').value.trim(), gender = $('fGender').value;
-    var birthStart = $('fBirthStart').value, birthEnd = $('fBirthEnd').value;
-    var archNo = $('fArchNo').value.trim(), region = $('fRegion').value;
-    var address = $('fAddress').value.trim(), phone = $('fPhone').value.trim();
-    var archOrg = $('fArchOrg').value, archDoc = $('fArchDoc').value.trim();
-    var archStart = $('fArchStart').value, archEnd = $('fArchEnd').value;
-    var fullOp = $('fFullOp').value, fullVal = $('fFullVal').value.trim();
-    var residentType = $('fResidentType').value, liveType = $('fLiveType').value;
+    var crowd = $('fCrowd').value, svcDoc = $('fSvcDoc').value.trim();
 
     lastList = guideData.filter(function (r) {
-      if (org && r.org !== org) return false;
+      if (org && org.split(',').indexOf(r.org) === -1) return false;
       if (name && r.name.indexOf(name) === -1) return false;
       if (idcard && r.idcard.indexOf(idcard) === -1) return false;
-      if (dataSrc && (r.dataSrc || '本系统') !== dataSrc) return false;
+      if (svc && r.svc !== svc) return false;
       if (lock && r.lock !== lock) return false;
       if (rStatus && r.rStatus !== rStatus) return false;
-      if (guideType && r.guides.indexOf(guideType) === -1) return false;
       if (guideStart && r.guideDate < guideStart) return false;
       if (guideEnd && r.guideDate > guideEnd) return false;
-      if (guideOrg && r.guideOrg !== guideOrg) return false;
-      if (guideContent && r.guideContent.indexOf(guideContent) === -1) return false;
-      if (age && String(r.age) !== age) return false;
-      if (gender && r.gender !== gender) return false;
-      if (birthStart && r.birth < birthStart) return false;
-      if (birthEnd && r.birth > birthEnd) return false;
-      if (archNo && r.archNo.indexOf(archNo) === -1) return false;
-      if (region && r.region !== region) return false;
-      if (address && r.address.indexOf(address) === -1) return false;
-      if (phone && r.phone.indexOf(phone) === -1) return false;
-      if (archOrg && r.archOrg !== archOrg) return false;
-      if (archDoc && r.archDoc.indexOf(archDoc) === -1) return false;
-      if (archStart && r.archDate < archStart) return false;
-      if (archEnd && r.archDate > archEnd) return false;
-      if (fullOp && fullVal !== '') {
-        var v = parseInt(fullVal, 10);
-        if (!isNaN(v)) {
-          if (fullOp === '≥' && r.full < v) return false;
-          if (fullOp === '≤' && r.full > v) return false;
-          if (fullOp === '＝' && r.full !== v) return false;
-        }
-      }
-      if (residentType && r.residentType !== residentType) return false;
-      if (liveType && r.liveType !== liveType) return false;
+      if (crowd && r.crowd.indexOf(crowd) === -1) return false;
+      if (svcDoc && r.guideDoc.indexOf(svcDoc) === -1) return false;
       return true;
     });
 
@@ -827,15 +746,28 @@
   }
 
   /* ================= 交互 ================= */
-  function resetFilter() {
-    ['fName', 'fIdcard', 'fGuideContent', 'fAge', 'fArchNo', 'fAddress', 'fPhone', 'fArchDoc', 'fFullVal'].forEach(function (id) { $(id).value = ''; });
-    ['fOrg', 'fDataSrc', 'fGuideType', 'fGuideOrg', 'fGender', 'fRegion', 'fArchOrg', 'fFullOp', 'fResidentType', 'fLiveType'].forEach(function (id) { $(id).value = ''; });
-    ['fGuideStart', 'fGuideEnd', 'fBirthStart', 'fBirthEnd', 'fArchStart', 'fArchEnd'].forEach(function (id) { var el = $(id); el.value = ''; el.type = 'text'; });
-    $('fDataSrc').value = '本系统';
-    $('fLock').value = '未上锁';
-    $('fRStatus').value = '正常';
+  /* 中医服务：清空并刷新 */
+  function syncSvc() {
+    var box = document.getElementById('svcCombo');
+    if (box) box.classList.toggle('has-val', !!$('fSvc').value);
+  }
+  function clearSvc() {
+    $('fSvc').value = '';
+    syncSvc();
     curPage = 1;
     renderTable();
+  }
+
+  function resetFilter() {
+    ['fName', 'fIdcard', 'fSvcDoc'].forEach(function (id) { $(id).value = ''; });
+    ['fOrg', 'fSvc', 'fCrowd'].forEach(function (id) { $(id).value = ''; });
+    ['fGuideStart', 'fGuideEnd'].forEach(function (id) { var el = $(id); el.value = ''; el.type = 'text'; });
+    $('fLock').value = '未上锁';
+    $('fRStatus').value = '正常';
+    syncSvc();
+    curPage = 1;
+    renderTable();
+    toast('筛选条件已重置', 'success');
     toast('筛选条件已重置', 'success');
   }
 
@@ -846,7 +778,7 @@
   }
 
   function toggleExtra() {
-    var rows = document.querySelectorAll('.filter-row.extra');
+    var rows = document.querySelectorAll('.filter-panel .filter-row.extra');
     var btn = $('btnExpand');
     var show = !rows[0].classList.contains('show');
     rows.forEach(function (row) { row.classList.toggle('show', show); });
@@ -872,11 +804,24 @@
   }
 
   /* 筛选控件输入即实时过滤（并回到第一页） */
-  ['fName', 'fIdcard', 'fGuideContent', 'fAge', 'fArchNo', 'fAddress', 'fPhone', 'fArchDoc', 'fFullVal'].forEach(function (id) {
+  ['fName', 'fIdcard', 'fSvcDoc'].forEach(function (id) {
     $(id).addEventListener('input', function () { curPage = 1; renderTable(); });
   });
-  ['fOrg', 'fDataSrc', 'fLock', 'fRStatus', 'fGuideType', 'fGuideOrg', 'fGender', 'fRegion', 'fArchOrg', 'fFullOp', 'fResidentType', 'fLiveType', 'fGuideStart', 'fGuideEnd', 'fBirthStart', 'fBirthEnd', 'fArchStart', 'fArchEnd'].forEach(function (id) {
+  ['fLock', 'fRStatus', 'fCrowd'].forEach(function (id) {
     $(id).addEventListener('change', function () { curPage = 1; renderTable(); });
+  });
+  ['fGuideStart', 'fGuideEnd'].forEach(function (id) {
+    $(id).addEventListener('input', function () { curPage = 1; renderTable(); });
+  });
+  $('fSvc').addEventListener('change', function () { syncSvc(); curPage = 1; renderTable(); });
+  syncSvc();
+  /* 复合筛选控件（管理机构）选择后实时过滤 */
+  document.querySelectorAll('.filter-panel [data-fcp]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      if (e.target.closest('.fcp-opt,.fcp-n,.fcp-clear')) {
+        setTimeout(function () { curPage = 1; renderTable(); }, 0);
+      }
+    });
   });
 
   /* ================= 档案选择弹框（新增第一步） ================= */

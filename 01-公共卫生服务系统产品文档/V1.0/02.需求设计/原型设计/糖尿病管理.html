@@ -27,8 +27,8 @@
   .filter-row.extra.show{display:flex}
   .fi-date{width:138px}
   .fi-sep{color:var(--text-placeholder);font-size:13px}
-  .fi-cmp{width:78px}
-  .fi-num{width:80px}
+  .fi-cmp{width:88px}
+  .fi-num{width:84px}
   .fi-unit{font-size:13px;color:var(--text-secondary)}
   .fi-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer}
   .fi-check input{margin:0;accent-color:var(--primary);cursor:pointer}
@@ -42,6 +42,33 @@
   .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
   .btn-plain{height:28px;padding:0 8px;font-size:13px;color:var(--primary);border-radius:var(--r-sm)}
   .btn-plain:hover{background:var(--primary-bg)}
+  /* 主筛选区行距/列距/标签间距（对齐设计稿：行距 10、列距 22、标签-控件 12） */
+  .filter-panel .filter-row{gap:12px 22px;margin-bottom:10px}
+  .filter-panel .filter-item{gap:12px}
+  /* 筛选区内控件统一外框宽度（仅作用于主筛选区，不影响新建专项弹框内同名类） */
+  .filter-panel .fi-ctl,.filter-panel .fi-select{width:180px}
+  .filter-panel .fi-cmp{width:88px}
+  .filter-panel .fi-num{width:84px}
+  /* 筛选区内统一筛选复合控件（管理机构/管辖行政区/管辖网格/专项建档机构/随访类型）等宽 180px */
+  .filter-panel .fcp-ms,.filter-panel .fcp-cas,.filter-panel .fcp-tree,.filter-panel .fcp-mst{width:180px}
+  .filter-panel .fcp-ms .fcp-panel{width:max-content;min-width:100%;max-width:300px}
+  .filter-panel .fcp-tree .fcp-panel{width:200px}
+  /* 日期区间：单一外框（开始日期 ~ 结束日期 + 日历图标） */
+  .fi-range{display:flex;align-items:center;gap:6px;width:232px;height:32px;padding:0 8px 0 10px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);background:var(--bg-white);transition:all var(--transition-fast)}
+  .fi-range:hover{border-color:var(--primary)}
+  .fi-range:focus-within{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-range input{flex:1 1 0;min-width:0;height:30px;border:none;background:transparent;outline:none;padding:0;font-size:14px;color:var(--text-primary);font-family:inherit}
+  .fi-range input::placeholder{color:var(--text-placeholder)}
+  .fi-range input::-webkit-calendar-picker-indicator{display:none}
+  .fi-tilde{flex-shrink:0;font-size:14px;color:var(--text-placeholder)}
+  .fi-cal{width:14px;height:14px;flex-shrink:0;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none' stroke='%23bfbfbf' stroke-width='1.2'%3E%3Crect x='1.4' y='2.4' width='11.2' height='10.2' rx='1.6'/%3E%3Cpath d='M1.4 5.6h11.2M4.6 1.4v2M9.4 1.4v2'/%3E%3C/svg%3E") no-repeat center/contain}
+  /* 百分比后缀内嵌于输入框右侧 */
+  .fi-suf{position:relative;display:inline-block;width:180px;flex:0 0 auto}
+  .fi-suf>input{width:100%;padding-right:28px}
+  .fi-suf .fu{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text-placeholder);pointer-events:none}
+  /* 随访次数/体检次数：比较符未选择时数值框置灰禁用（对齐设计稿） */
+  .filter-panel .fi-ctl:disabled,.filter-panel .fi-num:disabled{background:#F5F5F5;color:var(--text-disabled);cursor:not-allowed;border-color:var(--color-neutral-300)}
+  .filter-panel .fi-ctl:disabled:focus{box-shadow:none}
 
   /* ===== 数据表格 ===== */
   .table-wrap{flex:1;overflow:auto;min-height:0}
@@ -240,47 +267,37 @@
         </div>
       </div>
 
-      <!-- 筛选区 -->
+      <!-- 筛选区（每行 4 个条件；前 2 行常显，点击「展开」显示其余 6 行） -->
       <div class="filter-panel">
+        <!-- 行 1 -->
         <div class="filter-row">
-          <div class="filter-item"><label>管理机构</label>
-            <select id="fOrg" class="fi-select w-lg">
-              <option value="" selected>请选择</option>
-              <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
-              <option value="济南市历下区甸柳新村社区卫生服务中心">济南市历下区甸柳新村社区卫生服务中心</option>
-              <option value="济南市市中区舜玉路社区卫生服务中心">济南市市中区舜玉路社区卫生服务中心</option>
-              <option value="济南市历下区千佛山社区卫生服务中心">济南市历下区千佛山社区卫生服务中心</option>
-              <option value="济南市天桥区工人新村社区卫生服务中心">济南市天桥区工人新村社区卫生服务中心</option>
-              <option value="济南市历下区文化东路社区卫生服务中心">济南市历下区文化东路社区卫生服务中心</option>
-            </select>
+          <div class="filter-item"><label>管理机构：</label>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fOrg">
+            </div>
           </div>
-          <div class="filter-item"><label>姓名</label><input id="fName" class="fi-ctl" placeholder="请输入姓名"></div>
-          <div class="filter-item"><label>证件号</label><input id="fIdcard" class="fi-ctl" placeholder="请输入证件号"></div>
-          <div class="filter-item"><label>管辖行政区</label>
-            <select id="fRegion" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="解放路社区">解放路社区</option>
-              <option value="千佛山社区">千佛山社区</option>
-              <option value="燕山社区">燕山社区</option>
-              <option value="姚家社区">姚家社区</option>
-              <option value="舜玉社区">舜玉社区</option>
-              <option value="甸柳社区">甸柳社区</option>
-              <option value="文化东路社区">文化东路社区</option>
-              <option value="工人新村社区">工人新村社区</option>
-              <option value="窑头社区">窑头社区</option>
-              <option value="七里山社区">七里山社区</option>
-            </select>
+          <div class="filter-item"><label>姓名：</label><input id="fName" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>证件号：</label><input id="fIdcard" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>管辖行政区：</label>
+            <div class="fcp-cas" data-fcp="cas" data-caret>
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fRegion">
+            </div>
           </div>
-          <div class="filter-item"><label>锁定状态</label>
+        </div>
+        <!-- 行 2 -->
+        <div class="filter-row">
+          <div class="filter-item"><label>锁定状态：</label>
             <select id="fLock" class="fi-select">
               <option value="未上锁" selected>未上锁</option>
               <option value="">全部</option>
               <option value="已上锁">已上锁</option>
             </select>
           </div>
-        </div>
-        <div class="filter-row">
-          <div class="filter-item"><label>居民状态</label>
+          <div class="filter-item"><label>居民状态：</label>
             <select id="fRStatus" class="fi-select">
               <option value="正常" selected>正常</option>
               <option value="">全部</option>
@@ -289,7 +306,7 @@
               <option value="注销">注销</option>
             </select>
           </div>
-          <div class="filter-item"><label>管理状态</label>
+          <div class="filter-item"><label>管理状态：</label>
             <select id="fMStatus" class="fi-select">
               <option value="有效管理" selected>有效管理</option>
               <option value="">全部</option>
@@ -297,30 +314,12 @@
               <option value="终止管理">终止管理</option>
             </select>
           </div>
-          <div class="filter-item"><label>当前分级</label>
+          <div class="filter-item"><label>当前分级：</label>
             <select id="fGrade" class="fi-select">
               <option value="" selected>请选择</option>
               <option value="一级">一级</option>
               <option value="二级">二级</option>
               <option value="三级">三级</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>糖尿病类型</label>
-            <select id="fDmType" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="1型糖尿病">1型糖尿病</option>
-              <option value="2型糖尿病">2型糖尿病</option>
-              <option value="特殊类型糖尿病">特殊类型糖尿病</option>
-              <option value="妊娠期糖尿病">妊娠期糖尿病</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>管辖网格</label>
-            <select id="fGrid" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="第一网格">第一网格</option>
-              <option value="第二网格">第二网格</option>
-              <option value="第三网格">第三网格</option>
-              <option value="第四网格">第四网格</option>
             </select>
           </div>
           <div class="filter-btns">
@@ -329,116 +328,146 @@
             <button class="btn-plain" id="btnExpand" onclick="toggleExtra()">展开 ▼</button>
           </div>
         </div>
+        <!-- 行 3 -->
         <div class="filter-row extra">
-          <div class="filter-item"><label>随访次数</label>
+          <div class="filter-item"><label>糖尿病类型：</label>
+            <select id="fDmType" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="1型糖尿病">1型糖尿病</option>
+              <option value="2型糖尿病">2型糖尿病</option>
+              <option value="其他特殊类型和妊娠糖尿病">其他特殊类型和妊娠糖尿病</option>
+              <option value="继发性糖尿病">继发性糖尿病</option>
+            </select>
+          </div>
+          <div class="filter-item"><label>管辖网格：</label>
+            <div class="fcp-tree" data-fcp="tree" data-tree='[{"n":"江都区","c":[{"n":"江都区","c":[]},{"n":"郭村镇","c":["第一网格","第二网格","第三网格"]},{"n":"大桥镇","c":["第一网格","第二网格","第三网格"]},{"n":"滨江新城","c":["第一网格","第二网格","第三网格"]},{"n":"真武镇","c":["第一网格","第二网格","第三网格"]},{"n":"小纪镇","c":["第一网格","第二网格","第三网格"]},{"n":"丁沟镇","c":["第一网格","第二网格","第三网格"]},{"n":"宜陵镇","c":["第一网格","第二网格","第三网格"]},{"n":"仙女镇","c":["第一网格","第二网格","第三网格"]},{"n":"吴桥镇","c":["第一网格","第二网格","第三网格"]}]}]'>
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fGrid">
+            </div>
+          </div>
+          <div class="filter-item"><label>随访次数：</label>
             <select id="fFuCntOp" class="fi-select fi-cmp">
               <option value="" selected>请选择</option>
               <option value="≥">≥</option>
               <option value="≤">≤</option>
               <option value="＝">＝</option>
             </select>
-            <input id="fFuCnt" class="fi-ctl fi-num" placeholder="请输入">
+            <input id="fFuCnt" class="fi-ctl fi-num" disabled>
           </div>
-          <div class="filter-item"><label>体检次数</label>
+          <div class="filter-item"><label>体检次数：</label>
             <select id="fExamCntOp" class="fi-select fi-cmp">
               <option value="" selected>请选择</option>
               <option value="≥">≥</option>
               <option value="≤">≤</option>
               <option value="＝">＝</option>
             </select>
-            <input id="fExamCnt" class="fi-ctl fi-num" placeholder="请输入">
-          </div>
-          <div class="filter-item"><label>业务日期</label>
-            <input id="fBizStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">—</span>
-            <input id="fBizEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-          </div>
-          <div class="filter-item"><label>随访类型</label>
-            <select id="fFuType" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="一季度随访">一季度随访</option>
-              <option value="二季度随访">二季度随访</option>
-              <option value="三季度随访">三季度随访</option>
-              <option value="四季度随访">四季度随访</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>空腹血糖</label>
-            <input id="fFbgMin" class="fi-ctl fi-num" placeholder="请输入">
-            <span class="fi-sep">—</span>
-            <input id="fFbgMax" class="fi-ctl fi-num" placeholder="请输入">
-            <span class="fi-unit">mmol/L</span>
+            <input id="fExamCnt" class="fi-ctl fi-num" disabled>
           </div>
         </div>
+        <!-- 行 4 -->
         <div class="filter-row extra">
-          <div class="filter-item"><label>档案完整度</label>
+          <div class="filter-item"><label>业务日期：</label>
+            <div class="fi-range">
+              <input id="fBizStart" class="fi-rd" type="text" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}" placeholder="开始日期">
+              <span class="fi-tilde">~</span>
+              <input id="fBizEnd" class="fi-rd" type="text" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}" placeholder="结束日期">
+              <span class="fi-cal"></span>
+            </div>
+          </div>
+          <div class="filter-item"><label>随访类型：</label>
+            <div class="fcp-mst" data-fcp="mst" data-caret data-options="门诊|家庭|电话|短信|网络|其他">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fFuType">
+            </div>
+          </div>
+          <div class="filter-item"><label>空腹血糖：</label>
+            <input id="fFbgMin" class="fi-ctl fi-num" placeholder="请输入">
+            <span class="fi-tilde">-</span>
+            <input id="fFbgMax" class="fi-ctl fi-num" placeholder="请输入">
+          </div>
+          <div class="filter-item"><label>档案完整度：</label>
             <select id="fFullOp" class="fi-select fi-cmp">
               <option value="" selected>请选择</option>
               <option value="≥">≥</option>
               <option value="≤">≤</option>
               <option value="＝">＝</option>
             </select>
-            <input id="fFullVal" class="fi-ctl fi-num" placeholder="请输入">
-            <span class="fi-unit">%</span>
-          </div>
-          <div class="filter-item"><label>专项建档机构</label>
-            <select id="fSpecOrg" class="fi-select w-lg">
-              <option value="" selected>请选择</option>
-              <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
-              <option value="济南市历下区甸柳新村社区卫生服务中心">济南市历下区甸柳新村社区卫生服务中心</option>
-              <option value="济南市市中区舜玉路社区卫生服务中心">济南市市中区舜玉路社区卫生服务中心</option>
-              <option value="济南市历下区千佛山社区卫生服务中心">济南市历下区千佛山社区卫生服务中心</option>
-              <option value="济南市天桥区工人新村社区卫生服务中心">济南市天桥区工人新村社区卫生服务中心</option>
-              <option value="济南市历下区文化东路社区卫生服务中心">济南市历下区文化东路社区卫生服务中心</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>专项建档医生</label><input id="fSpecDoc" class="fi-ctl" placeholder="请输入"></div>
-          <div class="filter-item"><label>专项建档日期</label>
-            <input id="fSpecStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">—</span>
-            <input id="fSpecEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+            <span class="fi-suf"><input id="fFullVal" class="fi-ctl" placeholder="请输入"><span class="fu">%</span></span>
           </div>
         </div>
+        <!-- 行 5 -->
         <div class="filter-row extra">
-          <div class="filter-item"><label>居民建档日期</label>
-            <input id="fArchStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">—</span>
-            <input id="fArchEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+          <div class="filter-item"><label>专项建档机构：</label>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fSpecOrg">
+            </div>
           </div>
-          <div class="filter-item"><label>居民建档医生</label><input id="fArchDoc" class="fi-ctl" placeholder="请输入"></div>
-          <div class="filter-item"><label>居民类型</label>
+          <div class="filter-item"><label>专项建档医生：</label><input id="fSpecDoc" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>专项建档日期：</label>
+            <div class="fi-range">
+              <input id="fSpecStart" class="fi-rd" type="text" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}" placeholder="开始日期">
+              <span class="fi-tilde">~</span>
+              <input id="fSpecEnd" class="fi-rd" type="text" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}" placeholder="结束日期">
+              <span class="fi-cal"></span>
+            </div>
+          </div>
+        </div>
+        <!-- 行 6 -->
+        <div class="filter-row extra">
+          <div class="filter-item"><label>居民建档日期：</label>
+            <div class="fi-range">
+              <input id="fArchStart" class="fi-rd" type="text" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}" placeholder="开始日期">
+              <span class="fi-tilde">~</span>
+              <input id="fArchEnd" class="fi-rd" type="text" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}" placeholder="结束日期">
+              <span class="fi-cal"></span>
+            </div>
+          </div>
+          <div class="filter-item"><label>居民建档医生：</label><input id="fArchDoc" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>居民类型：</label>
             <select id="fResidentType" class="fi-select">
               <option value="" selected>请选择</option>
-              <option value="常住">常住</option>
-              <option value="流动">流动</option>
+              <option value="未分">未分</option>
+              <option value="城镇居民">城镇居民</option>
+              <option value="农村居民">农村居民</option>
             </select>
           </div>
-          <div class="filter-item"><label>居住类型</label>
+          <div class="filter-item"><label>居住类型：</label>
             <select id="fLiveType" class="fi-select">
               <option value="" selected>请选择</option>
               <option value="常住">常住</option>
               <option value="暂住">暂住</option>
-              <option value="人户分离">人户分离</option>
+              <option value="流动人口">流动人口</option>
+              <option value="其他">其他</option>
             </select>
           </div>
         </div>
+        <!-- 行 7 -->
         <div class="filter-row extra">
-          <div class="filter-item"><label>出生日期</label>
-            <input id="fBirthStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">—</span>
-            <input id="fBirthEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+          <div class="filter-item"><label>出生日期：</label>
+            <div class="fi-range">
+              <input id="fBirthStart" class="fi-rd" type="text" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}" placeholder="开始日期">
+              <span class="fi-tilde">~</span>
+              <input id="fBirthEnd" class="fi-rd" type="text" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}" placeholder="结束日期">
+              <span class="fi-cal"></span>
+            </div>
           </div>
-          <div class="filter-item"><label>性别</label>
+          <div class="filter-item"><label>性别：</label>
             <select id="fGender" class="fi-select">
               <option value="" selected>请选择</option>
               <option value="男">男</option>
               <option value="女">女</option>
             </select>
           </div>
-          <div class="filter-item"><label>电话号码</label><input id="fPhone" class="fi-ctl" placeholder="请输入"></div>
-          <div class="filter-item"><label>档案编号</label><input id="fArchNo" class="fi-ctl" placeholder="请输入档案编号"></div>
+          <div class="filter-item"><label>电话号码：</label><input id="fPhone" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>档案编号：</label><input id="fArchNo" class="fi-ctl" placeholder="请输入"></div>
         </div>
+        <!-- 行 8 -->
         <div class="filter-row extra">
-          <div class="filter-item"><label>详细地址</label><input id="fAddress" class="fi-ctl" placeholder="请输入详细地址"></div>
+          <div class="filter-item"><label>详细地址：</label><input id="fAddress" class="fi-ctl" placeholder="请输入"></div>
           <div class="filter-item">
             <label class="fi-check"><input type="checkbox" id="fMine">只看个人管理档案</label>
           </div>
@@ -523,24 +552,18 @@
         </div>
         <div class="filter-row">
           <div class="filter-item"><label>管理机构</label>
-            <select id="sfOrg" class="fi-select w-lg">
-              <option value="" selected>请选择</option>
-              <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
-              <option value="扬州市江都区吴桥镇卫生院">扬州市江都区吴桥镇卫生院</option>
-              <option value="扬州市江都区宜陵镇中心卫生院">扬州市江都区宜陵镇中心卫生院</option>
-              <option value="扬州市江都区仙女镇社区卫生服务中心">扬州市江都区仙女镇社区卫生服务中心</option>
-              <option value="扬州市江都区丁沟镇卫生院">扬州市江都区丁沟镇卫生院</option>
-              <option value="扬州市江都区樊川镇卫生院">扬州市江都区樊川镇卫生院</option>
-            </select>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="sfOrg">
+            </div>
           </div>
           <div class="filter-item"><label>管辖网格</label>
-            <select id="sfGrid" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="第一网格">第一网格</option>
-              <option value="第二网格">第二网格</option>
-              <option value="第三网格">第三网格</option>
-              <option value="第四网格">第四网格</option>
-            </select>
+            <div class="fcp-tree" data-fcp="tree">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="sfGrid">
+            </div>
           </div>
           <div class="filter-btns">
             <button class="btn btn-default" onclick="resetSelectFilter()">重置</button>
@@ -752,6 +775,14 @@
   var curPage = 1;
   var lastList = [];
 
+  /* 糖尿病类型：兼容样例数据中的简写写法（1型 / 2型 / 特殊类型 / 妊娠期糖尿病） */
+  var DM_TYPE_ALIAS = {
+    '1型糖尿病': ['1型', '1型糖尿病'],
+    '2型糖尿病': ['2型', '2型糖尿病'],
+    '其他特殊类型和妊娠糖尿病': ['特殊类型', '特殊类型糖尿病', '妊娠期糖尿病', '其他特殊类型和妊娠糖尿病'],
+    '继发性糖尿病': ['继发性糖尿病']
+  };
+
   /* ================= 表格渲染（按筛选条件实时过滤 + 分页） ================= */
   function renderTable() {
     var org = $('fOrg').value, name = $('fName').value.trim(), idcard = $('fIdcard').value.trim();
@@ -768,7 +799,7 @@
     var specStart = $('fSpecStart').value, specEnd = $('fSpecEnd').value;
 
     lastList = diabetesData.filter(function (r) {
-      if (org && r.org !== org) return false;
+      if (org && org.split(',').indexOf(r.org) === -1) return false;
       if (name && r.name.indexOf(name) === -1) return false;
       if (idcard && r.idcard.indexOf(idcard) === -1) return false;
       if (region && r.region !== region) return false;
@@ -776,7 +807,7 @@
       if (rStatus && r.rStatus !== rStatus) return false;
       if (mStatus && r.mStatus !== mStatus) return false;
       if (grade && r.grade !== grade) return false;
-      if (dmType && r.dmType !== dmType) return false;
+      if (dmType && (DM_TYPE_ALIAS[dmType] || [dmType]).indexOf(r.dmType) === -1) return false;
       if (grid && r.grid !== grid) return false;
       if (phone && r.phone.indexOf(phone) === -1) return false;
       if (archNo && r.archNo.indexOf(archNo) === -1) return false;
@@ -914,6 +945,7 @@
     $('fRStatus').value = '正常';
     $('fMStatus').value = '有效管理';
     $('fMine').checked = false;
+    syncCntDisabled();
     ['fBizStart', 'fBizEnd', 'fSpecStart', 'fSpecEnd', 'fArchStart', 'fArchEnd', 'fBirthStart', 'fBirthEnd'].forEach(function (id) {
       var el = $(id);
       el.value = '';
@@ -922,6 +954,16 @@
     curPage = 1;
     renderTable();
     toast('筛选条件已重置', 'success');
+  }
+
+  /* 随访次数/体检次数：比较符未选择时，数值输入框置灰禁用（对齐设计稿） */
+  function syncCntDisabled() {
+    [['fFuCntOp', 'fFuCnt'], ['fExamCntOp', 'fExamCnt']].forEach(function (pair) {
+      var op = $(pair[0]), val = $(pair[1]);
+      var off = op.value === '';
+      val.disabled = off;
+      if (off) val.value = '';
+    });
   }
 
   function applyFilter() {
@@ -989,7 +1031,10 @@
     $(id).addEventListener('input', function () { curPage = 1; renderTable(); });
   });
   ['fOrg', 'fRegion', 'fLock', 'fRStatus', 'fMStatus', 'fGrade', 'fDmType', 'fGrid', 'fFuCntOp', 'fExamCntOp', 'fFuType', 'fFullOp', 'fSpecOrg', 'fResidentType', 'fLiveType', 'fGender', 'fMine'].forEach(function (id) {
-    $(id).addEventListener('change', function () { curPage = 1; renderTable(); });
+    $(id).addEventListener('change', function () {
+      if (id === 'fFuCntOp' || id === 'fExamCntOp') syncCntDisabled();
+      curPage = 1; renderTable();
+    });
   });
   ['fBizStart', 'fBizEnd', 'fSpecStart', 'fSpecEnd', 'fArchStart', 'fArchEnd', 'fBirthStart', 'fBirthEnd'].forEach(function (id) {
     $(id).addEventListener('input', function () { curPage = 1; renderTable(); });

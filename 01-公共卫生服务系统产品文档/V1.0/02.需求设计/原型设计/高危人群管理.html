@@ -35,7 +35,27 @@
   .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
   .btn-plain{height:28px;padding:0 8px;font-size:13px;color:var(--primary);border-radius:var(--r-sm)}
   .btn-plain:hover{background:var(--primary-bg)}
-  .own-check{width:16px;height:16px;margin:0;cursor:pointer;accent-color:var(--primary)}
+  /* 主筛选区行距/列距/标签间距（对齐设计稿：行距 10、列距 22、标签-控件 12） */
+  .filter-panel .filter-row{gap:12px 22px;margin-bottom:10px}
+  .filter-panel .filter-item{gap:12px}
+  /* 筛选区内控件统一外框宽度（仅作用于主筛选区，不影响新建专项弹框内同名类） */
+  .filter-panel .fi-ctl,.filter-panel .fi-select{width:180px}
+  /* 筛选区内统一筛选复合控件（管理机构/管辖行政区）等宽 180px */
+  .filter-panel .fcp-ms,.filter-panel .fcp-cas,.filter-panel .fcp-tree,.filter-panel .fcp-mst{width:180px}
+  .filter-panel .fcp-ms .fcp-panel{width:max-content;min-width:100%;max-width:300px}
+  .filter-panel .fcp-tree .fcp-panel{width:200px}
+  /* 日期区间：单一外框（开始日期 ~ 结束日期 + 日历图标） */
+  .fi-range{display:flex;align-items:center;gap:6px;width:232px;height:32px;padding:0 8px 0 10px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);background:var(--bg-white);transition:all var(--transition-fast)}
+  .fi-range:hover{border-color:var(--primary)}
+  .fi-range:focus-within{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-range input{flex:1 1 0;min-width:0;height:30px;border:none;background:transparent;outline:none;padding:0;font-size:14px;color:var(--text-primary);font-family:inherit}
+  .fi-range input::placeholder{color:var(--text-placeholder)}
+  .fi-range input::-webkit-calendar-picker-indicator{display:none}
+  .fi-tilde{flex-shrink:0;font-size:14px;color:var(--text-placeholder)}
+  .fi-cal{width:14px;height:14px;flex-shrink:0;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none' stroke='%23bfbfbf' stroke-width='1.2'%3E%3Crect x='1.4' y='2.4' width='11.2' height='10.2' rx='1.6'/%3E%3Cpath d='M1.4 5.6h11.2M4.6 1.4v2M9.4 1.4v2'/%3E%3C/svg%3E") no-repeat center/contain}
+  /* 只看个人管理档案 复选框（统一写法，替换各页旧版 .own-check） */
+  .fi-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer;user-select:none;white-space:nowrap;margin:0}
+  .fi-check input[type=checkbox]{width:15px;height:15px;margin:0;accent-color:var(--primary);cursor:pointer}
 
   /* ===== 数据表格 ===== */
   .table-wrap{flex:1;overflow:auto;min-height:0}
@@ -226,76 +246,69 @@
       </div>
 
       <!-- 筛选区 -->
+            <!-- 筛选区（每行 4 个条件；前 2 行常显，点击「展开」显示后 2 行） -->
       <div class="filter-panel">
+        <!-- 行 1 -->
         <div class="filter-row">
-          <div class="filter-item"><label>管理机构</label>
-            <select id="fOrg" class="fi-select w-lg">
-              <option value="" selected>请选择</option>
-              <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
-              <option value="扬州市江都区宜陵镇焦庄村卫生室">扬州市江都区宜陵镇焦庄村卫生室</option>
-              <option value="扬州市江都区宜陵镇中心卫生院">扬州市江都区宜陵镇中心卫生院</option>
-              <option value="扬州市江都区郭村镇卫生院">扬州市江都区郭村镇卫生院</option>
-              <option value="扬州市江都区吴桥镇卫生院">扬州市江都区吴桥镇卫生院</option>
-              <option value="扬州市江都区仙女镇社区卫生服务中心">扬州市江都区仙女镇社区卫生服务中心</option>
-              <option value="扬州市江都区大桥镇中心卫生院">扬州市江都区大桥镇中心卫生院</option>
-            </select>
+          <div class="filter-item"><label>管理机构：</label>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fOrg">
+            </div>
           </div>
-          <div class="filter-item"><label>姓名</label><input id="fName" class="fi-ctl" placeholder="请输入"></div>
-          <div class="filter-item"><label>性别</label>
+          <div class="filter-item"><label>姓名：</label><input id="fName" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>性别：</label>
             <select id="fGender" class="fi-select">
               <option value="" selected>请选择</option>
               <option value="男">男</option>
               <option value="女">女</option>
             </select>
           </div>
-          <div class="filter-item"><label>证件号</label><input id="fIdcard" class="fi-ctl" placeholder="请输入证件号"></div>
-          <div class="filter-item"><label>是否在管</label>
+          <div class="filter-item"><label>证件号：</label><input id="fIdcard" class="fi-ctl" placeholder="请输入"></div>
+        </div>
+        <!-- 行 2 -->
+        <div class="filter-row">
+          <div class="filter-item"><label>是否在管：</label>
             <select id="fManaged" class="fi-select">
               <option value="是" selected>是</option>
               <option value="">全部</option>
               <option value="否">否</option>
             </select>
           </div>
-        </div>
-        <div class="filter-row">
-          <div class="filter-item"><label>居民类型</label>
+          <div class="filter-item"><label>居民类型：</label>
             <select id="fResType" class="fi-select">
               <option value="" selected>请选择</option>
               <option value="户籍">户籍</option>
               <option value="常住">常住</option>
+              <option value="流动">流动</option>
             </select>
           </div>
-          <div class="filter-item"><label>居住类型</label>
+          <div class="filter-item"><label>居住类型：</label>
             <select id="fLiveType" class="fi-select">
               <option value="" selected>请选择</option>
               <option value="城镇">城镇</option>
               <option value="农村">农村</option>
             </select>
           </div>
-          <div class="filter-item"><label>建档医生</label><input id="fDoc" class="fi-ctl" placeholder="请输入建档医生"></div>
-          <div class="filter-item"><label>管理行政区</label>
-            <select id="fRegion" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="北街社区">北街社区</option>
-              <option value="焦庄村">焦庄村</option>
-              <option value="同兴村">同兴村</option>
-              <option value="郭村">郭村</option>
-              <option value="吴桥">吴桥</option>
-              <option value="龙川">龙川</option>
-              <option value="大桥">大桥</option>
-              <option value="谢桥">谢桥</option>
-              <option value="白塔">白塔</option>
-            </select>
-          </div>
-          <div class="filter-item"><label>电话号码</label><input id="fPhone" class="fi-ctl" placeholder="请输入电话号码"></div>
+          <div class="filter-item"><label>建档医生：</label><input id="fDoc" class="fi-ctl" placeholder="请输入"></div>
           <div class="filter-btns">
             <button class="btn btn-default" onclick="resetFilter()">重置</button>
             <button class="btn btn-primary" onclick="applyFilter()">查询</button>
-            <button class="btn-plain" id="btnExpand" onclick="toggleExtra()">展开 +</button>
+            <button class="btn-plain" id="btnExpand" onclick="toggleExtra()">展开 ▼</button>
           </div>
         </div>
-        <div class="filter-row extra" id="extraRow">
-          <div class="filter-item"><label>高危类型</label>
+        <!-- 行 3（折叠） -->
+        <div class="filter-row extra">
+          <div class="filter-item"><label>管辖行政区：</label>
+            <div class="fcp-cas" data-fcp="cas" data-caret>
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="fRegion">
+            </div>
+          </div>
+          <div class="filter-item"><label>电话号码：</label><input id="fPhone" class="fi-ctl" placeholder="请输入"></div>
+          <div class="filter-item"><label>高危类型：</label>
             <select id="fHrType" class="fi-select">
               <option value="" selected>请选择</option>
               <option value="高血压高危">高血压高危</option>
@@ -304,12 +317,30 @@
               <option value="慢阻肺高危">慢阻肺高危</option>
               <option value="血脂异常高危">血脂异常高危</option>
               <option value="肿瘤高危">肿瘤高危</option>
+              <option value="其他">其他</option>
             </select>
           </div>
-          <div class="filter-item"><label>档案编号</label><input id="fArchNo" class="fi-ctl" placeholder="请输入档案编号"></div>
-          <div class="filter-item"><label>出生日期</label><input id="fBirth" class="fi-ctl" placeholder="如：1954 或 1954-03"></div>
-          <div class="filter-item"><label>只看个人管理档案</label>
-            <input id="fOwn" class="own-check" type="checkbox">
+          <div class="filter-item"><label>档案编号：</label><input id="fArchNo" class="fi-ctl" placeholder="请输入"></div>
+        </div>
+        <!-- 行 4（折叠） -->
+        <div class="filter-row extra">
+          <div class="filter-item"><label>出生日期：</label>
+            <div class="fi-range">
+              <input id="fBirthStart" class="fi-rd" type="text" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}" placeholder="开始日期">
+              <span class="fi-tilde">~</span>
+              <input id="fBirthEnd" class="fi-rd" type="text" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}" placeholder="结束日期">
+              <span class="fi-cal"></span>
+            </div>
+          </div>
+          <div class="filter-item"><label>锁定状态：</label>
+            <select id="fLock" class="fi-select">
+              <option value="" selected>请选择</option>
+              <option value="未上锁">未上锁</option>
+              <option value="已上锁">已上锁</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label class="fi-check"><input type="checkbox" id="fOwn"> 只看个人管理档案</label>
           </div>
         </div>
       </div>
@@ -384,24 +415,18 @@
         </div>
         <div class="filter-row">
           <div class="filter-item"><label>管理机构</label>
-            <select id="sfOrg" class="fi-select w-lg">
-              <option value="" selected>请选择</option>
-              <option value="山东大学齐鲁医院">山东大学齐鲁医院</option>
-              <option value="扬州市江都区吴桥镇卫生院">扬州市江都区吴桥镇卫生院</option>
-              <option value="扬州市江都区宜陵镇中心卫生院">扬州市江都区宜陵镇中心卫生院</option>
-              <option value="扬州市江都区仙女镇社区卫生服务中心">扬州市江都区仙女镇社区卫生服务中心</option>
-              <option value="扬州市江都区丁沟镇卫生院">扬州市江都区丁沟镇卫生院</option>
-              <option value="扬州市江都区樊川镇卫生院">扬州市江都区樊川镇卫生院</option>
-            </select>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="sfOrg">
+            </div>
           </div>
           <div class="filter-item"><label>管辖网格</label>
-            <select id="sfGrid" class="fi-select">
-              <option value="" selected>请选择</option>
-              <option value="第一网格">第一网格</option>
-              <option value="第二网格">第二网格</option>
-              <option value="第三网格">第三网格</option>
-              <option value="第四网格">第四网格</option>
-            </select>
+            <div class="fcp-tree" data-fcp="tree">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val" id="sfGrid">
+            </div>
           </div>
           <div class="filter-btns">
             <button class="btn btn-default" onclick="resetSelectFilter()">重置</button>
@@ -578,30 +603,30 @@
 <script>
   /* ================= 模拟数据（姓名/证件号/出生日期/性别/年龄相互对应；高危类型按病种分布） ================= */
   var highriskData = [
-    { org:'山东大学齐鲁医院',                 name:'小山东高速', idcard:'510123199001010106', idType:'居民身份证', gender:'女', age:36, phone:'13899229292', birth:'1990-01-01', hrType:'高血压高危',   managed:'是', address:'1212',                 archNo:'51011500100100076', region:'北街社区', resType:'常住', liveType:'城镇', doc:'徐东升', own:true },
-    { org:'扬州市江都区宜陵镇焦庄村卫生室',   name:'毛桂华',   idcard:'321026194506223429', idType:'居民身份证', gender:'女', age:81, phone:'13151125876', birth:'1945-06-21', hrType:'高血压高危',   managed:'是', address:'孔一组17号',           archNo:'32101211810500021', region:'焦庄村',   resType:'户籍', liveType:'农村', doc:'王盛',   own:false },
-    { org:'扬州市江都区郭村镇卫生院',         name:'刘菊兰NV', idcard:'321088194908174139', idType:'居民身份证', gender:'女', age:77, phone:'13813131350', birth:'1949-08-17', hrType:'高血压高危',   managed:'是', address:'周庄组',               archNo:'32101211211200035', region:'郭村',     resType:'户籍', liveType:'农村', doc:'李蕾',   own:false },
-    { org:'扬州市江都区宜陵镇中心卫生院',     name:'高德旺',   idcard:'321088195502143617', idType:'居民身份证', gender:'男', age:71, phone:'13705271654', birth:'1955-02-14', hrType:'糖尿病高危',   managed:'是', address:'宜陵镇同兴村李庄组18号', archNo:'32101203010700003', region:'同兴村',   resType:'户籍', liveType:'农村', doc:'徐东升', own:true },
-    { org:'扬州市江都区郭村镇卫生院',         name:'陈秀兰',   idcard:'321088194811205826', idType:'居民身份证', gender:'女', age:77, phone:'13852712346', birth:'1948-11-20', hrType:'心脑血管高危', managed:'是', address:'郭村周庄组26号',       archNo:'32101203010700004', region:'郭村',     resType:'户籍', liveType:'农村', doc:'李蕾',   own:false },
-    { org:'扬州市江都区吴桥镇卫生院',         name:'赵庆丰',   idcard:'321088196208157913', idType:'居民身份证', gender:'男', age:64, phone:'13952735678', birth:'1962-08-15', hrType:'慢阻肺高危',   managed:'是', address:'吴桥街56号',           archNo:'32101203010700005', region:'吴桥',     resType:'户籍', liveType:'城镇', doc:'朱劲松', own:false },
-    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'孙桂英', idcard:'321088194603054428', idType:'居民身份证', gender:'女', age:80, phone:'15805273456', birth:'1946-03-05', hrType:'高血压高危',   managed:'否', address:'仙女镇龙川社区7号',   archNo:'32101203010700006', region:'龙川',     resType:'常住', liveType:'城镇', doc:'陆柳琳', own:false },
-    { org:'扬州市江都区大桥镇中心卫生院',     name:'王建国',   idcard:'321088195810126019', idType:'居民身份证', gender:'男', age:68, phone:'13665279874', birth:'1958-10-12', hrType:'糖尿病高危',   managed:'是', address:'大桥镇东大街31号',       archNo:'32101203010700007', region:'大桥',     resType:'户籍', liveType:'城镇', doc:'王盛',   own:false },
-    { org:'扬州市江都区宜陵镇中心卫生院',     name:'周淑芬',   idcard:'321088195306224826', idType:'居民身份证', gender:'女', age:73, phone:'15952765432', birth:'1953-06-22', hrType:'血脂异常高危', managed:'是', address:'宜陵镇振兴路15号',     archNo:'32101203010700008', region:'同兴村',   resType:'户籍', liveType:'农村', doc:'李蕾',   own:true },
-    { org:'扬州市江都区郭村镇卫生院',         name:'朱文明',   idcard:'321088196504075317', idType:'居民身份证', gender:'男', age:61, phone:'13805278653', birth:'1965-04-07', hrType:'肿瘤高危',     managed:'是', address:'郭村镇通扬路9号',     archNo:'32101203010700009', region:'郭村',     resType:'户籍', liveType:'城镇', doc:'徐东升', own:false },
-    { org:'扬州市江都区吴桥镇卫生院',         name:'钱玉梅',   idcard:'321088197211092643', idType:'居民身份证', gender:'女', age:53, phone:'13773581920', birth:'1972-11-09', hrType:'糖尿病高危',   managed:'是', address:'吴桥镇兴吴路22号',     archNo:'32101203010700010', region:'吴桥',     resType:'户籍', liveType:'农村', doc:'朱劲松', own:false },
-    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'冯国强', idcard:'321088196009185615', idType:'居民身份证', gender:'男', age:66, phone:'15862009753', birth:'1960-09-18', hrType:'心脑血管高危', managed:'是', address:'仙女镇东方红路45号', archNo:'32101203010700011', region:'龙川',     resType:'常住', liveType:'城镇', doc:'敖鹏天', own:false },
-    { org:'扬州市江都区大桥镇中心卫生院',     name:'何秀珍',   idcard:'321088195405236724', idType:'居民身份证', gender:'女', age:72, phone:'13952739518', birth:'1954-05-23', hrType:'高血压高危',   managed:'是', address:'大桥镇忠诚村8组',     archNo:'32101203010700012', region:'大桥',     resType:'户籍', liveType:'农村', doc:'王盛',   own:true },
-    { org:'扬州市江都区宜陵镇焦庄村卫生室',   name:'蒋立新',   idcard:'321088196712304718', idType:'居民身份证', gender:'男', age:58, phone:'13615187246', birth:'1967-12-30', hrType:'慢阻肺高危',   managed:'是', address:'宜陵镇文星路18号',     archNo:'32101203010700013', region:'焦庄村',   resType:'户籍', liveType:'城镇', doc:'李蕾',   own:false },
-    { org:'扬州市江都区郭村镇卫生院',         name:'沈玉兰',   idcard:'321088195108275842', idType:'居民身份证', gender:'女', age:75, phone:'15905274683', birth:'1951-08-27', hrType:'高血压高危',   managed:'是', address:'郭村佘坂组3号',       archNo:'32101203010700014', region:'郭村',     resType:'户籍', liveType:'农村', doc:'陆柳琳', own:false },
-    { org:'扬州市江都区吴桥镇卫生院',         name:'韩德顺',   idcard:'321088195511196312', idType:'居民身份证', gender:'男', age:70, phone:'13852796317', birth:'1955-11-19', hrType:'糖尿病高危',   managed:'否', address:'吴桥镇谢桥村12组',     archNo:'32101203010700015', region:'谢桥',     resType:'户籍', liveType:'农村', doc:'敖鹏天', own:false },
-    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'潘玉珍', idcard:'321088197209134426', idType:'居民身份证', gender:'女', age:54, phone:'15190872465', birth:'1972-09-13', hrType:'血脂异常高危', managed:'是', address:'仙女镇利民南路60号',   archNo:'32101203010700016', region:'龙川',     resType:'户籍', liveType:'城镇', doc:'王盛',   own:false },
-    { org:'扬州市江都区大桥镇中心卫生院',     name:'严洪斌',   idcard:'321088196005063417', idType:'居民身份证', gender:'男', age:66, phone:'13773365498', birth:'1960-05-06', hrType:'心脑血管高危', managed:'是', address:'大桥镇白塔村5组',       archNo:'32101203010700017', region:'白塔',     resType:'户籍', liveType:'农村', doc:'徐东升', own:true },
-    { org:'扬州市江都区宜陵镇中心卫生院',     name:'尹桂香',   idcard:'321088194810124425', idType:'居民身份证', gender:'女', age:77, phone:'15952738102', birth:'1948-10-12', hrType:'高血压高危',   managed:'是', address:'宜陵镇七里村2组',     archNo:'32101203010700018', region:'同兴村',   resType:'户籍', liveType:'农村', doc:'李蕾',   own:false },
-    { org:'扬州市江都区郭村镇卫生院',         name:'石卫东',   idcard:'321088197503084316', idType:'居民身份证', gender:'男', age:51, phone:'13852794518', birth:'1975-03-08', hrType:'肿瘤高危',     managed:'是', address:'郭村镇振兴东路26号',   archNo:'32101203010700019', region:'郭村',     resType:'常住', liveType:'城镇', doc:'朱劲松', own:false },
-    { org:'扬州市江都区吴桥镇卫生院',         name:'魏春霞',   idcard:'321088196806192844', idType:'居民身份证', gender:'女', age:58, phone:'13773592164', birth:'1968-06-19', hrType:'糖尿病高危',   managed:'是', address:'吴桥镇谢桥村4组',     archNo:'32101203010700020', region:'谢桥',     resType:'户籍', liveType:'农村', doc:'陆柳琳', own:false },
-    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'姜文斌', idcard:'321088198201257313', idType:'居民身份证', gender:'男', age:44, phone:'15862003517', birth:'1982-01-25', hrType:'心脑血管高危', managed:'是', address:'仙女镇龙城路12号',   archNo:'32101203010700021', region:'龙川',     resType:'常住', liveType:'城镇', doc:'敖鹏天', own:false },
-    { org:'扬州市江都区大桥镇中心卫生院',     name:'崔美凤',   idcard:'321088195707304428', idType:'居民身份证', gender:'女', age:69, phone:'13952745682', birth:'1957-07-30', hrType:'慢阻肺高危',   managed:'是', address:'大桥镇昌松村6组',     archNo:'32101203010700022', region:'大桥',     resType:'户籍', liveType:'农村', doc:'王盛',   own:false },
-    { org:'扬州市江都区宜陵镇中心卫生院',     name:'丁学礼',   idcard:'321088194912035516', idType:'居民身份证', gender:'男', age:76, phone:'13805273496', birth:'1949-12-03', hrType:'高血压高危',   managed:'否', address:'宜陵镇团结村9组',     archNo:'32101203010700023', region:'同兴村',   resType:'户籍', liveType:'农村', doc:'徐东升', own:false }
+    { org:'山东大学齐鲁医院',                 name:'小山东高速', idcard:'510123199001010106', idType:'居民身份证', gender:'女', age:36, phone:'13899229292', birth:'1990-01-01', hrType:'高血压高危',   managed:'是', address:'1212',                 archNo:'51011500100100076', region:'北街社区', resType:'常住', liveType:'城镇', doc:'徐东升', lock:'未上锁', own:true },
+    { org:'扬州市江都区宜陵镇焦庄村卫生室',   name:'毛桂华',   idcard:'321026194506223429', idType:'居民身份证', gender:'女', age:81, phone:'13151125876', birth:'1945-06-21', hrType:'高血压高危',   managed:'是', address:'孔一组17号',           archNo:'32101211810500021', region:'焦庄村',   resType:'户籍', liveType:'农村', doc:'王盛',   lock:'未上锁', own:false },
+    { org:'扬州市江都区郭村镇卫生院',         name:'刘菊兰NV', idcard:'321088194908174139', idType:'居民身份证', gender:'女', age:77, phone:'13813131350', birth:'1949-08-17', hrType:'高血压高危',   managed:'是', address:'周庄组',               archNo:'32101211211200035', region:'郭村',     resType:'户籍', liveType:'农村', doc:'李蕾',   lock:'未上锁', own:false },
+    { org:'扬州市江都区宜陵镇中心卫生院',     name:'高德旺',   idcard:'321088195502143617', idType:'居民身份证', gender:'男', age:71, phone:'13705271654', birth:'1955-02-14', hrType:'糖尿病高危',   managed:'是', address:'宜陵镇同兴村李庄组18号', archNo:'32101203010700003', region:'同兴村',   resType:'户籍', liveType:'农村', doc:'徐东升', lock:'已上锁', own:true },
+    { org:'扬州市江都区郭村镇卫生院',         name:'陈秀兰',   idcard:'321088194811205826', idType:'居民身份证', gender:'女', age:77, phone:'13852712346', birth:'1948-11-20', hrType:'心脑血管高危', managed:'是', address:'郭村周庄组26号',       archNo:'32101203010700004', region:'郭村',     resType:'户籍', liveType:'农村', doc:'李蕾',   lock:'未上锁', own:false },
+    { org:'扬州市江都区吴桥镇卫生院',         name:'赵庆丰',   idcard:'321088196208157913', idType:'居民身份证', gender:'男', age:64, phone:'13952735678', birth:'1962-08-15', hrType:'慢阻肺高危',   managed:'是', address:'吴桥街56号',           archNo:'32101203010700005', region:'吴桥',     resType:'户籍', liveType:'城镇', doc:'朱劲松', lock:'未上锁', own:false },
+    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'孙桂英', idcard:'321088194603054428', idType:'居民身份证', gender:'女', age:80, phone:'15805273456', birth:'1946-03-05', hrType:'高血压高危',   managed:'否', address:'仙女镇龙川社区7号',   archNo:'32101203010700006', region:'龙川',     resType:'常住', liveType:'城镇', doc:'陆柳琳', lock:'未上锁', own:false },
+    { org:'扬州市江都区大桥镇中心卫生院',     name:'王建国',   idcard:'321088195810126019', idType:'居民身份证', gender:'男', age:68, phone:'13665279874', birth:'1958-10-12', hrType:'糖尿病高危',   managed:'是', address:'大桥镇东大街31号',       archNo:'32101203010700007', region:'大桥',     resType:'户籍', liveType:'城镇', doc:'王盛',   lock:'未上锁', own:false },
+    { org:'扬州市江都区宜陵镇中心卫生院',     name:'周淑芬',   idcard:'321088195306224826', idType:'居民身份证', gender:'女', age:73, phone:'15952765432', birth:'1953-06-22', hrType:'血脂异常高危', managed:'是', address:'宜陵镇振兴路15号',     archNo:'32101203010700008', region:'同兴村',   resType:'户籍', liveType:'农村', doc:'李蕾',   lock:'已上锁', own:true },
+    { org:'扬州市江都区郭村镇卫生院',         name:'朱文明',   idcard:'321088196504075317', idType:'居民身份证', gender:'男', age:61, phone:'13805278653', birth:'1965-04-07', hrType:'肿瘤高危',     managed:'是', address:'郭村镇通扬路9号',     archNo:'32101203010700009', region:'郭村',     resType:'户籍', liveType:'城镇', doc:'徐东升', lock:'未上锁', own:false },
+    { org:'扬州市江都区吴桥镇卫生院',         name:'钱玉梅',   idcard:'321088197211092643', idType:'居民身份证', gender:'女', age:53, phone:'13773581920', birth:'1972-11-09', hrType:'糖尿病高危',   managed:'是', address:'吴桥镇兴吴路22号',     archNo:'32101203010700010', region:'吴桥',     resType:'户籍', liveType:'农村', doc:'朱劲松', lock:'未上锁', own:false },
+    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'冯国强', idcard:'321088196009185615', idType:'居民身份证', gender:'男', age:66, phone:'15862009753', birth:'1960-09-18', hrType:'心脑血管高危', managed:'是', address:'仙女镇东方红路45号', archNo:'32101203010700011', region:'龙川',     resType:'常住', liveType:'城镇', doc:'敖鹏天', lock:'未上锁', own:false },
+    { org:'扬州市江都区大桥镇中心卫生院',     name:'何秀珍',   idcard:'321088195405236724', idType:'居民身份证', gender:'女', age:72, phone:'13952739518', birth:'1954-05-23', hrType:'高血压高危',   managed:'是', address:'大桥镇忠诚村8组',     archNo:'32101203010700012', region:'大桥',     resType:'户籍', liveType:'农村', doc:'王盛',   lock:'未上锁', own:true },
+    { org:'扬州市江都区宜陵镇焦庄村卫生室',   name:'蒋立新',   idcard:'321088196712304718', idType:'居民身份证', gender:'男', age:58, phone:'13615187246', birth:'1967-12-30', hrType:'慢阻肺高危',   managed:'是', address:'宜陵镇文星路18号',     archNo:'32101203010700013', region:'焦庄村',   resType:'户籍', liveType:'城镇', doc:'李蕾',   lock:'未上锁', own:false },
+    { org:'扬州市江都区郭村镇卫生院',         name:'沈玉兰',   idcard:'321088195108275842', idType:'居民身份证', gender:'女', age:75, phone:'15905274683', birth:'1951-08-27', hrType:'高血压高危',   managed:'是', address:'郭村佘坂组3号',       archNo:'32101203010700014', region:'郭村',     resType:'户籍', liveType:'农村', doc:'陆柳琳', lock:'已上锁', own:false },
+    { org:'扬州市江都区吴桥镇卫生院',         name:'韩德顺',   idcard:'321088195511196312', idType:'居民身份证', gender:'男', age:70, phone:'13852796317', birth:'1955-11-19', hrType:'糖尿病高危',   managed:'否', address:'吴桥镇谢桥村12组',     archNo:'32101203010700015', region:'谢桥',     resType:'户籍', liveType:'农村', doc:'敖鹏天', lock:'未上锁', own:false },
+    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'潘玉珍', idcard:'321088197209134426', idType:'居民身份证', gender:'女', age:54, phone:'15190872465', birth:'1972-09-13', hrType:'血脂异常高危', managed:'是', address:'仙女镇利民南路60号',   archNo:'32101203010700016', region:'龙川',     resType:'户籍', liveType:'城镇', doc:'王盛',   lock:'未上锁', own:false },
+    { org:'扬州市江都区大桥镇中心卫生院',     name:'严洪斌',   idcard:'321088196005063417', idType:'居民身份证', gender:'男', age:66, phone:'13773365498', birth:'1960-05-06', hrType:'心脑血管高危', managed:'是', address:'大桥镇白塔村5组',       archNo:'32101203010700017', region:'白塔',     resType:'户籍', liveType:'农村', doc:'徐东升', lock:'未上锁', own:true },
+    { org:'扬州市江都区宜陵镇中心卫生院',     name:'尹桂香',   idcard:'321088194810124425', idType:'居民身份证', gender:'女', age:77, phone:'15952738102', birth:'1948-10-12', hrType:'高血压高危',   managed:'是', address:'宜陵镇七里村2组',     archNo:'32101203010700018', region:'同兴村',   resType:'户籍', liveType:'农村', doc:'李蕾',   lock:'未上锁', own:false },
+    { org:'扬州市江都区郭村镇卫生院',         name:'石卫东',   idcard:'321088197503084316', idType:'居民身份证', gender:'男', age:51, phone:'13852794518', birth:'1975-03-08', hrType:'肿瘤高危',     managed:'是', address:'郭村镇振兴东路26号',   archNo:'32101203010700019', region:'郭村',     resType:'常住', liveType:'城镇', doc:'朱劲松', lock:'未上锁', own:false },
+    { org:'扬州市江都区吴桥镇卫生院',         name:'魏春霞',   idcard:'321088196806192844', idType:'居民身份证', gender:'女', age:58, phone:'13773592164', birth:'1968-06-19', hrType:'糖尿病高危',   managed:'是', address:'吴桥镇谢桥村4组',     archNo:'32101203010700020', region:'谢桥',     resType:'户籍', liveType:'农村', doc:'陆柳琳', lock:'已上锁', own:false },
+    { org:'扬州市江都区仙女镇社区卫生服务中心', name:'姜文斌', idcard:'321088198201257313', idType:'居民身份证', gender:'男', age:44, phone:'15862003517', birth:'1982-01-25', hrType:'心脑血管高危', managed:'是', address:'仙女镇龙城路12号',   archNo:'32101203010700021', region:'龙川',     resType:'常住', liveType:'城镇', doc:'敖鹏天', lock:'未上锁', own:false },
+    { org:'扬州市江都区大桥镇中心卫生院',     name:'崔美凤',   idcard:'321088195707304428', idType:'居民身份证', gender:'女', age:69, phone:'13952745682', birth:'1957-07-30', hrType:'慢阻肺高危',   managed:'是', address:'大桥镇昌松村6组',     archNo:'32101203010700022', region:'大桥',     resType:'户籍', liveType:'农村', doc:'王盛',   lock:'未上锁', own:false },
+    { org:'扬州市江都区宜陵镇中心卫生院',     name:'丁学礼',   idcard:'321088194912035516', idType:'居民身份证', gender:'男', age:76, phone:'13805273496', birth:'1949-12-03', hrType:'高血压高危',   managed:'否', address:'宜陵镇团结村9组',     archNo:'32101203010700023', region:'同兴村',   resType:'户籍', liveType:'农村', doc:'徐东升', lock:'未上锁', own:false }
   ];
 
   /* ================= 工具函数 ================= */
@@ -623,7 +648,8 @@
     var idcard = $('fIdcard').value.trim(), managed = $('fManaged').value;
     var resType = $('fResType').value, liveType = $('fLiveType').value;
     var doc = $('fDoc').value.trim(), region = $('fRegion').value, phone = $('fPhone').value.trim();
-    var hrType = $('fHrType').value, archNo = $('fArchNo').value.trim(), birth = $('fBirth').value.trim();
+    var hrType = $('fHrType').value, archNo = $('fArchNo').value.trim();
+    var birthS = $('fBirthStart').value, birthE = $('fBirthEnd').value, lock = $('fLock').value;
     var onlyOwn = $('fOwn').checked;
 
     lastList = highriskData.filter(function (r) {
@@ -639,7 +665,9 @@
       if (phone && r.phone.indexOf(phone) === -1) return false;
       if (hrType && r.hrType !== hrType) return false;
       if (archNo && r.archNo.indexOf(archNo) === -1) return false;
-      if (birth && r.birth.indexOf(birth) === -1) return false;
+      if (birthS && (!r.birth || r.birth < birthS)) return false;
+      if (birthE && (!r.birth || r.birth > birthE)) return false;
+      if (lock && r.lock !== lock) return false;
       if (onlyOwn && !r.own) return false;
       return true;
     });
@@ -731,10 +759,15 @@
 
   /* ================= 交互 ================= */
   function resetFilter() {
-    ['fName', 'fIdcard', 'fDoc', 'fPhone', 'fArchNo', 'fBirth'].forEach(function (id) { $(id).value = ''; });
+    ['fName', 'fIdcard', 'fDoc', 'fPhone', 'fArchNo'].forEach(function (id) { $(id).value = ''; });
     $('fOrg').value = ''; $('fGender').value = ''; $('fManaged').value = '是';
     $('fResType').value = ''; $('fLiveType').value = ''; $('fRegion').value = '';
-    $('fHrType').value = ''; $('fOwn').checked = false;
+    $('fHrType').value = ''; $('fLock').value = ''; $('fOwn').checked = false;
+    ['fBirthStart', 'fBirthEnd'].forEach(function (id) {
+      var el = $(id);
+      el.value = '';
+      el.type = 'text';
+    });
     curPage = 1;
     renderTable();
     toast('筛选条件已重置', 'success');
@@ -747,9 +780,19 @@
   }
 
   function toggleExtra() {
-    var row = $('extraRow'), btn = $('btnExpand');
-    var show = row.classList.toggle('show');
-    btn.textContent = show ? '收起 −' : '展开 +';
+    var rows = document.querySelectorAll('.filter-row.extra');
+    var btn = $('btnExpand');
+    var show = !rows[0].classList.contains('show');
+    rows.forEach(function (row) { row.classList.toggle('show', show); });
+    btn.textContent = show ? '收起 ▲' : '展开 ▼';
+    /* 展开：按钮组移到最后一行筛选条件右侧；收起：移回第二行末尾 */
+    var btns = document.querySelector('.filter-panel .filter-btns');
+    var mainRows = document.querySelectorAll('.filter-panel .filter-row:not(.extra)');
+    if (show) {
+      rows[rows.length - 1].appendChild(btns);
+    } else {
+      mainRows[mainRows.length - 1].appendChild(btns);
+    }
   }
 
   var opMenuFloat = null;
@@ -791,11 +834,14 @@
   });
 
   /* 筛选控件输入即实时过滤（并回到第一页） */
-  ['fName', 'fIdcard', 'fDoc', 'fPhone', 'fArchNo', 'fBirth'].forEach(function (id) {
+  ['fName', 'fIdcard', 'fDoc', 'fPhone', 'fArchNo'].forEach(function (id) {
     $(id).addEventListener('input', function () { curPage = 1; renderTable(); });
   });
-  ['fOrg', 'fGender', 'fManaged', 'fResType', 'fLiveType', 'fRegion', 'fHrType'].forEach(function (id) {
+  ['fOrg', 'fGender', 'fManaged', 'fResType', 'fLiveType', 'fRegion', 'fHrType', 'fLock'].forEach(function (id) {
     $(id).addEventListener('change', function () { curPage = 1; renderTable(); });
+  });
+  ['fBirthStart', 'fBirthEnd'].forEach(function (id) {
+    $(id).addEventListener('input', function () { curPage = 1; renderTable(); });
   });
   $('fOwn').addEventListener('change', function () { curPage = 1; renderTable(); });
 

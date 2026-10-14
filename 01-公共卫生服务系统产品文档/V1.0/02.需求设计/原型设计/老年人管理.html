@@ -195,7 +195,11 @@
       <div class="filter-panel">
         <div class="filter-row">
           <div class="filter-item"><label>管理机构：</label>
-            <select class="fi-select"><option value="">请选择</option><option>扬州市江都区仙女社区卫生服务中心</option><option>扬州市江都区浦头镇承仪村卫生室</option><option>扬州市江都区砖桥社区卫生服务中心</option></select>
+            <div class="fcp-ms" data-fcp="ms">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val">
+            </div>
           </div>
           <div class="filter-item"><label>姓名：</label>
             <input class="fi-ctl" placeholder="请输入" type="text">
@@ -204,7 +208,11 @@
             <input class="fi-ctl" placeholder="请输入" type="text">
           </div>
           <div class="filter-item"><label>管辖行政区：</label>
-            <select class="fi-select"><option value="">请选择</option><option>新都社区</option><option>承仪村</option><option>曹王林园场村</option></select>
+            <div class="fcp-cas" data-fcp="cas">
+              <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+              <div class="fcp-panel"></div>
+              <input type="hidden" class="fcp-val">
+            </div>
           </div>
         </div>
 
@@ -419,10 +427,8 @@
           '<div class="op-more">' +
             '<a class="more-btn" onclick="toggleOpMenu(this,event)">更多<svg viewBox="0 0 24 24" style="width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="6 9 12 15 18 9"/></svg></a>' +
             '<div class="op-menu">' +
-              '<div class="mi" onclick="openFollowupRecord(\'' + esc(row.archiveNo) + '\')">随访记录</div>' +
-              '<div class="mi" onclick="openAssessment(\'' + esc(row.archiveNo) + '\')">评估</div>' +
-              '<div class="mi" onclick="openTcmIntervene(\'' + esc(row.archiveNo) + '\')">中医干预</div>' +
-              '<div class="mi mi-danger" onclick="openCancelArchive(\'' + esc(row.archiveNo) + '\')">注销</div>' +
+              '<div class="mi" onclick="goArchive(\'' + esc(row.archiveNo) + '\',\'elderlySelfCare\')">评估</div>' +
+              '<div class="mi" onclick="goArchive(\'' + esc(row.archiveNo) + '\',\'elderTcmService\')">中医干预</div>' +
             '</div>' +
           '</div>' +
         '</td>';
@@ -444,7 +450,9 @@
     return null;
   }
 
-  /* 查看 / 编辑：跳转档案维护页并定位老年人健康管理专项表（自动模拟内容） */
+  /* 查看 / 编辑：跳转档案维护页并定位老年人健康管理专项表（自动模拟内容）
+     view 可选：elderly（老年人健康管理）/ elderlyFollowup（老年人随访）
+                elderlySelfCare（老年人自理能力评估）/ elderTcmService（老年人中医药健康管理服务） */
   function goArchive(archiveNo, view) {
     var r = findRow(archiveNo);
     if (!r) return;
@@ -470,16 +478,11 @@
     goArchive(archiveNo, 'elderlyFollowup');
   }
 
-  /* 评估：打开老年人健康评估弹框（老年人健康管理评估表） */
+  /* 评估：跳转档案维护页 → 老年人管理 → 自理能力评估，做《老年人自理能力评估表》填报 */
   var pendingArchNo = '';
   function openAssessment(archiveNo) {
     closeAllOpMenus();
-    pendingArchNo = archiveNo;
-    var r = findRow(archiveNo);
-    document.getElementById('asName').textContent = r ? r.name : '';
-    document.getElementById('asAge').textContent = r ? r.age : '';
-    document.getElementById('asOrg').textContent = r ? r.org : '';
-    document.getElementById('assessmentModal').classList.add('show');
+    goArchive(archiveNo, 'elderlySelfCare');
   }
   function closeAssessment() {
     document.getElementById('assessmentModal').classList.remove('show');
@@ -492,15 +495,10 @@
     toast('已提交居民「' + name + '」的老年人健康评估', 'success');
   }
 
-  /* 中医干预：打开老年人中医体质辨识与干预弹框 */
+  /* 中医干预：跳转档案维护页 → 中医管理 → 老年人中医药健康管理服务，做《老年人中医药健康管理服务记录表》填报 */
   function openTcmIntervene(archiveNo) {
     closeAllOpMenus();
-    pendingArchNo = archiveNo;
-    var r = findRow(archiveNo);
-    document.getElementById('tmName').textContent = r ? r.name : '';
-    document.getElementById('tmAge').textContent = r ? r.age : '';
-    document.getElementById('tmOrg').textContent = r ? r.org : '';
-    document.getElementById('tcmModal').classList.add('show');
+    goArchive(archiveNo, 'elderTcmService');
   }
   function closeTcmIntervene() {
     document.getElementById('tcmModal').classList.remove('show');
@@ -555,6 +553,9 @@
     opMenuFloat.className = 'op-menu-float';
     opMenuFloat.innerHTML = wrap.querySelector('.op-menu').innerHTML;
     document.body.appendChild(opMenuFloat);
+    /* 先加上 .show 再量尺寸：.op-menu-float 默认 display:none，此时 offsetWidth/Height 恒为 0，
+       会算出 left = rect.right（浮层右缘溢出视口）、并让「下方空间不足则上翻」的判断失效 */
+    opMenuFloat.classList.add('show');
 
     var rect = btn.getBoundingClientRect();
     var menuW = opMenuFloat.offsetWidth;
@@ -563,9 +564,9 @@
     var top = rect.bottom + 6;
     if (left < 8) left = 8;
     if (top + menuH > window.innerHeight - 8) top = rect.top - menuH - 6;
+    if (top < 8) top = 8;
     opMenuFloat.style.left = left + 'px';
     opMenuFloat.style.top = top + 'px';
-    opMenuFloat.classList.add('show');
     wrap.classList.add('open');
   }
 

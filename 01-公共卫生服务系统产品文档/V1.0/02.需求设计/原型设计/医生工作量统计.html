@@ -16,28 +16,56 @@
   /* ===== 页头 ===== */
   .page-head .right .btn{height:30px;padding:0 14px;font-size:13px}
 
-  /* ===== 统计 TAB ===== */
-  .stat-tabs{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px 10px;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
-  .stat-tab{height:30px;padding:0 16px;border-radius:15px;border:1px solid #DDE3EA;background:#fff;color:var(--text-secondary);font-size:13px;cursor:pointer;transition:all var(--transition-fast);display:inline-flex;align-items:center}
-  .stat-tab:hover{border-color:var(--primary);color:var(--primary)}
-  .stat-tab.active{background:var(--primary);border-color:var(--primary);color:#fff}
+  /* ===== 统计 TAB（卡片式标签：底部基准线 + 选中项描边并与内容区连通） ===== */
+  /* align-items:flex-end 让选中项凭 margin-bottom:-1px 真正压住基准线，实现「与内容区连通」 */
+  .stat-tabs{display:flex;flex-wrap:wrap;padding:14px 16px 0;border-bottom:1px solid var(--color-neutral-300);flex-shrink:0;background:var(--bg-white);align-items:flex-end}
+  .stat-tab{height:32px;padding:0 18px;margin-right:-1px;border:1px solid var(--color-neutral-300);border-bottom:0;border-radius:3px 3px 0 0;background:var(--bg-white);color:#404040;font-size:14px;cursor:pointer;transition:color var(--transition-fast),border-color var(--transition-fast);display:inline-flex;align-items:center;white-space:nowrap}
+  .stat-tab:hover{color:var(--primary);border-color:var(--primary)}
+  .stat-tab.active{position:relative;z-index:1;margin-bottom:-1px;color:var(--primary);border-color:var(--primary)}
 
   /* ===== 筛选区 ===== */
   .filter-panel{padding:14px 16px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
-  .filter-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin-bottom:14px}
-  .filter-item{display:flex;align-items:center;gap:4px}
+  .filter-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px 26px;margin-bottom:10px}
+  /* 折叠行：隐藏声明必须排在 .filter-row 之后 */
+  .filter-row.extra{display:none}
+  .filter-row.extra.show{display:flex}
+  /* 标签与控件之间不留 gap：设计稿的视觉留白来自全角冒号的字宽 */
+  .filter-item{display:flex;align-items:center}
   .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
-  .fi-ctl{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
-  .fi-select{width:150px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .fi-select{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
   .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
   .fi-ctl::placeholder{color:var(--text-placeholder)}
   .fi-select.is-placeholder{color:var(--text-placeholder)}
-  .fi-date{width:118px}
-  .fi-range{display:flex;align-items:center;gap:4px;color:var(--text-tertiary)}
-  .fi-percent{position:relative;display:flex;align-items:center}
-  .fi-percent .fi-ctl{width:86px;padding-right:22px}
-  .fi-percent span{position:absolute;right:9px;font-size:13px;color:var(--text-tertiary);pointer-events:none}
-  .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+  /* 日期区间：单一外框（开始日期 ~ 结束日期 + 日历图标），默认值 2026-01-01 ~ 2026-12-31 */
+  .fi-range{display:flex;align-items:center;gap:6px;width:232px;height:32px;padding:0 8px 0 10px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);background:var(--bg-white);transition:all var(--transition-fast)}
+  .fi-range:hover{border-color:var(--primary)}
+  .fi-range:focus-within{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .fi-range input{flex:1 1 0;min-width:0;height:30px;border:none;background:transparent;outline:none;padding:0;font-size:14px;color:var(--text-primary);font-family:inherit}
+  .fi-range input::placeholder{color:var(--text-placeholder)}
+  .fi-range input::-webkit-calendar-picker-indicator{display:none}
+  .fi-tilde{flex-shrink:0;font-size:14px;color:var(--text-placeholder)}
+  .fi-cal{width:14px;height:14px;flex-shrink:0;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none' stroke='%23bfbfbf' stroke-width='1.2'%3E%3Crect x='1.4' y='2.4' width='11.2' height='10.2' rx='1.6'/%3E%3Cpath d='M1.4 5.6h11.2M4.6 1.4v2M9.4 1.4v2'/%3E%3C/svg%3E") no-repeat center/contain}
+  /* 比较符（86px，设计稿实测 96 ÷ 1.094）+ 数值框（180px，单位内嵌右对齐） */
+  .fi-pair{display:flex;align-items:center;gap:6px}
+  .fi-cmp{width:86px}
+  .fi-suffix{position:relative;display:flex;align-items:center}
+  .fi-suffix .fi-ctl{width:180px;padding-right:56px}
+  .fi-suffix>span{position:absolute;right:10px;font-size:14px;color:var(--text-placeholder);pointer-events:none;white-space:nowrap}
+  /* 复合控件（机构多选 / 管辖网格树 / 管辖行政区级联）：框架默认 190 → 180 */
+  .filter-panel .fcp-ms,.filter-panel .fcp-tree,.filter-panel .fcp-cas{width:180px}
+  /* 面板宽度：网格树与行政区级联按设计稿=框宽起算（框架分别为 232 / 内容宽） */
+  .filter-panel .fcp-tree .fcp-panel{width:auto;min-width:100%}
+  .filter-panel .fcp-cas .fcp-panel{min-width:100%}
+  /* 面板选项行高对齐设计稿（约 33px；框架默认 35px） */
+  .filter-panel .fcp-opt{padding:6px 12px}
+  /* 末行右侧操作区：重置 / 查询 /（存在折叠行时）展开·收起 */
+  .filter-tail{margin-left:auto;display:flex;flex:0 0 auto;align-items:center;gap:16px}
+  .filter-btns{display:flex;gap:8px;align-items:center}
+  /* 「展开 ▼ / 收起 ▲」为纯文字按钮（设计稿无描边、蓝字） */
+  .btn-link{display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 2px;border:none;background:none;font-family:inherit;font-size:14px;color:var(--primary);cursor:pointer}
+  .btn-link:hover{opacity:.8}
+  .btn-link .caret{font-size:10px;line-height:1}
 
   /* ===== 数据表格 ===== */
   .table-wrap{flex:1;overflow:auto;min-height:0}
@@ -154,46 +182,50 @@
   }
   function markSelect(el) { el.classList.toggle('is-placeholder', el.value === ''); }
 
-  var ORGS = ['请选择','扬州市江都区仙女社区卫生服务中心','扬州市江都区郭村镇卫生院','扬州市江都区小纪镇兴旺村卫生室','扬州市江都区大桥镇杨墅村卫生室','扬州市江都区真武镇曹桥村卫生室','仙女镇北苑社区','仙女镇镇北社区','仪征市月塘中心卫生院','山东大学齐鲁医院'];
-  var GRIDS = ['请选择','仙女镇','大桥镇','郭村镇','小纪镇','真武镇','丁沟镇'];
   var RES_ST = ['请选择','正常','迁出','死亡','失访'];
   var MG_ST  = ['请选择','未管理','在管','暂缓管理','退出管理'];
-  var FWAY   = ['请选择','门诊','电话','家庭访视'];
-  var FCLS   = ['请选择','控制满意','控制不满意','控制一般','未分类'];
-  var FRES   = ['请选择','已随访','失访','转诊'];
+  var FWAY   = ['请选择','门诊','家庭','电话','短信','网络','其他'];
+  var FCLS   = ['请选择','控制满意','控制不满意','不良反应','并发症'];
+  var SALT   = ['请选择','低盐','适中','高盐'];
+  var REF_   = ['请选择','无需转诊','建议转诊','已转诊'];
+  var CMP    = ['请选择','≥','≤','＝'];
   var T_ST   = ['请选择','待审核','审核通过','审核驳回'];
   var T_TYPE = ['请选择','迁入单','迁出单'];
   var G_SRC  = ['请选择','本系统','外系统'];
   var DIS1   = ['请选择','高血压','糖尿病','慢阻肺','其他'];
+  /* 管辖网格树：与「高血压管理 / 糖尿病管理」同名条件保持一致（江都区 › 镇 › 网格） */
+  var GRID_TREE_JSON = '[{"n":"江都区","c":[{"n":"江都区","c":[]},{"n":"郭村镇","c":["第一网格","第二网格","第三网格"]},{"n":"大桥镇","c":["第一网格","第二网格","第三网格"]},{"n":"滨江新城","c":["第一网格","第二网格","第三网格"]},{"n":"真武镇","c":["第一网格","第二网格","第三网格"]},{"n":"小纪镇","c":["第一网格","第二网格","第三网格"]},{"n":"丁沟镇","c":["第一网格","第二网格","第三网格"]},{"n":"宜陵镇","c":["第一网格","第二网格","第三网格"]},{"n":"仙女镇","c":["第一网格","第二网格","第三网格"]},{"n":"吴桥镇","c":["第一网格","第二网格","第三网格"]}]}]';
 
+  /* 首项为占位（value=""），否则 el.value 恒非空 → 任何筛选都会筛成 0 条 */
   function opts(arr) {
     return arr.map(function (o, i) {
-      return '<option value="' + esc(o) + '"' + (i === 0 ? ' value=""' : '') + '>' + esc(o) + '</option>';
+      if (i === 0 && (o === '请选择' || o === '')) return '<option value="">' + (o === '请选择' ? '请选择' : '') + '</option>';
+      return '<option value="' + esc(o) + '">' + esc(o) + '</option>';
     }).join('');
   }
 
   /* ================= 数据 ================= */
   var SUMMARY_ROWS = [
-    { org:'扬州市江都区仙女镇金陵村卫生室', doc:'柏红霖', hyp:1,  dm:3,  copd:0, trans:0,  diet:0 },
-    { org:'扬州市江都区大桥镇杨墅村卫生室', doc:'卞露丹', hyp:1,  dm:0,  copd:0, trans:0,  diet:0 },
-    { org:'仙女镇镇北社区',                 doc:'蔡其兰', hyp:1,  dm:0,  copd:0, trans:0,  diet:0 },
-    { org:'扬州市江都区仙女社区卫生服务中心', doc:'蔡娅媛', hyp:0,  dm:0,  copd:0, trans:37, diet:0 },
-    { org:'仙女镇北苑社区',                 doc:'蔡娅媛', hyp:4,  dm:3,  copd:0, trans:0,  diet:0 },
-    { org:'扬州市江都区郭村镇卫生院',        doc:'曹爱兵', hyp:0,  dm:0,  copd:0, trans:20, diet:0 },
-    { org:'扬州市江都区小纪镇宗村村卫生室',  doc:'曹爱梅', hyp:2,  dm:0,  copd:0, trans:0,  diet:0 },
-    { org:'扬州市江都区小纪镇吉东村卫生室',  doc:'曹爱梅', hyp:2,  dm:0,  copd:0, trans:0,  diet:0 },
-    { org:'扬州市江都区小纪镇高徐村卫生室',  doc:'曹爱梅', hyp:3,  dm:0,  copd:0, trans:0,  diet:0 },
-    { org:'扬州市江都区小纪镇兴旺村卫生室',  doc:'曹爱梅', hyp:158,dm:64, copd:0, trans:0,  diet:0 },
-    { org:'扬州市江都区丁沟镇卫生院',        doc:'曹亮',   hyp:1,  dm:0,  copd:0, trans:0,  diet:0 },
-    { org:'扬州市江都区仙女社区卫生服务中心', doc:'曹晓静', hyp:0,  dm:0,  copd:0, trans:185,diet:0 },
-    { org:'仙女镇禹王宫社区',                doc:'曹晓静', hyp:1,  dm:0,  copd:0, trans:0,  diet:0 },
-    { org:'仙女镇孔庄社区',                  doc:'曹晓静', hyp:2,  dm:0,  copd:0, trans:0,  diet:0 },
-    { org:'仙女镇南苑社区',                  doc:'曹晓静', hyp:0,  dm:0,  copd:1, trans:0,  diet:0 },
-    { org:'仙女镇龙川社区',                  doc:'曹晓静', hyp:5,  dm:0,  copd:0, trans:0,  diet:0 },
-    { org:'仙女镇横沟村卫生室',              doc:'陈保国', hyp:1,  dm:0,  copd:0, trans:0,  diet:0 },
-    { org:'扬州市江都区吴川镇大桥村卫生室',  doc:'陈传英', hyp:623,dm:179,copd:18,trans:10, diet:0 },
-    { org:'扬州市江都区小纪镇太平村卫生室',  doc:'陈存凤', hyp:1279,dm:329,copd:14,trans:0,  diet:1 },
-    { org:'扬州市江都区真武镇曹桥村卫生室',  doc:'陈飞',   hyp:26, dm:4,  copd:0, trans:0,  diet:0 }
+    { org:'扬州市江都区仙女镇金陵村卫生室', doc:'柏红霖', hyp:1,  dm:3,  copd:0, trans:0,  diet:0, arcNew:2, arcUpd:9 },
+    { org:'扬州市江都区大桥镇杨墅村卫生室', doc:'卞露丹', hyp:1,  dm:0,  copd:0, trans:0,  diet:0, arcNew:1, arcUpd:6 },
+    { org:'仙女镇镇北社区',                 doc:'蔡其兰', hyp:1,  dm:0,  copd:0, trans:0,  diet:0, arcNew:3, arcUpd:14 },
+    { org:'扬州市江都区仙女社区卫生服务中心', doc:'蔡娅媛', hyp:0,  dm:0,  copd:0, trans:37, diet:0, arcNew:6, arcUpd:48 },
+    { org:'仙女镇北苑社区',                 doc:'蔡娅媛', hyp:4,  dm:3,  copd:0, trans:0,  diet:0, arcNew:2, arcUpd:17 },
+    { org:'扬州市江都区郭村镇卫生院',        doc:'曹爱兵', hyp:0,  dm:0,  copd:0, trans:20, diet:0, arcNew:7, arcUpd:36 },
+    { org:'扬州市江都区小纪镇宗村村卫生室',  doc:'曹爱梅', hyp:2,  dm:0,  copd:0, trans:0,  diet:0, arcNew:1, arcUpd:5 },
+    { org:'扬州市江都区小纪镇吉东村卫生室',  doc:'曹爱梅', hyp:2,  dm:0,  copd:0, trans:0,  diet:0, arcNew:1, arcUpd:7 },
+    { org:'扬州市江都区小纪镇高徐村卫生室',  doc:'曹爱梅', hyp:3,  dm:0,  copd:0, trans:0,  diet:0, arcNew:2, arcUpd:8 },
+    { org:'扬州市江都区小纪镇兴旺村卫生室',  doc:'曹爱梅', hyp:158,dm:64, copd:0, trans:0,  diet:0, arcNew:19, arcUpd:248 },
+    { org:'扬州市江都区丁沟镇卫生院',        doc:'曹亮',   hyp:1,  dm:0,  copd:0, trans:0,  diet:0, arcNew:4, arcUpd:22 },
+    { org:'扬州市江都区仙女社区卫生服务中心', doc:'曹晓静', hyp:0,  dm:0,  copd:0, trans:185,diet:0, arcNew:10, arcUpd:163 },
+    { org:'仙女镇禹王宫社区',                doc:'曹晓静', hyp:1,  dm:0,  copd:0, trans:0,  diet:0, arcNew:2, arcUpd:12 },
+    { org:'仙女镇孔庄社区',                  doc:'曹晓静', hyp:2,  dm:0,  copd:0, trans:0,  diet:0, arcNew:3, arcUpd:15 },
+    { org:'仙女镇南苑社区',                  doc:'曹晓静', hyp:0,  dm:0,  copd:1, trans:0,  diet:0, arcNew:1, arcUpd:10 },
+    { org:'仙女镇龙川社区',                  doc:'曹晓静', hyp:5,  dm:0,  copd:0, trans:0,  diet:0, arcNew:2, arcUpd:14 },
+    { org:'仙女镇横沟村卫生室',              doc:'陈保国', hyp:1,  dm:0,  copd:0, trans:0,  diet:0, arcNew:1, arcUpd:6 },
+    { org:'扬州市江都区吴川镇大桥村卫生室',  doc:'陈传英', hyp:623,dm:179,copd:18,trans:10, diet:0, arcNew:48, arcUpd:826 },
+    { org:'扬州市江都区小纪镇太平村卫生室',  doc:'陈存凤', hyp:1279,dm:329,copd:14,trans:0,  diet:1, arcNew:64, arcUpd:1489 },
+    { org:'扬州市江都区真武镇曹桥村卫生室',  doc:'陈飞',   hyp:26, dm:4,  copd:0, trans:0,  diet:0, arcNew:6, arcUpd:41 }
   ];
 
   var HYP_ROWS = [
@@ -270,7 +302,108 @@
     { org:'扬州市江都区吴川镇卫生院', name:'陈保国', id:'3210********8845', idType:'身份证号', sex:'男', age:63, phone:'138****7712', dis:'高血压',      ddate:'2026-09-26', doc:'陈传英', src:'本系统', st:'正常' }
   ];
 
-  var COPd_ROWS = [];
+  var COPd_ROWS = [
+    { org:'扬州市江都区小纪镇太平村卫生室', name:'陈粉风', id:'3210********1568', idType:'身份证号', sex:'女', age:68, phone:'158****6909', fdate:'2026-08-13', fway:'门诊', fcls:'控制满意',   fdoc:'凌金妹', lock:'未上锁' },
+    { org:'扬州市江都区仙女社区卫生服务中心', name:'王秀珍', id:'3210********8964', idType:'身份证号', sex:'女', age:65, phone:'137****8820', fdate:'2026-08-20', fway:'门诊', fcls:'控制不满意', fdoc:'蔡娅媛', lock:'未上锁' },
+    { org:'仙女镇北苑社区',                 name:'张桂英', id:'3210********4512', idType:'身份证号', sex:'女', age:70, phone:'151****3467', fdate:'2026-08-26', fway:'家庭', fcls:'控制满意',   fdoc:'蔡娅媛', lock:'未上锁' },
+    { org:'扬州市江都区郭村镇卫生院',        name:'李秀兰', id:'3210********7845', idType:'身份证号', sex:'女', age:66, phone:'136****9012', fdate:'2026-08-28', fway:'门诊', fcls:'不良反应',   fdoc:'曹爱兵', lock:'未上锁' },
+    { org:'仙女镇禹王宫社区',                name:'赵秀英', id:'3210********3689', idType:'身份证号', sex:'女', age:74, phone:'158****2210', fdate:'2026-09-02', fway:'电话', fcls:'控制不满意', fdoc:'曹晓静', lock:'未上锁' },
+    { org:'扬州市江都区真武镇曹桥村卫生室',  name:'陈传英', id:'3210********1234', idType:'身份证号', sex:'女', age:73, phone:'139****8876', fdate:'2026-09-06', fway:'门诊', fcls:'控制满意',   fdoc:'陈飞',   lock:'未上锁' },
+    { org:'扬州市江都区大桥镇杨墅村卫生室',  name:'卞玉珍', id:'3210********6678', idType:'身份证号', sex:'女', age:67, phone:'158****3320', fdate:'2026-09-09', fway:'门诊', fcls:'控制不满意', fdoc:'卞露丹', lock:'未上锁' },
+    { org:'仙女镇镇北社区',                 name:'柏世华', id:'3210********3321', idType:'身份证号', sex:'男', age:76, phone:'151****5523', fdate:'2026-09-11', fway:'网络', fcls:'并发症',     fdoc:'蔡其兰', lock:'未上锁' },
+    { org:'扬州市江都区小纪镇兴旺村卫生室',  name:'高长林', id:'3210********6670', idType:'身份证号', sex:'男', age:71, phone:'137****8802', fdate:'2026-09-15', fway:'门诊', fcls:'控制不满意', fdoc:'凌金妹', lock:'未上锁' },
+    { org:'仙女镇南苑社区',                  name:'杨秀兰', id:'3210********2245', idType:'身份证号', sex:'女', age:70, phone:'138****7789', fdate:'2026-09-17', fway:'短信', fcls:'控制满意',   fdoc:'曹晓静', lock:'未上锁' },
+    { org:'扬州市江都区丁沟镇卫生院',        name:'吴长贵', id:'3210********9912', idType:'身份证号', sex:'男', age:72, phone:'135****4430', fdate:'2026-09-19', fway:'门诊', fcls:'控制不满意', fdoc:'曹亮',   lock:'未上锁' },
+    { org:'扬州市江都区吴川镇大桥村卫生室',  name:'陈明芳', id:'3210********8823', idType:'身份证号', sex:'女', age:65, phone:'133****9910', fdate:'2026-09-21', fway:'门诊', fcls:'控制满意',   fdoc:'陈传英', lock:'未上锁' },
+    { org:'仙女镇孔庄社区',                  name:'刘玉兰', id:'3210********9145', idType:'身份证号', sex:'女', age:69, phone:'133****6754', fdate:'2026-09-23', fway:'其他', fcls:'不良反应',   fdoc:'曹晓静', lock:'未上锁' },
+    { org:'扬州市江都区仙女社区卫生服务中心', name:'韩秀珍', id:'3210********3314', idType:'身份证号', sex:'女', age:66, phone:'136****1145', fdate:'2026-09-25', fway:'门诊', fcls:'控制不满意', fdoc:'蔡娅媛', lock:'未上锁' }
+  ];
+
+  /* ================= 演示数据补字段 =================
+     设计稿新增/改写的筛选条件需要以下字段；数据侧按机构名 / 姓名确定性派生，
+     保证每个条件都能筛出结果。注意 org 是下属机构（社区站 / 村卫生室），
+     表格照常展示它，故另补一个仅供筛选用的顶层机构 topOrg。 */
+  (function enrich() {
+    var POOL = ['**大学淮河医院', '温江区华西医院', '成都市新都区妇幼保健院', '山东大学齐鲁医院'];
+    function hash(s) { var h = 0, i; for (i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 9973; return h; }
+    function topOrgOf(org) {
+      var s = String(org || '');
+      /* 「江都区大桥镇」是机构池中唯一带地名的一项，按地名归入，其余在 POOL 内轮换 */
+      if (s.indexOf('大桥镇') !== -1) return '江都区大桥镇';
+      return POOL[hash(s) % POOL.length];
+    }
+    var TOWNS = ['郭村镇', '大桥镇', '滨江新城', '真武镇', '小纪镇', '丁沟镇', '宜陵镇', '仙女镇', '吴桥镇'];
+    var GRID3 = ['第一网格', '第二网格', '第三网格'];
+    function townOf(org) {
+      var s = String(org || ''), i;
+      for (i = 0; i < TOWNS.length; i++) if (s.indexOf(TOWNS[i]) !== -1) return TOWNS[i];
+      if (s.indexOf('吴川镇') !== -1) return '吴桥镇';
+      return '仙女镇';
+    }
+    var FWAY6 = ['门诊', '家庭', '电话', '短信', '网络', '其他'];
+    var FCLS4 = ['控制满意', '控制不满意', '不良反应', '并发症'];
+    var SALT3 = ['低盐', '适中', '高盐'];
+    var REF3 = ['无需转诊', '建议转诊', '已转诊'];
+    var PER7 = [60, 75, 80, 85, 90, 95, 100];
+    /* 管辖行政区：级联控件写入的是末级节点（街道），故数据侧按「区 + 街道」存放。
+       10 行数据覆盖 6 个区各≥1 个街道（共 10 个叶子），其余叶子无数据属正常。 */
+    var REGION_FLAT = [
+      '玄武区梅园新村街道', '玄武区新街口街道',
+      '秦淮区夫子庙街道', '秦淮区朝天宫街道',
+      '建邺区莫愁湖街道', '建邺区南苑街道',
+      '鼓楼区华侨路街道', '鼓楼区宁海路街道',
+      '浦口区泰山街道', '栖霞区尧化街道'
+    ];
+    function pad2(n) { return (n < 10 ? '0' : '') + n; }
+    function date2026(seed) { return '2026-' + pad2(1 + seed % 9) + '-' + pad2(1 + seed % 28); }
+    /* 按哈希打乱后轮转赋值：表格里看不出周期，同时保证每个选项都有数据可筛 */
+    function spread(arr, rows, field, offset) {
+      var ix = rows.map(function (r, i) { return { i: i, k: hash(String(r.name || r.doc || '') + field) }; })
+        .sort(function (a, b) { return a.k - b.k || a.i - b.i; });
+      ix.forEach(function (o, n) { rows[o.i][field] = arr[(n + offset) % arr.length]; });
+    }
+
+    SUMMARY_ROWS.forEach(function (r, i) {
+      r.topOrg = topOrgOf(r.org);
+      r.resst = (i % 9 === 4) ? '迁出' : (i % 13 === 7 ? '死亡' : '正常');
+      r.date = date2026(hash(r.doc));
+    });
+    /* 随访三表：机构 / 网格 / 居民状态 / 管理状态 / 随访方式 / 分类 / 完整度 / 摄盐 / 转诊 / 血压血糖 */
+    [HYP_ROWS, DM_ROWS, COPd_ROWS].forEach(function (rows) {
+      rows.forEach(function (r, i) {
+        var h = hash(r.name);
+        r.topOrg = topOrgOf(r.org);
+        r.grid = townOf(r.org) + GRID3[(h + i) % 3];
+        r.resst = (i % 11 === 5) ? '失访' : (i % 8 === 3 ? '迁出' : (i % 13 === 7 ? '死亡' : '正常'));
+        r.mgst = (i % 12 === 4) ? '暂缓管理' : (i % 7 === 2 ? '未管理' : (i % 12 === 10 ? '退出管理' : '在管'));
+        r.per = PER7[(h + i) % PER7.length];
+        r.sys = 118 + ((h + i * 7) % 46);
+        r.dia = 70 + ((h + i * 5) % 32);
+        r.glu = (48 + ((h + i * 11) % 62)) / 10;
+      });
+      spread(FWAY6, rows, 'fway', 0);
+      spread(FCLS4, rows, 'fcls', 2);
+      spread(SALT3, rows, 'salt', 1);
+      spread(REF3, rows, 'ref', 0);
+      /* 树里的「滨江新城 / 宜陵镇」在演示机构名中没有对应，把「仙女镇」的首两行分流过去，
+         保证树中 9 个镇都能筛出数据 */
+      var extra = ['滨江新城', '宜陵镇'], ei = 0;
+      rows.forEach(function (r) {
+        if (ei >= extra.length || r.grid.indexOf('仙女镇') !== 0) return;
+        r.grid = extra[ei] + r.grid.slice(3); ei++;
+      });
+    });
+    TRANSFER_ROWS.forEach(function (r, i) {
+      r.topOrg = topOrgOf(r.org);
+      r.resst = (i % 7 === 3) ? '迁出' : '正常';
+      r.date = date2026(hash(r.name) + 3);
+    });
+    spread(REGION_FLAT, TRANSFER_ROWS, 'region', 0);
+    DIET_ROWS.forEach(function (r) {
+      r.topOrg = topOrgOf(r.org);
+      r.resst = '正常';
+    });
+  })();
 
   /* ================= TAB 配置 ================= */
   var TABS = {
@@ -279,9 +412,9 @@
       rows: SUMMARY_ROWS,
       filters: [
         { items: [
-          { type: 'select', label: '业务机构', key: 'org',  opts: ORGS },
-          { type: 'input',  label: '业务医生', key: 'doc',  ph: '请输入' },
-          { type: 'daterange', label: '业务日期', key: 'date' },
+          { type: 'fcpms', label: '业务机构', key: 'org', field: 'topOrg' },
+          { type: 'input',  label: '业务医生', key: 'doc', ph: '请输入' },
+          { type: 'daterange', label: '业务日期', key: 'date', start: '2026-01-01', end: '2026-12-31' },
           { type: 'select', label: '居民状态', key: 'resst', opts: RES_ST }
         ] }
       ],
@@ -289,6 +422,8 @@
         { label: '序号', w: 52,  c: 1, t: function (r, i) { return i + 1; } },
         { label: '业务机构', w: 240, render: function (r) { return r.org; } },
         { label: '业务医生', w: 90,  render: function (r) { return r.doc; } },
+        { label: '档案新建合计', w: 110, num: 1, render: function (r) { return r.arcNew; } },
+        { label: '档案更新合计', w: 110, num: 1, render: function (r) { return r.arcUpd; } },
         { label: '高血压随访合计', w: 120, num: 1, render: function (r) { return r.hyp; } },
         { label: '糖尿病随访合计', w: 120, num: 1, render: function (r) { return r.dm; } },
         { label: '慢阻肺随访合计', w: 120, num: 1, render: function (r) { return r.copd; } },
@@ -301,23 +436,27 @@
       rows: HYP_ROWS,
       filters: [
         { items: [
-          { type: 'select', label: '业务机构', key: 'org',   opts: ORGS },
-          { type: 'select', label: '管理网格', key: 'grid',  opts: GRIDS },
-          { type: 'input',  label: '随访医生', key: 'fdoc',  ph: '请输入' },
-          { type: 'daterange', label: '随访日期', key: 'fdate' },
-          { type: 'select', label: '居民状态', key: 'resst', opts: RES_ST },
-          { type: 'select', label: '管理状态', key: 'mgst',  opts: MG_ST }
+          { type: 'fcpms', label: '业务机构', key: 'org', field: 'topOrg' },
+          { type: 'fcptree', label: '管辖网格', key: 'grid' },
+          { type: 'input',  label: '随访医生', key: 'fdoc', ph: '请输入' },
+          { type: 'daterange', label: '随访日期', key: 'fdate', start: '2026-01-01', end: '2026-12-31' }
         ] },
         { items: [
+          { type: 'select', label: '居民状态', key: 'resst', opts: RES_ST },
+          { type: 'select', label: '管理状态', key: 'mgst',  opts: MG_ST },
           { type: 'input',  label: '姓名', key: 'name', ph: '请输入' },
-          { type: 'input',  label: '证件号', key: 'id',  ph: '请输入' },
+          { type: 'input',  label: '证件号', key: 'id',  ph: '请输入' }
+        ] },
+        { extra: true, items: [
           { type: 'select', label: '随访方式', key: 'fway', opts: FWAY },
           { type: 'select', label: '此次随访分类', key: 'fcls', opts: FCLS },
-          { type: 'percent', label: '档案完整度', key: 'per', ph: '请输入' }
+          { type: 'cmpnum', label: '档案完整度', key: 'per', ph: '请输入', unit: '%' },
+          { type: 'select', label: '摄盐情况', key: 'salt', opts: SALT }
         ] },
-        { items: [
-          { type: 'input',  label: '联系电话', key: 'phone', ph: '请输入' },
-          { type: 'select', label: '随访结果', key: 'fres', opts: FRES }
+        { extra: true, items: [
+          { type: 'cmpnum', label: '收缩压', key: 'sys', ph: '请输入', unit: 'mmHg' },
+          { type: 'cmpnum', label: '舒张压', key: 'dia', ph: '请输入', unit: 'mmHg' },
+          { type: 'select', label: '转诊情况', key: 'ref', opts: REF_ }
         ] }
       ],
       cols: [
@@ -342,23 +481,25 @@
       rows: DM_ROWS,
       filters: [
         { items: [
-          { type: 'select', label: '业务机构', key: 'org',   opts: ORGS },
-          { type: 'select', label: '管理网格', key: 'grid',  opts: GRIDS },
-          { type: 'input',  label: '随访医生', key: 'fdoc',  ph: '请输入' },
-          { type: 'daterange', label: '随访日期', key: 'fdate' },
-          { type: 'select', label: '居民状态', key: 'resst', opts: RES_ST },
-          { type: 'select', label: '管理状态', key: 'mgst',  opts: MG_ST }
+          { type: 'fcpms', label: '业务机构', key: 'org', field: 'topOrg' },
+          { type: 'fcptree', label: '管辖网格', key: 'grid' },
+          { type: 'input',  label: '随访医生', key: 'fdoc', ph: '请输入' },
+          { type: 'daterange', label: '随访日期', key: 'fdate', start: '2026-01-01', end: '2026-12-31' }
         ] },
         { items: [
+          { type: 'select', label: '居民状态', key: 'resst', opts: RES_ST },
+          { type: 'select', label: '管理状态', key: 'mgst',  opts: MG_ST },
           { type: 'input',  label: '姓名', key: 'name', ph: '请输入' },
-          { type: 'input',  label: '证件号', key: 'id',  ph: '请输入' },
+          { type: 'input',  label: '证件号', key: 'id',  ph: '请输入' }
+        ] },
+        { extra: true, items: [
           { type: 'select', label: '随访方式', key: 'fway', opts: FWAY },
           { type: 'select', label: '此次随访分类', key: 'fcls', opts: FCLS },
-          { type: 'percent', label: '档案完整度', key: 'per', ph: '请输入' }
+          { type: 'cmpnum', label: '档案完整度', key: 'per', ph: '请输入', unit: '%' }
         ] },
-        { items: [
-          { type: 'input',  label: '联系电话', key: 'phone', ph: '请输入' },
-          { type: 'select', label: '随访结果', key: 'fres', opts: FRES }
+        { extra: true, items: [
+          { type: 'cmpnum', label: '空腹血糖', key: 'glu', ph: '请输入', unit: 'mmol/L' },
+          { type: 'select', label: '转诊情况', key: 'ref', opts: REF_ }
         ] }
       ],
       cols: [
@@ -383,22 +524,22 @@
       rows: COPd_ROWS,
       filters: [
         { items: [
-          { type: 'select', label: '管理机构', key: 'org',   opts: ORGS },
-          { type: 'select', label: '管辖网格', key: 'grid',  opts: GRIDS },
-          { type: 'input',  label: '随访医生', key: 'fdoc',  ph: '请输入' },
-          { type: 'daterange', label: '随访日期', key: 'fdate' },
-          { type: 'select', label: '居民状态', key: 'resst', opts: RES_ST }
+          { type: 'fcpms', label: '管理机构', key: 'org', field: 'topOrg' },
+          { type: 'fcptree', label: '管辖网格', key: 'grid' },
+          { type: 'input',  label: '随访医生', key: 'fdoc', ph: '请输入' },
+          { type: 'daterange', label: '随访日期', key: 'fdate', start: '2026-01-01', end: '2026-12-31' }
         ] },
         { items: [
-          { type: 'select', label: '管理状态', key: 'mgst', opts: MG_ST },
+          { type: 'select', label: '居民状态', key: 'resst', opts: RES_ST },
+          { type: 'select', label: '管理状态', key: 'mgst',  opts: MG_ST },
           { type: 'input',  label: '姓名', key: 'name', ph: '请输入' },
-          { type: 'input',  label: '证件号', key: 'id',  ph: '请输入' },
-          { type: 'select', label: '随访方式', key: 'fway', opts: FWAY },
-          { type: 'select', label: '此次随访分类', key: 'fcls', opts: FCLS }
+          { type: 'input',  label: '证件号', key: 'id',  ph: '请输入' }
         ] },
-        { items: [
-          { type: 'input',  label: '联系电话', key: 'phone', ph: '请输入' },
-          { type: 'select', label: '随访结果', key: 'fres', opts: FRES }
+        { extra: true, items: [
+          { type: 'select', label: '随访方式', key: 'fway', opts: FWAY },
+          { type: 'select', label: '此次随访分类', key: 'fcls', opts: FCLS },
+          { type: 'cmpnum', label: '档案完整度', key: 'per', ph: '请输入', unit: '%' },
+          { type: 'select', label: '转诊情况', key: 'ref', opts: REF_ }
         ] }
       ],
       cols: [
@@ -423,17 +564,19 @@
       rows: TRANSFER_ROWS,
       filters: [
         { items: [
-          { type: 'select', label: '申请机构', key: 'org',   opts: ORGS },
-          { type: 'input',  label: '申请医生', key: 'doc',   ph: '请输入' },
-          { type: 'daterange', label: '申请日期', key: 'date' },
-          { type: 'select', label: '迁移状态', key: 'tst',   opts: T_ST },
-          { type: 'select', label: '居民状态', key: 'resst', opts: RES_ST },
-          { type: 'select', label: '管理行政区', key: 'grid', opts: GRIDS }
+          { type: 'fcpms', label: '申请机构', key: 'org', field: 'topOrg' },
+          { type: 'input',  label: '申请医生', key: 'doc', ph: '请输入' },
+          { type: 'daterange', label: '申请日期', key: 'date', start: '2026-01-01', end: '2026-12-31' },
+          { type: 'select', label: '迁移状态', key: 'tst', field: 'st', opts: T_ST }
         ] },
         { items: [
+          { type: 'select', label: '居民状态', key: 'resst', opts: RES_ST },
+          { type: 'fcpcas', label: '管辖行政区', key: 'region' },
           { type: 'select', label: '申请类型', key: 'type', opts: T_TYPE },
-          { type: 'input',  label: '姓名', key: 'name', ph: '请输入' },
-          { type: 'input',  label: '证件号', key: 'id',  ph: '请输入' }
+          { type: 'input',  label: '姓名', key: 'name', ph: '请输入' }
+        ] },
+        { extra: true, items: [
+          { type: 'input', label: '证件号', key: 'id', ph: '请输入' }
         ] }
       ],
       cols: [
@@ -458,14 +601,14 @@
       rows: DIET_ROWS,
       filters: [
         { items: [
-          { type: 'select', label: '指导机构', key: 'org',   opts: ORGS },
-          { type: 'input',  label: '指导医生', key: 'doc',   ph: '请输入' },
-          { type: 'daterange', label: '申请日期', key: 'date' },
+          { type: 'fcpms', label: '指导机构', key: 'org', field: 'topOrg' },
+          { type: 'input',  label: '指导医生', key: 'doc', ph: '请输入' },
+          { type: 'daterange', label: '申请日期', key: 'date', field: 'ddate', start: '2026-01-01', end: '2026-12-31' },
           { type: 'select', label: '居民状态', key: 'resst', opts: RES_ST },
-          { type: 'select', label: '指导来源', key: 'src',   opts: G_SRC }
+          { type: 'select', label: '指导来源', key: 'src', opts: G_SRC }
         ] },
         { items: [
-          { type: 'select', label: '主要疾病', key: 'dis1', opts: DIS1 },
+          { type: 'select', label: '主要疾病', key: 'dis', opts: DIS1 },
           { type: 'input',  label: '姓名', key: 'name', ph: '请输入' },
           { type: 'input',  label: '证件号', key: 'id',  ph: '请输入' }
         ] }
@@ -500,39 +643,129 @@
     }).join('');
   }
 
-  function filterItemHtml(f, idx) {
+  /* 日期区间内的输入框：聚焦时切原生 date 并唤起选择器，失焦且为空则还原为文本占位 */
+  function pickDate(el) { el.type = 'date'; try { el.showPicker(); } catch (e) { } }
+  function blurDate(el) { if (!el.value) el.type = 'text'; }
+
+  /* 数值框：单位（% / mmHg / mmol/L）内嵌在框内右对齐、浅灰、不可点 */
+  function numCtl(f) {
+    return '<span class="fi-suffix"><input class="fi-ctl fi-num" placeholder="' + (f.ph || '请输入') + '" data-k="' + f.key + '-val" oninput="filterRows()">'
+      + (f.unit ? '<span class="fi-unit">' + f.unit + '</span>' : '')
+      + '</span>';
+  }
+
+  function filterItemHtml(f) {
     var ph = f.ph || '';
     var label = f.noLabel ? '' : f.label + '：';
     if (f.type === 'select') {
-      return '<div class="filter-item"><label>' + label + '</label><select class="fi-select is-placeholder" data-f="' + idx + '" onchange="markSelect(this);filterRows()">' + opts(f.opts) + '</select></div>';
+      return '<div class="filter-item"><label>' + label + '</label><select class="fi-select is-placeholder" data-k="' + f.key + '" onchange="markSelect(this);filterRows()">' + opts(f.opts) + '</select></div>';
     }
+    /* 日期区间：单一外框（开始 ~ 结束 + 日历图标），带默认值 2026-01-01 ~ 2026-12-31 */
     if (f.type === 'daterange') {
-      return '<div class="filter-item"><label>' + f.label + '：</label><span class="fi-range"><input class="fi-ctl fi-date" value="2026-01-01" data-f="' + idx + '" oninput="filterRows()">~<input class="fi-ctl fi-date" value="2026-12-31" data-half="end" data-f="' + idx + '" oninput="filterRows()"></span></div>';
+      return '<div class="filter-item"><label>' + f.label + '：</label>'
+        + '<span class="fi-range">'
+        + '<input type="text" value="' + (f.start || '') + '" data-def="' + (f.start || '') + '" placeholder="开始日期" data-k="' + f.key + '-start" onfocus="pickDate(this)" onblur="blurDate(this)" oninput="filterRows()">'
+        + '<span class="fi-tilde">~</span>'
+        + '<input type="text" value="' + (f.end || '') + '" data-def="' + (f.end || '') + '" placeholder="结束日期" data-k="' + f.key + '-end" onfocus="pickDate(this)" onblur="blurDate(this)" oninput="filterRows()">'
+        + '<span class="fi-cal"></span>'
+        + '</span></div>';
     }
-    if (f.type === 'percent') {
-      return '<div class="filter-item"><label>' + label + '</label><span class="fi-percent"><input class="fi-ctl" placeholder="' + ph + '" data-f="' + idx + '" oninput="filterRows()"><span>%</span></span></div>';
+    /* 比较符 + 数值 + 单位（收缩压 / 舒张压 / 空腹血糖 / 档案完整度） */
+    if (f.type === 'cmpnum') {
+      return '<div class="filter-item"><label>' + label + '</label>'
+        + '<span class="fi-pair">'
+        + '<select class="fi-select fi-cmp is-placeholder" data-k="' + f.key + '-cmp" onchange="markSelect(this);filterRows()">' + opts(CMP) + '</select>'
+        + numCtl(f)
+        + '</span></div>';
     }
-    return '<div class="filter-item"><label>' + label + '</label><input class="fi-ctl" placeholder="' + ph + '" data-f="' + idx + '" oninput="filterRows()"></div>';
+    /* 机构多选（复选框）；面板选项默认取框架机构池 */
+    if (f.type === 'fcpms') {
+      var dopts = f.opts ? ' data-options="' + f.opts.join('|') + '"' : '';
+      return '<div class="filter-item"><label>' + label + '</label>'
+        + '<div class="fcp-ms" data-fcp="ms"' + dopts + '>'
+        + '<div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>'
+        + '<div class="fcp-panel"></div>'
+        + '<input type="hidden" class="fcp-val" data-k="' + f.key + '">'
+        + '</div></div>';
+    }
+    /* 管辖网格（树形，叶子可选） */
+    if (f.type === 'fcptree') {
+      return '<div class="filter-item"><label>' + label + '</label>'
+        + '<div class="fcp-tree" data-fcp="tree" data-tree=\'' + GRID_TREE_JSON + '\'>'
+        + '<div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>'
+        + '<div class="fcp-panel"></div>'
+        + '<input type="hidden" class="fcp-val" data-k="' + f.key + '">'
+        + '</div></div>';
+    }
+    /* 管辖行政区（省 / 市 / 区 级联，取末级节点为值） */
+    if (f.type === 'fcpcas') {
+      return '<div class="filter-item"><label>' + label + '</label>'
+        + '<div class="fcp-cas" data-fcp="cas" data-caret>'
+        + '<div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>'
+        + '<div class="fcp-panel"></div>'
+        + '<input type="hidden" class="fcp-val" data-k="' + f.key + '">'
+        + '</div></div>';
+    }
+    return '<div class="filter-item"><label>' + label + '</label><input class="fi-ctl" placeholder="' + ph + '" data-k="' + f.key + '" oninput="filterRows()"></div>';
+  }
+
+  /* 末行右侧操作区：重置 / 查询 /（存在折叠行时）展开·收起 */
+  function tailHtml() {
+    var hasExtra = TABS[curTab].filters.some(function (r) { return r.extra; });
+    return '<div class="filter-tail">'
+      + '<div class="filter-btns">'
+      + '<button class="btn btn-default" onclick="resetFilter()">重置</button>'
+      + '<button class="btn btn-primary" onclick="queryFilter()">查询</button>'
+      + '</div>'
+      + (hasExtra ? '<button type="button" class="btn-link btn-toggle" onclick="toggleExtra()">展开 <span class="caret">▼</span></button>' : '')
+      + '</div>';
+  }
+
+  /* 操作区始终贴在「最后一个可见行」右侧：折叠时随之移到上一行 */
+  function placeTail() {
+    var panel = $('filterPanel');
+    var tail = panel.querySelector('.filter-tail');
+    if (!tail) return;
+    var target = null;
+    panel.querySelectorAll('.filter-row').forEach(function (row) {
+      if (row.classList.contains('extra') && !row.classList.contains('show')) return;
+      target = row;
+    });
+    if (target && tail.parentNode !== target) target.appendChild(tail);
+  }
+
+  /* 展开 / 收起折叠行，并同步按钮文案（收起 ▲ / 展开 ▼） */
+  function toggleExtra() {
+    var panel = $('filterPanel');
+    var rows = panel.querySelectorAll('.filter-row.extra');
+    if (!rows.length) return;
+    var show = !rows[0].classList.contains('show');
+    rows.forEach(function (row) { row.classList.toggle('show', show); });
+    var btn = panel.querySelector('.btn-toggle');
+    if (btn) btn.innerHTML = show ? '收起 <span class="caret">▲</span>' : '展开 <span class="caret">▼</span>';
+    placeTail();
   }
 
   function renderFilter() {
     var t = TABS[curTab];
     var html = '';
-    var fidx = 0;
-    t.filters.forEach(function (rowDef, ri) {
-      html += '<div class="filter-row">';
-      rowDef.items.forEach(function (f) {
-        html += filterItemHtml(f, fidx);
-        fidx++;
-      });
-      if (ri === t.filters.length - 1) {
-        html += '<div class="filter-btns">'
-          + '<button class="btn btn-default" onclick="resetFilter()">重置</button>'
-          + '<button class="btn btn-primary" onclick="queryFilter()">查询</button></div>';
-      }
+    t.filters.forEach(function (rowDef) {
+      html += '<div class="filter-row' + (rowDef.extra ? ' extra' : '') + '">';
+      rowDef.items.forEach(function (f) { html += filterItemHtml(f); });
       html += '</div>';
     });
+    html += tailHtml();
     $('filterPanel').innerHTML = html;
+    /* 面板每次重建，需重新初始化复合控件并重绑实时过滤
+       （复选框走 change；点整行对勾 / 树节点 / 下钻 / 清空走 click） */
+    if (window.fcpInit) window.fcpInit();
+    $('filterPanel').querySelectorAll('[data-fcp]').forEach(function (el) {
+      el.addEventListener('change', function () { setTimeout(filterRows, 0); });
+      el.addEventListener('click', function (e) {
+        if (e.target.closest('.fcp-opt,.fcp-n,.fcp-clear,.fcp-box')) setTimeout(filterRows, 0);
+      });
+    });
+    placeTail();
   }
 
   function renderTable() {
@@ -567,33 +800,84 @@
     $('total').textContent = curRows.length;
   }
 
+  /* 按 data-k 逐控件取值再过滤：避免「日期区间占两个输入」造成的下标错位 */
   function filterRows() {
     var t = TABS[curTab];
-    var fields = $('filterPanel').querySelectorAll('[data-f]');
-    var arr = [];
-    fields.forEach(function (el) { arr.push(el.value ? el.value.trim().toLowerCase() : ''); });
-    var rowDefs = [];
-    t.filters.forEach(function (rd) { rd.items.forEach(function (f) { rowDefs.push(f); }); });
+    var v = {};
+    $('filterPanel').querySelectorAll('[data-k]').forEach(function (el) {
+      v[el.getAttribute('data-k')] = el.value ? String(el.value).trim() : '';
+    });
+    var defs = [];
+    t.filters.forEach(function (rd) { rd.items.forEach(function (f) { defs.push(f); }); });
+
     curRows = t.rows.filter(function (r) {
-      return rowDefs.every(function (f, i) {
-        var v = arr[i];
-        if (!v) return true;
-        var k = f.key;
-        if (k === 'date' || k === 'per') return true;
-        var rv = r[k];
+      return defs.every(function (f) {
+        var rv = r[f.field || f.key];
+        /* 机构多选：任一命中即保留（机构名在不同维度下写法不同，按双向包含匹配） */
+        if (f.type === 'fcpms') {
+          var orgs = (v[f.key] || '').split(',').filter(Boolean);
+          if (!orgs.length) return true;
+          if (rv === undefined || rv === null) return true;
+          var os = String(rv);
+          if (os === '') return false;
+          return orgs.some(function (x) { return os === x || os.indexOf(x) !== -1 || x.indexOf(os) !== -1; });
+        }
+        /* 管辖网格（树形多选，叶子为「镇 + 第N网格」） */
+        if (f.type === 'fcptree') {
+          var gsel = (v[f.key] || '').split(',').filter(Boolean);
+          if (!gsel.length) return true;
+          if (rv === undefined || rv === null) return true;
+          var gs = String(rv);
+          if (gs === '') return false;
+          return gsel.some(function (x) { return gs === x || gs.indexOf(x) !== -1; });
+        }
+        /* 管辖行政区（级联，值为末级节点名） */
+        if (f.type === 'fcpcas') {
+          var cq = v[f.key] || '';
+          if (!cq) return true;
+          if (rv === undefined || rv === null) return true;
+          var cs = String(rv);
+          if (cs === '') return false;
+          return cs === cq || cs.indexOf(cq) !== -1 || cq.indexOf(cs) !== -1;
+        }
+        /* 比较符 + 数值：两者都填才生效（只填数值不比较，避免误筛成 0 条） */
+        if (f.type === 'cmpnum') {
+          var cop = v[f.key + '-cmp'] || '', cnum = v[f.key + '-val'] || '';
+          if (!cop || !cnum) return true;
+          var nv = parseFloat(cnum), dv = parseFloat(rv);
+          if (isNaN(nv)) return true;
+          if (isNaN(dv)) return false;
+          if (cop === '≥') return dv >= nv;
+          if (cop === '≤') return dv <= nv;
+          return dv === nv;
+        }
+        /* 日期区间：单外框两个输入，按 key-start / key-end 取值 */
+        if (f.type === 'daterange') {
+          var s = v[f.key + '-start'] || '', e = v[f.key + '-end'] || '';
+          if (!s && !e) return true;
+          if (rv === undefined || rv === null || rv === '') return true;   /* 该行无此日期字段则不参与 */
+          var ds = String(rv);
+          if (s && ds < s) return false;
+          if (e && ds > e) return false;
+          return true;
+        }
+        var q = v[f.key] || '';
+        if (!q) return true;
         if (rv === undefined || rv === null) return true;
-        if (f.type === 'select') return String(rv) === v;
-        return String(rv).toLowerCase().indexOf(v) !== -1;
+        var rs = String(rv);
+        if (rs === '') return false;
+        if (f.type === 'input') return rs.toLowerCase().indexOf(q.toLowerCase()) !== -1;
+        return rs === q || rs.indexOf(q) !== -1 || q.indexOf(rs) !== -1;
       });
     });
     renderTable();
   }
 
   function resetFilter() {
-    $('filterPanel').querySelectorAll('[data-f]').forEach(function (el) {
+    $('filterPanel').querySelectorAll('[data-k]').forEach(function (el) {
+      if (el.classList.contains('fcp-val')) { el.value = ''; return; }   /* 复合控件：赋值后视图同步回「请选择」 */
       if (el.tagName === 'SELECT') { el.value = ''; markSelect(el); }
-      else if (el.classList.contains('fi-date')) el.value = (el.getAttribute('data-half') === 'end') ? '2026-12-31' : '2026-01-01';
-      else el.value = '';
+      else { el.value = el.getAttribute('data-def') || ''; if (el.type === 'date') el.type = 'text'; }
     });
     filterRows();
     toast('已重置', 'info');

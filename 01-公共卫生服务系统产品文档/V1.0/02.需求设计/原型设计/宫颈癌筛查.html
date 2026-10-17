@@ -20,48 +20,48 @@
   /* ===== 页头按钮 ===== */
   .page-head .right .btn{height:28px;padding:0 14px;font-size:13px}
 
-  /* ===== 筛选区 ===== */
-  .filter-panel{padding:14px 12px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  /* ===== 筛选区（4 列栅格；第 5 列为行尾按钮区） =====
+     收起：常显 8 个条件（2 行）；展开：再追加 2 个条件（1 行） */
+  .filter-panel{padding:14px 12px 16px;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:14px 16px;align-items:center}
   .filter-row{display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:14px;align-items:center}
-  .filter-row.extra{display:none}
-  .filter-row.extra.show{display:flex}
+  /* 仅展开时出现 */
+  .filter-item.extra,.filter-check.extra{display:none}
+  .filter-grid.expanded .filter-item.extra{display:flex}
+  .filter-grid.expanded .filter-check.extra{display:inline-flex}
   .filter-item{display:flex;align-items:center;gap:8px}
-  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
-  .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
+  .fi-ctl{width:160px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
   .fi-select{width:140px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
   .fi-select.w-lg{width:210px}
   .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
   .fi-ctl::placeholder{color:var(--text-placeholder)}
   .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+  /* 行尾按钮区：固定落在第 5 列（即最后一个条件行行尾） */
+  .filter-panel .filter-btns{grid-column:5;margin-left:0;justify-content:flex-end;padding-left:8px}
+  .btn-plain{height:28px;padding:0 6px;font-size:13px;color:var(--primary);border-radius:var(--r-sm);white-space:nowrap}
+  .btn-plain:hover{background:var(--primary-bg)}
   /* 日期区间 / 复选 */
   .fi-date{width:138px}
   .fi-sep{color:var(--text-placeholder);font-size:13px}
-  .fi-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer}
-  .fi-check input{margin:0;accent-color:var(--primary);cursor:pointer}
-  /* 主筛选区行距/列距/标签间距（对齐设计稿：行距 10、列距 22、标签-控件 12） */
-  .filter-panel .filter-row{gap:12px 22px;margin-bottom:10px}
-  .filter-panel .filter-item{gap:12px}
-  /* 筛选区内控件统一外框宽度（仅作用于主筛选区，不影响新建专项弹框内同名类） */
-  .filter-panel .fi-ctl,.filter-panel .fi-select{width:180px}
-  /* 筛选区内统一筛选复合控件（管理机构/管辖行政区）等宽 180px */
-  .filter-panel .fcp-ms,.filter-panel .fcp-cas,.filter-panel .fcp-tree,.filter-panel .fcp-mst{width:180px}
+  /* 主筛选区条件项：标签-控件间距 6，控件弹性填充列宽 */
+  .filter-panel .filter-item{display:flex;align-items:center;gap:6px;min-width:0}
+  /* 筛选区内控件统一弹性填充（仅作用于主筛选区，不影响新建专项弹框内同名类） */
+  .filter-panel .fi-ctl,.filter-panel .fi-select{flex:1 1 0;min-width:0;max-width:190px}
+  /* 筛选区内统一筛选复合控件（管理机构/管辖行政区）弹性填充同宽 */
+  .filter-panel .fcp-ms,.filter-panel .fcp-cas,.filter-panel .fcp-tree,.filter-panel .fcp-mst{flex:1 1 0;min-width:0;max-width:190px}
   .filter-panel .fcp-ms .fcp-panel{width:max-content;min-width:100%;max-width:300px}
   .filter-panel .fcp-tree .fcp-panel{width:200px}
-  /* 日期区间：单一外框（开始日期 ~ 结束日期 + 日历图标） */
-  .fi-range{display:flex;align-items:center;gap:6px;width:232px;height:32px;padding:0 8px 0 10px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);background:var(--bg-white);transition:all var(--transition-fast)}
-  .fi-range:hover{border-color:var(--primary)}
-  .fi-range:focus-within{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
-  .fi-range input{flex:1 1 0;min-width:0;height:30px;border:none;background:transparent;outline:none;padding:0;font-size:14px;color:var(--text-primary);font-family:inherit}
-  .fi-range input::placeholder{color:var(--text-placeholder)}
-  .fi-range input::-webkit-calendar-picker-indicator{display:none}
-  .fi-tilde{flex-shrink:0;font-size:14px;color:var(--text-placeholder)}
-  .fi-cal{width:14px;height:14px;flex-shrink:0;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none' stroke='%23bfbfbf' stroke-width='1.2'%3E%3Crect x='1.4' y='2.4' width='11.2' height='10.2' rx='1.6'/%3E%3Cpath d='M1.4 5.6h11.2M4.6 1.4v2M9.4 1.4v2'/%3E%3C/svg%3E") no-repeat center/contain}
-  /* 只看个人管理档案 复选框（统一写法，替换各页旧版 .own-check） */
-  .fi-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer;user-select:none;white-space:nowrap;margin:0}
-  .fi-check input[type=checkbox]{width:15px;height:15px;margin:0;accent-color:var(--primary);cursor:pointer}
+  /* 日期区间：开始日期 ~ 结束日期 + 右侧日历图标 */
+  .fi-range{display:flex;align-items:center;gap:5px;flex:1 1 0;min-width:0;max-width:230px;padding-right:22px;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23bfbfbf' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E") no-repeat right 2px center}
+  .fi-range .fi-ctl{max-width:none;padding:0 6px;text-align:center}
+  .fi-tilde{color:var(--text-tertiary);font-size:13px;flex-shrink:0}
+  /* 只看个人管理档案 */
+  .filter-check{align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);white-space:nowrap;justify-self:start;user-select:none;cursor:pointer}
+  .filter-check input{width:14px;height:14px;margin:0;accent-color:var(--primary);cursor:pointer}
   /* 可清空单选下拉（中医服务等：有值时右侧出现圆形 ✕） */
   .fi-combo{position:relative;display:inline-flex;align-items:center}
-  .filter-panel .fi-combo .fi-select{width:180px;padding-right:30px}
+  .filter-panel .fi-combo .fi-select{width:160px;padding-right:30px}
   .fi-combo.has-val .fi-select{background-image:none}
   .fi-combo .fi-combo-x{display:none;position:absolute;right:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;box-sizing:border-box;border:1px solid #BFBFBF;border-radius:50%;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='5' viewBox='0 0 5 5'%3E%3Cpath d='M1 1l3 3M4 1L1 4' stroke='%23BFBFBF' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center/5px 5px;cursor:pointer;user-select:none}
   .fi-combo.has-val .fi-combo-x{display:block}
@@ -230,7 +230,9 @@
 
       <!-- 筛选区 -->
       <div class="filter-panel">
-        <div class="filter-row">
+        <div class="filter-grid" id="filterGrid">
+
+          <!-- ===== 常显条件（收起状态 2 行 × 4 列） ===== -->
           <div class="filter-item"><label>管理机构：</label>
             <div class="fcp-ms" data-fcp="ms">
               <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
@@ -241,22 +243,19 @@
           <div class="filter-item"><label>姓名：</label><input id="fName" class="fi-ctl" placeholder="请输入"></div>
           <div class="filter-item"><label>建档日期：</label>
             <span class="fi-range">
-              <input id="fRegStart" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <input id="fRegStart" class="fi-ctl" type="text" placeholder="开始日期" onfocus="if(this.type==='text')this.type='date'" onblur="if(!this.value)this.type='text'">
               <span class="fi-tilde">~</span>
-              <input id="fRegEnd" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-              <span class="fi-cal"></span>
+              <input id="fRegEnd" class="fi-ctl" type="text" placeholder="结束日期" onfocus="if(this.type==='text')this.type='date'" onblur="if(!this.value)this.type='text'">
             </span>
           </div>
           <div class="filter-item"><label>责任医生：</label><input id="fDoc" class="fi-ctl" placeholder="请输入"></div>
-        </div>
-        <div class="filter-row">
+
           <div class="filter-item"><label>证件号：</label><input id="fIdcard" class="fi-ctl" placeholder="请输入"></div>
           <div class="filter-item"><label>出生日期：</label>
             <span class="fi-range">
-              <input id="fBirthStart" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
+              <input id="fBirthStart" class="fi-ctl" type="text" placeholder="开始日期" onfocus="if(this.type==='text')this.type='date'" onblur="if(!this.value)this.type='text'">
               <span class="fi-tilde">~</span>
-              <input id="fBirthEnd" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-              <span class="fi-cal"></span>
+              <input id="fBirthEnd" class="fi-ctl" type="text" placeholder="结束日期" onfocus="if(this.type==='text')this.type='date'" onblur="if(!this.value)this.type='text'">
             </span>
           </div>
           <div class="filter-item"><label>婚姻状况：</label>
@@ -278,21 +277,23 @@
               <option value="樊川社区">樊川社区</option>
             </select>
           </div>
-          <div class="filter-btns">
-            <button class="btn btn-default" onclick="resetFilter()">重置</button>
-            <button class="btn btn-primary" onclick="applyFilter()">查询</button>
-            <button class="btn-plain" id="btnExpand" onclick="toggleExtra()">展开 ▼</button>
-          </div>
-        </div>
-        <div class="filter-row extra">
-          <div class="filter-item"><label>锁定状态：</label>
+
+          <!-- ===== 展开后追加条件 ===== -->
+          <div class="filter-item extra"><label>锁定状态：</label>
             <select id="fLock" class="fi-select">
               <option value="" selected>请选择</option>
               <option value="未上锁">未上锁</option>
               <option value="已上锁">已上锁</option>
             </select>
           </div>
-          <div class="filter-item"><label class="fi-check"><input type="checkbox" id="fMine"> 只看个人管理档案</label></div>
+          <label class="filter-check extra"><input type="checkbox" id="fMine">只看个人管理档案</label>
+
+          <!-- 行尾按钮区（与最后一个条件行同行） -->
+          <div class="filter-btns">
+            <button class="btn btn-default" onclick="resetFilter()">重置</button>
+            <button class="btn btn-primary" onclick="applyFilter()">查询</button>
+            <button class="btn-plain" id="btnExpand" onclick="toggleExtra()">展开 ▾</button>
+          </div>
         </div>
       </div>
 
@@ -301,7 +302,7 @@
       <div class="table-wrap">
         <table class="list-tbl">
           <colgroup>
-            <col style="width:44px"><col style="width:200px"><col style="width:76px"><col style="width:160px"><col style="width:104px"><col style="width:104px"><col style="width:112px"><col style="width:96px"><col style="width:180px"><col style="width:96px"><col style="width:84px"><col style="width:96px"><col style="width:84px"><col style="width:100px">
+            <col style="width:44px"><col style="width:200px"><col style="width:76px"><col style="width:160px"><col style="width:104px"><col style="width:104px"><col style="width:112px"><col style="width:96px"><col style="width:160px"><col style="width:96px"><col style="width:84px"><col style="width:96px"><col style="width:84px"><col style="width:100px">
           </colgroup>
           <thead>
             <tr>
@@ -714,29 +715,25 @@
   }
 
   /* ================= 筛选 ================= */
-  function applyFilter() { curPage = 1; renderTable(); toast('查询完成', 'success'); }
+  function applyFilter() { curPage = 1; renderTable(); toast('查询完成，共 ' + $('pgTotal').textContent + ' 条记录', 'success'); }
   function resetFilter() {
-    ['fName','fIdcard','fDoc','fRegStart','fRegEnd','fBirthStart','fBirthEnd'].forEach(function (id) { $(id).value = ''; });
+    ['fName','fIdcard','fDoc','fRegStart','fRegEnd','fBirthStart','fBirthEnd'].forEach(function (id) {
+      var el = $(id);
+      if (el.type === 'date') el.type = 'text';
+      el.value = '';
+    });
     ['fOrg','fRegion','fLock','fMarriage'].forEach(function (id) { $(id).value = ''; });
     $('fMine').checked = false;
     curPage = 1;
     renderTable();
-    toast('筛选条件已重置', 'info');
+    toast('筛选条件已重置', 'success');
   }
 
+  /* 展开/收起：追加的 2 个条件显示后，按钮区自动落到最后一个条件行行尾 */
   function toggleExtra() {
-    var rows = document.querySelectorAll('.filter-panel .filter-row.extra');
-    var btn = $('btnExpand');
-    var show = !rows[0].classList.contains('show');
-    rows.forEach(function (row) { row.classList.toggle('show', show); });
-    btn.textContent = show ? '收起 ▲' : '展开 ▼';
-    var btns = document.querySelector('.filter-panel .filter-btns');
-    var mainRows = document.querySelectorAll('.filter-panel .filter-row:not(.extra)');
-    if (show) {
-      rows[rows.length - 1].appendChild(btns);
-    } else {
-      mainRows[mainRows.length - 1].appendChild(btns);
-    }
+    var grid = $('filterGrid'), btn = $('btnExpand');
+    var show = grid.classList.toggle('expanded');
+    btn.innerHTML = show ? '收起 ▴' : '展开 ▾';
   }
 
   /* 筛选控件输入即实时过滤（并回到第一页） */

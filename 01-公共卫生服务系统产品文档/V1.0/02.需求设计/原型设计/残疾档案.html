@@ -48,7 +48,12 @@
   .list-tbl th:nth-child(3),.list-tbl td:nth-child(3){left:194px}
   .list-tbl th:nth-child(3),.list-tbl td:nth-child(3){box-shadow:6px 0 8px -6px rgba(0,0,0,0.2)}
 
-  .list-tbl{width:100%;min-width:1434px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  /* 横向滚动时操作列（第 15 列）冻结在右侧 */
+  .list-tbl th:nth-child(15),.list-tbl td:nth-child(15){position:sticky;right:0}
+  .list-tbl th:nth-child(15){z-index:6;background:#F5F6FA}
+  .list-tbl td:nth-child(15){z-index:3;background:var(--bg-white);box-shadow:inset 1px 0 0 #E4E7ED}
+
+  .list-tbl{width:100%;min-width:1444px;table-layout:fixed;border-collapse:collapse;font-size:13px}
   .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
   .list-tbl td{height:36px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .list-tbl tbody tr:hover td{background:var(--primary-bg)}
@@ -93,17 +98,17 @@
   .modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:18px 20px 20px}
 
   /* ===== 新建残疾人专项（选人查询弹窗） ===== */
-  .modal-select{width:1080px;max-width:96vw}
-  .sel-query{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 22px;padding:2px 0 14px}
+  .modal-select{width:1200px;max-width:96vw}
+  .sel-query{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 22px;padding:2px 0 14px}
   .sel-item{display:flex;align-items:center;gap:8px;min-width:0}
-  .sel-item label{width:62px;text-align:right;font-size:13px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
+  .sel-item label{width:62px;text-align:left;font-size:13px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
   .sel-item .fi-ctl,.sel-item .fi-select{flex:1;min-width:0}
   .sel-btns{grid-column:1/-1;display:flex;justify-content:flex-end;gap:8px;padding-top:8px}
   .sel-wrap{max-height:46vh;overflow:auto}
   .sel-foot{border-top:1px solid var(--color-neutral-200);padding-top:12px}
 
   /* ===== 弹窗表格：固定列宽 + 冻结前2列与操作列 ===== */
-  .table-wrap.sel-wrap .list-tbl{table-layout:fixed;width:1122px}
+  .table-wrap.sel-wrap .list-tbl{table-layout:fixed;width:1144px}
   .table-wrap.sel-wrap .list-tbl th{position:sticky;top:0;z-index:5}
   .table-wrap.sel-wrap .list-tbl th.fx-l,.table-wrap.sel-wrap .list-tbl td.fx-l{position:sticky;z-index:3}
   .table-wrap.sel-wrap .list-tbl th.fx-l{z-index:6}
@@ -224,7 +229,7 @@
       <div class="table-wrap">
         <table class="list-tbl">
           <colgroup>
-            <col style="width:44px"><col style="width:150px"><col style="width:80px"><col style="width:50px"><col style="width:100px"><col style="width:90px"><col style="width:170px"><col style="width:70px"><col style="width:70px"><col style="width:90px"><col style="width:80px"><col style="width:100px"><col style="width:150px"><col style="width:80px"><col style="width:110px">
+            <col style="width:44px"><col style="width:150px"><col style="width:80px"><col style="width:50px"><col style="width:100px"><col style="width:90px"><col style="width:170px"><col style="width:70px"><col style="width:70px"><col style="width:90px"><col style="width:80px"><col style="width:100px"><col style="width:150px"><col style="width:80px"><col style="width:120px">
           </colgroup>
           <thead>
             <tr>
@@ -287,7 +292,19 @@
             <option value="居民身份证">居民身份证</option>
             <option value="居民户口簿">居民户口簿</option>
             <option value="护照">护照</option>
+            <option value="军官证">军官证</option>
+            <option value="驾驶证">驾驶证</option>
             <option value="港澳居民来往内地通行证">港澳居民来往内地通行证</option>
+            <option value="台湾居民来往内地通行证">台湾居民来往内地通行证</option>
+            <option value="外国人永久居留身份证">外国人永久居留身份证</option>
+            <option value="其他法定有效证件">其他法定有效证件</option>
+            <option value="监护人身份证">监护人身份证</option>
+            <option value="警官证">警官证</option>
+            <option value="社保卡">社保卡</option>
+            <option value="出生医学证明">出生医学证明</option>
+            <option value="定居国外中国公民护照">定居国外中国公民护照</option>
+            <option value="港澳台居民居住证">港澳台居民居住证</option>
+            <option value="港澳台护照">港澳台护照</option>
           </select>
         </div>
         <div class="sel-item"><label>证件号</label><input id="sqIdcard" class="fi-ctl" placeholder="请输入"></div>
@@ -299,14 +316,11 @@
           </div>
         </div>
         <div class="sel-item"><label>管理网格</label>
-          <select id="sqGrid" class="fi-select">
-            <option value="" selected>请选择</option>
-            <option value="黄思社区网格">黄思社区网格</option>
-            <option value="五舍村网格">五舍村网格</option>
-            <option value="周西社区网格">周西社区网格</option>
-            <option value="东苑社区网格">东苑社区网格</option>
-            <option value="龙川社区网格">龙川社区网格</option>
-          </select>
+          <div class="fcp-tree" data-fcp="tree" style="position:relative">
+            <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
+            <div class="fcp-panel"></div>
+            <input type="hidden" class="fcp-val" id="sqGrid">
+          </div>
         </div>
         <div class="sel-item"><label>档案编号</label><input id="sqArch" class="fi-ctl" placeholder="请输入"></div>
         <div class="sel-btns">
@@ -318,7 +332,7 @@
       <div class="table-wrap sel-wrap">
         <table class="list-tbl">
           <colgroup>
-            <col style="width:44px"><col style="width:176px"><col style="width:90px"><col style="width:150px"><col style="width:160px"><col style="width:190px"><col style="width:96px"><col style="width:96px"><col style="width:120px">
+            <col style="width:44px"><col style="width:164px"><col style="width:88px"><col style="width:140px"><col style="width:172px"><col style="width:208px"><col style="width:104px"><col style="width:104px"><col style="width:120px">
           </colgroup>
           <thead>
             <tr>
@@ -362,7 +376,8 @@
   /* ================= 模拟数据 ================= */
   var disabilityData = [
     { org:'山东大学齐鲁医院', name:'小山东高速', gender:'女', birth:'1990-01-01', idType:'居民身份证', idcard:'510123199001010106', marital:'', screen:'阴性', welfare:'未领取', creator:'朱劲松', created:'2023-04-03', createOrg:'扬州市江都区滨江人民医院', lock:'未上锁' },
-    { org:'扬州市江都区郭村镇卫生院', name:'刘菊兰NV', gender:'女', birth:'1949-08-17', idType:'居民身份证', idcard:'321088194908174139', marital:'已婚', screen:'阴性', welfare:'未领取', creator:'朱劲松', created:'2022-09-01', createOrg:'扬州市江都区滨江人民医院', lock:'未上锁' }
+    { org:'扬州市江都区郭村镇卫生院', name:'刘菊兰NV', gender:'女', birth:'1949-08-17', idType:'居民身份证', idcard:'321088194908174139', marital:'已婚', screen:'阴性', welfare:'未领取', creator:'朱劲松', created:'2022-09-01', createOrg:'扬州市江都区滨江人民医院', lock:'未上锁' },
+    { org:'山东大学齐鲁医院', name:'王海云', gender:'女', birth:'1976-04-04', idType:'居民身份证', idcard:'37062319760404219X', marital:'已婚', screen:'阴性', welfare:'低保户', creator:'朱劲松', created:'2026-10-13', createOrg:'山东大学齐鲁医院', lock:'未上锁' }
   ];
 
   /* ================= 工具函数 ================= */
@@ -372,6 +387,14 @@
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
   function $(id) { return document.getElementById(id); }
+  /* 判断某候选居民是否已存在残疾档案——用于选人弹框按钮文案「进入服务/新建服务」二态 */
+  function hasDisability(r) {
+    if (!r) return false;
+    return disabilityData.some(function (d) {
+      return (r.idcard && d.idcard === r.idcard) ||
+             (r.archNo && d.archNo === r.archNo);
+    });
+  }
 
   /* ================= 表格渲染（按筛选条件实时过滤） ================= */
   function renderTable() {
@@ -399,6 +422,7 @@
       html = '<tr class="empty-row"><td colspan="15"><div class="ico" style="font-size:32px;margin-bottom:8px">📭</div>暂无符合条件的残疾档案</td></tr>';
     } else {
       list.forEach(function (r, i) {
+        var sIdx = disabilityData.indexOf(r);
         var lockDot = r.lock === '已锁定' ? 'lock' : 'unlock';
         html += '<tr>'
           + '<td class="center">' + (i + 1) + '</td>'
@@ -416,9 +440,9 @@
           + '<td title="' + esc(r.createOrg) + '"><span class="cell">' + esc(r.createOrg) + '</span></td>'
           + '<td class="center"><span class="st-dot ' + lockDot + '"></span>' + esc(r.lock) + '</td>'
           + '<td class="center">'
-          +   '<a class="op-link" onclick="toast(\'编辑残疾档案：' + esc(r.name) + '\',\'info\')">编辑</a>'
+          +   '<a class="op-link" onclick="gotoDisability(disabilityData[' + sIdx + '], true)">编辑</a>'
           +   '<span class="op-gap"></span>'
-          +   '<a class="op-link" onclick="toast(\'查看残疾档案：' + esc(r.name) + '\',\'info\')">查看</a>'
+          +   '<a class="op-link" onclick="gotoDisability(disabilityData[' + sIdx + '], false)">查看</a>'
           +   '<span class="op-gap"></span>'
           +   '<a class="op-link danger" onclick="confirmDelete(\'' + esc(r.name) + '\')">删除</a>'
           + '</td>'
@@ -463,7 +487,7 @@
     '何建军', '高素芹', '林凤英', '罗永强', '梁秀珍', '宋国庆', '唐雅琴', '许建军', '邓桂芝', '马文斌',
     '方秀兰', '崔国强', '潘新华', '曹国庆', '袁秀英', '邓丽华', '彭永平', '苏桂香', '蒋海燕', '蔡永康'];
   var SEL_ORG = ['山东大学齐鲁医院', '扬州市江都区郭村镇卫生院', '扬州市江都区滨江人民医院'];
-  var SEL_GRID = ['黄思社区网格', '五舍村网格', '周西社区网格', '东苑社区网格', '龙川社区网格'];
+  var SEL_GRID = ['郭村村', '韩阳村', '庄桥村', '东进村', '前巷村', '南荀村', '张倪村'];
   var SEL_VILLAGE = ['黄思社区', '五舍村', '周西社区', '善玉村', '东苑社区', '龙川社区', '孔庄村', '三周村'];
   var SEL_CROWD = ['残疾人', '重度残疾人', '老年人 残疾人', '高血压 残疾人', '糖尿病 残疾人', '精神障碍 残疾人'];
 
@@ -505,6 +529,9 @@
     } else {
       for (i = start; i < end; i++) {
         var r = selFiltered[i];
+        var hasDis = hasDisability(r);
+        var isEdit = hasDis;
+        var btnText = hasDis ? '进入服务' : '新建服务';
         html += '<tr>'
           + '<td class="center fx-l f0">' + (i + 1) + '</td>'
           + '<td class="fx-l f1" title="' + esc(r.archNo) + '"><span class="cell">' + esc(r.archNo) + '</span></td>'
@@ -514,7 +541,7 @@
           + '<td title="' + esc(r.org) + '"><span class="cell">' + esc(r.org) + '</span></td>'
           + '<td class="center"><span class="st-dot ok"></span>正常</td>'
           + '<td class="center"><span class="st-dot unlock"></span>未上锁</td>'
-          + '<td class="center fx-r"><a class="op-link" onclick="newService(' + i + ')">新建服务</a></td>'
+          + '<td class="center fx-r"><a class="op-link" onclick="newService(' + i + ',' + (isEdit ? 'true' : 'false') + ')">' + btnText + '</a></td>'
           + '</tr>';
       }
     }
@@ -569,8 +596,8 @@
       return true;
     });
     if (selFiltered.length) {
-      /* 仅一条时直接进入填报页 */
-      if (selFiltered.length === 1) { newService(0); return; }
+      /* 仅一条时直接进入填报页：是否已有档案决定走「进入服务」还是「新建服务」 */
+      if (selFiltered.length === 1) { newService(0, hasDisability(selFiltered[0])); return; }
       selPage = 1;
       renderSel();
       toast('查询完成，共 ' + selFiltered.length + ' 条记录', 'success');
@@ -580,17 +607,28 @@
       toast('未查询到符合条件的居民', 'warning');
     }
   }
-  function newService(idx) {
+  /* 跳转到「档案维护.html」残疾人管理专项页（编辑/查看共用） */
+  function gotoDisability(r, isEdit) {
+    if (!r) { toast('请选择档案', 'warning'); return; }
+    var url = '档案维护.html?view=disability'
+      + '&from=disability'
+      + (isEdit ? '&edit=1' : '')
+      + (r.name != null ? '&name=' + encodeURIComponent(r.name) : '')
+      + (r.idcard != null ? '&idcard=' + encodeURIComponent(r.idcard) : '')
+      + (r.gender != null ? '&gender=' + encodeURIComponent(r.gender) : '')
+      + (r.birth != null ? '&birth=' + encodeURIComponent(r.birth) : '')
+      + (r.phone != null ? '&phone=' + encodeURIComponent(r.phone) : '')
+      + (r.archNo != null ? '&archNo=' + encodeURIComponent(r.archNo) : '');
+    window.location.href = url;
+  }
+
+  function newService(idx, isEdit) {
     var r = selFiltered[idx];
     if (!r) { toast('请选择人员', 'warning'); return; }
     closeSelectModal();
-    var url = '档案维护.html?view=disability'
-      + '&name=' + encodeURIComponent(r.name)
-      + '&idcard=' + encodeURIComponent(r.idcard)
-      + '&birth=' + encodeURIComponent(r.birth)
-      + '&phone=' + encodeURIComponent(r.phone)
-      + '&archNo=' + encodeURIComponent(r.archNo);
-    window.location.href = url;
+    /* 「进入服务」= 已有残疾档案，走与主表「编辑」相同的 URL（edit=1 + from=disability）
+       「新建服务」= 无残疾档案，单纯跳到残疾人管理视图但不预填、不锁定基础字段 */
+    gotoDisability(r, isEdit !== false);
   }
 
   /* 查询输入即时过滤 */

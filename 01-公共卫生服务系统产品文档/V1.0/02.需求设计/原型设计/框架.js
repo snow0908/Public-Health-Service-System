@@ -23,6 +23,27 @@
  *      （页面既可独立打开，也可被 index.html 框架壳子内嵌装载）
  *   3. 页面文件尚未提供时不要配置 url：壳子会显示「功能建设中」占位页
  * ========================================================================== */
+/* ==========================================================================
+ * 来源页记录（供各页面「返回」按钮回到跳转进来的界面）
+ * --------------------------------------------------------------------------
+ * file:// 协议下 document.referrer 为空，故用 sessionStorage 记录「上一次
+ * 访问过的原型页文件名」，页面脚本可直接读 window.__prevPage。
+ * 由本文件统一注入，业务页面无需改造。
+ * ========================================================================== */
+(function () {
+  var KEY = 'hps.navPrev';
+  var raw = (location.pathname.split('/').pop() || '');
+  var cur = raw;
+  try { cur = decodeURIComponent(raw); } catch (e) {}
+  try {
+    var prev = sessionStorage.getItem(KEY) || '';
+    sessionStorage.setItem(KEY, cur);
+    window.__prevPage = (prev && prev !== cur) ? prev : '';
+  } catch (e) {
+    window.__prevPage = '';
+  }
+})();
+
 (function () {
   'use strict';
 

@@ -85,7 +85,7 @@
   .list-tbl th:last-child{z-index:6}
   .list-tbl th:last-child,.list-tbl td:last-child{box-shadow:-6px 0 8px -6px rgba(0,0,0,0.2)}
   .list-tbl tr.empty-row td:last-child{position:static;box-shadow:none}
-  .list-tbl{width:100%;min-width:1560px;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl{width:100%;min-width:1604px;table-layout:fixed;border-collapse:collapse;font-size:13px}
   .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
   .list-tbl td{height:36px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .list-tbl tbody tr:nth-child(even) td{background:var(--bg-table-even)}
@@ -126,7 +126,7 @@
   .pg-jump input{width:40px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 6px;font-size:13px;text-align:center;color:var(--text-primary);outline:none}
   .pg-jump input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
 
-  /* ===== 弹框（新建 / 编辑 / 查看 / 注销确认） ===== */
+  /* ===== 弹框（选择档案 / 查看详情 / 注销确认） ===== */
   .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
   .modal-overlay.show{opacity:1;pointer-events:auto}
   .modal{width:860px;max-width:92vw;background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 8px 32px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden;transform:translateY(10px);transition:transform var(--transition-normal)}
@@ -136,47 +136,19 @@
   .modal-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:16px}
   .modal-close:hover{background:var(--primary-bg);color:var(--primary)}
   .modal-body{padding:16px 16px 4px}
-  .modal-cols{display:flex;gap:16px;align-items:flex-start}
   .modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:18px 20px 20px}
-  /* 注销确认小弹框 */
-  .modal-sm{width:400px;max-width:90vw}
-  .confirm-body{padding:8px 22px 4px;font-size:14px;color:var(--text-primary);line-height:1.7}
-  .confirm-body b{font-weight:var(--font-weight-medium)}
-  .confirm-tip{font-size:13px;color:var(--text-tertiary);margin-top:6px}
-  .btn-danger{background:var(--danger);border-color:var(--danger);color:#fff}
-  .btn-danger:hover{background:#e64545;border-color:#e64545;color:#fff}
-
-  /* 左侧表单 */
-  .fm-form{width:316px;flex-shrink:0}
-  .fm-row{display:flex;align-items:center;gap:8px;margin-bottom:14px}
-  .fm-row label{width:104px;text-align:right;font-size:14px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
-  .fm-row label i{color:var(--danger);font-style:normal;margin-right:2px}
-  .fm-ctl-wrap{position:relative}
-  .fm-ctl{width:212px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
-  .fm-ctl.has-cnt{padding-right:40px}
-  .fm-select{width:212px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
-  .fm-ctl:focus,.fm-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
-  .fm-ctl::placeholder{color:var(--text-placeholder)}
-  .cnt{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text-placeholder);pointer-events:none}
-  .fm-readcard{height:32px;padding:0 10px;border:1px solid var(--primary);color:var(--primary);background:var(--bg-white);border-radius:var(--r-sm);font-size:13px;white-space:nowrap;flex-shrink:0;transition:all var(--transition-fast)}
-  .fm-readcard:hover{background:var(--primary-bg)}
-
-  /* 右侧：证件号行 + 信息回显卡 */
-  .pv-side{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px}
-  .pv-side .fm-row{margin-bottom:0}
-  .pv-side .fm-ctl-wrap{flex:1;min-width:0}
-  .pv-side .fm-ctl{width:100%}
-  .pv-card{flex:1;min-width:0;background:var(--primary-bg);border:1px dashed #9EC3F5;border-radius:var(--r-md);padding:22px 18px;display:grid;grid-template-columns:1fr 1fr;row-gap:24px;column-gap:12px;font-size:13px;min-height:210px;align-content:start}
-  .pv-row{display:flex;min-width:0}
-  .pv-row.wide{grid-column:1 / -1}
-  .pv-label{color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
-  .pv-val{color:var(--primary);word-break:break-all}
-
-  /* ===== 查看详情弹框：字段网格 ===== */
-  .modal.view-modal .modal{width:720px}
-  .view-grid{display:grid;grid-template-columns:1fr 1fr;row-gap:16px;column-gap:12px;padding:6px 6px 10px;font-size:13px}
-  .view-grid .pv-row.wide{grid-column:1 / -1}
-  .view-grid .pv-val{color:var(--text-primary)}
+  /* ===== 注销档案弹框（注销原因必填，0/50 计数） ===== */
+  .modal.modal-cancel{width:500px;max-width:92vw}
+  .cancel-body{padding:16px 22px 6px}
+  .cancel-q{font-size:14px;color:var(--text-primary);margin-bottom:16px}
+  .cancel-row{display:flex;align-items:flex-start;gap:8px}
+  .cancel-row > label{width:92px;flex-shrink:0;text-align:right;line-height:32px;font-size:14px;color:var(--text-secondary);white-space:nowrap}
+  .cancel-row > label i{color:var(--danger);font-style:normal;margin-right:2px}
+  .cancel-ta-wrap{position:relative;flex:1;min-width:0}
+  .cancel-ta{display:block;width:100%;height:92px;padding:8px 10px 20px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-family:inherit;font-size:14px;line-height:1.6;color:var(--text-primary);background:#fff;outline:none;resize:vertical;transition:all var(--transition-fast)}
+  .cancel-ta:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .cancel-ta::placeholder{color:var(--text-placeholder)}
+  .cancel-cnt{position:absolute;right:10px;bottom:7px;font-size:12px;color:var(--text-placeholder);pointer-events:none}
 
   /* ===== 档案选择弹框（新建筛查记录第一步：选择居民档案） ===== */
   .modal.select-modal .modal{width:980px;max-width:94vw;max-height:88vh;display:flex;flex-direction:column}
@@ -307,7 +279,7 @@
       <div class="table-wrap">
         <table class="list-tbl">
           <colgroup>
-            <col style="width:44px"><col style="width:186px"><col style="width:76px"><col style="width:150px"><col style="width:84px"><col style="width:52px"><col style="width:92px"><col style="width:138px"><col style="width:86px"><col style="width:76px"><col style="width:72px"><col style="width:92px"><col style="width:186px"><col style="width:80px"><col style="width:146px">
+            <col style="width:44px"><col style="width:186px"><col style="width:76px"><col style="width:150px"><col style="width:84px"><col style="width:52px"><col style="width:92px"><col style="width:138px"><col style="width:86px"><col style="width:76px"><col style="width:72px"><col style="width:92px"><col style="width:186px"><col style="width:80px"><col style="width:190px">
           </colgroup>
           <thead>
             <tr>
@@ -407,152 +379,25 @@
   </div>
 </div>
 
-<!-- ===== 新建/编辑乳腺癌筛查记录弹框 ===== -->
-<div class="modal-overlay" id="formModal">
-  <div class="modal">
+<!-- ===== 注销档案弹框 ===== -->
+<div class="modal-overlay" id="cancelModal">
+  <div class="modal modal-cancel">
     <div class="modal-head">
-      <h3 id="fmTitle">新建乳腺癌筛查记录</h3>
-      <span class="modal-close" onclick="closeFormModal()">×</span>
+      <h3>注销档案</h3>
+      <span class="modal-close" onclick="closeCancelModal()">×</span>
     </div>
-    <div class="modal-body">
-      <div class="modal-cols">
-        <!-- 左侧表单 -->
-        <div class="fm-form">
-          <div class="fm-row">
-            <label><i>*</i>证件类型：</label>
-            <select id="fmIdType" class="fm-select">
-              <option value="居民身份证" selected>居民身份证</option>
-              <option value="居民户口簿">居民户口簿</option>
-              <option value="护照">护照</option>
-              <option value="港澳居民来往内地通行证">港澳居民来往内地通行证</option>
-              <option value="台湾居民来往大陆通行证">台湾居民来往大陆通行证</option>
-            </select>
-          </div>
-          <div class="fm-row">
-            <label><i>*</i>姓名：</label>
-            <div class="fm-ctl-wrap">
-              <input id="fmName" class="fm-ctl has-cnt" maxlength="8" placeholder="请输入">
-              <span class="cnt" id="fmCntName">0/8</span>
-            </div>
-          </div>
-          <div class="fm-row">
-            <label><i>*</i>性别：</label>
-            <select id="fmGender" class="fm-select">
-              <option value="" selected>请选择</option>
-              <option value="女性">女性</option>
-              <option value="男性">男性</option>
-            </select>
-          </div>
-          <div class="fm-row">
-            <label><i>*</i>出生日期：</label>
-            <input id="fmBirth" class="fm-ctl" type="text" placeholder="请选择日期"
-                   onfocus="this.type='date';try{this.showPicker()}catch(e){}"
-                   onblur="if(!this.value){this.type='text'}">
-          </div>
-          <div class="fm-row">
-            <label><i>*</i>联系电话：</label>
-            <input id="fmPhone" class="fm-ctl" maxlength="11" placeholder="请输入联系电话">
-          </div>
-          <div class="fm-row">
-            <label><i>*</i>婚姻状况：</label>
-            <select id="fmMarriage" class="fm-select">
-              <option value="" selected>请选择</option>
-              <option value="未婚">未婚</option>
-              <option value="已婚">已婚</option>
-              <option value="丧偶">丧偶</option>
-              <option value="离婚">离婚</option>
-            </select>
-          </div>
-          <div class="fm-row">
-            <label><i>*</i>手术结果：</label>
-            <select id="fmSurgery" class="fm-select">
-              <option value="" selected>请选择</option>
-              <option value="未见异常">未见异常</option>
-              <option value="腺体呈片状增厚">腺体呈片状增厚</option>
-              <option value="乳腺肿块">乳腺肿块</option>
-              <option value="术后（无复发）">术后（无复发）</option>
-            </select>
-          </div>
-        </div>
-        <!-- 右侧：证件号 + 信息回显卡 -->
-        <div class="pv-side">
-          <div class="fm-row">
-            <label><i>*</i>证件号：</label>
-            <div class="fm-ctl-wrap">
-              <input id="fmIdcard" class="fm-ctl has-cnt" maxlength="18" placeholder="请输入证件号">
-              <span class="cnt" id="fmCntIdcard">0/18</span>
-            </div>
-            <button class="fm-readcard" onclick="toast('请连接身份证读卡器','info')">身份证读卡</button>
-          </div>
-          <div class="fm-row">
-            <label><i>*</i>B超结果：</label>
-            <select id="fmUltrasound" class="fm-select">
-              <option value="" selected>请选择</option>
-              <option value="未见异常">未见异常</option>
-              <option value="增生">增生</option>
-              <option value="结节">结节</option>
-              <option value="肿块">肿块</option>
-            </select>
-          </div>
-          <div class="fm-row">
-            <label><i>*</i>纤维瘤：</label>
-            <select id="fmFibroma" class="fm-select">
-              <option value="" selected>请选择</option>
-              <option value="正常">正常</option>
-              <option value="纤维瘤">纤维瘤</option>
-            </select>
-          </div>
-          <div class="fm-row">
-            <label><i>*</i>随访日期：</label>
-            <input id="fmVisitDate" class="fm-ctl" type="text" placeholder="请选择日期"
-                   onfocus="this.type='date';try{this.showPicker()}catch(e){}"
-                   onblur="if(!this.value){this.type='text'}">
-          </div>
-          <div class="fm-row">
-            <label><i>*</i>登记医生：</label>
-            <input id="fmDoc" class="fm-ctl" maxlength="10" placeholder="请输入登记医生">
-          </div>
-          <div class="fm-row">
-            <label>详细地址：</label>
-            <input id="fmAddress" class="fm-ctl" maxlength="40" placeholder="请输入详细地址">
-          </div>
-          <div class="pv-card" id="pvCard"></div>
+    <div class="cancel-body">
+      <p class="cancel-q">确定注销？</p>
+      <div class="cancel-row">
+        <label><i>*</i>注销原因：</label>
+        <div class="cancel-ta-wrap">
+          <textarea class="cancel-ta" id="cancelReason" maxlength="50" placeholder="请输入" oninput="cancelCnt(this)"></textarea>
+          <span class="cancel-cnt" id="cancelCnt">0/50</span>
         </div>
       </div>
     </div>
     <div class="modal-foot">
-      <button class="btn btn-primary" onclick="submitForm()">确定</button>
-      <button class="btn btn-default" onclick="closeFormModal()">取消</button>
-    </div>
-  </div>
-</div>
-
-<!-- ===== 查看详情弹框 ===== -->
-<div class="modal-overlay view-modal" id="viewModal">
-  <div class="modal">
-    <div class="modal-head">
-      <h3>乳腺癌筛查记录详情</h3>
-      <span class="modal-close" onclick="closeViewModal()">×</span>
-    </div>
-    <div class="modal-body">
-      <div class="view-grid" id="viewGrid"></div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-default" onclick="closeViewModal()">关闭</button>
-    </div>
-  </div>
-</div>
-
-<!-- ===== 注销确认弹框 ===== -->
-<div class="modal-overlay" id="cancelModal">
-  <div class="modal modal-sm">
-    <div class="modal-head">
-      <h3>注销确认</h3>
-      <span class="modal-close" onclick="closeCancelModal()">×</span>
-    </div>
-    <div class="confirm-body" id="cancelBody"></div>
-    <div class="modal-foot">
-      <button class="btn btn-danger" onclick="confirmCancel()">确定注销</button>
+      <button class="btn btn-primary" onclick="confirmCancel()">确定</button>
       <button class="btn btn-default" onclick="closeCancelModal()">取消</button>
     </div>
   </div>
@@ -688,7 +533,7 @@
           '<td class="center">' +
             '<span class="op-link" onclick="goBreastRecord(' + (start + i) + ')">编辑</span>' +
             '<span class="op-gap"></span>' +
-            '<span class="op-link" onclick="openCaseModal(' + (start + i) + ')">新增个案</span>' +
+            '<span class="op-link" onclick="goBreastCase(' + (start + i) + ')">新增个案</span>' +
             '<span class="op-gap"></span>' +
             '<span class="op-link" onclick="openMoreMenu(event,' + (start + i) + ')">更多 ▾</span>' +
           '</td>' +
@@ -813,11 +658,41 @@
     closeSelectModal();
     goBreastUrl(r);
   }
-  /* 列表「编辑」：从当前筛查记录跳往档案维护·乳腺癌检查填报表单 */
+  /* 列表「编辑」：跳往档案维护 · 妇女乳腺癌登记信息（可编辑，带入该行数据） */
   function goBreastRecord(idx) {
-    var r = screeningData[idx];
+    goBreastRegUrl(idx, 'edit');
+  }
+  /* 编辑 / 查看统一跳转：档案维护.html 妇女乳腺癌登记信息
+     —— 除居民信息外，把该行的筛查结果（手术结果/B超/纤维瘤/登记信息）一并带过去；
+        mode=view 时落地页进入查看态（隐藏保存、顶部显示「编辑」）。 */
+  function goBreastRegUrl(idx, mode) {
+    var r = lastList[idx] || screeningData[idx];
     if (!r) return;
-    goBreastUrl(r);
+    var params = [
+      'view=breast',
+      'name=' + encodeURIComponent(r.name),
+      'gender=' + encodeURIComponent(r.gender === '男' ? '男性' : '女性'),
+      'idcard=' + encodeURIComponent(r.idcard),
+      'archNo=' + encodeURIComponent(r.archNo || r.idcard),
+      'birth=' + encodeURIComponent(r.birth || ''),
+      'phone=' + encodeURIComponent(r.phone || ''),
+      /* 登记表单字段 */
+      'mammo=' + encodeURIComponent(r.mammo || '未见异常'),
+      'hyperplasia=' + encodeURIComponent(r.ultrasound === '增生' ? '增生' : '无'),
+      'papilloma=' + encodeURIComponent(r.papilloma || '无'),
+      'suspected=' + encodeURIComponent(r.suspected || '无'),
+      'handL=' + encodeURIComponent(r.surgery || ''),
+      'handR=' + encodeURIComponent(r.ultrasound || ''),
+      'fibroma=' + encodeURIComponent(r.fibroma || ''),
+      'otherBenign=' + encodeURIComponent(r.otherBenign || '无'),
+      'regOrg=' + encodeURIComponent(r.regOrgSel || '山东大学齐鲁医院'),
+      'doctor=' + encodeURIComponent(r.registrar || ''),
+      'regDate=' + encodeURIComponent(r.regDate || '')
+    ];
+    if (r.region) params.push('addr=' + encodeURIComponent(r.region));
+    if (r.org) params.push('specOrg=' + encodeURIComponent(r.org));
+    if (mode === 'view') params.push('mode=view');
+    location.href = '档案维护.html?' + params.join('&');
   }
   /* 统一跳转：档案维护.html 乳腺癌检查登记表（带患者信息预填） */
   function goBreastUrl(r) {
@@ -826,7 +701,7 @@
       'name=' + encodeURIComponent(r.name),
       'gender=' + encodeURIComponent(r.gender === '男' ? '男性' : '女性'),
       'idcard=' + encodeURIComponent(r.idcard),
-      'archNo=' + encodeURIComponent(r.archNo)
+      'archNo=' + encodeURIComponent(r.archNo || r.idcard)
     ];
     if (r.region) params.push('addr=' + encodeURIComponent(r.region));
     if (r.org) params.push('specOrg=' + encodeURIComponent(r.org));
@@ -836,144 +711,24 @@
   function resetSelectFilter() { $('sfName').value = ''; $('sfIdcard').value = ''; $('sfOrg').value = ''; renderSelectTable(); }
   function applySelectFilter() { renderSelectTable(); }
 
-  /* 选择档案 → 进入新建筛查记录表单（带入基础信息） */
-  function enterArchive(i) {
-    var r = sfList[i];
-    closeSelectModal();
-    openFormModal('create');
-    $('fmIdType').value = '居民身份证';
-    $('fmName').value = r.name;
-    $('fmGender').value = r.gender === '女' ? '女性' : '男性';
-    var b = r.idcard.substr(6, 8);
-    $('fmBirth').value = b.substr(0, 4) + '-' + b.substr(4, 2) + '-' + b.substr(6, 2);
-    $('fmBirth').type = 'date';
-    $('fmIdcard').value = r.idcard;
-    $('fmCntName').textContent = r.name.length + '/8';
-    $('fmCntIdcard').textContent = r.idcard.length + '/18';
-    renderPreview();
-  }
-
-  /* ================= 新建/编辑表单弹框 ================= */
-  var formMode = 'create';   // create | edit | case
-  var editIdx = -1;
-  function openFormModal(mode, idx) {
-    formMode = mode || 'create';
-    editIdx = (typeof idx === 'number') ? idx : -1;
-    $('fmTitle').textContent = formMode === 'edit' ? '编辑乳腺癌筛查记录' : '新建乳腺癌筛查记录';
-    if (formMode === 'edit') {
-      var r = lastList[editIdx];
-      $('fmIdType').value = r.idType || '居民身份证';
-      $('fmName').value = r.name;
-      $('fmGender').value = r.gender || '女性';
-      $('fmBirth').value = r.birth; $('fmBirth').type = 'date';
-      $('fmPhone').value = r.phone || '';
-      $('fmMarriage').value = r.marriage;
-      $('fmSurgery').value = r.surgery;
-      $('fmIdcard').value = r.idcard;
-      $('fmUltrasound').value = r.ultrasound;
-      $('fmFibroma').value = r.fibroma;
-      $('fmVisitDate').value = r.regDate; $('fmVisitDate').type = 'date';
-      $('fmDoc').value = r.registrar;
-      $('fmAddress').value = r.address;
-      $('fmCntName').textContent = r.name.length + '/8';
-      $('fmCntIdcard').textContent = r.idcard.length + '/18';
-    } else {
-      ['fmName','fmBirth','fmPhone','fmIdcard','fmAddress','fmDoc'].forEach(function (id) { $(id).value = ''; });
-      ['fmGender','fmMarriage','fmSurgery','fmUltrasound','fmFibroma'].forEach(function (id) { $(id).value = ''; });
-      $('fmIdType').value = '居民身份证';
-      $('fmCntName').textContent = '0/8';
-      $('fmCntIdcard').textContent = '0/18';
-    }
-    renderPreview();
-    $('formModal').classList.add('show');
-  }
-  function closeFormModal() { $('formModal').classList.remove('show'); }
-
-  /* 编辑入口（由表格操作列调用） */
-  function openEditModal(idx) { openFormModal('edit', idx); }
-
-  /* 新增个案入口：带入该行人员基础信息，新建一条筛查个案 */
-  function openCaseModal(idx) {
-    var r = lastList[idx];
-    openFormModal('create');
-    $('fmIdType').value = r.idType || '居民身份证';
-    $('fmName').value = r.name;
-    $('fmGender').value = r.gender || '女性';
-    $('fmBirth').value = r.birth; $('fmBirth').type = 'date';
-    $('fmPhone').value = r.phone || '';
-    $('fmMarriage').value = r.marriage;
-    $('fmIdcard').value = r.idcard;
-    $('fmAddress').value = r.address;
-    $('fmCntName').textContent = r.name.length + '/8';
-    $('fmCntIdcard').textContent = r.idcard.length + '/18';
-    renderPreview();
-    toast('已带入 ' + r.name + ' 的基础信息，请录入本次个案', 'info');
-  }
-
-  /* ================= 右侧信息回显卡 ================= */
-  function pvRow(label, val, wide) {
-    return '<div class="pv-row' + (wide ? ' wide' : '') + '"><span class="pv-label">' + label + '：</span><span class="pv-val">' + esc(val || '—') + '</span></div>';
-  }
-  function renderPreview() {
-    var age = '';
-    var b = $('fmBirth').value;
-    if (b) age = calcAge(b);
-    $('pvCard').innerHTML =
-      pvRow('姓名', $('fmName').value) +
-      pvRow('性别', $('fmGender').value) +
-      pvRow('出生日期', $('fmBirth').value) +
-      pvRow('年龄', age ? age + ' 岁' : '') +
-      pvRow('联系电话', $('fmPhone').value) +
-      pvRow('婚姻状况', $('fmMarriage').value) +
-      pvRow('详细地址', $('fmAddress').value, true);
-  }
-
-  /* ================= 提交（新建/编辑） ================= */
-  function submitForm() {
-    var name = $('fmName').value.trim(), idcard = $('fmIdcard').value.trim();
-    var gender = $('fmGender').value, birth = $('fmBirth').value;
-    var surgery = $('fmSurgery').value, ultrasound = $('fmUltrasound').value;
-    var fibroma = $('fmFibroma').value, visitDate = $('fmVisitDate').value, doc = $('fmDoc').value.trim();
-    if (!name) return toast('请输入姓名', 'error');
-    if (!gender) return toast('请选择性别', 'error');
-    if (!birth) return toast('请选择出生日期', 'error');
-    if (!idcard || idcard.length !== 18) return toast('请输入 18 位证件号', 'error');
-    if (!surgery) return toast('请选择手术结果', 'error');
-    if (!ultrasound) return toast('请选择B超结果', 'error');
-    if (!fibroma) return toast('请选择纤维瘤', 'error');
-    if (!visitDate) return toast('请选择随访日期', 'error');
-    if (!doc) return toast('请输入登记医生', 'error');
-
-    if (formMode === 'edit') {
-      var r = lastList[editIdx];
-      r.name = name; r.idcard = idcard; r.gender = gender === '女性' ? '女' : '男'; r.birth = birth;
-      r.phone = $('fmPhone').value.trim(); r.marriage = $('fmMarriage').value || r.marriage;
-      r.surgery = surgery; r.ultrasound = ultrasound; r.fibroma = fibroma;
-      r.regDate = visitDate; r.registrar = doc;
-      r.address = $('fmAddress').value.trim() || r.address;
-      closeFormModal();
-      renderTable();
-      toast('修改保存成功', 'success');
-    } else {
-      var regionMap = { '吴桥':'吴桥社区', '宜陵':'宜陵社区', '仙女':'仙女社区', '丁沟':'丁沟社区', '樊川':'樊川社区' };
-      var region = '仙女社区';
-      for (var k in regionMap) { if (idcard.indexOf(k) > -1) { region = regionMap[k]; break; } }
-      var regOrg = '扬州市江都区仙女镇社区卫生服务中心';
-      screeningData.unshift({
-        org: regOrg, regOrg: regOrg,
-        name: name, idcard: idcard, idType: $('fmIdType').value,
-        surgery: surgery, ultrasound: ultrasound, fibroma: fibroma,
-        registrar: doc, regDate: visitDate, lock: '未上锁',
-        address: $('fmAddress').value.trim() || '扬州市江都区仙女镇',
-        birth: birth, marriage: $('fmMarriage').value || '已婚',
-        region: region, mine: true,
-        phone: $('fmPhone').value.trim(), gender: gender === '女性' ? '女' : '男'
-      });
-      closeFormModal();
-      curPage = 1;
-      renderTable();
-      toast('乳腺癌筛查记录建立成功', 'success');
-    }
+  /* ================= 「新增个案」：跳转 档案维护.html · 乳腺癌个案信息 =================
+     个案填报已迁移到 档案维护.html「两癌筛查 → 乳腺癌个案信息」表单，
+     列表页只保留入口并把该行居民的基础信息带过去，不再用弹框录入。 */
+  function goBreastCase(idx) {
+    var r = lastList[idx] || screeningData[idx];
+    if (!r) return;
+    var params = [
+      'view=breastCase',
+      'name=' + encodeURIComponent(r.name),
+      'gender=' + encodeURIComponent(r.gender === '男' ? '男性' : '女性'),
+      'idcard=' + encodeURIComponent(r.idcard),
+      'archNo=' + encodeURIComponent(r.archNo || r.idcard),
+      'birth=' + encodeURIComponent(r.birth || ''),
+      'phone=' + encodeURIComponent(r.phone || '')
+    ];
+    if (r.region) params.push('addr=' + encodeURIComponent(r.region));
+    if (r.org) params.push('specOrg=' + encodeURIComponent(r.org));
+    location.href = '档案维护.html?' + params.join('&');
   }
 
   /* ================= 「更多」下拉菜单（查看 / 注销） ================= */
@@ -989,67 +744,33 @@
     menu.style.top = Math.min(y + 4, window.innerHeight - mh - 8) + 'px';
   }
   function closeMoreMenu() { $('moreMenu').classList.remove('show'); }
-  function moreView() { closeMoreMenu(); if (moreIdx >= 0) openViewModal(moreIdx); }
+  function moreView() { closeMoreMenu(); if (moreIdx >= 0) goBreastRegUrl(moreIdx, 'view'); }
   function moreCancel() { closeMoreMenu(); if (moreIdx >= 0) openCancelModal(moreIdx); }
   document.addEventListener('click', function () { closeMoreMenu(); });
 
-  /* ================= 查看详情 ================= */
-  function openViewModal(idx) {
-    var r = lastList[idx];
-    $('viewGrid').innerHTML =
-      pvRow('管理机构', r.org, true) +
-      pvRow('姓名', r.name) +
-      pvRow('证件号', r.idcard) +
-      pvRow('证件类型', r.idType) +
-      pvRow('性别', r.gender) +
-      pvRow('年龄', calcAge(r.birth) ? calcAge(r.birth) + ' 岁' : '') +
-      pvRow('出生日期', r.birth) +
-      pvRow('婚姻状况', r.marriage) +
-      pvRow('联系电话', r.phone) +
-      pvRow('手术结果', r.surgery) +
-      pvRow('B超结果', r.ultrasound) +
-      pvRow('纤维瘤', r.fibroma) +
-      pvRow('登记人', r.registrar) +
-      pvRow('登记日期', r.regDate) +
-      pvRow('登记机构', r.regOrg) +
-      pvRow('锁定状态', r.lock) +
-      pvRow('管理行政区', r.region) +
-      pvRow('详细地址', r.address, true);
-    $('viewModal').classList.add('show');
-  }
-  function closeViewModal() { $('viewModal').classList.remove('show'); }
-
-  /* ================= 注销（二次确认） ================= */
+  /* ================= 注销档案（二次确认 + 注销原因） ================= */
   var cancelIdx = -1;
   function openCancelModal(idx) {
     cancelIdx = idx;
-    var r = lastList[idx];
-    $('cancelBody').innerHTML = '确定注销居民 <b>' + esc(r.name) + '</b>（' + esc(r.idcard) + '）的乳腺癌筛查记录吗？' +
-      '<div class="confirm-tip">注销后该条筛查记录将不再展示，此操作不可恢复。</div>';
+    var ta = $('cancelReason');
+    ta.value = '';
+    $('cancelCnt').textContent = '0/50';
     $('cancelModal').classList.add('show');
+    setTimeout(function () { ta.focus(); }, 50);
   }
+  function cancelCnt(el) { $('cancelCnt').textContent = (el.value || '').length + '/50'; }
   function closeCancelModal() { $('cancelModal').classList.remove('show'); }
   function confirmCancel() {
     if (cancelIdx < 0 || !lastList[cancelIdx]) return;
+    var ta = $('cancelReason');
+    if (!ta.value.trim()) { toast('请填写注销原因', 'error'); ta.focus(); return; }
     var name = lastList[cancelIdx].name;
     var idxInAll = screeningData.indexOf(lastList[cancelIdx]);
     if (idxInAll > -1) screeningData.splice(idxInAll, 1);
     closeCancelModal();
     renderTable();
-    toast('已注销 ' + name + ' 的筛查记录', 'success');
+    toast('已注销 ' + name + ' 的档案', 'success');
   }
-
-  /* ================= 回显卡联动 ================= */
-  ['fmName','fmGender','fmBirth','fmPhone','fmMarriage','fmAddress'].forEach(function (id) {
-    $(id).addEventListener('input', renderPreview);
-    $(id).addEventListener('change', renderPreview);
-  });
-  $('fmName').addEventListener('input', function () {
-    $('fmCntName').textContent = this.value.length + '/8';
-  });
-  $('fmIdcard').addEventListener('input', function () {
-    $('fmCntIdcard').textContent = this.value.length + '/18';
-  });
 
   /* ================= 初始化 ================= */
   renderTable();

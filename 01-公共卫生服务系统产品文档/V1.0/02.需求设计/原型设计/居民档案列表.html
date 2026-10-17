@@ -145,10 +145,14 @@
   .qual-badge.ok{background:var(--success-bg);color:var(--success);border:1px solid rgba(82,195,27,0.35)}
   .qual-badge.bad{background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger-border)}
 
-  /* 状态圆点（居民状态/银行状态） */
+  /* 状态圆点（居民状态 / 锁定状态）
+     居民状态：正常=绿、失访=橙、死亡/迁出/注销=灰
+     锁定状态：未上锁=橙、已上锁=蓝 */
   .st-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:middle}
   .st-dot.ok{background:var(--success)}
   .st-dot.warn{background:#FF9500}
+  .st-dot.gray{background:#BFBFBF}
+  .st-dot.lock{background:var(--primary)}
 
   /* 操作列 */
   .op-link{color:var(--primary);cursor:pointer;font-size:13px}
@@ -176,7 +180,7 @@
   .pg-jump input{width:40px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 6px;font-size:13px;text-align:center;color:var(--text-primary);outline:none}
   .pg-jump input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
 
-  /* ===== 新建个人档案弹框 ===== */
+  /* ===== 弹框通用样式 ===== */
   .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:var(--z-modal);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
   .modal-overlay.show{opacity:1;pointer-events:auto}
   .modal{width:860px;max-width:92vw;background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 8px 32px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden;transform:translateY(10px);transition:transform var(--transition-normal)}
@@ -186,64 +190,78 @@
   .modal-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:16px}
   .modal-close:hover{background:var(--primary-bg);color:var(--primary)}
   .modal-body{padding:16px 16px 4px}
-  .modal-cols{display:flex;gap:16px;align-items:flex-start}
   .modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:18px 20px 20px}
 
-  /* 左侧表单 */
-  .fm-form{width:316px;flex-shrink:0}
-  .fm-row{display:flex;align-items:center;gap:8px;margin-bottom:14px}
-  .fm-row label{width:88px;text-align:right;font-size:14px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
-  .fm-row label i{color:var(--danger);font-style:normal;margin-right:2px}
-  .fm-ctl-wrap{position:relative}
+  /* 表单控件（各弹框共用） */
   .fm-ctl{width:220px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
-  .fm-ctl.has-cnt{padding-right:40px}
   .fm-select{width:220px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
   .fm-ctl:focus,.fm-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
   .fm-ctl::placeholder{color:var(--text-placeholder)}
-  .cnt{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text-placeholder);pointer-events:none}
-  .fm-readcard{height:32px;padding:0 10px;border:1px solid var(--primary);color:var(--primary);background:var(--bg-white);border-radius:var(--r-sm);font-size:13px;white-space:nowrap;flex-shrink:0;transition:all var(--transition-fast)}
-  .fm-readcard:hover{background:var(--primary-bg)}
-
-  /* 右侧：证件号行 + 信息回显卡 */
-  .pv-side{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px}
-  .pv-side .fm-row{margin-bottom:0}
-  .pv-side .fm-ctl-wrap{flex:1;min-width:0}
-  .pv-side .fm-ctl{width:100%}
-
-  /* 右侧信息回显卡 */
-  .pv-card{flex:1;min-width:0;background:var(--primary-bg);border:1px dashed #9EC3F5;border-radius:var(--r-md);padding:22px 18px;display:grid;grid-template-columns:1fr 1fr;row-gap:26px;column-gap:12px;font-size:13px;min-height:210px;align-content:start}
-
-  /* 联系地址整行铺底 */
-  .fm-addr-row{margin:14px 0 0}
-  .fm-addr-row .fm-ctl-wrap{flex:1;min-width:0}
-  .fm-addr-row .fm-ctl{width:100%}
 
   /* ===== 居民状态管理弹框（两列 + 通栏文本域） ===== */
-  .stat-form{display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;padding:8px 4px 12px}
-  .stat-row{display:flex;align-items:center;gap:8px;min-width:0}
-  .stat-row-full{grid-column:1/-1}
-  .stat-form .stat-label{width:96px;text-align:right;font-size:14px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
+  .stat-modal{width:600px;max-width:94vw}
+  .stat-modal .modal-head{height:48px;padding:0 16px;border-bottom:1px solid #E8E8E8}
+  .stat-modal .modal-body{padding:28px 16px 0}
+  .stat-modal .modal-foot{padding:20px 16px 16px}
+  .stat-modal .modal-foot .btn{height:34px;padding:0 20px}
+  .stat-form{display:grid;grid-template-columns:1fr 1fr;gap:12px 32px}
+  .stat-row{display:flex;align-items:center;gap:10px;min-width:0}
+  .stat-row-full{grid-column:1 / -1;align-items:flex-start}
+  .stat-form .stat-label{width:88px;text-align:left;font-size:14px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
   .stat-form .stat-label i{color:var(--danger);font-style:normal;margin-right:2px}
-  .stat-form .fm-ctl,.stat-form .fm-select{width:calc(100% - 104px);min-width:0}
-  .stat-ctl-wrap{position:relative;width:calc(100% - 104px);min-width:0}
+  .stat-row-full .stat-label{padding-top:6px}
+  .stat-form .fm-ctl,.stat-form .fm-select{flex:1;width:auto;min-width:0}
+  .stat-ctl-wrap{position:relative;flex:1;min-width:0}
   .stat-form .stat-ctl-wrap .fm-ctl{width:100%;padding-right:30px}
-  .stat-ctl-wrap .cal-ico{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;color:var(--text-placeholder);cursor:pointer;border-radius:var(--r-sm)}
+  /* 隐藏的原生日期控件：覆盖整个字段用于唤起系统日期选择器（保证回显统一为 YYYY-MM-DD） */
+  .stat-ctl-wrap .stat-datepick{position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;border:0;padding:0;margin:0;cursor:pointer;z-index:1}
+  .stat-ctl-wrap .cal-ico{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;color:var(--text-placeholder);cursor:pointer;border-radius:var(--r-sm);z-index:2}
   .stat-ctl-wrap .cal-ico:hover{color:var(--primary);background:var(--primary-bg)}
-  .stat-radio{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;color:var(--text-primary);margin-right:18px}
-  .stat-radio input{display:none}
-  .stat-radio .rbox{width:16px;height:16px;border:1px solid var(--color-neutral-400);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background:#fff;transition:border-color var(--transition-fast)}
-  .stat-radio .rbox::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--primary);transform:scale(0);transition:transform var(--transition-fast)}
-  .stat-radio input:checked + .rbox{border-color:var(--primary)}
-  .stat-radio input:checked + .rbox::after{transform:scale(1)}
-  .stat-radio input:checked ~ .txt{color:var(--primary)}
-  .stat-remark-wrap{position:relative;width:calc(100% - 104px);min-width:0}
-  .stat-remark-wrap .stat-ta{width:100%;height:84px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:8px 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;resize:vertical;min-height:84px;box-sizing:border-box;font-family:inherit;transition:all var(--transition-fast)}
+  /* 单选框：沿用档案维护.html 的原生控件 + accent-color 方案，选中态更清晰 */
+  .stat-radio{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;color:var(--text-primary);white-space:nowrap;margin-right:16px}
+  .stat-radio input[type="radio"]{width:16px;height:16px;flex:none;margin:0;cursor:pointer;accent-color:var(--primary)}
+  .stat-remark-wrap{position:relative;flex:1;min-width:0}
+  .stat-remark-wrap .stat-ta{width:100%;height:96px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:8px 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;resize:vertical;min-height:96px;box-sizing:border-box;font-family:inherit;transition:all var(--transition-fast)}
   .stat-remark-wrap .stat-ta:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
   .stat-cnt{position:absolute;right:8px;bottom:6px;font-size:12px;color:var(--text-placeholder);pointer-events:none}
-  .pv-row{display:flex;min-width:0}
-  .pv-row.wide{grid-column:1 / -1}
-  .pv-label{color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
-  .pv-val{color:var(--primary);word-break:break-all}
+
+  /* ===== 注销个人档案弹框（复用状态管理的日期控件与字符计数样式） ===== */
+  .cancel-modal{width:560px;max-width:94vw}
+  .cancel-modal .modal-head{height:48px;padding:0 20px;border-bottom:1px solid #E8E8E8}
+  .cancel-modal .modal-body{padding:20px 20px 0}
+  .cancel-modal .modal-foot{padding:20px 20px 16px}
+  .cancel-modal .modal-foot .btn{height:34px;padding:0 20px}
+  .cancel-idcard{font-size:14px;color:var(--text-secondary);line-height:1.6}
+  .cancel-idcard b{font-weight:var(--font-weight-regular);color:var(--text-primary);margin-left:2px;word-break:break-all}
+  .cancel-tip{margin:12px 0 18px;font-size:13px;color:var(--text-primary);line-height:1.6}
+  .cancel-form{display:flex;flex-direction:column;gap:14px}
+  .cancel-row{display:flex;align-items:center;gap:10px;min-width:0}
+  .cancel-row-full{align-items:flex-start}
+  .cancel-form .cancel-label{width:80px;text-align:left;font-size:14px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
+  .cancel-form .cancel-label i{color:var(--danger);font-style:normal;margin-right:2px}
+  .cancel-row-full .cancel-label{padding-top:6px}
+  .cancel-form .fm-ctl,.cancel-form .fm-select{flex:1;width:auto;min-width:0}
+  .cancel-form .stat-ctl-wrap .fm-ctl{width:100%;padding-right:30px}
+  .cancel-form .fm-ctl[readonly]{background:var(--color-neutral-100);color:var(--text-secondary)}
+  .cancel-ta-wrap{position:relative;flex:1;min-width:0}
+  .cancel-ta-wrap .cancel-ta{width:100%;height:88px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:8px 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;resize:vertical;min-height:88px;box-sizing:border-box;font-family:inherit;transition:all var(--transition-fast)}
+  .cancel-ta-wrap .cancel-ta:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+
+  /* ===== 档案上锁 / 解锁弹框 ===== */
+  .lock-modal{width:440px;max-width:94vw}
+  .lock-modal .modal-head{height:44px;padding:0 20px}
+  .lock-modal .modal-body{padding:4px 20px 0}
+  .lock-info{display:grid;grid-template-columns:1fr 1fr;gap:10px 8px;font-size:13px;color:var(--text-secondary);line-height:1.5}
+  .lock-info .lk-full{grid-column:1 / -1}
+  .lock-info b{font-weight:var(--font-weight-regular);color:var(--text-primary);margin-left:2px;word-break:break-all}
+  .lock-tip{margin:14px 0 16px;font-size:13px;color:var(--text-primary);line-height:1.6}
+  .lock-reason{position:relative}
+  .lock-label{display:block;font-size:13px;color:var(--text-primary);margin-bottom:8px}
+  .lock-label i{color:var(--danger);font-style:normal;margin-right:2px}
+  .lock-ta{width:100%;height:64px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:8px 10px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;resize:vertical;min-height:64px;box-sizing:border-box;font-family:inherit;transition:all var(--transition-fast)}
+  .lock-ta:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .lock-ta::placeholder{color:var(--text-placeholder)}
+  .lock-modal .modal-foot{padding:16px 20px 20px}
 
 </style>
 </head>
@@ -313,8 +331,9 @@
           <div class="filter-item">
             <label>居民状态：</label>
             <select id="fStatus" class="fi-select">
-              <option value="正常" selected>正常</option>
               <option value="">全部</option>
+              <option>正常</option>
+              <option>失访</option>
               <option>死亡</option>
               <option>迁出</option>
               <option>注销</option>
@@ -416,8 +435,8 @@
             <label>锁定状态：</label>
             <select id="fLock" class="fi-select">
               <option value="">请选择</option>
-              <option>已锁定</option>
-              <option>未锁定</option>
+              <option>已上锁</option>
+              <option>未上锁</option>
             </select>
           </div>
           <div class="filter-item extra"><label>责任医生：</label><input id="fDoctor" class="fi-ctl" placeholder="请输入"></div>
@@ -524,8 +543,8 @@
               <th class="center">档案完整度(%)</th>
               <th>人群性质</th>
               <th>居民状态</th>
-              <th>银行状态</th>
-              <th class="center">操作</th>
+              <th>锁定状态</th>
+              <th>操作</th>
             </tr>
           </thead>
           <tbody id="tbBody"></tbody>
@@ -554,109 +573,9 @@
   </div>
 </div>
 
-<!-- ===== 新建个人档案弹框 ===== -->
-<div class="modal-overlay" id="createModal">
-  <div class="modal">
-    <div class="modal-head">
-      <h3>新建个人档案</h3>
-      <span class="modal-close" onclick="closeCreateModal()">×</span>
-    </div>
-    <div class="modal-body">
-      <div class="modal-cols">
-        <!-- 左侧表单 -->
-        <div class="fm-form">
-          <div class="fm-row">
-            <label><i>*</i>证件类型：</label>
-            <select id="cmIdType" class="fm-select">
-              <option value="居民身份证" selected>居民身份证</option>
-              <option value="居民户口簿">居民户口簿</option>
-              <option value="护照">护照</option>
-              <option value="港澳居民来往内地通行证">港澳居民来往内地通行证</option>
-              <option value="台湾居民来往大陆通行证">台湾居民来往大陆通行证</option>
-            </select>
-          </div>
-          <div class="fm-row">
-            <label><i>*</i>姓名：</label>
-            <div class="fm-ctl-wrap">
-              <input id="cmName" class="fm-ctl has-cnt" maxlength="8" placeholder="请输入">
-              <span class="cnt" id="cntName">0/8</span>
-            </div>
-          </div>
-          <div class="fm-row">
-            <label><i>*</i>性别：</label>
-            <select id="cmGender" class="fm-select">
-              <option value="" selected>请选择</option>
-              <option value="男性">男性</option>
-              <option value="女性">女性</option>
-            </select>
-          </div>
-          <div class="fm-row">
-            <label><i>*</i>民族：</label>
-            <select id="cmNation" class="fm-select">
-              <option value="汉族" selected>汉族</option>
-              <option value="蒙古族">蒙古族</option>
-              <option value="回族">回族</option>
-              <option value="藏族">藏族</option>
-              <option value="维吾尔族">维吾尔族</option>
-              <option value="苗族">苗族</option>
-              <option value="彝族">彝族</option>
-              <option value="壮族">壮族</option>
-              <option value="满族">满族</option>
-              <option value="其他">其他</option>
-            </select>
-          </div>
-          <div class="fm-row">
-            <label><i>*</i>联系电话：</label>
-            <input id="cmPhone" class="fm-ctl" maxlength="11" placeholder="请输入联系电话">
-          </div>
-          <div class="fm-row">
-            <label><i>*</i>出生日期：</label>
-            <input id="cmBirth" class="fm-ctl" type="text" placeholder="请选择日期"
-                   onfocus="this.type='date';try{this.showPicker()}catch(e){}"
-                   onblur="if(!this.value){this.type='text'}">
-          </div>
-        </div>
-        <!-- 右侧：证件号 + 信息回显卡 -->
-        <div class="pv-side">
-          <div class="fm-row">
-            <label><i>*</i>证件号：</label>
-            <div class="fm-ctl-wrap">
-              <input id="cmIdcard" class="fm-ctl has-cnt" maxlength="18" placeholder="请输入证件号">
-              <span class="cnt" id="cntIdcard">0/18</span>
-            </div>
-            <button class="fm-readcard" onclick="toast('请连接身份证读卡器','info')">身份证读卡</button>
-          </div>
-          <div class="pv-card" id="pvCard"></div>
-        </div>
-      </div>
-      <!-- 联系地址：整行铺底 -->
-      <div class="fm-row fm-addr-row">
-        <label><i>*</i>联系地址：</label>
-        <select id="cmRegion" class="fm-select" style="width:186px">
-          <option value="" selected>请选择现住址</option>
-          <option value="江苏省扬州市江都区">江苏省 / 扬州市 / 江都区</option>
-          <option value="江苏省扬州市邗江区">江苏省 / 扬州市 / 邗江区</option>
-          <option value="江苏省南京市玄武区">江苏省 / 南京市 / 玄武区</option>
-          <option value="江苏省苏州市姑苏区">江苏省 / 苏州市 / 姑苏区</option>
-          <option value="山东省济南市历下区">山东省 / 济南市 / 历下区</option>
-          <option value="山东省济南市市中区">山东省 / 济南市 / 市中区</option>
-        </select>
-        <div class="fm-ctl-wrap">
-          <input id="cmAddr" class="fm-ctl has-cnt" maxlength="50" placeholder="请输入详细地址">
-          <span class="cnt" id="cntAddr">0/50</span>
-        </div>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-primary" onclick="submitCreate()">下一步</button>
-      <button class="btn btn-default" onclick="closeCreateModal()">取消</button>
-    </div>
-  </div>
-</div>
-
 <!-- ===== 居民状态管理弹框 ===== -->
 <div class="modal-overlay" id="statModal">
-  <div class="modal" style="width:540px;max-width:94vw">
+  <div class="modal stat-modal">
     <div class="modal-head">
       <h3>居民状态管理</h3>
       <span class="modal-close" onclick="closeStatModal()">×</span>
@@ -665,25 +584,25 @@
       <div class="stat-form">
         <div class="stat-row">
           <span class="stat-label"><i>*</i>居民状态：</span>
-          <label class="stat-radio"><input type="radio" name="stStatus" value="失访" checked><span class="rbox"></span><span class="txt">失访</span></label>
-          <label class="stat-radio"><input type="radio" name="stStatus" value="死亡"><span class="rbox"></span><span class="txt">死亡</span></label>
+          <label class="stat-radio"><input type="radio" name="stStatus" value="死亡">死亡</label>
+          <label class="stat-radio"><input type="radio" name="stStatus" value="失访" checked>失访</label>
         </div>
         <div class="stat-row">
           <span class="stat-label"><i>*</i>失访日期：</span>
           <div class="stat-ctl-wrap">
-            <input class="fm-ctl" id="stLost" type="text" placeholder="请选择日期"
-                   onfocus="if(this.type==='text')this.type='date'"
-                   onblur="if(!this.value){this.type='text'}">
-            <span class="cal-ico" onclick="pickDate('stLost',event)" title="选择日期"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+            <input class="fm-ctl" id="stLost" type="text" placeholder="请选择日期" readonly>
+            <input class="stat-datepick" id="stLostPk" type="date" tabindex="-1" aria-hidden="true"
+                   onchange="document.getElementById('stLost').value=this.value">
+            <span class="cal-ico" onclick="pickDate('stLostPk',event)" title="选择日期"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
           </div>
         </div>
         <div class="stat-row">
           <span class="stat-label"><i>*</i>变更日期：</span>
           <div class="stat-ctl-wrap">
-            <input class="fm-ctl" id="stDate" type="text" placeholder="请选择日期"
-                   onfocus="if(this.type==='text')this.type='date'"
-                   onblur="if(!this.value){this.type='text'}">
-            <span class="cal-ico" onclick="pickDate('stDate',event)" title="选择日期"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+            <input class="fm-ctl" id="stDate" type="text" placeholder="请选择日期" readonly>
+            <input class="stat-datepick" id="stDatePk" type="date" tabindex="-1" aria-hidden="true"
+                   onchange="document.getElementById('stDate').value=this.value">
+            <span class="cal-ico" onclick="pickDate('stDatePk',event)" title="选择日期"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
           </div>
         </div>
         <div class="stat-row">
@@ -705,8 +624,136 @@
       </div>
     </div>
     <div class="modal-foot">
-      <button class="btn btn-default" onclick="closeStatModal()">取消</button>
       <button class="btn btn-primary" onclick="saveStat()">确定</button>
+      <button class="btn btn-default" onclick="closeStatModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 上锁个人档案弹框 ===== -->
+<div class="modal-overlay" id="lockModal">
+  <div class="modal lock-modal">
+    <div class="modal-head">
+      <h3>上锁个人档案</h3>
+      <span class="modal-close" onclick="closeLockModal()">×</span>
+    </div>
+    <div class="modal-body">
+      <div class="lock-info">
+        <div>姓名：<b id="lkName"></b></div>
+        <div>证件号：<b id="lkIdcard"></b></div>
+      </div>
+      <p class="lock-tip">该档案若被上锁则该档案将不允许编辑和下载，确定上锁？</p>
+      <div class="lock-reason">
+        <span class="lock-label"><i>*</i>上锁原因：</span>
+        <textarea id="lkReason" class="lock-ta" maxlength="50" placeholder="请输入"></textarea>
+        <span class="stat-cnt" id="cntLkReason">0/50</span>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" onclick="confirmLock()">确定</button>
+      <button class="btn btn-default" onclick="closeLockModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 解锁个人档案弹框 ===== -->
+<div class="modal-overlay" id="unlockModal">
+  <div class="modal lock-modal">
+    <div class="modal-head">
+      <h3>解锁个人档案</h3>
+      <span class="modal-close" onclick="closeUnlockModal()">×</span>
+    </div>
+    <div class="modal-body">
+      <div class="lock-info">
+        <div>姓名：<b id="ulName"></b></div>
+        <div>证件号：<b id="ulIdcard"></b></div>
+        <div class="lk-full">上锁医生：<b id="ulDoctor"></b></div>
+      </div>
+      <p class="lock-tip">该档案已被上锁，解锁后该档案将不被允许上传，确定解锁？</p>
+      <div class="lock-reason">
+        <span class="lock-label"><i>*</i>解锁原因：</span>
+        <textarea id="ulReason" class="lock-ta" maxlength="50" placeholder="请输入"></textarea>
+        <span class="stat-cnt" id="cntUlReason">0/50</span>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" onclick="confirmUnlock()">确定</button>
+      <button class="btn btn-default" onclick="closeUnlockModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 撤销居民状态弹框（撤销失访 / 撤销死亡 / 撤销迁出 / 撤销注销） ===== -->
+<div class="modal-overlay" id="revokeModal">
+  <div class="modal lock-modal">
+    <div class="modal-head">
+      <h3 id="rvTitle">撤销失访</h3>
+      <span class="modal-close" onclick="closeRevokeModal()">×</span>
+    </div>
+    <div class="modal-body">
+      <div class="lock-info">
+        <div>姓名：<b id="rvName"></b></div>
+        <div>证件号：<b id="rvIdcard"></b></div>
+      </div>
+      <p class="lock-tip" id="rvTip"></p>
+      <div class="lock-reason">
+        <span class="lock-label"><i>*</i>撤销原因：</span>
+        <textarea id="rvReason" class="lock-ta" maxlength="50" placeholder="请输入"></textarea>
+        <span class="stat-cnt" id="cntRvReason">0/50</span>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" onclick="confirmRevoke()">确定</button>
+      <button class="btn btn-default" onclick="closeRevokeModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 注销个人档案弹框 ===== -->
+<div class="modal-overlay" id="cancelModal">
+  <div class="modal cancel-modal">
+    <div class="modal-head">
+      <h3>注销个人档案</h3>
+      <span class="modal-close" onclick="closeCancelModal()">×</span>
+    </div>
+    <div class="modal-body">
+      <div class="cancel-idcard">证件号：<b id="ccIdcard"></b></div>
+      <p class="cancel-tip">该档案若注销，则档案不允许继续使用，确定注销？</p>
+      <div class="cancel-form">
+        <div class="cancel-row">
+          <span class="cancel-label"><i>*</i>注销日期：</span>
+          <div class="stat-ctl-wrap">
+            <input class="fm-ctl" id="ccDate" type="text" placeholder="请选择日期" readonly>
+            <input class="stat-datepick" id="ccDatePk" type="date" tabindex="-1" aria-hidden="true"
+                   onchange="document.getElementById('ccDate').value=this.value">
+            <span class="cal-ico" onclick="pickDate('ccDatePk',event)" title="选择日期"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+          </div>
+        </div>
+        <div class="cancel-row cancel-row-full">
+          <span class="cancel-label"><i>*</i>注销原因：</span>
+          <div class="cancel-ta-wrap">
+            <textarea id="ccReason" class="cancel-ta" maxlength="50" placeholder="请输入"></textarea>
+            <span class="stat-cnt" id="cntCcReason">0/50</span>
+          </div>
+        </div>
+        <div class="cancel-row">
+          <span class="cancel-label">注销机构：</span>
+          <input class="fm-ctl" id="ccOrg" type="text" readonly>
+        </div>
+        <div class="cancel-row">
+          <span class="cancel-label"><i>*</i>注销医生：</span>
+          <select id="ccDoctor" class="fm-select">
+            <option value="吕雪" selected>吕雪</option>
+            <option value="王芳">王芳</option>
+            <option value="张伟">张伟</option>
+            <option value="李静">李静</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" onclick="confirmCancel()">确认注销</button>
+      <button class="btn btn-default" onclick="closeCancelModal()">取消</button>
     </div>
   </div>
 </div>
@@ -737,15 +784,15 @@
 <script>
   /* ================= 模拟数据（姓名/证件号/出生日期/年龄相互对应） ================= */
   var residentData = [
-    { org:'山东大学齐鲁医院',                    name:'王秀英', idcard:'370102195403152847', idType:'居民身份证', gender:'女', age:72, phone:'13905312361', birth:'1954-03-15', crowd:['老','高'],  qualified:true,  address:'济南市历下区解放路105号',     archNo:'370102JM26001', region:'济南市历下区', status:'正常', dock:['高血压随访','健康体检'],      created:'2024-03-11' },
+    { org:'山东大学齐鲁医院',                    name:'王秀英', idcard:'370102195403152847', idType:'居民身份证', gender:'女', age:72, phone:'13905312361', birth:'1954-03-15', crowd:['老','高'],  qualified:true,  address:'济南市历下区解放路105号',     archNo:'370102JM26001', region:'济南市历下区', status:'正常', dock:['高血压随访','健康体检'],      created:'2024-03-11', locked:true, lockDoctor:'吕雪', lockReason:'档案信息已核对无误，封存归档' },
     { org:'山东大学齐鲁医院',                    name:'李建国', idcard:'370102195807224612', idType:'居民身份证', gender:'男', age:68, phone:'13853118274', birth:'1958-07-22', crowd:['老','糖'],  qualified:true,  address:'济南市历下区文化东路44号',   archNo:'370102JM26002', region:'济南市历下区', status:'正常', dock:['糖尿病随访','健康体检'],      created:'2024-03-18' },
     { org:'济南市市中区舜玉路社区卫生服务中心',  name:'张桂兰', idcard:'370103196005103226', idType:'居民身份证', gender:'女', age:66, phone:'13793126485', birth:'1960-05-10', crowd:['老'],     qualified:true,  address:'济南市市中区舜玉路56号',     archNo:'370103JM26003', region:'济南市市中区', status:'正常', dock:['健康体检'],                  created:'2024-04-02' },
-    { org:'山东大学齐鲁医院',                    name:'刘德海', idcard:'37010219551130863X', idType:'居民身份证', gender:'男', age:71, phone:'13605401937', birth:'1955-11-30', crowd:['老','高','糖'], qualified:false, address:'济南市历下区和平路36号',     archNo:'370102JM26004', region:'济南市历下区', status:'正常', dock:['高血压随访','糖尿病随访'],  created:'2024-04-15' },
+    { org:'山东大学齐鲁医院',                    name:'刘德海', idcard:'37010219551130863X', idType:'居民身份证', gender:'男', age:71, phone:'13605401937', birth:'1955-11-30', crowd:['老','高','糖'], qualified:false, address:'济南市历下区和平路36号',     archNo:'370102JM26004', region:'济南市历下区', status:'失访', dock:['高血压随访','糖尿病随访'],  created:'2024-04-15' },
     { org:'济南市历下区甸柳新村社区卫生服务中心',name:'陈淑珍', idcard:'370102195702164426', idType:'居民身份证', gender:'女', age:69, phone:'15866632071', birth:'1957-02-16', crowd:['老'],     qualified:true,  address:'济南市历下区甸柳新村五区9号楼', archNo:'370102JM26005', region:'济南市历下区', status:'正常', dock:['健康体检'],                  created:'2024-04-27' },
     { org:'山东大学齐鲁医院',                    name:'杨春梅', idcard:'370102198109082543', idType:'居民身份证', gender:'女', age:45, phone:'18764165283', birth:'1981-09-08', crowd:['高'],     qualified:true,  address:'济南市历下区山大南路27号',   archNo:'370102JM26006', region:'济南市历下区', status:'正常', dock:['高血压随访'],                created:'2024-05-09' },
     { org:'济南市历下区千佛山社区卫生服务中心',  name:'赵永强', idcard:'370103197403261530', idType:'居民身份证', gender:'男', age:52, phone:'13969074822', birth:'1974-03-26', crowd:['糖'],     qualified:true,  address:'济南市市中区纬五路143号',   archNo:'370103JM26007', region:'济南市市中区', status:'正常', dock:['糖尿病随访'],                created:'2024-05-21' },
     { org:'山东大学齐鲁医院',                    name:'孙丽娟', idcard:'370102198807152248', idType:'居民身份证', gender:'女', age:38, phone:'15106963417', birth:'1988-07-15', crowd:[],        qualified:true,  address:'济南市历下区窑头路2号',      archNo:'370102JM26008', region:'济南市历下区', status:'正常', dock:['健康体检'],                  created:'2024-06-03' },
-    { org:'山东大学齐鲁医院',                    name:'周振华', idcard:'370102194910056317', idType:'居民身份证', gender:'男', age:77, phone:'13583176094', birth:'1949-10-05', crowd:['老','高'], qualified:true,  address:'济南市历下区燕山小区东路18号', archNo:'370102JM26009', region:'济南市历下区', status:'正常', dock:['高血压随访','健康体检'],   created:'2024-06-16' },
+    { org:'山东大学齐鲁医院',                    name:'周振华', idcard:'370102194910056317', idType:'居民身份证', gender:'男', age:77, phone:'13583176094', birth:'1949-10-05', crowd:['老','高'], qualified:true,  address:'济南市历下区燕山小区东路18号', archNo:'370102JM26009', region:'济南市历下区', status:'死亡', dock:['高血压随访','健康体检'],   created:'2024-06-16' },
     { org:'济南市天桥区工人新村社区卫生服务中心',name:'吴玉兰', idcard:'37010319520628324X', idType:'居民身份证', gender:'女', age:74, phone:'15965310248', birth:'1952-06-28', crowd:['老'],     qualified:true,  address:'济南市天桥区工人新村中街25号', archNo:'370105JM26010', region:'济南市天桥区', status:'正常', dock:['健康体检'],                  created:'2024-06-30' },
     { org:'济南市历下区千佛山社区卫生服务中心',  name:'郑国栋', idcard:'370102196308174411', idType:'居民身份证', gender:'男', age:63, phone:'13869152760', birth:'1963-08-17', crowd:[],        qualified:true,  address:'济南市历下区山师北街12号',   archNo:'370102JM26011', region:'济南市历下区', status:'正常', dock:['健康体检'],                  created:'2024-07-11' },
     { org:'山东大学齐鲁医院',                    name:'王芳',   idcard:'370102199102205946', idType:'居民身份证', gender:'女', age:35, phone:'18660789135', birth:'1991-02-20', crowd:[],        qualified:true,  address:'济南市历城区花园路101号',    archNo:'370112JM26012', region:'济南市历城区', status:'正常', dock:['健康体检'],                  created:'2024-07-25' },
@@ -759,6 +806,23 @@
     { org:'山东大学齐鲁医院',                    name:'石景山', idcard:'370102196104162619', idType:'居民身份证', gender:'男', age:65, phone:'13176659204', birth:'1961-04-16', crowd:['老'],     qualified:true,  address:'济南市历下区窑头路15号',     archNo:'370102JM26020', region:'济南市历下区', status:'正常', dock:['健康体检'],                  created:'2024-11-02' }
   ];
 
+  /* 档案上锁状态：locked = true 表示已上锁（上锁后不允许编辑和下载，操作列仅保留「查看 / 解锁」） */
+  residentData.forEach(function (r) {
+    if (r.locked === undefined) r.locked = false;
+    if (r.lockDoctor === undefined) r.lockDoctor = '';
+    if (r.lockReason === undefined) r.lockReason = '';
+    /* 档案注销状态：cancelled = true 表示已注销（注销后该档案不再在列表中展示） */
+    if (r.cancelled === undefined) r.cancelled = false;
+    if (r.cancelDate === undefined) r.cancelDate = '';
+    if (r.cancelReason === undefined) r.cancelReason = '';
+    if (r.cancelDoctor === undefined) r.cancelDoctor = '';
+  });
+
+  /* 当前登录医生（原型固定值，用于记录上锁医生） */
+  var CURRENT_USER = '吕雪';
+  /* 上锁 / 解锁 / 撤销 / 注销弹框当前操作对象在 residentData 中的下标 */
+  var lockTargetIdx = -1, unlockTargetIdx = -1, revokeTargetIdx = -1, cancelTargetIdx = -1;
+
   /* ================= 工具函数 ================= */
   function esc(str) {
     return String(str == null ? '' : str)
@@ -766,12 +830,19 @@
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
   function $(id) { return document.getElementById(id); }
+  /* 当天日期（YYYY-MM-DD），用于弹框日期字段的默认值 */
+  function todayStr() {
+    var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
 
   /* ================= 表格渲染（按筛选条件实时过滤） ================= */
   var DOCTORS = ['冯仁卉', '李蕾', '朱劲松', '敖鹏天', '陆柳琳', '王盛'];
   function docOf(r) { return DOCTORS[residentData.indexOf(r) % DOCTORS.length]; }
   function zoneOf(r) { return r.address.indexOf('村') !== -1 ? '村' : '社区'; }
   function completeOf(r) { return r.qualified ? 100 : 0; }
+  /* 居民状态圆点：正常=绿、失访=橙、死亡/迁出/注销=灰 */
+  function statusDot(s) { return s === '正常' ? 'ok' : (s === '失访' ? 'warn' : 'gray'); }
 
   function renderTable() {
     var orgs = splitVal($('fOrg').value), name = $('fName').value.trim();
@@ -786,8 +857,11 @@
     var createStart = $('fCreateStart').value, createEnd = $('fCreateEnd').value;
     var archNo = $('fArchNo').value.trim(), qual = $('fQual').value;
     var birthStart = $('fBirthStart').value, birthEnd = $('fBirthEnd').value;
+    var lock = $('fLock').value;
 
     var list = residentData.filter(function (r) {
+      /* 已注销档案不再展示（注销后列表该数据不展示） */
+      if (r.cancelled) return false;
       if (orgs.length && orgs.indexOf(r.org) === -1) return false;
       if (name && r.name.indexOf(name) === -1) return false;
       if (idcard && r.idcard.indexOf(idcard) === -1) return false;
@@ -820,6 +894,8 @@
       if (qual === '0' && r.qualified) return false;
       if (birthStart && r.birth < birthStart) return false;
       if (birthEnd && r.birth > birthEnd) return false;
+      if (lock === '已上锁' && !r.locked) return false;
+      if (lock === '未上锁' && r.locked) return false;
       return true;
     });
 
@@ -841,6 +917,24 @@
         var crowdTxt = r.crowd.length
           ? r.crowd.map(function (c) { return groupMap[c] || c; }).join('/')
           : '';
+        /* 操作列按钮随「居民状态 + 锁定状态」变化：
+             已上锁                       → 查看 / 解锁
+             未上锁 + 正常                → 查看 / 编辑 / 更多
+             未上锁 + 失访/死亡/迁出/注销 → 查看 / 撤销XX */
+        var GAP = '<span class="op-gap"></span>';
+        var opHtml = '<a class="op-link" onclick="openArchive(' + srcIdx + ')">查看</a>';
+        if (r.locked) {
+          opHtml += GAP + '<a class="op-link" onclick="openUnlockModal(' + srcIdx + ')">解锁</a>';
+        } else if (r.status === '正常') {
+          opHtml += GAP + '<a class="op-link" onclick="openArchive(' + srcIdx + ')">编辑</a>'
+                 +  GAP + '<span class="op-more">'
+                 +    '<a class="more-btn" onclick="showOpMenu(this,event,' + srcIdx + ')">更多'
+                 +      '<svg viewBox="0 0 24 24" style="width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="6 9 12 15 18 9"/></svg>'
+                 +    '</a>'
+                 +  '</span>';
+        } else {
+          opHtml += GAP + '<a class="op-link" onclick="openRevokeModal(' + srcIdx + ')">撤销' + esc(r.status) + '</a>';
+        }
         html += '<tr>'
           + '<td class="center">' + (i + 1) + '</td>'
           + '<td title="' + esc(r.org) + '"><span class="cell">' + esc(r.org) + '</span></td>'
@@ -863,17 +957,9 @@
           + '<td title="' + esc(r.org) + '"><span class="cell">' + esc(r.org) + '</span></td>'
           + '<td class="center">' + (r.qualified ? 100 : 0) + '</td>'
           + '<td title="' + esc(crowdTxt) + '"><span class="cell">' + esc(crowdTxt) + '</span></td>'
-          + '<td><span class="st-dot ok"></span>' + esc(r.status) + '</td>'
-          + '<td><span class="st-dot warn"></span>未上传</td>'
-          + '<td class="center">'
-          +   '<a class="op-link" onclick="openArchive(' + srcIdx + ')">查看</a>'
-          +   '<span class="op-gap"></span>'
-          +   '<a class="op-link" onclick="openArchive(' + srcIdx + ')">编辑</a>'
-          +   '<span class="op-gap"></span>'
-          +   '<span class="op-more">'
-              +     '<a class="more-btn" onclick="showOpMenu(this,event,\'' + esc(r.name) + '\')">更多<svg viewBox="0 0 24 24" style="width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="6 9 12 15 18 9"/></svg></a>'
-              +   '</span>'
-          + '</td>'
+          + '<td><span class="st-dot ' + statusDot(r.status) + '"></span>' + esc(r.status) + '</td>'
+          + '<td><span class="st-dot ' + (r.locked ? 'lock' : 'warn') + '"></span>' + (r.locked ? '已上锁' : '未上锁') + '</td>'
+          + '<td>' + opHtml + '</td>'
           + '</tr>';
       });
     }
@@ -1188,7 +1274,7 @@
       if (el.type === 'date') el.type = 'text';
       el.value = '';
     });
-    $('fStatus').value = '正常';
+    $('fStatus').value = '';
     $('fCrowdOp').value = 'and';
     $('fNatureOp').value = 'and';
     MS_IDS.forEach(refreshMs);
@@ -1212,14 +1298,14 @@
     btn.innerHTML = show ? '收起 ▴' : '展开 ▾';
   }
 
-  function showOpMenu(el, ev, name) {
+  function showOpMenu(el, ev, idx) {
     if (ev) ev.stopPropagation();
     closeAllOpMenus();
     var m = $('opMenu');
     m.innerHTML =
-      '<button class="mi" onclick="opAction(\'状态管理\',\'' + name + '\')">状态管理</button>' +
-      '<button class="mi" onclick="opAction(\'上锁\',\'' + name + '\')">上锁</button>' +
-      '<button class="mi danger" onclick="opAction(\'注销\',\'' + name + '\')">注销</button>';
+      '<button class="mi" onclick="opAction(\'状态管理\',' + idx + ')">状态管理</button>' +
+      '<button class="mi" onclick="opAction(\'上锁\',' + idx + ')">上锁</button>' +
+      '<button class="mi danger" onclick="opAction(\'注销\',' + idx + ')">注销</button>';
     m.style.display = 'block';
     var r = el.getBoundingClientRect();
     var gap = 6;
@@ -1236,31 +1322,47 @@
     if (m) { m.style.display = 'none'; m.innerHTML = ''; }
   }
 
-  function opAction(action, name) {
+  function opAction(action, idx) {
     closeAllOpMenus();
-    if (action === '状态管理') { openStatModal(name); return; }
-    toast(action + '：' + name + '（功能建设中）', 'info');
+    var r = residentData[idx];
+    if (!r) return;
+    if (action === '状态管理') { openStatModal(idx); return; }
+    if (action === '上锁') { openLockModal(idx); return; }
+    if (action === '注销') { openCancelModal(idx); return; }
+    toast(action + '：' + r.name + '（功能建设中）', 'info');
   }
 
   /* ===== 居民状态管理弹框 ===== */
-  function openStatModal(name) {
+  var statTargetIdx = -1;
+  function openStatModal(idx) {
+    var r = residentData[idx];
+    if (!r) return;
+    if (r.locked) { toast('该档案已上锁，请先解锁', 'warning'); return; }
+    statTargetIdx = idx;
     $('stRemark').value = '';
     $('cntRemark').textContent = '0/200';
-    var st = document.querySelector('input[name="stStatus"]:checked');
-    if (st) st.checked = true;
+    /* 日期字段默认取当天（可见文本框 + 隐藏日期控件同步） */
+    var today = todayStr();
+    ['stLost', 'stDate', 'stLostPk', 'stDatePk'].forEach(function (id) { $(id).value = today; });
+    /* 回显当前居民状态；「正常」不在可选范围内，保持默认选中项 */
+    var cur = document.querySelector('input[name="stStatus"][value="' + r.status + '"]');
+    if (cur) cur.checked = true;
     $('statModal').classList.add('show');
   }
   function closeStatModal() {
     $('statModal').classList.remove('show');
+    statTargetIdx = -1;
   }
-  function pickDate(id, ev) {
+  /* 点击日历图标：唤起隐藏的原生日期控件选择器 */
+  function pickDate(pkId, ev) {
     if (ev) ev.stopPropagation();
-    var el = $(id);
-    el.type = 'date';
-    el.focus();
-    if (el.showPicker) { try { el.showPicker(); } catch (e) {} }
+    var pk = $(pkId);
+    if (!pk) return;
+    if (pk.showPicker) { try { pk.showPicker(); } catch (e) {} }
   }
   function saveStat() {
+    var r = residentData[statTargetIdx];
+    if (!r) return closeStatModal();
     var status = (document.querySelector('input[name="stStatus"]:checked') || {}).value;
     var lost = $('stLost').value;
     var date = $('stDate').value;
@@ -1270,8 +1372,155 @@
     if (!date) return toast('请填写变更日期', 'warning');
     if (!doctor) return toast('请选择变更医生', 'warning');
     if (!remark.trim()) return toast('请填写变更说明', 'warning');
+    r.status = status;
+    var name = r.name;
     closeStatModal();
-    toast('居民状态变更已保存', 'success');
+    renderTable();
+    toast('「' + name + '」的居民状态已变更为' + status, 'success');
+  }
+
+  /* ===== 档案上锁 ===== */
+  function openLockModal(idx) {
+    var r = residentData[idx];
+    if (!r) return;
+    if (r.locked) { toast('该档案已上锁，请先解锁', 'warning'); return; }
+    lockTargetIdx = idx;
+    $('lkName').textContent = r.name;
+    $('lkIdcard').textContent = r.idcard;
+    var ta = $('lkReason');
+    ta.value = '';
+    $('cntLkReason').textContent = '0/50';
+    $('lockModal').classList.add('show');
+    setTimeout(function () { ta.focus(); }, 60);
+  }
+  function closeLockModal() {
+    $('lockModal').classList.remove('show');
+    lockTargetIdx = -1;
+  }
+  function confirmLock() {
+    var r = residentData[lockTargetIdx];
+    if (!r) return closeLockModal();
+    var reason = $('lkReason').value.trim();
+    if (!reason) return toast('请填写上锁原因', 'warning');
+    r.locked = true;
+    r.lockDoctor = CURRENT_USER;
+    r.lockReason = reason;
+    var name = r.name;
+    closeLockModal();
+    renderTable();
+    toast('「' + name + '」的档案已上锁，该档案不允许编辑和下载', 'success');
+  }
+
+  /* ===== 档案解锁 ===== */
+  function openUnlockModal(idx) {
+    var r = residentData[idx];
+    if (!r) return;
+    if (!r.locked) { toast('该档案未上锁，无需解锁', 'warning'); return; }
+    unlockTargetIdx = idx;
+    $('ulName').textContent = r.name;
+    $('ulIdcard').textContent = r.idcard;
+    $('ulDoctor').textContent = r.lockDoctor || '-';
+    var ta = $('ulReason');
+    ta.value = '';
+    $('cntUlReason').textContent = '0/50';
+    $('unlockModal').classList.add('show');
+    setTimeout(function () { ta.focus(); }, 60);
+  }
+  function closeUnlockModal() {
+    $('unlockModal').classList.remove('show');
+    unlockTargetIdx = -1;
+  }
+  function confirmUnlock() {
+    var r = residentData[unlockTargetIdx];
+    if (!r) return closeUnlockModal();
+    var reason = $('ulReason').value.trim();
+    if (!reason) return toast('请填写解锁原因', 'warning');
+    r.locked = false;
+    r.lockDoctor = '';
+    r.lockReason = '';
+    var name = r.name;
+    closeUnlockModal();
+    renderTable();
+    toast('「' + name + '」的档案已解锁，该档案恢复编辑和上传', 'success');
+  }
+
+  /* ===== 撤销居民状态（撤销失访 / 撤销死亡 / 撤销迁出 / 撤销注销） ===== */
+  function openRevokeModal(idx) {
+    var r = residentData[idx];
+    if (!r) return;
+    if (r.locked) { toast('该档案已上锁，请先解锁', 'warning'); return; }
+    if (r.status === '正常') { toast('该居民当前状态为正常，无需撤销', 'warning'); return; }
+    revokeTargetIdx = idx;
+    $('rvTitle').textContent = '撤销' + r.status;
+    $('rvName').textContent = r.name;
+    $('rvIdcard').textContent = r.idcard;
+    $('rvTip').textContent = '撤销' + r.status + '后该档案的居民状态将恢复为「正常」，确定撤销' + r.status + '？';
+    var ta = $('rvReason');
+    ta.value = '';
+    $('cntRvReason').textContent = '0/50';
+    $('revokeModal').classList.add('show');
+    setTimeout(function () { ta.focus(); }, 60);
+  }
+  function closeRevokeModal() {
+    $('revokeModal').classList.remove('show');
+    revokeTargetIdx = -1;
+  }
+  function confirmRevoke() {
+    var r = residentData[revokeTargetIdx];
+    if (!r) return closeRevokeModal();
+    var reason = $('rvReason').value.trim();
+    if (!reason) return toast('请填写撤销原因', 'warning');
+    var was = r.status;
+    var name = r.name;
+    r.status = '正常';
+    closeRevokeModal();
+    renderTable();
+    toast('「' + name + '」已撤销' + was + '，居民状态恢复为正常', 'success');
+  }
+
+  /* ===== 注销个人档案（注销后该档案不再在列表中展示） ===== */
+  function openCancelModal(idx) {
+    var r = residentData[idx];
+    if (!r) return;
+    if (r.locked) { toast('该档案已上锁，请先解锁', 'warning'); return; }
+    if (r.cancelled) { toast('该档案已注销', 'warning'); return; }
+    cancelTargetIdx = idx;
+    $('ccIdcard').textContent = r.idcard;
+    $('ccOrg').value = r.org;
+    $('ccDoctor').value = CURRENT_USER;
+    /* 注销日期默认取当天（可见文本框 + 隐藏日期控件同步） */
+    var today = todayStr();
+    $('ccDate').value = today;
+    $('ccDatePk').value = today;
+    var ta = $('ccReason');
+    ta.value = '';
+    $('cntCcReason').textContent = '0/50';
+    $('cancelModal').classList.add('show');
+    setTimeout(function () { ta.focus(); }, 60);
+  }
+  function closeCancelModal() {
+    $('cancelModal').classList.remove('show');
+    cancelTargetIdx = -1;
+  }
+  function confirmCancel() {
+    var r = residentData[cancelTargetIdx];
+    if (!r) return closeCancelModal();
+    var date = $('ccDate').value;
+    var reason = $('ccReason').value.trim();
+    var doctor = $('ccDoctor').value;
+    if (!date) return toast('请选择注销日期', 'warning');
+    if (!reason) return toast('请填写注销原因', 'warning');
+    if (!doctor) return toast('请选择注销医生', 'warning');
+    /* 注销后该档案不再展示：置 cancelled 标记，列表过滤时直接排除 */
+    r.cancelled = true;
+    r.status = '注销';
+    r.cancelDate = date;
+    r.cancelReason = reason;
+    r.cancelDoctor = doctor;
+    var name = r.name;
+    closeCancelModal();
+    renderTable();
+    toast('「' + name + '」的档案已注销，该档案不再展示', 'success');
   }
 
   document.addEventListener('click', function (e) {
@@ -1327,111 +1576,27 @@
     window.location.href = CREATE_PAGE_URL;
   }
 
-  /* ================= 新建个人档案弹框 ================= */
-  function pvRow(label, val, wide) {
-    return '<div class="pv-row' + (wide ? ' wide' : '') + '"><span class="pv-label">' + label + '</span><span class="pv-val">' + esc(val || '') + '</span></div>';
-  }
-
-  /* 回显卡渲染：左侧表单实时联动 */
-  function renderPreview() {
-    var region = $('cmRegion').value, detail = $('cmAddr').value.trim();
-    var addr = region ? region + detail : detail;
-    $('pvCard').innerHTML =
-      pvRow('姓名：', $('cmName').value.trim()) +
-      pvRow('民族：', $('cmNation').value) +
-      pvRow('出生年月：', $('cmBirth').value, true) +
-      pvRow('证件类型：', $('cmIdType').value) +
-      pvRow('证件号：', $('cmIdcard').value.trim()) +
-      pvRow('联系地址：', addr, true);
-  }
-
-  /* 弹框刚打开时回显卡为空（贴合原型：仅展示标签） */
-  function renderPreviewEmpty() {
-    $('pvCard').innerHTML =
-      pvRow('姓名：', '') + pvRow('民族：', '') +
-      pvRow('出生年月：', '', true) + pvRow('证件类型：', '') +
-      pvRow('证件号：', '') + pvRow('联系地址：', '', true);
-  }
-
-  function openCreateModal() {
-    $('cmIdType').value = '居民身份证';
-    $('cmIdcard').value = ''; $('cntIdcard').textContent = '0/18';
-    $('cmName').value = '';   $('cntName').textContent = '0/8';
-    $('cmGender').value = '';
-    $('cmNation').value = '汉族';
-    $('cmPhone').value = '';
-    var birth = $('cmBirth'); birth.type = 'text'; birth.value = '';
-    $('cmRegion').value = '';
-    $('cmAddr').value = ''; $('cntAddr').textContent = '0/50';
-    renderPreviewEmpty();
-    $('createModal').classList.add('show');
-  }
-
-  function closeCreateModal() {
-    $('createModal').classList.remove('show');
-  }
-
-  /* 证件号满 18 位：自动解析出生日期与性别（身份证第 7-14 位出生段、第 17 位奇偶判性别） */
-  function parseIdcard() {
-    var v = $('cmIdcard').value.trim();
-    if (!/^\d{17}[\dXx]$/.test(v)) return;
-    $('cmBirth').value = v.slice(6, 10) + '-' + v.slice(10, 12) + '-' + v.slice(12, 14);
-    $('cmGender').value = (parseInt(v[16], 10) % 2 === 1) ? '男性' : '女性';
-    toast('已根据证件号自动填充出生日期与性别', 'success');
-  }
-
-  function submitCreate() {
-    var missing = [];
-    if (!$('cmIdType').value) missing.push('证件类型');
-    var idcard = $('cmIdcard').value.trim();
-    if (!idcard) missing.push('证件号');
-    else if (!/^\d{17}[\dXx]$/.test(idcard)) { toast('证件号格式不正确，需为 18 位', 'warning'); return; }
-    if (!$('cmName').value.trim()) missing.push('姓名');
-    if (!$('cmGender').value) missing.push('性别');
-    if (!$('cmNation').value) missing.push('民族');
-    if (!$('cmPhone').value.trim()) missing.push('联系电话');
-    if (!$('cmBirth').value) missing.push('出生日期');
-    if (!$('cmRegion').value || !$('cmAddr').value.trim()) missing.push('联系地址');
-    if (missing.length) { toast('请完善必填项：' + missing.join('、'), 'warning'); return; }
-    closeCreateModal();
-    /* 校验通过：携带弹框信息进入档案维护界面（封面 → 个人基本信息表） */
-    var p = new URLSearchParams();
-    p.set('name', $('cmName').value.trim());
-    p.set('gender', $('cmGender').value);
-    p.set('idType', $('cmIdType').value);
-    p.set('idcard', $('cmIdcard').value.trim());
-    p.set('birth', $('cmBirth').value);
-    p.set('phone', $('cmPhone').value.trim());
-    p.set('nation', $('cmNation').value);
-    p.set('region', $('cmRegion').value);
-    p.set('addr', $('cmAddr').value.trim());
-    window.open('档案维护.html?' + p.toString(), '_blank');
-    toast('档案信息校验通过，已在新窗口打开档案维护界面', 'success');
-  }
-
-  /* 弹框联动事件 */
-  $('cmIdType').addEventListener('change', renderPreview);
-  $('cmGender').addEventListener('change', renderPreview);
-  $('cmNation').addEventListener('change', renderPreview);
-  $('cmBirth').addEventListener('change', renderPreview);
-  $('cmRegion').addEventListener('change', renderPreview);
-  $('cmIdcard').addEventListener('input', function () {
-    $('cntIdcard').textContent = this.value.length + '/18';
-    if (this.value.length === 18) parseIdcard();
-    renderPreview();
-  });
-  $('cmName').addEventListener('input', function () {
-    $('cntName').textContent = this.value.length + '/8';
-    renderPreview();
-  });
-  $('cmAddr').addEventListener('input', function () {
-    $('cntAddr').textContent = this.value.length + '/50';
-    renderPreview();
-  });
-
   /* 状态管理：变更说明字符计数 */
   $('stRemark').addEventListener('input', function () {
     $('cntRemark').textContent = this.value.length + '/200';
+  });
+
+  /* 上锁 / 解锁：原因字符计数 */
+  $('lkReason').addEventListener('input', function () {
+    $('cntLkReason').textContent = this.value.length + '/50';
+  });
+  $('ulReason').addEventListener('input', function () {
+    $('cntUlReason').textContent = this.value.length + '/50';
+  });
+
+  /* 撤销居民状态：原因字符计数 */
+  $('rvReason').addEventListener('input', function () {
+    $('cntRvReason').textContent = this.value.length + '/50';
+  });
+
+  /* 注销个人档案：注销原因字符计数 */
+  $('ccReason').addEventListener('input', function () {
+    $('cntCcReason').textContent = this.value.length + '/50';
   });
 
   /* 初始渲染 */

@@ -114,23 +114,29 @@
   .cascader-box{display:flex;align-items:center;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;background:#fff;cursor:pointer;transition:all var(--transition-fast);font-size:14px}
   .cascader-box:hover{border-color:var(--primary)}
   .cascader.open .cascader-box{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
-  .cascader-val{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-primary)}
+  .cascader-val{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-primary);padding-right:32px}
   .cascader-val.ph{color:var(--text-placeholder)}
-  .cascader-clear{display:none;position:absolute;right:7px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--text-placeholder);cursor:pointer}
+  .cascader-clear{display:none;position:absolute;right:24px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--text-placeholder);cursor:pointer}
   .cascader-clear:hover{color:var(--color-neutral-500)}
-  .cascader.has-val .cascader-clear{display:block}
-  .cascader.has-val .cascader-arrow{display:none}
+  .cascader.has-val:hover .cascader-clear{display:block}
   .cascader-arrow{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:12px;height:12px;color:var(--color-neutral-500);pointer-events:none;transition:transform var(--transition-fast)}
   .cascader.open .cascader-arrow{transform:translateY(-50%) rotate(180deg)}
-  .cascader-panel{display:none;position:absolute;left:0;top:38px;z-index:80;background:#fff;border:1px solid var(--primary-border);border-radius:var(--r-sm);box-shadow:var(--shadow-md);padding:6px 0}
+  .cascader-panel{display:none;position:absolute;left:0;top:38px;z-index:80;background:#fff;border:1px solid #E5E7EB;border-radius:6px;box-shadow:0 8px 24px rgba(15,23,42,0.16);padding:6px 0}
   .cascader.open .cascader-panel{display:flex}
-  .casc-col{width:140px;max-height:220px;overflow-y:auto;border-right:1px solid #EEF0F4}
-  .casc-col:last-child{border-right:none}
-  .casc-opt{display:flex;align-items:center;justify-content:space-between;gap:4px;height:28px;padding:0 10px;font-size:13px;color:var(--text-secondary);cursor:pointer;white-space:nowrap;overflow:hidden}
-  .casc-opt:hover{background:var(--primary-light)}
-  .casc-opt.active{background:var(--primary-header);color:var(--primary);font-weight:var(--font-weight-medium)}
+  /* 浮层脱离 .cascader 后，用自身 class 控制显隐 */
+  .cascader-panel.panel-shown{display:flex}
+  /* 浮层面板：挂到 body 下用 fixed 定位，避免被 .hp-card 的 overflow:hidden 裁切 */
+  .cascader-panel.panel-fixed{position:fixed;z-index:3000;max-width:calc(100vw - 16px);overflow-x:auto}
+  .casc-col{position:relative;width:176px;flex-shrink:0;max-height:240px;overflow-y:auto;padding:0 6px}
+  .casc-col::-webkit-scrollbar{width:6px}
+  .casc-col::-webkit-scrollbar-thumb{background:#DCDFE6;border-radius:3px}
+  .casc-opt{display:flex;align-items:center;height:30px;padding:0 10px;border-radius:4px;font-size:14px;color:var(--text-primary);cursor:pointer;white-space:nowrap;overflow:hidden;transition:background var(--transition-fast),color var(--transition-fast)}
+  .casc-opt:hover{background:#EAF3FF;color:var(--primary)}
+  .casc-opt.active{color:var(--primary)}
   .casc-opt .casc-txt{overflow:hidden;text-overflow:ellipsis}
-  .casc-opt .casc-check{flex-shrink:0;display:inline-flex;color:var(--primary)}
+  .casc-opt .casc-arrow{margin-left:auto;padding-left:8px;color:#C5CAD3;font-size:13px;line-height:1}
+  .casc-opt:hover .casc-arrow{color:var(--primary)}
+  .casc-opt .casc-check{margin-left:auto;padding-left:8px;flex-shrink:0;display:inline-flex;align-items:center;color:var(--primary)}
 
   /* ===== 基本信息视图 ===== */
   .basic-card{max-width:none;margin:0 auto;background:var(--bg-white);border-radius:var(--r-md);box-shadow:0 2px 10px rgba(157,169,197,0.25)}
@@ -538,6 +544,9 @@
   .wm-tbl .ctl.w150{width:150px}
   .wm-tbl .ctl.w220{width:220px}
   .wm-tbl .ctl.full{width:100%}
+  /* 妇女档案：户籍地址 / 现住址 五级级联，触发器铺满单元格 */
+  .wm-tbl .cascader{width:100%}
+  .wm-tbl .cascader-box{height:28px;font-size:13px}
   .wm-tbl .ctl[readonly]{background:#F5F5F5}
   /* 残疾人管理 · 编辑态：4 个基础字段 disabled 后灰底（必须写 background-color，避免覆盖 select.ctl 的下拉箭头） */
   .wm-tbl .ctl.gray{background-color:#F5F5F5}
@@ -720,6 +729,65 @@
   /* 跨列的值格（BMI / 血糖 / 失访原因）：控件按「一列宽」排布，不铺满整行 */
   .ms-tbl .ms-row.vspan{max-width:600px}
   .ms-tbl .ctl.vspan{max-width:600px}
+  /* ===== 孕产妇档案：操作按钮 / 档案记录浮层 / 结案弹框 / 已结案印章 ===== */
+  #msArcCard{position:relative}
+  .ms-act-icon{width:32px;height:32px;padding:0;display:inline-flex;align-items:center;justify-content:center;
+    border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);background:var(--bg-white);
+    color:var(--text-secondary);cursor:pointer;transition:all var(--transition-fast)}
+  .ms-act-icon:hover{border-color:var(--primary);color:var(--primary)}
+  .ms-act-icon.active{border-color:var(--primary);color:var(--primary);background:var(--primary-bg)}
+  /* 档案记录浮层（挂 body，避免被卡片裁切） */
+  .ms-rec-panel{position:fixed;z-index:1200;display:none;width:352px;background:var(--bg-white);
+    border:1px solid #E5E7EB;border-radius:6px;box-shadow:0 8px 24px rgba(15,23,42,0.16);overflow:hidden}
+  .ms-rec-panel.show{display:block}
+  .ms-rec-title{padding:10px 14px;font-size:14px;font-weight:var(--font-weight-semibold);
+    color:var(--text-primary);border-bottom:1px solid #F0F0F0}
+  .ms-rec-tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .ms-rec-tbl th{background:var(--primary-bg);color:var(--text-secondary);font-weight:var(--font-weight-medium);
+    text-align:left;padding:7px 14px;white-space:nowrap}
+  .ms-rec-tbl td{padding:0;border-top:1px solid #F5F6FA}
+  .ms-rec-cell{display:flex;align-items:center;gap:6px;padding:8px 14px;color:var(--text-primary);cursor:pointer}
+  .ms-rec-cell:hover{background:#F8FAFD}
+  .ms-rec-cell .ms-rec-arrow{width:12px;height:12px;flex-shrink:0;color:var(--text-tertiary);transition:transform var(--transition-fast)}
+  .ms-rec-row.open .ms-rec-cell .ms-rec-arrow{transform:rotate(90deg)}
+  .ms-rec-row.open .ms-rec-cell{background:var(--primary-bg);color:var(--primary)}
+  .ms-rec-detail{padding:0 0 6px;background:#FBFCFE}
+  .ms-rec-sub{width:100%;border-collapse:collapse;font-size:12.5px;table-layout:fixed}
+  .ms-rec-sub th{background:#F2F6FC;color:var(--text-secondary);font-weight:var(--font-weight-medium);
+    text-align:left;padding:6px 14px}
+  .ms-rec-sub td{padding:6px 14px;color:var(--text-secondary);border-top:1px solid #EFF3F8}
+  /* 结案弹框 */
+  .ms-mask{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:1300}
+  .ms-mask.show{display:flex}
+  .ms-dialog{width:520px;max-width:calc(100vw - 32px);background:var(--bg-white);border-radius:6px;
+    box-shadow:0 6px 24px rgba(0,0,0,0.18)}
+  .ms-dialog-head{display:flex;align-items:center;justify-content:space-between;padding:14px 20px}
+  .ms-dialog-head span:first-child{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--text-primary)}
+  .ms-dialog-x{font-size:20px;line-height:1;color:var(--text-tertiary);cursor:pointer;user-select:none}
+  .ms-dialog-x:hover{color:var(--text-primary)}
+  .ms-dialog-body{padding:0 20px 10px}
+  .ms-dialog-warn{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:4px;
+    background:#FAFAFA;font-size:13px;line-height:1.6;color:var(--text-secondary)}
+  .ms-dialog-warn .ico{flex-shrink:0;width:16px;height:16px;margin-top:2px;border-radius:50%;
+    background:#FAAD14;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .ms-dialog-field{display:flex;align-items:center;gap:6px;margin-top:14px}
+  .ms-dialog-field label{font-size:13px;color:var(--text-secondary);flex-shrink:0}
+  .ms-dialog-field label i{color:#F53F3F;font-style:normal;margin-right:2px}
+  .ms-dialog-field .ctl{flex:1;max-width:none}
+  .ms-dialog-foot{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px 18px}
+  /* 已结案印章 */
+  .ms-stamp{position:absolute;right:26px;top:104px;width:86px;height:86px;display:none;align-items:center;
+    justify-content:center;border:3px solid #52C41A;border-radius:50%;background:rgba(255,255,255,0.55);
+    color:#52C41A;font-size:15px;font-weight:700;letter-spacing:2px;transform:rotate(-14deg);
+    opacity:.88;pointer-events:none;z-index:3}
+  .ms-stamp::after{content:"";position:absolute;inset:5px;border:1px solid #52C41A;border-radius:50%;opacity:.55}
+  .ms-stamp.show{display:flex}
+  /* 结案后表单只读态 */
+  #viewMsArchive.locked .ms-tbl td.lb{color:#A8ABB2}
+  #viewMsArchive.locked .ms-tbl td.txt{color:#A8ABB2}
+  #viewMsArchive.locked .ms-tbl .opts .rad,
+  #viewMsArchive.locked .ms-tbl .opts .chk{color:#A8ABB2;cursor:not-allowed}
+  #viewMsArchive.locked .ms-tbl .unit{color:#C0C4CC}
   /* 分娩记录 · 胎儿卡片（表内可重复块） */
   .ms-tbl td.fx-cell{padding:8px 12px;height:auto}
   .ms-fetus{position:relative;border:1px solid #E3EAF5;border-radius:6px;background:#F8FAFD;padding:8px 34px 10px 12px}
@@ -1966,7 +2034,6 @@
         <div class="nav-sub-item nav-followup-hidden" id="navMsPost42" onclick="switchView('msPost42')">产后42天</div>
         <div class="nav-sub-item nav-followup-hidden" id="navMsRiskScreen" onclick="switchView('msRiskScreen')">妊娠风险筛查</div>
         <div class="nav-sub-item nav-followup-hidden" id="navMsRiskAssess" onclick="switchView('msRiskAssess')">妊娠风险评估</div>
-        <div class="nav-sub-item nav-followup-hidden" id="navMsReferral" onclick="toast('「转诊跟踪」模块功能建设中','info')">转诊跟踪</div>
       </div>
     </div>
     <div class="nav-item" id="navHealthCheckup" onclick="switchView('healthCheckup')">健康体检</div>
@@ -12442,12 +12509,12 @@
                 <td class="lb">民族</td>
                 <td class="txt" id="ppgNation">--</td>
               </tr>
-              <!-- 身高 / 体重 -->
+              <!-- 身高 / 体重（取自妇女档案，只读展示） -->
               <tr>
                 <td class="lb" colspan="4">身高</td>
-                <td><input class="ctl w120" id="ppgHeight" maxlength="5" placeholder="请输入"><span class="unit">cm</span></td>
+                <td class="txt"><span id="ppgHeight">--</span><span class="unit">cm</span></td>
                 <td class="lb">体重</td>
-                <td><input class="ctl w120" id="ppgWeight" maxlength="5" placeholder="请输入"><span class="unit">kg</span></td>
+                <td class="txt"><span id="ppgWeight">--</span><span class="unit">kg</span></td>
               </tr>
               <!-- 联系电话 / 职业 -->
               <tr>
@@ -12456,12 +12523,12 @@
                 <td class="lb">职业</td>
                 <td class="txt" id="ppgJob"></td>
               </tr>
-              <!-- 文化程度 / 工作单位 -->
+              <!-- 文化程度 / 工作单位（取自妇女档案，只读展示） -->
               <tr>
                 <td class="lb" colspan="4">文化程度</td>
-                <td><input class="ctl w220" id="ppgEducation" maxlength="20" placeholder="请输入"></td>
+                <td class="txt" id="ppgEducation">--</td>
                 <td class="lb">工作单位</td>
-                <td><input class="ctl w220" id="ppgWorkUnit" maxlength="50" placeholder="请输入"></td>
+                <td class="txt" id="ppgWorkUnit">--</td>
               </tr>
               <!-- 户籍地址 -->
               <tr>
@@ -13606,13 +13673,15 @@
                   <select class="ctl" id="waEdu">
                     <option value="" selected>请选择</option>
                     <option value="研究生">研究生</option>
-                    <option value="本科">本科</option>
-                    <option value="大专">大专</option>
+                    <option value="大学本科">大学本科</option>
+                    <option value="大学专科和专科学校">大学专科和专科学校</option>
                     <option value="中等专业学校">中等专业学校</option>
+                    <option value="技工学校">技工学校</option>
                     <option value="高中">高中</option>
                     <option value="初中">初中</option>
                     <option value="小学">小学</option>
-                    <option value="其他">其他</option>
+                    <option value="文盲或半文盲">文盲或半文盲</option>
+                    <option value="不详">不详</option>
                   </select>
                 </td>
                 <td class="lb">职业</td>
@@ -13630,16 +13699,24 @@
                   </select>
                 </td>
               </tr>
+              <!-- 工作单位（孕前医学检查表等专项表从此带入） -->
+              <tr>
+                <td class="lb">工作单位</td>
+                <td colspan="3"><input class="ctl full" id="waWorkUnit" maxlength="50" placeholder="请输入"></td>
+              </tr>
               <!-- 户籍地址 / 门牌号 -->
               <tr>
                 <td class="lb"><i>*</i>户籍地址</td>
                 <td>
-                  <select class="ctl full" id="waRegAddr">
-                    <option value="" selected>请选择</option>
-                    <option value="江苏省/扬州市/江都区/樊川镇/三周村">江苏省/扬州市/江都区/樊川镇/三周村</option>
-                    <option value="江苏省/扬州市/江都区/武坚镇/闸西社区">江苏省/扬州市/江都区/武坚镇/闸西社区</option>
-                    <option value="山东省/济南市/历下区/解放路街道/解放路社区">山东省/济南市/历下区/解放路街道/解放路社区</option>
-                  </select>
+                  <div class="cascader" id="cascWaR" data-store="waRegAddr">
+                    <div class="cascader-box">
+                      <span class="cascader-val ph">请选择</span>
+                      <span class="cascader-clear"><svg viewBox="0 0 16 16" width="14" height="14"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+                      <span class="cascader-arrow"><svg viewBox="0 0 12 12" width="12" height="12"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                    </div>
+                    <div class="cascader-panel"></div>
+                  </div>
+                  <input type="hidden" id="waRegAddr">
                 </td>
                 <td class="lb"><i>*</i>门牌号</td>
                 <td><input class="ctl" id="waRegNo" maxlength="30" placeholder="请输入"></td>
@@ -13648,12 +13725,15 @@
               <tr>
                 <td class="lb"><i>*</i>现住址</td>
                 <td>
-                  <select class="ctl full" id="waLiveAddr">
-                    <option value="" selected>请选择</option>
-                    <option value="江苏省/扬州市/江都区/樊川镇/三周村">江苏省/扬州市/江都区/樊川镇/三周村</option>
-                    <option value="江苏省/扬州市/江都区/武坚镇/闸西社区">江苏省/扬州市/江都区/武坚镇/闸西社区</option>
-                    <option value="山东省/济南市/历下区/解放路街道/解放路社区">山东省/济南市/历下区/解放路街道/解放路社区</option>
-                  </select>
+                  <div class="cascader" id="cascWaL" data-store="waLiveAddr">
+                    <div class="cascader-box">
+                      <span class="cascader-val ph">请选择</span>
+                      <span class="cascader-clear"><svg viewBox="0 0 16 16" width="14" height="14"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+                      <span class="cascader-arrow"><svg viewBox="0 0 12 12" width="12" height="12"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                    </div>
+                    <div class="cascader-panel"></div>
+                  </div>
+                  <input type="hidden" id="waLiveAddr">
                 </td>
                 <td class="lb"><i>*</i>门牌号</td>
                 <td><input class="ctl" id="waLiveNo" maxlength="30" placeholder="请输入"></td>
@@ -15714,7 +15794,12 @@
           <div class="wm-head-top">
             <h3>孕产妇档案</h3>
             <div class="hp-actions">
-              <button class="btn btn-primary" onclick="saveMsArchive()">保存</button>
+              <button class="btn btn-default" id="msArcBtnClose" style="display:none" onclick="msArcOpenClose()">结案</button>
+              <button class="btn btn-primary" id="msArcBtnSave" onclick="saveMsArchive()">保存</button>
+              <button class="btn btn-default" id="msArcBtnNew" style="display:none" onclick="msArcNew()">新建</button>
+              <button class="ms-act-icon" id="msArcBtnRec" title="孕产妇档案记录" onclick="msArcToggleRec(event)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M8 9.5h8M8 13h8M8 16.5h5"/></svg>
+              </button>
             </div>
           </div>
           <div class="wm-head-sub">
@@ -15722,6 +15807,8 @@
             <span>档案编号：<b id="msArcArchNo">--</b></span>
           </div>
         </div>
+        <!-- 已结案印章（结案后显示） -->
+        <div class="ms-stamp" id="msArcStamp"><span>已结案</span></div>
         <div class="wm-body">
           <table class="wm-tbl ms-tbl">
             <colgroup><col style="width:179px"><col><col style="width:179px"><col></colgroup>
@@ -21578,6 +21665,33 @@
   </div>
 </div>
 
+<!-- ===== 孕产妇档案记录浮层 ===== -->
+<div class="ms-rec-panel" id="msArcRecPanel">
+  <div class="ms-rec-title">孕产妇档案记录</div>
+  <table class="ms-rec-tbl">
+    <thead><tr><th style="width:64px">序号</th><th>建档日期</th><th style="width:96px">是否结案</th></tr></thead>
+    <tbody id="msArcRecBody"></tbody>
+  </table>
+</div>
+
+<!-- ===== 孕产妇档案：结案弹框 ===== -->
+<div class="ms-mask" id="msCloseMask">
+  <div class="ms-dialog">
+    <div class="ms-dialog-head"><span>结案</span><span class="ms-dialog-x" onclick="msArcCloseCancel()">×</span></div>
+    <div class="ms-dialog-body">
+      <div class="ms-dialog-warn"><span class="ico">!</span><span>如果对孕产妇档案进行结案操作，则结束孕产妇管理且数据无法找回，请谨慎操作。</span></div>
+      <div class="ms-dialog-field">
+        <label><i>*</i>结案原因：</label>
+        <input class="ctl" id="msCloseReason" maxlength="100" placeholder="请输入">
+      </div>
+    </div>
+    <div class="ms-dialog-foot">
+      <button class="btn btn-primary" onclick="msArcCloseConfirm()">确定</button>
+      <button class="btn btn-default" onclick="msArcCloseCancel()">取消</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== 中医健康指导：调用中医保健模板弹框 ===== -->
 <div class="tcm-mask" id="tcmTmplMask">
   <div class="tcm-box">
@@ -21687,8 +21801,8 @@
         '江都区': {
           '仙女镇': ['北苑社区', '东苑社区', '砖桥社区'],
           '小纪镇': ['纪东社区', '宗村村'],
+          '武坚镇': ['民乐社区', '周西社区', '黄思社区', '五舍村', '花庄村', '龙河村'],
           '樊川镇': ['樊汊社区', '招贤社区', '东汇社区', '永安社区', '三周社区', '直属村'],
-          '武坚镇': ['周西社区', '五尖村', '黄思村', '联全村'],
           '真武镇': ['真武社区', '滨湖村'],
           '宜陵镇': ['宜陵社区', '西湖村']
         },
@@ -21758,34 +21872,74 @@
     $('cvVillage').value = village ? village + '居委会' : '';
   }
 
-  /* ================= 封面级联地址选择器（单框展示 + 五列下拉面板，状态存于隐藏 select） ================= */
+  /* ================= 级联地址选择器（单框展示 + 五列下拉面板）
+     两种取值来源：① prefix 对应 5 个隐藏 select（封面）；
+                   ② opts.store 指向一个隐藏域，存「省/市/区县/乡镇/村居」完整路径（妇女档案等表格内字段）
+     opts.floating=true 时面板挂到 body 下用 fixed 定位，避免被容器 overflow:hidden 裁切 ================= */
   var CASC_CHECK = '<span class="casc-check"><svg viewBox="0 0 12 12" width="12" height="12"><path d="M2 6.5l2.8 2.8L10 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
-  function initCascaderWidget(wrapId, prefix, maxLv) {
+  var CASC_ARROW = '<span class="casc-arrow">›</span>';
+  var ADDR_SYNC = {};
+  function initCascaderWidget(wrapId, prefix, maxLv, opts) {
+    opts = opts || {};
     maxLv = maxLv || 5;
     var wrap = $(wrapId);
+    if (!wrap) return;
     var box = wrap.querySelector('.cascader-box');
     var valEl = wrap.querySelector('.cascader-val');
     var panel = wrap.querySelector('.cascader-panel');
     var clear = wrap.querySelector('.cascader-clear');
+    var store = opts.store ? $(opts.store) : null;
+    var floating = !!opts.floating;
+    if (floating) {
+      panel.classList.add('panel-fixed');
+      document.body.appendChild(panel);
+    }
     var sels = [];
-    for (var si = 1; si <= maxLv; si++) sels.push($(prefix + si));
+    if (prefix) {
+      for (var si = 1; si <= maxLv; si++) { var sEl = $(prefix + si); if (sEl) sels.push(sEl); }
+    }
+    var useSel = sels.length > 0;
+    /* 初始值：隐藏 select 的当前值，或隐藏域里已存的完整地址 */
+    var cur = useSel ? sels.map(function (s) { return s.value; }) : parseRegion(store ? store.value : '');
     var snapshot = null;
 
-    function curVals() { return sels.map(function (s) { return s.value; }); }
+    function curVals() { return useSel ? sels.map(function (s) { return s.value; }) : cur.slice(); }
     function optsAt(lv) {
-      var cur = curVals();
+      var vals = curVals();
       if (lv === 1) return Object.keys(ADDR);
-      if (!cur[lv - 2]) return [];
-      var d = subAddr(lv - 1, cur);
+      if (!vals[lv - 2]) return [];
+      var d = subAddr(lv - 1, vals);
       return d ? (Array.isArray(d) ? d : Object.keys(d)) : [];
+    }
+    /* 指定列某节点是否有下一级（用于决定是否显示 › 箭头） */
+    function hasChild(lv, name) {
+      var vals = curVals().slice(0, lv);
+      vals[lv - 1] = name;
+      var d = ADDR;
+      for (var i = 0; i < lv && d; i++) d = d[vals[i]];
+      if (!d) return false;
+      return Array.isArray(d) ? d.length > 0 : Object.keys(d).length > 0;
     }
     function renderBox() {
       var vals = curVals().filter(Boolean);
       valEl.textContent = vals.length ? vals.join(' / ') : PH;
       valEl.classList.toggle('ph', !vals.length);
       wrap.classList.toggle('has-val', vals.length > 0);
+      if (store) store.value = vals.join('/');
+    }
+    /* 已选项超出列可视区时，列内滚动使其居中可见（如「扬州市」排在市列表末尾） */
+    function scrollActiveIntoView() {
+      Array.prototype.forEach.call(panel.querySelectorAll('.casc-col'), function (col) {
+        var on = col.querySelector('.casc-opt.active');
+        if (!on) return;
+        var top = on.offsetTop, h = on.offsetHeight;
+        if (top < col.scrollTop || top + h > col.scrollTop + col.clientHeight) {
+          col.scrollTop = Math.max(0, top - (col.clientHeight - h) / 2);
+        }
+      });
     }
     function renderPanel() {
+      var vals = curVals();
       panel.innerHTML = '';
       for (var lv = 1; lv <= maxLv; lv++) {
         (function (lv) {
@@ -21794,16 +21948,24 @@
           var col = document.createElement('div');
           col.className = 'casc-col';
           opts.forEach(function (o) {
-            var on = (sels[lv - 1].value === o);
+            var on = (vals[lv - 1] === o);
+            var kid = hasChild(lv, o);
             var item = document.createElement('div');
             item.className = 'casc-opt' + (on ? ' active' : '');
-            item.innerHTML = '<span class="casc-txt">' + esc(o) + '</span>' + (on ? CASC_CHECK : '');
+            item.innerHTML = '<span class="casc-txt">' + esc(o) + '</span>'
+              + (kid ? CASC_ARROW : (on ? CASC_CHECK : ''));
             item.addEventListener('click', function (e) {
               e.stopPropagation();
-              if (sels[lv - 1].value === o) return;
-              sels[lv - 1].value = o;
-              sels[lv - 1].dispatchEvent(new Event('change', { bubbles: true }));
-              if (lv < maxLv && optsAt(lv + 1).length) {
+              if (curVals()[lv - 1] === o) { if (!kid) close(); return; }
+              if (useSel) {
+                sels[lv - 1].value = o;
+                sels[lv - 1].dispatchEvent(new Event('change', { bubbles: true }));
+              } else {
+                cur[lv - 1] = o;
+                cur = cur.slice(0, lv);
+              }
+              if (lv < maxLv && kid) {
+                renderBox();
                 renderPanel();
               } else {
                 renderBox();
@@ -21815,35 +21977,94 @@
           panel.appendChild(col);
         })(lv);
       }
+      if (floating) positionPanel();
+      scrollActiveIntoView();
     }
-    function open() { snapshot = curVals(); renderPanel(); wrap.classList.add('open'); }
-    function close() { wrap.classList.remove('open'); }
-    function abandon() {
-      if (snapshot) {
+    /* 浮层定位：始终自触发框向下展开，高度按视口剩余空间收敛，右侧越界左移 */
+    function positionPanel() {
+      if (!floating || !wrap.classList.contains('open')) return;
+      var r = box.getBoundingClientRect();
+      var vw = window.innerWidth, vh = window.innerHeight;
+      var below = vh - (r.bottom + 4) - 10;
+      var above = r.top - 14;
+      var up = below < 160 && above > below;
+      var avail = Math.max(140, Math.min(284, up ? above : below));
+      panel.style.maxHeight = avail + 'px';
+      var cols = panel.querySelectorAll('.casc-col');
+      Array.prototype.forEach.call(cols, function (c) { c.style.maxHeight = ''; });
+      var ph = panel.offsetHeight;
+      Array.prototype.forEach.call(cols, function (c) { c.style.maxHeight = Math.max(96, ph - 12) + 'px'; });
+      var left = r.left, top = up ? (r.top - 4 - panel.offsetHeight) : (r.bottom + 4);
+      if (left + panel.offsetWidth > vw - 8) left = vw - 8 - panel.offsetWidth;
+      if (left < 8) left = 8;
+      if (top < 8) top = 8;
+      panel.style.left = Math.round(left) + 'px';
+      panel.style.top = Math.round(top) + 'px';
+    }
+    function open() {
+      snapshot = curVals();
+      wrap.classList.add('open');
+      panel.classList.add('panel-shown');
+      renderPanel();
+    }
+    function close() {
+      wrap.classList.remove('open');
+      panel.classList.remove('panel-shown');
+    }
+    function restore() {
+      if (!snapshot) return;
+      if (useSel) {
         setCascade(prefix, snapshot);
         if (prefix === 'cvP') syncTown();
+      } else {
+        cur = snapshot.slice();
       }
-      close();
+      renderBox();
     }
+    function abandon() { restore(); close(); }
 
     box.addEventListener('click', function () {
       wrap.classList.contains('open') ? abandon() : open();
     });
     clear.addEventListener('click', function (e) {
       e.stopPropagation();
-      sels.forEach(function (s) { s.value = ''; });
-      sels[0].dispatchEvent(new Event('change', { bubbles: true }));
+      if (useSel) {
+        sels.forEach(function (s) { s.value = ''; });
+        sels[0].dispatchEvent(new Event('change', { bubbles: true }));
+      } else {
+        cur = [];
+      }
       snapshot = curVals();
       renderBox();
       renderPanel();
     });
+    if (floating) {
+      /* 面板脱离文档流后需跟随触发框滚动/改尺寸 */
+      document.addEventListener('scroll', function () {
+        if (wrap.classList.contains('open')) positionPanel();
+      }, true);
+      window.addEventListener('resize', function () {
+        if (wrap.classList.contains('open')) positionPanel();
+      });
+    }
     document.addEventListener('click', function (e) {
-      if (wrap.classList.contains('open') && !wrap.contains(e.target)) abandon();
+      if (!wrap.classList.contains('open')) return;
+      if (wrap.contains(e.target) || panel.contains(e.target)) return;
+      abandon();
     });
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && wrap.classList.contains('open')) abandon();
     });
-    cascaderRefresh[prefix] = renderBox;
+    if (prefix) cascaderRefresh[prefix] = renderBox;
+    if (store) {
+      /* 外部（模拟填报 / 数据回填）直接改写隐藏域后，刷新控件展示 */
+      ADDR_SYNC[opts.store] = function (v) {
+        cur = parseRegion(v || '');
+        snapshot = curVals();
+        renderBox();
+        if (wrap.classList.contains('open')) renderPanel();
+      };
+    }
     renderBox();
   }
   var cascaderRefresh = {};
@@ -22495,6 +22716,103 @@
     var el = document.querySelector('input[name="' + name + '"][value="' + value + '"]');
     if (el) el.checked = true;
   }
+  /* ================= 婚前 / 孕前检查表：进入即自动带入 =================
+     1. 基本信息（姓名/性别/年龄/证件号/民族/联系电话/职业/户籍地址/现住址/档案编号）
+        取自「妇女档案」已填内容；未建档时回落到居民主索引（与妇女管理列表带参进入同源）。
+     2. 检查单位 / 检查医生 / 检查日期 / 医师签名：取当前登录信息里的机构、登录人、当天日期，
+        真实环境由登录态注入，原型取固定值（与家庭档案、居民档案创建界面一致）。 */
+  var LOGIN_USER = {
+    name: '吕雪',           /* 登录人 → 检查医生 / 医师签名 */
+    org: '山东大学齐鲁医院'  /* 登录机构 → 检查单位 */
+  };
+  /* 读取妇女档案基本信息（缺省值回落到居民主索引） */
+  function womanArchiveBase() {
+    var v = function (id) { var el = $(id); return el ? String(el.value || '').trim() : ''; };
+    var genderEl = document.querySelector('input[name="waGender"]:checked');
+    var regPath = v('waRegAddr'), livePath = v('waLiveAddr');
+    /* 未建档时用居民主索引里的省市区 + 详细地址拼整地址 */
+    var mainAddr = (P.region || '') + (P.addr || '');
+    return {
+      name: v('waName') || P.name,
+      gender: genderEl ? genderEl.value.replace('性', '') : ((P.gender || '').indexOf('男') === 0 ? '男' : '女'),
+      idcard: v('waIdcard') || QS.get('idcard') || P.idcard,
+      birth: v('waBirth') || QS.get('birth') || P.birth,
+      nation: v('waNation') || P.nation,
+      phone: v('waPhone') || QS.get('phone') || P.phone,
+      job: v('waJob'),
+      height: v('waHeight'),
+      weight: v('waWeight'),
+      edu: v('waEdu') || (function () { var e = document.querySelector('input[name="biEdu"]:checked'); return e ? e.value : ''; })(),
+      workUnit: v('waWorkUnit') || v('biWork'),
+      regAddr: regPath ? (regPath.replace(/\//g, '') + v('waRegNo')) : mainAddr,
+      liveAddr: livePath ? (livePath.replace(/\//g, '') + v('waLiveNo')) : mainAddr,
+      archNo: QS.get('archNo') || ($('cvArchNo') ? $('cvArchNo').value : '')
+    };
+  }
+  /* 婚前医学检查表：带入基本信息 + 登录信息（检查单位/医生/日期只在为空时带入，保留用户已改的值） */
+  function fillPreMaritalBase() {
+    if (!$('viewPreMarital')) return;
+    var b = womanArchiveBase();
+    wmSetTxt('pmNameTxt', b.name || '--');
+    wmSetTxt('pmArchNo', b.archNo || '--');
+    wmSetTxt('pmGender', b.gender || '--');
+    wmSetTxt('pmIdcard', b.idcard || '--');
+    wmSetTxt('pmAge', wmAgeText(b.birth) || '--');
+    wmSetTxt('pmNation', b.nation || '--');
+    wmSetTxt('pmPhone', b.phone || '--');
+    wmSetTxt('pmJob', b.job);
+    wmSetTxt('pmRegAddr', b.regAddr || '--');
+    wmSetTxt('pmLiveAddr', b.liveAddr || '--');
+    if ($('pmOrg') && !$('pmOrg').value) setSelAdd('pmOrg', LOGIN_USER.org);
+    if ($('pmDoctor') && !$('pmDoctor').value) setSelAdd('pmDoctor', LOGIN_USER.name);
+    if ($('pmExamDate') && !$('pmExamDate').value) setVal('pmExamDate', todaySafe());
+  }
+  /* 孕前医学检查表：带入妇女档案基本信息（含身高/体重/文化程度/工作单位，均只读展示）；
+     检查日期取当天、医师签名取当前登录人（编号 / 男方姓名 / 男方编号 仍需手工填报） */
+  function fillPrePregnancyBase() {
+    if (!$('viewPrePregnancy')) return;
+    var b = womanArchiveBase();
+    wmSetTxt('ppgNameTxt', b.name || '--');
+    wmSetTxt('ppgArchNo', b.archNo || '--');
+    wmSetTxt('ppgGender', b.gender || '--');
+    wmSetTxt('ppgIdcard', b.idcard || '--');
+    wmSetTxt('ppgAge', wmAgeText(b.birth) || '--');
+    wmSetTxt('ppgNation', b.nation || '--');
+    wmSetTxt('ppgPhone', b.phone || '--');
+    wmSetTxt('ppgJob', b.job);
+    wmSetTxt('ppgHeight', b.height || '');
+    wmSetTxt('ppgWeight', b.weight || '');
+    wmSetTxt('ppgEducation', b.edu || '');
+    wmSetTxt('ppgWorkUnit', b.workUnit || '');
+    wmSetTxt('ppgRegAddr', b.regAddr || '--');
+    wmSetTxt('ppgLiveAddr', b.liveAddr || '--');
+    if ($('ppgDate') && !$('ppgDate').value) setVal('ppgDate', todaySafe());
+    if ($('ppgExamSign') && !$('ppgExamSign').value) setVal('ppgExamSign', LOGIN_USER.name);
+    if ($('ppgDoctorSign') && !$('ppgDoctorSign').value) setVal('ppgDoctorSign', LOGIN_USER.name);
+    /* 表尾「医师签名」下拉：与检查医生同源，缺省取当前登录人 */
+    if ($('ppgDoctor') && !$('ppgDoctor').value) setSelAdd('ppgDoctor', LOGIN_USER.name);
+  }
+  /* 已婚妇女常见病免费检查表：带入妇女档案基本信息；
+     检查单位 / 检查医生 / 填表机构 / 填表医生 / 填表日期 取当前登录信息（空值才带入） */
+  var WD_ORG_IDS = ['wdColposcopyOrg', 'wdPathologyOrg', 'wdBreastUsOrg', 'wdBreastMammoOrg', 'wdBreastPathOrg', 'wdFillOrg'];
+  var WD_DOCTOR_IDS = ['wdGynDoctor', 'wdCytoDoctor', 'wdColposcopyDoctor', 'wdPathologyDoctor',
+    'wdBreastClinicDoctor', 'wdBreastUsDoctor', 'wdBreastMammoDoctor', 'wdBreastPathDoctor', 'wdFillDoctor'];
+  function fillWomanDiseaseBase() {
+    if (!$('viewWomanDisease')) return;
+    var b = womanArchiveBase();
+    wmSetTxt('wdNameTxt', b.name || '--');
+    wmSetTxt('wdArchNo', b.archNo || '--');
+    wmSetTxt('wdGender', b.gender || '--');
+    wmSetTxt('wdIdcard', b.idcard || '--');
+    wmSetTxt('wdAge', wmAgeText(b.birth) || '--');
+    wmSetTxt('wdNation', b.nation || '--');
+    wmSetTxt('wdPhone', b.phone || '--');
+    wmSetTxt('wdJob', b.job);
+    wmSetTxt('wdLiveAddr', b.liveAddr || '--');
+    WD_ORG_IDS.forEach(function (id) { if ($(id) && !$(id).value) setSelAdd(id, LOGIN_USER.org); });
+    WD_DOCTOR_IDS.forEach(function (id) { if ($(id) && !$(id).value) setSelAdd(id, LOGIN_USER.name); });
+    if ($('wdFillDate') && !$('wdFillDate').value) setVal('wdFillDate', todaySafe());
+  }
   /* 必填校验（t：val 输入/下拉，radio 单选，chk 多选） */
   function wmMissing(list) {
     var missing = [];
@@ -22516,10 +22834,10 @@
     });
   }
   /* 孕产妇档案建档成功后开放：第一次产前检查 / 产前访视 / 分娩记录 / 产后访视 /
-     产后42天 / 妊娠风险筛查 / 妊娠风险评估 / 转诊跟踪 八个业务目录 */
+     产后42天 / 妊娠风险筛查 / 妊娠风险评估  七个业务目录 */
   function revealMsModules() {
     ['navMsPrenatal1', 'navMsPrenatalVisit', 'navMsDelivery', 'navMsPostVisit',
-     'navMsPost42', 'navMsRiskScreen', 'navMsRiskAssess', 'navMsReferral'].forEach(function (id) {
+     'navMsPost42', 'navMsRiskScreen', 'navMsRiskAssess'].forEach(function (id) {
       var el = $(id);
       if (el) el.classList.remove('nav-followup-hidden');
     });
@@ -23295,9 +23613,15 @@
     $('viewHealthEdu').classList.toggle('hidden', !isHe);
     $('viewWomanArchive').classList.toggle('hidden', !isWa);
     $('viewPreMarital').classList.toggle('hidden', !isPm);
+    /* 婚前医学检查：点击菜单即带入妇女档案基本信息与当前登录信息 */
+    if (isPm) fillPreMaritalBase();
     $('viewFolicAcid').classList.toggle('hidden', !isFa);
     $('viewPrePregnancy').classList.toggle('hidden', !isPpg);
+    /* 孕前医学检查：点击菜单即带入妇女档案基本信息与当前登录信息 */
+    if (isPpg) fillPrePregnancyBase();
     $('viewWomanDisease').classList.toggle('hidden', !isWd);
+    /* 常见妇女病检查：点击菜单即带入妇女档案基本信息与当前登录信息 */
+    if (isWd) fillWomanDiseaseBase();
     $('viewCervical').classList.toggle('hidden', !isCx);
     $('viewBreast').classList.toggle('hidden', !isBt);
     $('viewBreastCase').classList.toggle('hidden', !isBc);
@@ -23317,6 +23641,8 @@
     $('viewChildGrowth').classList.toggle('hidden', !isCgr);
     $('viewChildDeath5').classList.toggle('hidden', !isCdt);
     $('viewMsArchive').classList.toggle('hidden', !isMsArc);
+    /* 孕产妇档案：点击菜单即带入妇女档案基本信息与当前登录信息 */
+    if (isMsArc) fillMsArchiveBase();
     $('viewMsPrenatal1').classList.toggle('hidden', !isMsP1);
     $('viewMsPrenatalVisit').classList.toggle('hidden', !isMsPv);
     $('viewMsDelivery').classList.toggle('hidden', !isMsDl);
@@ -25467,7 +25793,8 @@
   /* ================= 编辑/查看进入：自动模拟专项内容 + 补全目录 ================= */
   function setVal(id, v){ var el=document.getElementById(id); if(!el) return;
     var t=el.tagName;
-    if(t==='TD'||t==='SPAN'||t==='DIV'||t==='P'){ el.textContent=v; } else { el.value=v; } }
+    if(t==='TD'||t==='SPAN'||t==='DIV'||t==='P'){ el.textContent=v; }
+    else { el.value=v; if(ADDR_SYNC[id]) ADDR_SYNC[id](v); } }
   function pickSel(id){ var el=document.getElementById(id); if(el && el.options && el.options.length) el.selectedIndex = Math.min(1, el.options.length-1); }
   function setRadio(name, v){ var el=document.querySelector('input[name="'+name+'"][value="'+v+'"]'); if(el){ el.checked=true; } }
   function setChkFirst(boxId, nth){ var b=document.getElementById(boxId); if(!b) return; var c=b.querySelectorAll('input[type=checkbox],input[type=radio]'); if(c.length) c[Math.min(nth||0, c.length-1)].checked=true; }
@@ -25581,11 +25908,12 @@
     setVal('waNation', P.nation);
     setVal('waPhone', QS.get('phone') || P.phone);
     setVal('waMarriage', '已婚');
-    setVal('waEdu', '中等专业学校');
+    setVal('waEdu', '大学本科');
     setVal('waJob', '国家机关、党群组织、企业、事业单位负责人');
-    setVal('waRegAddr', '江苏省/扬州市/江都区/樊川镇/三周村');
+    setVal('waWorkUnit', '无');
+    setVal('waRegAddr', '江苏省/扬州市/江都区/樊川镇/三周社区');
     setVal('waRegNo', '马家组');
-    setVal('waLiveAddr', '江苏省/扬州市/江都区/樊川镇/三周村');
+    setVal('waLiveAddr', '江苏省/扬州市/江都区/樊川镇/三周社区');
     setVal('waLiveNo', '马家组');
     setRadio('waFee', '城镇居民基本医疗保险');
     setRadio('waResType', '农村居民');
@@ -25608,7 +25936,8 @@
     wmSetTxt('waNameTxt', P.name);
   }
   function mockPreMarital() {
-    wmFillIdentity('pm', '江苏省扬州市江都区武坚镇闸西社区0000');
+    /* 基本信息 + 检查单位/医生/日期沿用进入时的自动带入结果 */
+    fillPreMaritalBase();
     setVal('pmCoupleNo', 'HY20260921001');
     setRadio('pmConsult', '是');
     setRadio('pmHbsag', '阴性');
@@ -25632,8 +25961,6 @@
     setVal('pmHygieneGuide', '已开展婚前卫生指导');
     setVal('pmHygieneConsult', '已开展婚前卫生咨询');
     setVal('pmRemark', '已告知双方婚前医学检查结果，双方知情并签字。'); wmCnt($('pmRemark'), 'pmRemarkCnt');
-    pickSel('pmOrg'); pickSel('pmDoctor');
-    setVal('pmExamDate', todaySafe());
   }
   function mockFolicAcid() {
     setVal('faHeight', '160');
@@ -25649,15 +25976,12 @@
     setVal('faDate', todaySafe());
   }
   function mockPrePregnancy() {
+    /* 演示「已有妇女档案」：档案为空时先建档，再带入基本信息 + 检查日期/医师签名 */
+    if ($('waName') && !$('waName').value) mockWomanArchive();
+    fillPrePregnancyBase();
     setVal('ppgNo', 'YQ20260921001');
-    setVal('ppgDate', todaySafe());
     setVal('ppgMaleName', '张喜喜');
     setVal('ppgMaleNo', 'YQ20260921002');
-    wmFillIdentity('ppg', '江苏省扬州市江都区武坚镇闸西社区0000');
-    setVal('ppgHeight', '160');
-    setVal('ppgWeight', '55');
-    setVal('ppgEducation', '本科');
-    setVal('ppgWorkUnit', '扬州市江都区实验小学');
     setChkByName('ppgPastDis', '无');
     setRadio('ppgOperation', '否');
     setChkByName('ppgNowDis', '无');
@@ -25708,7 +26032,6 @@
     setRadio('ppgLiver', '未及');
     setRadio('ppgLimb', '正常');
     setVal('ppgOther', '未见异常');
-    setVal('ppgExamSign', '吕雪');
     setRadio('ppgPubicHair', '正常');
     setRadio('ppgBreast', '正常');
     setVal('ppgVulva1', '未见异常');
@@ -25721,7 +26044,6 @@
     setVal('ppgUterus2', '未见异常');
     setVal('ppgAdnexa2', '未见异常');
     setVal('ppgSelfSign', P.name);
-    setVal('ppgDoctorSign', '吕雪');
     setVal('ppgBodyOther', '无');
     setVal('ppgAssistResult', '血常规、尿常规、肝肾功能、甲状腺功能未见异常；TORCH 筛查阴性。');
     wmCnt($('ppgAssistResult'), 'ppgAssistCnt');
@@ -26055,7 +26377,9 @@
     toast('保存成功：宫颈癌检查表已归档', 'success');
   }
   function mockWomanDisease() {
-    wmFillIdentity('wd', '江苏省扬州市江都区武坚镇闸西社区0000');
+    /* 演示「已有妇女档案」：档案为空时先建档，再带入基本信息 + 检查单位/医生/填表信息 */
+    if ($('waName') && !$('waName').value) mockWomanArchive();
+    fillWomanDiseaseBase();
     setVal('wdMarryAge', '24');
     setVal('wdFullTerm', '1');
     setVal('wdPreterm', '0');
@@ -26094,42 +26418,26 @@
     setChkByName('wdLeucorrheaRoutine', '清洁度');
     setRadio('wdVaginitisTreat', '无');
     setRadio('wdBUltrasound', '未见异常');
-    pickSel('wdGynDoctor');
     setRadio('wdPapanicolaou', 'Ⅱ');
     setRadio('wdTbs', 'NILM');
-    pickSel('wdCytoDoctor');
     setRadio('wdColposcopyResult', '阴性');
-    pickSel('wdColposcopyDoctor');
-    pickSel('wdColposcopyOrg');
     setRadio('wdPathology', '阴性');
-    pickSel('wdPathologyDoctor');
-    pickSel('wdPathologyOrg');
     setRadio('wdCervicalTreat', '无');
     setRadio('wdCervicalReferral', '否');
     setVal('wdCervicalReferralAdvice', '无需转诊，建议定期复查');
     pickSel('wdCervicalReferralOrg');
     setChkByName('wdBreastClinicLeft', '正常');
     setChkByName('wdBreastClinicRight', '正常');
-    pickSel('wdBreastClinicDoctor');
     setRadio('wdBreastUsLeft', '未见异常');
     setRadio('wdBreastUsRight', '未见异常');
-    pickSel('wdBreastUsOrg');
-    pickSel('wdBreastUsDoctor');
     setRadio('wdBreastMammoLeft', '未见异常');
     setRadio('wdBreastMammoRight', '未见异常');
-    pickSel('wdBreastMammoOrg');
-    pickSel('wdBreastMammoDoctor');
     setRadio('wdBreastPathLeft', '未见异常');
     setRadio('wdBreastPathRight', '未见异常');
-    pickSel('wdBreastPathOrg');
-    pickSel('wdBreastPathDoctor');
     setRadio('wdBreastTreat', '药物');
     setRadio('wdBreastReferral', '否');
     pickSel('wdBreastReferralOrg');
     setRadio('wdCheckResult', '未检出妇女病');
-    pickSel('wdFillOrg');
-    pickSel('wdFillDoctor');
-    setVal('wdFillDate', todaySafe());
   }
 
   /* =========================================================================
@@ -26227,9 +26535,155 @@
   function msFillHead(pref, name) {
     var t = $(pref + 'NameTxt'), a = $(pref + 'ArchNo');
     if (t) t.textContent = name || P.name;
-    if (a) a.textContent = MS_ARCH_NO;
+    /* 档案编号与婚前/孕前/常见妇女病检查表保持一致：带参进入用原编号，否则用居民档案编号 */
+    if (a) a.textContent = QS.get('archNo') || ($('cvArchNo') ? $('cvArchNo').value : '') || MS_ARCH_NO;
   }
   /* ---------------- 孕产妇档案 ---------------- */
+  /* 进入即初始化：基本信息区取自妇女档案；管理机构 / 责任医生 / 建档机构 / 建档日期取当前登录信息 */
+  function fillMsArchiveBase() {
+    if (!$('viewMsArchive')) return;
+    var b = womanArchiveBase();
+    msFillHead('msArc', b.name);
+    wmSetTxt('msArcGender', b.gender || '--');
+    wmSetTxt('msArcIdcard', b.idcard || '--');
+    wmSetTxt('msArcAge', wmAgeText(b.birth) || '--');
+    wmSetTxt('msArcNation', b.nation || '--');
+    wmSetTxt('msArcPhone', b.phone || '--');
+    wmSetTxt('msArcJob', b.job || '--');
+    wmSetTxt('msArcEdu', b.edu || '--');
+    wmSetTxt('msArcWork', b.workUnit || '--');
+    wmSetTxt('msArcAddr', b.liveAddr || '--');
+    if ($('msArcManageOrg') && !$('msArcManageOrg').value) setSelAdd('msArcManageOrg', LOGIN_USER.org);
+    if ($('msArcDoctor') && !$('msArcDoctor').value) setSelAdd('msArcDoctor', LOGIN_USER.name);
+    if ($('msArcCreateOrg') && !$('msArcCreateOrg').value) setSelAdd('msArcCreateOrg', LOGIN_USER.org);
+    if ($('msArcCreateDate') && !$('msArcCreateDate').value) setVal('msArcCreateDate', todaySafe());
+  }
+  /* ---------- 孕产妇档案：保存后可结案 / 结案后转新建，记录浮层与印章 ---------- */
+  var msArcSaved = false;      /* 是否已填报保存 */
+  var msArcClosed = false;     /* 是否已结案 */
+  var msArcRecShown = false;   /* 记录浮层是否展开 */
+  var msArcRecRowOpen = false; /* 记录行是否展开服务项目 */
+  function msArcSyncActions() {
+    if (!$('msArcBtnClose')) return;
+    $('msArcBtnClose').style.display = (!msArcClosed && msArcSaved) ? '' : 'none';
+    $('msArcBtnSave').style.display = msArcClosed ? 'none' : '';
+    $('msArcBtnNew').style.display = msArcClosed ? '' : 'none';
+  }
+  /* 结案后整表只读 */
+  function msArcSetLock(lock) {
+    var v = $('viewMsArchive');
+    if (!v) return;
+    v.classList.toggle('locked', lock);
+    var els = v.querySelectorAll('.ms-tbl input, .ms-tbl select, .ms-tbl textarea');
+    for (var i = 0; i < els.length; i++) els[i].disabled = lock;
+  }
+  /* 记录浮层：一行档案 + 展开的服务项目 */
+  function msArcRenderRec() {
+    var body = $('msArcRecBody');
+    if (!body) return;
+    var date = ($('msArcCreateDate') && $('msArcCreateDate').value) || '2023-04-03';
+    var items = [
+      { d: date, n: '妊娠风险筛查' },
+      { d: date, n: '妊娠风险评估' },
+      { d: date, n: '分娩记录' }
+    ];
+    var arrow = '<svg class="ms-rec-arrow" viewBox="0 0 12 12"><path d="M4 2.5L8.5 6L4 9.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    var html = '<tr class="ms-rec-row' + (msArcRecRowOpen ? ' open' : '') + '">' +
+      '<td><div class="ms-rec-cell" onclick="msArcRecRowToggle()">' + arrow + '<span>1</span></div></td>' +
+      '<td><div class="ms-rec-cell" onclick="msArcRecRowToggle()">' + date + '</div></td>' +
+      '<td><div class="ms-rec-cell" onclick="msArcRecRowToggle()">' + (msArcClosed ? '已结案' : '未结案') + '</div></td>' +
+      '</tr>';
+    if (msArcRecRowOpen) {
+      html += '<tr><td colspan="3" class="ms-rec-detail"><table class="ms-rec-sub"><thead><tr>' +
+        '<th>服务日期</th><th>服务项目</th></tr></thead><tbody>' +
+        items.map(function (it) { return '<tr><td>' + it.d + '</td><td>' + it.n + '</td></tr>'; }).join('') +
+        '</tbody></table></td></tr>';
+    }
+    body.innerHTML = html;
+  }
+  function msArcPositionRec() {
+    var btn = $('msArcBtnRec'), panel = $('msArcRecPanel');
+    if (!btn || !panel) return;
+    var r = btn.getBoundingClientRect();
+    panel.style.top = Math.round(r.bottom + 6) + 'px';
+    var left = r.right - panel.offsetWidth;
+    if (left < 8) left = 8;
+    panel.style.left = Math.round(left) + 'px';
+  }
+  function msArcToggleRec(e) {
+    if (e) e.stopPropagation();
+    msArcRecShown = !msArcRecShown;
+    var panel = $('msArcRecPanel');
+    if (msArcRecShown) {
+      panel.classList.add('show');
+      $('msArcBtnRec').classList.add('active');
+      msArcRenderRec();
+      msArcPositionRec();
+    } else {
+      panel.classList.remove('show');
+      $('msArcBtnRec').classList.remove('active');
+    }
+  }
+  function msArcCloseRec() {
+    msArcRecShown = false;
+    $('msArcRecPanel').classList.remove('show');
+    $('msArcBtnRec').classList.remove('active');
+  }
+  function msArcRecRowToggle() {
+    msArcRecRowOpen = !msArcRecRowOpen;
+    msArcRenderRec();
+    msArcPositionRec();
+  }
+  /* 结案 */
+  function msArcOpenClose() {
+    $('msCloseReason').value = '';
+    $('msCloseMask').classList.add('show');
+    setTimeout(function () { $('msCloseReason').focus(); }, 30);
+  }
+  function msArcCloseCancel() { $('msCloseMask').classList.remove('show'); }
+  function msArcCloseConfirm() {
+    if (!$('msCloseReason').value.trim()) { toast('请输入结案原因', 'warning'); return; }
+    msArcClosed = true;
+    $('msCloseMask').classList.remove('show');
+    msArcSetLock(true);
+    $('msArcStamp').classList.add('show');
+    msArcSyncActions();
+    msArcRenderRec();
+    toast('孕产妇档案已结案', 'success');
+  }
+  /* 新建：清空业务字段 → 重新带入基本信息与登录信息，恢复可编辑 */
+  function msArcNew() {
+    var v = $('viewMsArchive');
+    var els = v.querySelectorAll('.ms-tbl input, .ms-tbl select, .ms-tbl textarea');
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      el.disabled = false;
+      if (el.type === 'radio' || el.type === 'checkbox') el.checked = false;
+      else if (el.tagName === 'SELECT') el.selectedIndex = 0;
+      else el.value = '';
+    }
+    msArcClosed = false; msArcSaved = false; msArcRecRowOpen = false;
+    v.classList.remove('locked');
+    $('msArcStamp').classList.remove('show');
+    fillMsArchiveBase();
+    msArcSyncActions();
+    msArcRenderRec();
+    toast('已新建孕产妇档案，请继续填报', 'info');
+  }
+  /* 点空白处关闭记录浮层 */
+  document.addEventListener('click', function (e) {
+    if (!msArcRecShown) return;
+    var p = $('msArcRecPanel'), b = $('msArcBtnRec');
+    if (p && p.contains(e.target)) return;
+    if (b && b.contains(e.target)) return;
+    msArcCloseRec();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      if ($('msCloseMask').classList.contains('show')) msArcCloseCancel();
+      if (msArcRecShown) msArcCloseRec();
+    }
+  });
   function saveMsArchive() {
     var missing = wmMissing([
       { t: 'val', id: 'msArcGravida', label: '孕次' },
@@ -26244,24 +26698,22 @@
     if (missing.length) { toast('请完善必填项：' + missing.join('、'), 'warning'); return; }
     msFillHead('msArc');
     msMarkArchCreated();
+    msArcSaved = true;
+    msArcSyncActions();
+    msArcRenderRec();
     wmToastSaved('保存成功：孕产妇档案已建立，可继续填报产前检查、分娩记录与产后访视');
   }
   function mockMsArchive() {
-    $('msArcGender').textContent = (P.gender || '').indexOf('男') === 0 ? '男' : '女';
-    $('msArcIdcard').textContent = QS.get('idcard') || P.idcard;
-    $('msArcAge').textContent = wmAgeText(QS.get('birth') || P.birth);
-    $('msArcNation').textContent = P.nation;
-    $('msArcPhone').textContent = QS.get('phone') || P.phone;
-    setVal('msArcJob', '');
-    setVal('msArcEdu', '');
-    setVal('msArcWork', '银行');
-    setVal('msArcAddr', '四川省成都市温江区柳城街道办事处北街社区1212');
+    /* 演示「已有妇女档案 / 已登录」：先补建档案，再带入基本信息与建档信息 */
+    if ($('waName') && !$('waName').value) mockWomanArchive();
+    fillMsArchiveBase();
     setVal('msArcHeight', ''); setVal('msArcWeight', ''); setVal('msArcBmi', '');
     setVal('msArcSpouse', ''); setVal('msArcSpouseId', ''); setVal('msArcSpousePhone', '');
-    pickSel('msArcManageOrg'); pickSel('msArcDoctor'); pickSel('msArcCreateOrg');
-    setVal('msArcCreateDate', todaySafe());
-    msFillHead('msArc');
     msMarkArchCreated();
+    /* 演示「已有档案」：直接进入已填报状态（可结案） */
+    msArcSaved = true;
+    msArcSyncActions();
+    msArcRenderRec();
   }
 
   /* ---------------- 第1次产前服务记录表 ---------------- */
@@ -26999,6 +27451,9 @@
     initCascade('cvH', regionPreset);
     initCascaderWidget('cascCvP', 'cvP');
     initCascaderWidget('cascCvH', 'cvH');
+    /* 妇女档案：户籍地址 / 现住址（五级级联，值存隐藏域，面板浮层展开） */
+    initCascaderWidget('cascWaR', null, 5, { store: 'waRegAddr', floating: true });
+    initCascaderWidget('cascWaL', null, 5, { store: 'waLiveAddr', floating: true });
     syncTown();
     bindCnt('cvName', 'cntCvName');
     bindCnt('cvAddrDetail', 'cntCvAddr');

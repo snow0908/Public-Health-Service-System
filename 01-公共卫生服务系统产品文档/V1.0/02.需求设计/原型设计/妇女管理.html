@@ -196,6 +196,29 @@
   .fm-addr-row{margin:14px 0 0}
   .fm-addr-row .fm-ctl-wrap{flex:1;min-width:0}
   .fm-addr-row .fm-ctl{width:100%}
+
+  /* ===== 联系地址：五级级联（省 / 市 / 区县 / 乡镇街道 / 村社区） ===== */
+  .addr-cas{position:relative;flex-shrink:0}
+  .addr-cas-box{width:204px;height:32px;display:flex;align-items:center;padding:0 26px 0 10px;position:relative;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);background:var(--bg-white);cursor:pointer;transition:border-color var(--transition-fast),box-shadow var(--transition-fast)}
+  .addr-cas-box:hover{border-color:#B4BCC8}
+  .addr-cas.open .addr-cas-box{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .addr-cas-text{flex:1;min-width:0;font-size:14px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .addr-cas-text.is-ph{color:var(--text-placeholder)}
+  .addr-cas-caret{position:absolute;right:10px;top:50%;width:7px;height:7px;border-right:1.4px solid #8C8C8C;border-bottom:1.4px solid #8C8C8C;transform:translate(0,-70%) rotate(45deg);transition:transform var(--transition-fast),border-color var(--transition-fast)}
+  .addr-cas.open .addr-cas-caret{transform:translate(0,-25%) rotate(-135deg);border-color:var(--primary)}
+  /* 级联面板：fixed 定位，避免被弹框 overflow:hidden 裁剪 */
+  .addr-panel{position:fixed;z-index:1500;display:none;padding:6px 0;background:var(--bg-white);border:1px solid #E5E7EB;border-radius:6px;box-shadow:0 8px 24px rgba(15,23,42,0.16);max-width:calc(100vw - 16px);overflow-x:auto}
+  .addr-panel.show{display:flex}
+  .addr-col{position:relative;width:176px;flex-shrink:0;max-height:240px;overflow-y:auto;padding:0 6px}
+  .addr-col::-webkit-scrollbar{width:6px}
+  .addr-col::-webkit-scrollbar-thumb{background:#DCDFE6;border-radius:3px}
+  .addr-n{display:flex;align-items:center;height:30px;padding:0 10px;border-radius:4px;font-size:14px;color:var(--text-primary);white-space:nowrap;cursor:pointer;transition:background var(--transition-fast),color var(--transition-fast)}
+  .addr-n .addr-tx{overflow:hidden;text-overflow:ellipsis}
+  .addr-n:hover{background:#EAF3FF;color:var(--primary)}
+  .addr-n.on{color:var(--primary)}
+  .addr-n .addr-arrow{margin-left:auto;padding-left:8px;color:#C5CAD3;font-size:13px;line-height:1}
+  .addr-n:hover .addr-arrow{color:var(--primary)}
+  .addr-empty{padding:6px 10px;font-size:13px;color:var(--text-placeholder)}
   .pv-row{display:flex;min-width:0}
   .pv-row.wide{grid-column:1 / -1}
   .pv-label{color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
@@ -596,20 +619,16 @@
           <div class="pv-card" id="pvCard"></div>
         </div>
       </div>
-      <!-- 联系地址：整行铺底 -->
+      <!-- 联系地址：整行铺底（五级级联：省 / 市 / 区县 / 乡镇街道 / 村社区） -->
       <div class="fm-row fm-addr-row">
         <label><i>*</i>联系地址：</label>
-        <select id="cmRegion" class="fm-select" style="width:186px">
-          <option value="" selected>请选择现住址</option>
-          <option value="江苏省扬州市江都区">江苏省 / 扬州市 / 江都区</option>
-          <option value="江苏省扬州市邗江区">江苏省 / 扬州市 / 邗江区</option>
-          <option value="江苏省南京市玄武区">江苏省 / 南京市 / 玄武区</option>
-          <option value="江苏省苏州市姑苏区">江苏省 / 苏州市 / 姑苏区</option>
-          <option value="山东省济南市历下区">山东省 / 济南市 / 历下区</option>
-          <option value="山东省济南市市中区">山东省 / 济南市 / 市中区</option>
-          <option value="山东省济南市天桥区">山东省 / 济南市 / 天桥区</option>
-          <option value="山东省济南市历城区">山东省 / 济南市 / 历城区</option>
-        </select>
+        <div class="addr-cas" id="addrCas">
+          <div class="addr-cas-box" id="addrCasBox">
+            <span class="addr-cas-text is-ph" id="cmRegionText" title="请选择现住址">请选择现住址</span>
+            <span class="addr-cas-caret"></span>
+          </div>
+          <input type="hidden" id="cmRegion">
+        </div>
         <div class="fm-ctl-wrap">
           <input id="cmAddr" class="fm-ctl has-cnt" maxlength="50" placeholder="请输入详细地址">
           <span class="cnt" id="cntAddr">0/50</span>
@@ -1111,6 +1130,245 @@
     $(id).addEventListener('change', function () { sfCurPage = 1; renderSelectTable(); });
   });
 
+  /* ================= 联系地址：五级级联（省 / 市 / 区县 / 乡镇街道 / 村社区） ================= */
+  var ADDR_TREE = {
+    '内蒙古自治区': {
+      '呼和浩特市': {
+        '新城区': { '海拉尔东路街道': ['气东社区','哲里木路社区','八一社区'], '东风路街道': ['光华街社区','丽苑社区'] },
+        '赛罕区': { '大学东路街道': ['望兴园社区','桃园社区'], '榆林镇': ['榆林村','三应窑村','什犋窑村'] }
+      },
+      '包头市': {
+        '昆都仑区': { '林荫路街道': ['友谊社区','林荫社区'], '卜尔汉图镇': ['卜尔汉图村','哈业脑包村'] }
+      }
+    },
+    '辽宁省': {
+      '沈阳市': {
+        '和平区': { '太原街街道': ['中山社区','民族社区'], '浑河站西街道': ['前鲜村','曹仲村'] },
+        '铁西区': { '兴华街道': ['兴华园社区','保工社区'], '大潘街道': ['大潘村','小潘村'] }
+      },
+      '大连市': {
+        '中山区': { '桂林街道': ['解放社区','湖畔社区'], '老虎滩街道': ['虎滩社区','中兴社区'] }
+      }
+    },
+    '吉林省': {
+      '长春市': {
+        '南关区': { '长通街道': ['东广社区','光复路社区'], '幸福乡': ['光明村','杨家村'] },
+        '朝阳区': { '红旗街道': ['红旗社区','建政社区'], '乐山镇': ['乐山村','长兴村'] }
+      },
+      '吉林市': {
+        '船营区': { '大东街道': ['松江社区','吉源社区'], '欢喜乡': ['欢喜村','新山村'] }
+      }
+    },
+    '黑龙江省': {
+      '哈尔滨市': {
+        '道里区': { '兆麟街道': ['兆麟社区','森林社区'], '新农镇': ['新农社区','前进村'] },
+        '南岗区': { '花园街道': ['花园社区','繁荣社区'], '王岗镇': ['王岗村','房身村'] }
+      },
+      '齐齐哈尔市': {
+        '龙沙区': { '正阳街道': ['正阳社区','安智社区'], '大民街道': ['大民村','五福玛村'] }
+      }
+    },
+    '上海市': {
+      '黄浦区': { '南京东路街道': ['三德里社区','平望社区'], '豫园街道': ['四新社区','果育社区'] },
+      '浦东新区': { '陆家嘴街道': ['上港社区','梅园社区'], '川沙新镇': ['连民村','界龙村'] },
+      '徐汇区': { '湖南路街道': ['武康社区','复中社区'], '华泾镇': ['华泾社区','星联村'] }
+    },
+    '江苏省': {
+      '南京市': {
+        '玄武区': { '梅园新村街道': ['大行宫社区','梅园新村社区','兰园社区'], '锁金村街道': ['锁金一村社区','锁金四村社区','紫鑫城社区'] },
+        '秦淮区': { '夫子庙街道': ['夫子庙社区','乌衣巷社区'], '双塘街道': ['来凤街社区','弓道街社区'] },
+        '鼓楼区': { '华侨路街道': ['慈悲社社区','广州路社区'], '宁海路街道': ['山西路社区','颐和路社区'] }
+      },
+      '无锡市': {
+        '梁溪区': { '崇安寺街道': ['崇安寺社区','东河花园社区'], '清名桥街道': ['南长街社区','塘南社区'] },
+        '滨湖区': { '河埒街道': ['河埒社区','荣巷社区'], '蠡湖街道': ['蠡湖社区','美湖社区'] }
+      },
+      '徐州市': {
+        '云龙区': { '彭城街道': ['彭城社区','晓光社区'], '子房街道': ['子房社区','响山社区'] },
+        '鼓楼区': { '黄楼街道': ['黄楼社区','庆北社区'], '牌楼街道': ['牌楼社区','水漫桥社区'] }
+      },
+      '常州市': {
+        '天宁区': { '雕庄街道': ['雕庄社区','朝阳社区'], '青龙街道': ['青龙社区','紫荆社区'] },
+        '钟楼区': { '南大街街道': ['南大街社区','双桂坊社区'], '荷花池街道': ['荷花池社区','西新桥社区'] }
+      },
+      '苏州市': {
+        '姑苏区': { '观前街道': ['观前社区','宫巷社区'], '平江街道': ['平江社区','历史街区社区'] },
+        '吴中区': { '长桥街道': ['长桥社区','蠡墅社区'], '木渎镇': ['木渎社区','香溪社区','穹窿社区'] }
+      },
+      '南通市': {
+        '崇川区': { '城东街道': ['城东社区','板桥社区'], '和平桥街道': ['和平桥社区','濠阳社区'] },
+        '通州区': { '金沙街道': ['金沙社区','新市社区'], '金新街道': ['金新社区','正场社区'] }
+      },
+      '连云港市': {
+        '海州区': { '新浦街道': ['新浦社区','浦西社区'], '新坝镇': ['新坝村','沙杭村'] },
+        '连云区': { '墟沟街道': ['墟沟社区','东园社区'], '宿城街道': ['宿城社区','大竹园村'] }
+      },
+      '淮安市': {
+        '清江浦区': { '府前街道': ['府前社区','淮海社区'], '武墩街道': ['武墩村','王元村'] },
+        '淮安区': { '淮城街道': ['淮城社区','镇淮楼社区'], '施河镇': ['施河社区','土楼村'] }
+      },
+      '盐城市': {
+        '盐都区': { '潘黄街道': ['潘黄社区','前进社区'], '大冈镇': ['大冈社区','瓦屋村'] },
+        '亭湖区': { '五星街道': ['五星社区','新河社区'], '南洋镇': ['南洋社区','东团村'] }
+      },
+      '扬州市': {
+        '广陵区': { '东关街道': ['皮市街社区','琼花观社区','个园社区'], '湾头镇': ['湾头社区','万福村','田庄村'], '沙头镇': ['沙头社区','霍桥社区'] },
+        '邗江区': { '邗上街道': ['邗上社区','兰庄社区','贾桥社区'], '槐泗镇': ['槐泗社区','酒甸社区','运河村'], '方巷镇': ['方巷社区','裔家村'] },
+        '江都区': {
+          '仙女镇': ['龙川社区','引江社区','东苑社区','南苑社区','龙都社区','虹桥社区'],
+          '小纪镇': ['小纪社区','宗村社区','纪东村','纪西村','塘头村','高徐村'],
+          '武坚镇': ['民乐社区','周西社区','黄思社区','五舍村','花庄村','龙河村'],
+          '樊川镇': ['樊川社区','永安社区','三周村','同丰村','东汇村','聚永村'],
+          '真武镇': ['真武社区','杨庄社区','邱墅村','曹桥村','蒙套村','滨西村'],
+          '宜陵镇': ['宜陵社区','七里社区','双桥村','焦庄村','白塔村','大陈村']
+        },
+        '宝应县': { '安宜镇': ['安宜社区','白田社区','齐心村','三里村'], '氾水镇': ['氾水社区','葛庄村'] },
+        '扬州经济技术开发区': { '文汇街道': ['文汇社区','花园社区','梅苑社区'], '朴席镇': ['朴席社区','土沟村'] },
+        '仪征市': { '真州镇': ['真州社区','新城社区','万年村','茶蓬村'], '青山镇': ['青山社区','团结村'] }
+      }
+    },
+    '浙江省': {
+      '杭州市': {
+        '上城区': { '清波街道': ['清波社区','柳翠井巷社区'], '九堡街道': ['九堡社区','杨公社区'] },
+        '西湖区': { '北山街道': ['北山社区','曙光社区'], '转塘街道': ['转塘社区','龙坞村'] }
+      },
+      '宁波市': {
+        '海曙区': { '南门街道': ['南门社区','郎官社区'], '高桥镇': ['高桥社区','望春村'] }
+      }
+    },
+    '山东省': {
+      '济南市': {
+        '历下区': { '解放路街道': ['解放路社区','十亩园社区'], '姚家街道': ['姚家社区','丁家村'] },
+        '市中区': { '舜玉路街道': ['舜玉社区','玉函路社区'], '十六里河街道': ['十六里河社区','大涧沟村'] }
+      },
+      '青岛市': {
+        '市南区': { '八大峡街道': ['八大峡社区','团岛社区'], '珠海路街道': ['珠海路社区','燕儿岛社区'] }
+      }
+    }
+  };
+
+  var addrPath = [];   /* 当前下钻路径（面板展开到第几级） */
+  var addrSel = [];    /* 已选定的完整五级路径 */
+
+  /* 取某路径下的子节点名称（第 5 级为字符串数组） */
+  function addrNames(path) {
+    var node = ADDR_TREE;
+    for (var i = 0; i < path.length; i++) { node = node ? node[path[i]] : null; }
+    if (Array.isArray(node)) return node;
+    return node ? Object.keys(node) : [];
+  }
+
+  function addrColHtml(names, level) {
+    if (!names.length) return '<div class="addr-col"><div class="addr-empty">暂无数据</div></div>';
+    var parents = addrPath.slice(0, level);
+    return '<div class="addr-col">' + names.map(function (n) {
+      var path = parents.concat([n]);
+      var on = (n === addrPath[level]) ||
+        (addrSel[level] === n && addrSel.slice(0, level).join('/') === parents.join('/'));
+      var hasKid = addrNames(path).length > 0;
+      return '<div class="addr-n' + (on ? ' on' : '') + '" data-lv="' + level + '" data-nm="' + esc(n) + '">'
+        + '<span class="addr-tx">' + esc(n) + '</span>'
+        + (hasKid ? '<span class="addr-arrow">›</span>' : '')
+        + '</div>';
+    }).join('') + '</div>';
+  }
+
+  function renderAddrPanel() {
+    var html = addrColHtml(addrNames([]), 0);
+    for (var k = 0; k < addrPath.length; k++) {
+      var names = addrNames(addrPath.slice(0, k + 1));
+      if (!names.length) break;
+      html += addrColHtml(names, k + 1);
+    }
+    $('addrPanel').innerHTML = html;
+    positionAddrPanel();
+    scrollActiveIntoView();
+  }
+
+  /* 已选项超出列可视区时，列内滚动使其居中可见（如扬州市排在市列表末尾） */
+  function scrollActiveIntoView() {
+    Array.prototype.forEach.call(document.querySelectorAll('#addrPanel .addr-col'), function (col) {
+      var on = col.querySelector('.addr-n.on');
+      if (!on) return;
+      var top = on.offsetTop, h = on.offsetHeight;
+      if (top < col.scrollTop || top + h > col.scrollTop + col.clientHeight) {
+        col.scrollTop = Math.max(0, top - (col.clientHeight - h) / 2);
+      }
+    });
+  }
+
+  /* 面板跟随触发框定位：始终自选择框向下展开，高度自适应视口剩余空间，右侧越界则左移 */
+  function positionAddrPanel() {
+    var panel = $('addrPanel'), box = $('addrCasBox');
+    if (!box || !panel.classList.contains('show')) return;
+    var r = box.getBoundingClientRect();
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var below = vh - (r.bottom + 4) - 10;   /* 选择框下方可用空间 */
+    var above = r.top - 14;                 /* 上方可用空间（下方极小时才向上） */
+    var up = below < 150 && above > below;
+    var avail = Math.max(120, Math.min(268, up ? above : below));
+
+    panel.style.maxHeight = avail + 'px';
+    var cols = panel.querySelectorAll('.addr-col');
+    Array.prototype.forEach.call(cols, function (c) { c.style.maxHeight = ''; });
+    var ph = panel.offsetHeight;            /* 面板被 max-height 收敛后的实际高度 */
+    Array.prototype.forEach.call(cols, function (c) { c.style.maxHeight = Math.max(90, ph - 12) + 'px'; });
+
+    var left = r.left, top = up ? (r.top - 4 - ph) : (r.bottom + 4);
+    if (left + panel.offsetWidth > vw - 8) left = vw - 8 - panel.offsetWidth;
+    if (left < 8) left = 8;
+    if (top < 8) top = 8;
+    panel.style.left = Math.round(left) + 'px';
+    panel.style.top = Math.round(top) + 'px';
+  }
+
+  /* 回填：隐藏域存完整地址（无缝拼接），触发框显示末三级便于识别 */
+  function setAddrValue(path) {
+    $('cmRegion').value = path.join('');
+    var txt = $('cmRegionText');
+    txt.textContent = path.length ? path.slice(-3).join(' / ') : '请选择现住址';
+    txt.classList.toggle('is-ph', !path.length);
+    txt.title = path.length ? path.join(' / ') : '请选择现住址';
+    $('addrCas').classList.toggle('has-val', path.length > 0);
+    renderPreview();
+  }
+
+  function openAddrPanel() {
+    addrPath = addrSel.slice();
+    $('addrCas').classList.add('open');
+    $('addrPanel').classList.add('show');
+    renderAddrPanel();
+  }
+  function closeAddrPanel() {
+    $('addrCas').classList.remove('open');
+    $('addrPanel').classList.remove('show');
+  }
+  function toggleAddrPanel() {
+    if ($('addrPanel').classList.contains('show')) closeAddrPanel();
+    else openAddrPanel();
+  }
+
+  /* 点击：有下级则下钻，末级（村社区）则选中并回填 */
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('#addrCasBox')) { toggleAddrPanel(); return; }
+    var node = e.target.closest('#addrPanel .addr-n');
+    if (node) {
+      var lv = parseInt(node.getAttribute('data-lv'), 10), nm = node.getAttribute('data-nm');
+      var path = addrPath.slice(0, lv).concat([nm]);
+      if (addrNames(path).length) { addrPath = path; renderAddrPanel(); }
+      else { addrSel = path; setAddrValue(path); closeAddrPanel(); }
+      return;
+    }
+    if (!e.target.closest('#addrPanel')) closeAddrPanel();
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAddrPanel(); });
+  window.addEventListener('resize', positionAddrPanel);
+  window.addEventListener('scroll', function (e) {
+    /* 面板内各列自身滚动不关闭，其它滚动一律收起 */
+    if (e.target && e.target.classList && e.target.classList.contains('addr-col')) return;
+    closeAddrPanel();
+  }, true);
+
   /* ================= 新建妇女档案弹框（版式与「居民档案列表」的新建弹框一致） ================= */
   function pvRow(label, val, wide) {
     return '<div class="pv-row' + (wide ? ' wide' : '') + '"><span class="pv-label">' + label + '</span><span class="pv-val">' + esc(val || '') + '</span></div>';
@@ -1139,12 +1397,14 @@
     $('cmPhone').value = '';
     var birth = $('cmBirth'); birth.type = 'text'; birth.value = '';
     $('cmRegion').value = '';
+    addrPath = []; addrSel = []; setAddrValue([]);
     $('cmAddr').value = ''; $('cntAddr').textContent = '0/50';
     renderPreview();
     $('createModal').classList.add('show');
   }
 
   function closeCreateModal() {
+    closeAddrPanel();
     $('createModal').classList.remove('show');
   }
 
@@ -1187,8 +1447,8 @@
     location.href = '档案维护.html?' + p.toString();
   }
 
-  /* 弹框联动事件 */
-  ['cmIdType', 'cmGender', 'cmNation', 'cmBirth', 'cmRegion'].forEach(function (id) {
+  /* 弹框联动事件（联系地址由级联控件回填时主动触发 renderPreview） */
+  ['cmIdType', 'cmGender', 'cmNation', 'cmBirth'].forEach(function (id) {
     $(id).addEventListener('change', renderPreview);
   });
   $('cmPhone').addEventListener('input', renderPreview);
@@ -1211,5 +1471,7 @@
 </script>
 
 <div id="opMenu"></div>
+<!-- 联系地址五级级联面板（挂在 body 下，避免被弹框的 overflow:hidden 裁剪） -->
+<div class="addr-panel" id="addrPanel"></div>
 </body>
 </html>

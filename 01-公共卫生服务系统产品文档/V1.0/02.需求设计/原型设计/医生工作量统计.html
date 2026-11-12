@@ -182,7 +182,7 @@
   }
   function markSelect(el) { el.classList.toggle('is-placeholder', el.value === ''); }
 
-  var RES_ST = ['请选择','正常','迁出','死亡','失访'];
+  var RES_ST = ['正常','死亡','失访'];
   var MG_ST  = ['请选择','未管理','在管','暂缓管理','退出管理'];
   var FWAY   = ['请选择','门诊','家庭','电话','短信','网络','其他'];
   var FCLS   = ['请选择','控制满意','控制不满意','不良反应','并发症'];
@@ -415,7 +415,7 @@
           { type: 'fcpms', label: '业务机构', key: 'org', field: 'topOrg' },
           { type: 'input',  label: '业务医生', key: 'doc', ph: '请输入' },
           { type: 'daterange', label: '业务日期', key: 'date', start: '2026-01-01', end: '2026-12-31' },
-          { type: 'select', label: '居民状态', key: 'resst', opts: RES_ST }
+          { type: 'rsselect', label: '居民状态', key: 'resst', opts: RES_ST, def: '正常' }
         ] }
       ],
       cols: [
@@ -442,7 +442,7 @@
           { type: 'daterange', label: '随访日期', key: 'fdate', start: '2026-01-01', end: '2026-12-31' }
         ] },
         { items: [
-          { type: 'select', label: '居民状态', key: 'resst', opts: RES_ST },
+          { type: 'rsselect', label: '居民状态', key: 'resst', opts: RES_ST, def: '正常' },
           { type: 'select', label: '管理状态', key: 'mgst',  opts: MG_ST },
           { type: 'input',  label: '姓名', key: 'name', ph: '请输入' },
           { type: 'input',  label: '证件号', key: 'id',  ph: '请输入' }
@@ -487,7 +487,7 @@
           { type: 'daterange', label: '随访日期', key: 'fdate', start: '2026-01-01', end: '2026-12-31' }
         ] },
         { items: [
-          { type: 'select', label: '居民状态', key: 'resst', opts: RES_ST },
+          { type: 'rsselect', label: '居民状态', key: 'resst', opts: RES_ST, def: '正常' },
           { type: 'select', label: '管理状态', key: 'mgst',  opts: MG_ST },
           { type: 'input',  label: '姓名', key: 'name', ph: '请输入' },
           { type: 'input',  label: '证件号', key: 'id',  ph: '请输入' }
@@ -530,7 +530,7 @@
           { type: 'daterange', label: '随访日期', key: 'fdate', start: '2026-01-01', end: '2026-12-31' }
         ] },
         { items: [
-          { type: 'select', label: '居民状态', key: 'resst', opts: RES_ST },
+          { type: 'rsselect', label: '居民状态', key: 'resst', opts: RES_ST, def: '正常' },
           { type: 'select', label: '管理状态', key: 'mgst',  opts: MG_ST },
           { type: 'input',  label: '姓名', key: 'name', ph: '请输入' },
           { type: 'input',  label: '证件号', key: 'id',  ph: '请输入' }
@@ -570,7 +570,7 @@
           { type: 'select', label: '迁移状态', key: 'tst', field: 'st', opts: T_ST }
         ] },
         { items: [
-          { type: 'select', label: '居民状态', key: 'resst', opts: RES_ST },
+          { type: 'rsselect', label: '居民状态', key: 'resst', opts: RES_ST, def: '正常' },
           { type: 'fcpcas', label: '管辖行政区', key: 'region' },
           { type: 'select', label: '申请类型', key: 'type', opts: T_TYPE },
           { type: 'input',  label: '姓名', key: 'name', ph: '请输入' }
@@ -604,7 +604,7 @@
           { type: 'fcpms', label: '指导机构', key: 'org', field: 'topOrg' },
           { type: 'input',  label: '指导医生', key: 'doc', ph: '请输入' },
           { type: 'daterange', label: '申请日期', key: 'date', field: 'ddate', start: '2026-01-01', end: '2026-12-31' },
-          { type: 'select', label: '居民状态', key: 'resst', opts: RES_ST },
+          { type: 'rsselect', label: '居民状态', key: 'resst', opts: RES_ST, def: '正常' },
           { type: 'select', label: '指导来源', key: 'src', opts: G_SRC }
         ] },
         { items: [
@@ -659,6 +659,16 @@
     var label = f.noLabel ? '' : f.label + '：';
     if (f.type === 'select') {
       return '<div class="filter-item"><label>' + label + '</label><select class="fi-select is-placeholder" data-k="' + f.key + '" onchange="markSelect(this);filterRows()">' + opts(f.opts) + '</select></div>';
+    }
+    /* 单选下拉（居民状态）：与全局 .rs-sel 一致，值为空即「全部」 */
+    if (f.type === 'rsselect') {
+      var rv = f.def || '';
+      return '<div class="filter-item"><label>' + label + '</label>'
+        + '<div class="rs-sel" data-options="' + f.opts.join('|') + '" data-placeholder="全部" style="width:180px">'
+        + '<div class="rs-box"><span class="rs-text' + (rv ? '' : ' is-ph') + '">' + (rv || '全部') + '</span><span class="rs-clear" title="清空">×</span></div>'
+        + '<div class="rs-panel"></div>'
+        + '<input type="hidden" class="rs-val" data-k="' + f.key + '" data-def="' + rv + '" value="' + rv + '">'
+        + '</div></div>';
     }
     /* 日期区间：单一外框（开始 ~ 结束 + 日历图标），带默认值 2026-01-01 ~ 2026-12-31 */
     if (f.type === 'daterange') {
@@ -759,6 +769,11 @@
     /* 面板每次重建，需重新初始化复合控件并重绑实时过滤
        （复选框走 change；点整行对勾 / 树节点 / 下钻 / 清空走 click） */
     if (window.fcpInit) window.fcpInit();
+    if (window.rsInit) window.rsInit($('filterPanel'));
+    /* 单选下拉：选中即触发实时过滤 */
+    $('filterPanel').querySelectorAll('.rs-sel').forEach(function (el) {
+      el.addEventListener('change', function () { filterRows(); });
+    });
     $('filterPanel').querySelectorAll('[data-fcp]').forEach(function (el) {
       el.addEventListener('change', function () { setTimeout(filterRows, 0); });
       el.addEventListener('click', function (e) {

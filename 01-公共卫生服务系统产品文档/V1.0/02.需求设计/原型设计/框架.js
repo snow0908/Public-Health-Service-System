@@ -121,8 +121,8 @@
             { key: 'aids-management',        label: '艾滋管理', url: '艾滋管理.html' },
           ] 
          },
-        { key: 'child-health-care',                 label: '儿童保健', url: '儿童保健.html' },
-        { key: 'maternal-health-care',             label: '孕产妇保健', url: '孕产妇保健.html' }
+        // { key: 'child-health-care',                 label: '儿童保健', url: '儿童保健.html' },
+        // { key: 'maternal-health-care',             label: '孕产妇保健', url: '孕产妇保健.html' }
       ] },
     { type: 'divider' },
     { type: 'group', key: 'tcm', label: '中医管理',
@@ -172,7 +172,7 @@
     { type: 'group', key: 'bizstats', label: '业务统计',
       icon: '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/>',
       children: [
-        { key: 'personal-archive-stat',  label: '个人档案统计' },
+        // { key: 'personal-archive-stat',  label: '个人档案统计' },
         { key: 'health-edu-stat',        label: '健康宣教统计', url: '健康宣教统计.html' },
         { key: 'doctor-workload-stat',   label: '医生工作量统计', url: '医生工作量统计.html' },
       ] },
@@ -199,7 +199,7 @@
           ]
         },
         // { key: 'subsidy-management',       label: '补助管理' },
-        { key: 'disease-diagnosis-setting',label: '疾病诊疗设置', url: '疾病诊疗设置.html' },
+        // { key: 'disease-diagnosis-setting',label: '疾病诊疗设置', url: '疾病诊疗设置.html' },
         { key: 'operation-log',            label: '操作日志', url: '档案操作日志.html' },
         { key: 'des-log',            label: '脱敏设置', url: '脱敏规则.html' }
        
@@ -769,4 +769,94 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initAll);
   else initAll();
+})();
+
+/* ==========================================================================
+ * 单选下拉（.rs-sel）：居民状态等单一取值筛选条件的统一交互
+ * 结构见 框架.css；隐藏域沿用原 select 的 id，重写其实例 value 访问器，
+ * 页面既有「$('fRStatus').value」读写与重置逻辑无需改动即可回显。
+ * 动态插入的节点可调用 window.rsInit(容器) 初始化。
+ * ========================================================================== */
+(function () {
+  function paint(w) {
+    var inp = w.querySelector('input.rs-val');
+    if (!inp) return;
+    var v = inp.value;
+    var ph = w.getAttribute('data-placeholder') || '全部';
+    var text = w.querySelector('.rs-text');
+    text.textContent = v || ph;
+    text.classList.toggle('is-ph', !v);
+    w.classList.toggle('has-val', !!v);
+    Array.prototype.forEach.call(w.querySelectorAll('.rs-opt'), function (o) {
+      o.classList.toggle('on', o.getAttribute('data-v') === v);
+    });
+  }
+
+  function closeAll(except) {
+    Array.prototype.forEach.call(document.querySelectorAll('.rs-sel.open'), function (w) {
+      if (w !== except) w.classList.remove('open');
+    });
+  }
+
+  function initOne(w) {
+    if (w.__rsReady) return;
+    w.__rsReady = true;
+    var panel = w.querySelector('.rs-panel');
+    var box = w.querySelector('.rs-box');
+    var inp = w.querySelector('input.rs-val');
+    if (!panel || !box || !inp) return;
+
+    var opts = (w.getAttribute('data-options') || '正常|死亡|失访').split('|');
+    panel.innerHTML = opts.map(function (o) {
+      return '<div class="rs-opt" data-v="' + o + '">' + o + '</div>';
+    }).join('');
+
+    /* 接管隐藏域 value：赋值即刷新回显（兼容既有页面的重置/联动代码） */
+    var cur = inp.value;
+    try {
+      Object.defineProperty(inp, 'value', {
+        configurable: true,
+        get: function () { return cur; },
+        set: function (v) { cur = (v === null || v === undefined) ? '' : String(v); paint(w); }
+      });
+    } catch (e) { /* 极端环境下退回普通行为 */ }
+
+    box.addEventListener('click', function (e) {
+      if (e.target.closest('.rs-clear')) {
+        e.stopPropagation();
+        inp.value = '';
+        closeAll(null);
+        inp.dispatchEvent(new Event('change', { bubbles: true }));
+        return;
+      }
+      var willOpen = !w.classList.contains('open');
+      closeAll(w);
+      w.classList.toggle('open', willOpen);
+    });
+
+    panel.addEventListener('click', function (e) {
+      var o = e.target.closest('.rs-opt');
+      if (!o) return;
+      inp.value = o.getAttribute('data-v');
+      w.classList.remove('open');
+      inp.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    paint(w);
+  }
+
+  function rsInit(root) {
+    Array.prototype.forEach.call((root || document).querySelectorAll('.rs-sel'), initOne);
+  }
+
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('.rs-sel')) return;
+    closeAll(null);
+  });
+
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAll(null); });
+
+  window.rsInit = rsInit;
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { rsInit(); });
+  else rsInit();
 })();

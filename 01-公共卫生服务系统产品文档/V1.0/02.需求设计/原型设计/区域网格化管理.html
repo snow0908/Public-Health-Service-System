@@ -360,6 +360,30 @@
     ]
   };
 
+  /* ================= 行政区划编码（12 位统计用区划代码） =================
+     规则：区县 6 位 + 镇 3 位（100 起）+ 村 3 位（200 起）
+     例：321012 江都区 / 321012100 仙女镇 / 321012100201 双沟村
+  ====================================================================== */
+  var REGION_CODE = { '江都区': '321012', '邗江区': '321003', '广陵区': '321002' };
+  var CODE_MAP = {};   // 节点 key（区 / 区镇 / 区镇村）→ 区划编码
+
+  (function buildCodes() {
+    for (var region in ADMIN) {
+      var rc = REGION_CODE[region] || '000000';
+      CODE_MAP[region] = rc;
+      ADMIN[region].forEach(function (r, ti) {
+        var tc = rc + (100 + ti);
+        CODE_MAP[region + '/' + r.t] = tc;
+        r.v.forEach(function (v, vi) {
+          CODE_MAP[region + '/' + r.t + '/' + v] = tc + (200 + vi + 1);
+        });
+      });
+    }
+  })();
+
+  /* 取节点编码（无匹配时回退为空） */
+  function codeOf(key) { return CODE_MAP[key] || ''; }
+
   /* ================= 组信息数据（key = 区/镇/村） ================= */
   var GROUPS = {
     '江都区/仙女镇/双沟村': [
@@ -543,7 +567,7 @@
       r.v.forEach(function (v) {
         var gs = GROUPS[villageKey(sel.region, r.t, v)] || [];
         gs.forEach(function (g) {
-          rows.push({ village: v, town: r.t, g: g });
+          rows.push({ village: v, town: r.t, vkey: villageKey(sel.region, r.t, v), g: g });
         });
       });
     });
@@ -610,11 +634,12 @@
     var cols = [{ w: 52, h: '序号' }];
     if (!isVillage) cols.push({ w: 110, h: '所属村' });
     cols = cols.concat([
+      { w: 124, h: '地区编码' }, { w: 130, h: '上级地区编码' },
       { w: 120, h: '组名' }, { w: 90, h: '组长' }, { w: 120, h: '联系电话' },
       { w: 70, h: '组员数' }, { w: 80, h: '覆盖户数' }, { w: 70, h: '状态' },
       { flex: true, h: '备注' }, { w: 110, h: '操作' }
     ]);
-    var minWidth = isVillage ? 1000 : 1120;
+    var minWidth = isVillage ? 1200 : 1310;
     var html = '<table class="list-tbl" style="min-width:' + minWidth + 'px"><colgroup>';
     cols.forEach(function (c) { html += '<col' + (c.flex ? '' : ' style="width:' + c.w + 'px"') + '>'; });
     html += '</colgroup><thead><tr>';
@@ -638,6 +663,10 @@
         if (!isVillage) {
           html += '<td><span class="op-link vill-link" onclick="jumpVillage(\'' + esc(villageKey(sel.region, r.town, r.village)) + '\')">' + esc(r.village) + '</span></td>';
         }
+        var vCode = codeOf(r.vkey);
+        var pCode = codeOf(sel.region + '/' + r.town);
+        html += '<td class="num" title="' + esc(r.village) + ' 区划编码">' + (vCode ? esc(vCode) : '<span class="dash">—</span>') + '</td>';
+        html += '<td class="num" title="' + esc(r.town) + ' 区划编码">' + (pCode ? esc(pCode) : '<span class="dash">—</span>') + '</td>';
         html += '<td>' + esc(g.name) + '</td>';
         html += '<td>' + (g.leader ? esc(g.leader) : '<span class="dash">—</span>') + '</td>';
         html += '<td class="num">' + (g.phone ? esc(g.phone) : '<span class="dash">—</span>') + '</td>';

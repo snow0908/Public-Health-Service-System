@@ -203,13 +203,11 @@
         </div>
         <div class="filter-row">
           <div class="filter-item"><label>居民状态</label>
-            <select id="fRStatus" class="fi-select">
-              <option value="正常" selected>正常</option>
-              <option value="">全部</option>
-              <option value="死亡">死亡</option>
-              <option value="迁出">迁出</option>
-              <option value="注销">注销</option>
-            </select>
+            <div class="rs-sel" data-options="正常|死亡|失访" data-placeholder="全部" style="width:140px">
+              <div class="rs-box"><span class="rs-text">正常</span><span class="rs-clear" title="清空">×</span></div>
+              <div class="rs-panel"></div>
+              <input type="hidden" class="rs-val" id="fRStatus" value="正常">
+            </div>
           </div>
           <div class="filter-item"><label>重点人群类型</label>
             <select id="fCrowdLogic" class="fi-select" style="width:72px">

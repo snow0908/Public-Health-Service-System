@@ -41,19 +41,6 @@
   .fi-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-secondary);cursor:pointer}
   .fi-check input{margin:0;accent-color:var(--primary);cursor:pointer}
 
-  /* ===== 居民状态多选（选中后触发框显示「已选择(N)」徽标） ===== */
-  .ms-wrap{position:relative}
-  .ms-trigger{width:140px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all var(--transition-fast)}
-  .ms-trigger:hover{border-color:var(--primary)}
-  .ms-trigger .ms-caret{width:10px;height:6px;flex-shrink:0;transition:transform var(--transition-fast)}
-  .ms-wrap.open .ms-caret{transform:rotate(180deg)}
-  .ms-badge{display:inline-flex;align-items:center;height:18px;padding:0 7px;border-radius:9px;background:var(--primary);color:#fff;font-size:11px;line-height:1;font-style:normal}
-  .ms-panel{position:absolute;top:36px;left:0;min-width:140px;background:var(--bg-white);border:1px solid var(--color-neutral-200);border-radius:var(--r-sm);box-shadow:var(--shadow-md);padding:6px;z-index:200;display:none}
-  .ms-wrap.open .ms-panel{display:block}
-  .ms-opt{display:flex;align-items:center;gap:6px;padding:5px 8px;font-size:13px;color:var(--text-secondary);cursor:pointer;border-radius:var(--r-sm);white-space:nowrap}
-  .ms-opt:hover{background:var(--primary-bg);color:var(--primary)}
-  .ms-opt input{margin:0;accent-color:var(--primary);cursor:pointer}
-
   /* ===== 数据表格 ===== */
   .table-wrap{flex:1;overflow:auto;min-height:0}
 
@@ -185,16 +172,10 @@
         </div>
         <div class="filter-row">
           <div class="filter-item"><label>居民状态</label>
-            <div class="ms-wrap" id="msWrap">
-              <div class="ms-trigger" onclick="toggleMsPanel(event)">请选择<i class="ms-badge" id="msBadge" style="display:none">已选择(0)</i>
-                <svg class="ms-caret" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="#8c8c8c" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </div>
-              <div class="ms-panel" id="msPanel" onclick="event.stopPropagation()">
-                <label class="ms-opt"><input type="checkbox" value="正常" checked>正常</label>
-                <label class="ms-opt"><input type="checkbox" value="死亡">死亡</label>
-                <label class="ms-opt"><input type="checkbox" value="迁出">迁出</label>
-                <label class="ms-opt"><input type="checkbox" value="注销">注销</label>
-              </div>
+            <div class="rs-sel" data-options="正常|死亡|失访" data-placeholder="全部" style="width:140px">
+              <div class="rs-box"><span class="rs-text">正常</span><span class="rs-clear" title="清空">×</span></div>
+              <div class="rs-panel"></div>
+              <input type="hidden" class="rs-val" id="fRStatus" value="正常">
             </div>
           </div>
           <div class="filter-item"><label>体检类型</label>
@@ -386,7 +367,7 @@
     var birthStart = $('fBirthStart').value, birthEnd = $('fBirthEnd').value;
     var archStart = $('fArchStart').value, archEnd = $('fArchEnd').value;
     var examStart = $('fExamStart').value, examEnd = $('fExamEnd').value;
-    var rsSel = msValues();
+    var rStatus = $('fRStatus').value;
 
     lastList = examData.filter(function (r) {
       if (org && r.org !== org) return false;
@@ -394,7 +375,7 @@
       if (idcard && r.idcard.indexOf(idcard) === -1) return false;
       if (src && r.src !== src) return false;
       if (lock && r.lock !== lock) return false;
-      if (rsSel.length && rsSel.indexOf(r.rStatus) === -1) return false;
+      if (rStatus && r.rStatus !== rStatus) return false;
       if (examType && r.examType !== examType) return false;
       if (examOrg && r.examOrg !== examOrg) return false;
       if (doctor && r.doctor.indexOf(doctor) === -1) return false;
@@ -502,36 +483,6 @@
     gotoPage(v);
   }
 
-  /* ================= 居民状态多选 ================= */
-  function msValues() {
-    var arr = [];
-    $('msPanel').querySelectorAll('input[type=checkbox]').forEach(function (cb) {
-      if (cb.checked) arr.push(cb.value);
-    });
-    return arr;
-  }
-
-  function syncMsLabel() {
-    var arr = msValues();
-    var badge = $('msBadge');
-    if (arr.length) {
-      badge.style.display = 'inline-flex';
-      badge.textContent = '已选择(' + arr.length + ')';
-    } else {
-      badge.style.display = 'none';
-    }
-  }
-
-  function toggleMsPanel(e) {
-    if (e) e.stopPropagation();
-    var wrap = $('msWrap');
-    wrap.classList.toggle('open');
-  }
-
-  document.addEventListener('click', function () {
-    $('msWrap').classList.remove('open');
-  });
-
   /* ================= 交互 ================= */
   function resetFilter() {
     ['fName', 'fIdcard', 'fDoctor', 'fArchNo', 'fPhone', 'fAddress'].forEach(function (id) { $(id).value = ''; });
@@ -539,8 +490,7 @@
     ['fBirthStart', 'fBirthEnd', 'fArchStart', 'fArchEnd', 'fExamStart', 'fExamEnd'].forEach(function (id) { var el = $(id); el.value = ''; el.type = 'text'; });
     $('fSrc').value = '本系统';
     $('fLock').value = '未上锁';
-    $('msPanel').querySelectorAll('input[type=checkbox]').forEach(function (cb) { cb.checked = cb.value === '正常'; });
-    syncMsLabel();
+    $('fRStatus').value = '正常';
     $('fMine').checked = false;
     curPage = 1;
     renderTable();
@@ -641,8 +591,7 @@
   ['fBirthStart', 'fBirthEnd', 'fArchStart', 'fArchEnd', 'fExamStart', 'fExamEnd'].forEach(function (id) {
     $(id).addEventListener('change', function () { curPage = 1; renderTable(); });
   });
-  $('msPanel').addEventListener('change', function () {
-    syncMsLabel();
+  $('fRStatus').addEventListener('change', function () {
     curPage = 1;
     renderTable();
   });

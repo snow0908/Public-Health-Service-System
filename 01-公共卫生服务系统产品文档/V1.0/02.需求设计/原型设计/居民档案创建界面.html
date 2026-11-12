@@ -28,8 +28,32 @@
     background: #F2F3F5;
     overflow: hidden; /* 页面本身不滚动，滚动交给下方内容区 */
   }
-  input, select, button, textarea { font-family: inherit; font-size: 14px; color: var(--text-1); outline: none; }
-  input[type="radio"], input[type="checkbox"] { accent-color: var(--primary); width: 14px; height: 14px; vertical-align: -2px; margin-right: 4px; cursor: pointer; }
+  input, select, button, textarea { font-family: inherit; font-size: 14px; color: #404040; outline: none; }
+  /* 自绘复选框/单选（全局统一，同「档案维护」表单样式）：16×16、描边 1px #D9D9D9、底白，选中主色 */
+  input[type="checkbox"], input[type="radio"] {
+    -webkit-appearance: none; appearance: none; flex: none;
+    width: 16px; height: 16px; border: 1px solid #D9D9D9; background: #FFF;
+    border-radius: 2px; position: relative; cursor: pointer; vertical-align: middle;
+    margin: 0 4px 0 0; transition: border-color .15s;
+  }
+  input[type="checkbox"]:hover, input[type="radio"]:hover { border-color: var(--primary); }
+  input[type="radio"] { border-radius: 50%; }
+  input[type="checkbox"]:checked {
+    border-color: var(--primary);
+    background: var(--primary) url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.4 6.2l2.4 2.4 4.8-4.8' fill='none' stroke='%23fff' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/11px no-repeat;
+  }
+  input[type="radio"]:checked { background: #fff; border: 3px solid var(--primary); }
+  input[type="radio"]:checked::after {
+    content: ''; position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; margin: -4px 0 0 -4px;
+    border-radius: 50%; background: var(--primary);
+  }
+  input[type="checkbox"]:disabled, input[type="radio"]:disabled { background: #F5F6FA; border-color: #D9DDE5; cursor: not-allowed; }
+  input[type="checkbox"]:disabled:checked {
+    background: #A9BEE0 url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.4 6.2l2.4 2.4 4.8-4.8' fill='none' stroke='%23fff' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/11px no-repeat; border-color: #A9BEE0;
+  }
+  input[type="radio"]:disabled:checked { background: #fff; border: 3px solid #A9BEE0; }
+  input[type="radio"]:disabled:checked::after { background: #A9BEE0; }
+  .chk input, .rad input { margin-right: 0; }
   input[type="date"] { color-scheme: light; }
 
   /* ============ 通用表单控件 ============ */
@@ -45,7 +69,7 @@
   .u-select { appearance: none; -webkit-appearance: none; padding-right: 28px; cursor: pointer;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%2386909C' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat; background-position: right 10px center; }
-  .u-select:disabled, .u-input:disabled, .u-input[readonly].u-grey { background-color: var(--fill-1); color: #A8ABB2; cursor: not-allowed; border-color: var(--border-light); }
+  .u-select:disabled, .u-input:disabled, .u-input[readonly].u-grey { background-color: #F5F6FA; color: #595959; opacity: 1; cursor: not-allowed; border-color: var(--border-light); }
   .u-input.has-count { padding-right: 44px; }
   .cell-count { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #C0C4CC; pointer-events: none; }
 
@@ -104,7 +128,7 @@
   /* ============ 第一步：填报基本信息 ============ */
   .step1-grid { display: grid; grid-template-columns: 344px 492px; gap: 0 24px; align-items: start;
     max-width: 860px; margin: 0 auto; }
-  .addr-row { display: flex; align-items: flex-start; max-width: 860px; margin: 24px auto 0; }
+  .addr-row { display: flex; align-items: flex-start; max-width: 860px; margin: 0 auto 0; }
   .addr-row .flabel { width: 96px; flex: none; text-align: right; line-height: 34px; color: var(--text-2); margin-right: 12px; }
   .addr-row .fcell { position: relative; flex: none; width: 348px; }
   .form-row { display: flex; align-items: flex-start; margin-bottom: 18px; }
@@ -131,7 +155,7 @@
     background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='2' y='3.5' width='12' height='9' rx='1.5' fill='none' stroke='%23C0C4CC' stroke-width='1.2'/%3E%3Ccircle cx='6' cy='7' r='1.4' fill='%23C0C4CC'/%3E%3Cpath d='M4.5 10.5c.6-1.2 3.4-1.2 4 0M10 7h2.5M10 9.5h2' stroke='%23C0C4CC' stroke-width='1.1' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat; }
 
   /* ============ 第二步：档案封面 ============ */
-  .cover-card { width: 580px; margin: 0 auto; border-radius: 8px; overflow: visible; box-shadow: 0 1px 6px rgba(31,35,41,.06); }
+  .cover-card { width: 700px; margin: 0 auto; border-radius: 8px; overflow: visible; box-shadow: 0 1px 6px rgba(31,35,41,.06); }
   .cover-head {
     background: linear-gradient(90deg, #EEF6FF 0%, #E5EFFF 55%, #DBE9FF 100%);
     padding: 14px 20px 16px; display: flex; align-items: center;
@@ -142,8 +166,8 @@
   .cover-head .no { color: var(--text-1); margin-top: 8px; font-size: 13.5px; font-weight: 600; }
   .cover-illus { position: absolute; right: 8px; top: 2px; pointer-events: none; }
   .cover-body { background: #fff; padding: 20px 44px 28px; border-radius: 0 0 8px 8px; }
-  .cover-form .form-row { margin-bottom: 4px; }
-  .cover-form .flabel { width: 125px; margin-right: 12px; line-height: 32px; font-size: 13px; }
+  .cover-form .form-row { margin-bottom: 12px; }
+  .cover-form .flabel { width: 140px; margin-right: 0px; line-height: 32px; font-size: 14px; }
   .cover-form .u-input, .cover-form .u-select { height: 32px; }
   .cover-form .addr-trigger { height: 32px; }
 
@@ -163,17 +187,16 @@
   }
 
   /* ===== 通用表单控件 ===== */
-  #viewBasic .ctl { height: 32px; border: 1px solid var(--color-neutral-300); border-radius: var(--r-sm); padding: 0 10px; font-size: 13px; color: var(--text-primary); background: #fff; outline: none; transition: all var(--transition-fast); flex: 1; min-width: 0; max-width: 280px; font-family: inherit; }
+  #viewBasic .ctl { height: 32px; border: 1px solid var(--color-neutral-300); border-radius: var(--r-sm); padding: 0 10px; font-size: 14px; color: #404040; background: #fff; outline: none; transition: all var(--transition-fast); flex: 1; min-width: 0; max-width: 280px; font-family: inherit; }
   #viewBasic .ctl:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(0,122,255,.15); }
   #viewBasic .ctl::placeholder { color: var(--text-placeholder); }
-  #viewBasic .ctl[readonly] { background: #F5F6FA; color: var(--text-secondary); cursor: default; }
+  #viewBasic .ctl[readonly] { background: #F5F6FA; color: var(--text-secondary); opacity: 1; cursor: default; }
+  #viewBasic .ctl:disabled { background: #F5F6FA; color: var(--text-secondary); opacity: 1; cursor: not-allowed; }
   #viewBasic select.ctl { appearance: none; -webkit-appearance: none; cursor: pointer; padding-right: 26px;
     background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat; background-position: right 8px center; }
   #viewBasic .opts { display: flex; flex-wrap: wrap; gap: 8px 18px; flex: 1; min-width: 0; align-items: center; }
-  #viewBasic .chk, #viewBasic .rad { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary); cursor: pointer; white-space: nowrap; line-height: 1.9; }
-  #viewBasic .chk input, #viewBasic .rad input { cursor: pointer; accent-color: var(--primary); }
-  #viewBasic input[type="radio"], #viewBasic input[type="checkbox"] { width: auto; height: auto; margin: 0; vertical-align: baseline; }
+  #viewBasic .chk, #viewBasic .rad { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #404040; cursor: pointer; white-space: nowrap; line-height: 1.9; }
   #viewBasic .opts.cols2 { display: block; column-count: 2; column-gap: 32px; }
   #viewBasic .opts.cols2 .chk { break-inside: avoid; display: flex; }
 
@@ -194,7 +217,7 @@
   #viewBasic .cascader.open .cascader-panel { display: flex; }
   #viewBasic .casc-col { width: 140px; max-height: 220px; overflow-y: auto; border-right: 1px solid #EEF0F4; }
   #viewBasic .casc-col:last-child { border-right: none; }
-  #viewBasic .casc-opt { display: flex; align-items: center; justify-content: space-between; gap: 4px; height: 28px; padding: 0 10px; font-size: 13px; color: var(--text-secondary); cursor: pointer; white-space: nowrap; overflow: hidden; }
+  #viewBasic .casc-opt { display: flex; align-items: center; justify-content: space-between; gap: 4px; height: 28px; padding: 0 10px; font-size: 14px; color: var(--text-secondary); cursor: pointer; white-space: nowrap; overflow: hidden; }
   #viewBasic .casc-opt:hover { background: var(--primary-light); }
   #viewBasic .casc-opt.active { background: var(--primary-header); color: var(--primary); font-weight: var(--font-weight-medium); }
   #viewBasic .casc-opt .casc-txt { overflow: hidden; text-overflow: ellipsis; }
@@ -223,7 +246,7 @@
   /* ===== 分组：左侧分组标签 + 右侧表单行 ===== */
   #viewBasic .fv-group { display: flex; border-bottom: 1px solid #EEF0F4; }
   #viewBasic .fv-group:last-child { border-bottom: none; }
-  #viewBasic .fv-group-label { width: 72px; flex-shrink: 0; background: #F5F9FF; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--text-secondary); border-right: 1px solid #EEF0F4; writing-mode: vertical-rl; letter-spacing: 4px; }
+  #viewBasic .fv-group-label { width: 72px; flex-shrink: 0; background: #e5eefea6; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #181818; border-right: 1px solid #EEF0F4; writing-mode: vertical-rl; letter-spacing: 4px; }
   #viewBasic .fv-group-body { flex: 1; min-width: 0; }
   #viewBasic .fv-group-body .hp-row { border-bottom: 1px solid #EEF0F4; }
   #viewBasic .fv-group-body .hp-row:last-child { border-bottom: none; }
@@ -231,13 +254,13 @@
   /* ===== 表单行：统一高度 44px ===== */
   #viewBasic .hp-row { display: flex; border-bottom: 1px solid #EEF0F4; min-height: 44px; }
   #viewBasic .hp-row:last-child { border-bottom: none; }
-  #viewBasic .hp-label { width: 120px; flex-shrink: 0; padding: 0 14px; font-size: 13px; color: var(--text-secondary); text-align: right; background: #F5F9FF; display: flex; align-items: center; justify-content: flex-end; border-right: 1px solid #EEF0F4; }
+  #viewBasic .hp-label { width: 120px; flex-shrink: 0; padding: 0 14px; font-size: 14px; color: #181818; text-align: right; background: #e5eefea6; display: flex; align-items: center; justify-content: flex-end; border-right: 1px solid #EEF0F4; }
   #viewBasic .hp-label i { color: var(--danger); font-style: normal; margin-right: 2px; }
   #viewBasic .hp-field { flex: 1; display: flex; align-items: center; gap: 8px; padding: 6px 14px; min-width: 0; }
-  #viewBasic .hp-field .ctl { max-width: 220px; width: 100%; height: 30px; font-size: 13px; }
+  #viewBasic .hp-field .ctl { max-width: 220px; width: 100%; height: 30px; font-size: 14px; }
   #viewBasic .hp-field .unit { font-size: 13px; color: var(--text-tertiary); white-space: nowrap; flex-shrink: 0; }
   #viewBasic .hp-field .opts { flex: 1; gap: 6px 18px; }
-  #viewBasic .hp-field .opts .chk, #viewBasic .hp-field .opts .rad { font-size: 13px; line-height: 1.8; }
+  #viewBasic .hp-field .opts .chk, #viewBasic .hp-field .opts .rad { font-size: 14px; line-height: 1.8; }
   /* 两列布局：grid 等分，每列一个 cell（标签+字段） */
   #viewBasic .hp-row.two-col { display: grid; grid-template-columns: 1fr 1fr; }
   #viewBasic .hp-cell { display: flex; align-items: center; border-right: 1px solid #EEF0F4; min-height: 44px; }
@@ -252,13 +275,13 @@
   /* 行内填写组（标签：控件） */
   #viewBasic .hp-field.lifestyle { flex-wrap: wrap; gap: 6px 24px; }
   #viewBasic .ig { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; flex-shrink: 0; }
-  #viewBasic .ig .ig-label { font-size: 13px; color: var(--text-secondary); flex-shrink: 0; }
+  #viewBasic .ig .ig-label { font-size: 14px; color: var(--text-secondary); flex-shrink: 0; }
   #viewBasic .ig .ig-label i { color: var(--danger); font-style: normal; margin-right: 2px; }
   #viewBasic .ig .ctl { width: 80px; max-width: 80px; flex: none; }
   #viewBasic .ig .opts { flex: none; min-width: 0; gap: 4px 12px; }
 
   /* ===== 分区内小表格（个人健康凭证 / 既往史明细） ===== */
-  #viewBasic .mini-tbl { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+  #viewBasic .mini-tbl { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
   #viewBasic .mini-tbl th { background: #F5F6FA; height: 34px; padding: 0 10px; font-weight: var(--font-weight-medium); color: var(--text-primary); text-align: left; border: 1px solid #EEF0F4; white-space: nowrap; }
   #viewBasic .mini-tbl td { height: 40px; padding: 4px 10px; border: 1px solid #EEF0F4; color: var(--text-secondary); vertical-align: middle; }
   #viewBasic .mini-tbl td .ctl { max-width: none; width: 100%; }
@@ -289,13 +312,18 @@
   #viewBasic .hp-field .cert-ops { margin-top: 8px; }
   #viewBasic .hp-field .opts.cols2 { column-count: 2; column-gap: 32px; }
   #viewBasic .hp-row.tall .hp-field .opts.cols2 { align-items: flex-start; }
-  #viewBasic .opts .chk:has(input:disabled) { color: #C0C4CC; cursor: not-allowed; }
+  /* 禁用态选项（单选/复选）：文字与指针同步置灰，与「档案维护」页保持一致 */
+  #viewBasic .opts .chk:has(input:disabled),
+  #viewBasic .opts .rad:has(input:disabled),
+  #viewBasic .hp-field .opts label:has(input:disabled) { color: var(--text-secondary); cursor: not-allowed; }
+  #viewBasic .opts input[type="radio"]:disabled,
+  #viewBasic .opts input[type="checkbox"]:disabled { cursor: not-allowed; }
   #viewBasic .opts input.ctl { height: 24px; padding: 0 8px; font-size: 12px; line-height: 22px; flex: none; width: 150px; max-width: 150px; }
   #viewBasic .addr-ro { font-size: 13px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
   #viewBasic .hp-field .past-tbl { max-width: 560px; }
 
   /* ============ 联系地址：五级级联选择（省/市/区县/乡镇街道/社区村） ============ */
-  .addr-cascade { position: relative; flex: none; width: 152px; }
+  .addr-cascade { position: relative; flex: none; width: 236px; }
   .addr-trigger {
     height: 34px; border: 1px solid var(--border); border-radius: var(--radius); background: #fff;
     padding: 0 28px 0 10px; display: flex; align-items: center; position: relative; cursor: pointer;
@@ -363,6 +391,47 @@
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   #toast .ok { width: 16px; height: 16px; flex: none;
     background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='8' fill='%2300B42A'/%3E%3Cpath d='M4.6 8.2l2.2 2.2 4.4-4.6' stroke='%23fff' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat; }
+  /* ===== 表单 label 统一（对齐「档案维护」规范：字色 #181818、浅蓝底、右分隔线） ===== */
+  .form-row .flabel, .addr-row .flabel, .cover-form .flabel {
+    color: #181818; 
+  }
+
+  /* ===== 全局日期选择插件（Element 风格，同「档案维护」页） ===== */
+  .dp-input { padding-right: 26px; }
+  .dp-panel { display: none; position: absolute; z-index: 1300; width: 322px; background: #fff; border: 1px solid #E4E7ED; border-radius: 6px; box-shadow: 0 6px 20px rgba(0,0,0,0.12); padding: 10px 10px 12px; font-size: 14px; user-select: none; }
+  .dp-panel.show { display: block; }
+  .dp-head { display: flex; align-items: center; justify-content: space-between; height: 36px; padding: 0 2px; border-bottom: 1px solid #F2F4F8; margin-bottom: 8px; }
+  .dp-arr { width: 24px; height: 24px; line-height: 22px; text-align: center; border-radius: 4px; cursor: pointer; color: #606266; user-select: none; font-size: 14px; }
+  .dp-arr:hover { background: #F2F7FE; color: var(--primary); }
+  .dp-arr.ghost { cursor: default; }
+  .dp-arr.ghost:hover { background: none; color: #606266; }
+  .dp-title { font-size: 14px; font-weight: 600; color: #303133; cursor: pointer; white-space: nowrap; }
+  .dp-title:hover { color: var(--primary); }
+  .dp-title.static { cursor: default; }
+  .dp-title.static:hover { color: #303133; }
+  .dp-week { display: flex; margin-bottom: 2px; }
+  .dp-week span { flex: 1; height: 28px; line-height: 28px; text-align: center; font-size: 12px; color: #606266; }
+  .dp-row { display: flex; border-radius: 4px; }
+  .dp-row:hover .dp-cell { background: #F0F6FE; }
+  .dp-cell { flex: 1; height: 32px; line-height: 32px; text-align: center; color: #606266; cursor: pointer; border-radius: 4px; box-sizing: border-box; }
+  .dp-cell.om { color: #C0C4CC; }
+  .dp-cell.today { color: var(--primary); font-weight: 600; box-shadow: inset 0 0 0 1px var(--primary); }
+  .dp-cell.sel, .dp-cell.sel:hover { background: var(--primary) !important; color: #fff !important; font-weight: 600; box-shadow: none; }
+  .dp-grid4 { display: flex; flex-wrap: wrap; padding: 10px 0 6px; }
+  .dp-c4 { width: 25%; height: 40px; display: flex; align-items: center; justify-content: center; color: #606266; cursor: pointer; border-radius: 4px; box-sizing: border-box; }
+  .dp-c4:hover { background: #F0F6FE; }
+  .dp-c4.sel, .dp-c4.sel:hover { background: var(--primary); color: #fff; font-weight: 600; }
+  .dp-ygrid .dp-c4 { height: 48px; }
+  .dp-clear { display: none; position: absolute; z-index: 1300; cursor: pointer; }
+
+  /* ===== 必填校验：未填写的输入框 / 下拉框红色描边告警（与「档案维护」页同一套风格） ===== */
+  .u-input.is-invalid, .u-select.is-invalid, .ctl.is-invalid,
+  .addr-cascade.is-invalid .addr-trigger { border-color: var(--danger)!important; box-shadow: none; }
+  .u-input.is-invalid:focus, .u-select.is-invalid:focus, .ctl.is-invalid:focus { border-color: var(--danger)!important; box-shadow: 0 0 0 2px rgba(255,59,48,0.12); }
+  .u-input.is-invalid[readonly], .ctl.is-invalid[readonly] { background: #FFF6F6; }
+  /* 单选 / 复选组未选：红色虚框 + 红字 */
+  .opts.is-invalid-opts { outline: 1px dashed var(--danger); outline-offset: 2px; border-radius: 3px; }
+  .opts.is-invalid-opts label { color: var(--danger)!important; }
 </style>
 </head>
 <body>
@@ -491,7 +560,7 @@
         <!-- 联系地址：整行（与证件号输入框右边缘对齐） -->
         <div class="addr-row">
           <div class="flabel req">联系地址</div>
-          <div class="cell-flex" style="flex:none;width:512px;position:relative;">
+          <div class="cell-flex" style="flex:none;width:750px;position:relative;">
             <div class="addr-cascade" id="addrCascade"></div>
             <input class="u-input has-count" id="s1AddrDetail" maxlength="50" placeholder="请输入详细地址">
             <span class="cell-count" id="s1AddrCount">0/50</span>
@@ -506,7 +575,7 @@
         <div class="cover-head">
           <div style="position:relative;z-index:1;">
             <h2>居民健康档案</h2>
-            <div class="no">个人档案编号：<span id="coverNo">32101210010000323</span></div>
+            <div class="no">个人档案编号：<span id="coverNo">-</span></div>
           </div>
           <svg class="cover-illus" width="152" height="74" viewBox="0 0 152 74" xmlns="http://www.w3.org/2000/svg">
             <defs>
@@ -537,7 +606,7 @@
             <div class="form-row">
               <div class="flabel req">姓名：</div>
               <div class="fcell">
-                <input class="u-input has-count" id="s2Name" maxlength="8" value="王丁丁">
+                <input class="u-input has-count" id="s2Name" maxlength="8" placeholder="请输入" value="王丁丁">
                 <span class="cell-count" id="s2NameCount">3/8</span>
               </div>
             </div>
@@ -561,7 +630,7 @@
             <div class="form-row">
               <div class="flabel req">住址详细地址：</div>
               <div class="fcell">
-                <input class="u-input has-count" id="s2LiveDetail" maxlength="50" value="西社区">
+                <input class="u-input has-count" id="s2LiveDetail" maxlength="50" placeholder="请输入详细地址" value="西社区">
                 <span class="cell-count" id="s2LiveDetailCount">3/50</span>
               </div>
             </div>
@@ -574,21 +643,21 @@
             <div class="form-row">
               <div class="flabel req">户籍详细地址：</div>
               <div class="fcell">
-                <input class="u-input has-count" id="s2RegDetail" maxlength="50" value="西社区">
+                <input class="u-input has-count" id="s2RegDetail" maxlength="50" placeholder="请输入详细地址" value="西社区">
                 <span class="cell-count" id="s2RegDetailCount">3/50</span>
               </div>
             </div>
             <div class="form-row">
               <div class="flabel req">联系电话：</div>
-              <div class="fcell"><input class="u-input" id="s2Phone" value="15589897895"></div>
+              <div class="fcell"><input class="u-input" id="s2Phone" maxlength="11" placeholder="请输入联系电话" value="15589897895"></div>
             </div>
             <div class="form-row">
               <div class="flabel req">乡镇（街道）名称：</div>
-              <div class="fcell"><input class="u-input" id="s2Town" value="仙女镇"></div>
+              <div class="fcell"><input class="u-input u-grey" id="s2Town" readonly placeholder="选择现住址后自动带出"></div>
             </div>
             <div class="form-row">
               <div class="flabel req">村（居）委会名称：</div>
-              <div class="fcell"><input class="u-input" id="s2Village" value="东苑社区居委会"></div>
+              <div class="fcell"><input class="u-input u-grey" id="s2Village" readonly placeholder="选择现住址后自动带出"></div>
             </div>
             <div class="form-row">
               <div class="flabel req">建档单位：</div>
@@ -603,7 +672,7 @@
             <div class="form-row">
               <div class="flabel req">建档人：</div>
               <div class="fcell">
-                <select class="u-select" id="s2Creator">
+                <select class="u-select" id="s2Creator" disabled>
                   <option>吕雪</option><option>吕喜</option><option>王芳</option><option>李建国</option>
                 </select>
               </div>
@@ -618,7 +687,7 @@
             </div>
             <div class="form-row">
               <div class="flabel req">建档日期：</div>
-              <div class="fcell"><input type="date" class="u-input" id="s2Date" value="2026-10-09"></div>
+              <div class="fcell"><input type="date" class="u-input" id="s2Date" placeholder="请选择"></div>
             </div>
           </div>
         </div>
@@ -632,7 +701,7 @@
           <div class="fv-head">
             <h3>个人基本信息表</h3>
             <span class="bh-status"><span class="dot"></span>健康档案管理状态：正常</span>
-            <span class="fv-arch">编号：<b id="bhArchNo">--</b></span>
+            <span class="fv-arch">编号：<b id="bhArchNo">-</b></span>
             <span class="fv-arch">建档单位：<b id="bhOrg">--</b></span>
             <span class="saved-tip">
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none"><circle cx="12" cy="12" r="9" stroke="#52C31B" stroke-width="2"/><path d="M8 12.5l2.6 2.6L16 10" stroke="#52C31B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -656,10 +725,11 @@
                 <div class="hp-row" data-sec="secCrowd">
                   <div class="hp-label">人群标识</div>
                   <div class="hp-field">
+                    <!-- 人群标识由出生日期自动判定，不可手工修改 → 禁用态 -->
                     <div class="opts">
-                      <label class="rad"><input type="radio" name="crowd" value="0-6岁儿童">0-6岁儿童</label>
-                      <label class="rad"><input type="radio" name="crowd" value="65岁及以上老年人">65岁及以上老年人</label>
-                      <label class="rad"><input type="radio" name="crowd" value="孕产妇">孕产妇</label>
+                      <label class="rad"><input type="radio" name="crowd" value="0-6岁儿童" disabled>0-6岁儿童</label>
+                      <label class="rad"><input type="radio" name="crowd" value="65岁及以上老年人" disabled>65岁及以上老年人</label>
+                      <label class="rad"><input type="radio" name="crowd" value="孕产妇" disabled>孕产妇</label>
                     </div>
                   </div>
                 </div>
@@ -1158,18 +1228,11 @@
               </div>
             </div>
 
-            <!-- 17. 村委会 / 人群性质（独立行，无列合并） -->
+            <!-- 17. 村委会（随第二步「村（居）委会名称」带入，文本输入框） -->
             <div class="hp-row">
               <div class="hp-label"><i>*</i>村委会</div>
               <div class="hp-field">
-                <select class="ctl" id="biVillage" style="max-width:360px">
-                  <option value="">请选择</option>
-                  <option>周西社区居委会</option>
-                  <option>五舍村委会</option>
-                  <option>黄思村委会</option>
-                  <option>新祥村委会</option>
-                  <option>联桥村委会</option>
-                </select>
+                <input class="ctl" id="biVillage" maxlength="30" placeholder="请输入" style="max-width:360px">
               </div>
             </div>
             <div class="hp-row tall" data-sec="secPopu">
@@ -1215,7 +1278,7 @@
               <div class="hp-cell">
                 <div class="hp-label"><i>*</i>建档人</div>
                 <div class="hp-field">
-                  <select class="ctl" id="biCreator">
+                  <select class="ctl" id="biCreator" disabled>
                     <option value="吕雪" selected>吕雪</option>
                     <option>白雪</option>
                     <option>周建国</option>
@@ -1261,6 +1324,54 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function () { $('#toast').classList.remove('show'); }, 2200);
   };
+
+  /* ---------- 必填校验工具（与「档案维护」页同一套风格：
+     ① missing 收集 + toast 提示；② 未填项逐项标红（输入框/下拉框红边、单选/复选组红虚框、级联红边）；
+     ③ 补填（输入 / 选择）后即时消除红框 ---------- */
+  function fv(id, label, missing) {
+    var el = document.getElementById(id);
+    var v = el ? String(el.value || '').trim() : '';
+    if (el && label) el.classList.toggle('is-invalid', !v);
+    if (!v && label) missing.push(label);
+    return v;
+  }
+  function fr(name, label, missing) {
+    var ok = !!document.querySelector('input[name="' + name + '"]:checked');
+    var first = document.querySelector('input[name="' + name + '"]');
+    var box = (first && first.closest) ? first.closest('.opts') : null;
+    if (box && label) box.classList.toggle('is-invalid-opts', !ok);
+    if (!ok && label) missing.push(label);
+    return ok;
+  }
+  function fc(comp, rootId, label, missing) {
+    var v = (comp && typeof comp.get === 'function') ? comp.get() : '';
+    var root = document.getElementById(rootId);
+    if (root && label) root.classList.toggle('is-invalid', !v);
+    if (!v && label) missing.push(label);
+    return v;
+  }
+  function requireCheck(missing) {
+    if (missing.length) { toast('请完善必填项：' + missing.join('、')); return false; }
+    return true;
+  }
+  /* 补填后即时消除红框（input：文本输入；change：下拉/日期/单选/复选/级联） */
+  document.addEventListener('input', function (e) {
+    var t = e.target;
+    if (t && t.classList && t.classList.contains('is-invalid') && String(t.value || '').trim() !== '') t.classList.remove('is-invalid');
+  });
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (!t || !t.classList) return;
+    if (t.classList.contains('is-invalid') && String(t.value || '').trim() !== '') t.classList.remove('is-invalid');
+    if (t.name && (t.type === 'radio' || t.type === 'checkbox')) {
+      var box = t.closest ? t.closest('.opts') : null;
+      if (box && box.classList.contains('is-invalid-opts') && box.querySelector('input:checked')) box.classList.remove('is-invalid-opts');
+    }
+    if (t.classList.contains('addr-cascade') && t.classList.contains('is-invalid')) {
+      var txt = t.querySelector('.addr-text');
+      if (txt && !txt.classList.contains('placeholder')) t.classList.remove('is-invalid');
+    }
+  });
 
   /* ---------- 步骤切换 ---------- */
   var current = 1, maxReached = 1;
@@ -1442,12 +1553,17 @@
       panel.innerHTML = html;
       position();
     }
-    /* 面板整体超出视口右侧时向左偏移，保证五列完整可见 */
+    /* 面板展开定位：默认左对齐触发框；右侧空间不足时整体左移，
+       并保证左右两侧都不越过浏览器可视区域边界 */
     function position() {
       panel.style.left = '0px';
       var w = panel.offsetWidth;
-      var maxWidth = window.innerWidth - 12 - trigger.getBoundingClientRect().left;
-      if (w > maxWidth) panel.style.left = -(w - maxWidth) + 'px';
+      var vw = window.innerWidth;
+      var left0 = trigger.getBoundingClientRect().left;
+      var left = 0;
+      if (left0 + w > vw - 12) left = vw - 12 - w - left0;   /* 右侧不足 → 左移 */
+      if (left0 + left < 8) left = 8 - left0;                 /* 不越过左边界 */
+      panel.style.left = Math.round(left) + 'px';
     }
     function open() {
       if (addrOpenRoot && addrOpenRoot !== root) addrOpenRoot.classList.remove('open');
@@ -1476,6 +1592,8 @@
       }
       updateText();
       if (root.classList.contains('open')) render();
+      /* 派发 change（供必填校验「补填后即时消除红框」使用，与「档案维护」页规则一致） */
+      try { root.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) { }
     }
     trigger.addEventListener('click', function (ev) {
       ev.stopPropagation();
@@ -1493,6 +1611,8 @@
       path.push(node);
       updateText();
       if (node.c && node.c.length) render(); else close();
+      /* 派发 change（同 setValue，供补填后即时消除红框） */
+      try { root.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) { }
     });
     document.addEventListener('click', close);
     window.addEventListener('resize', function () {
@@ -1555,22 +1675,37 @@
   }
   fillCoverMeta();
   $('#btnStep1Next').addEventListener('click', function () {
+    /* 必填验证（未填项逐项标红） */
+    var missing = [];
+    fv('s1CertType', '证件类型', missing);
+    fv('s1Name', '姓名', missing);
+    fv('s1Gender', '性别', missing);
+    fv('s1Nation', '民族', missing);
+    fv('s1Phone', '联系电话', missing);
+    fv('s1Birth', '出生日期', missing);
+    fv('s1CertNo', '证件号', missing);
+    fc(addrCascade, 'addrCascade', '联系地址', missing);
+    fv('s1AddrDetail', '联系详细地址', missing);
+    if (!requireCheck(missing)) return;
     // 封面内容自动取基本信息（第一步）的填报内容
     var name = $('#s1Name').value;
     if (name) { $('#s2Name').value = name; $('#s2Name').dispatchEvent(new Event('input')); }
     var phone = $('#s1Phone').value;
-    if (phone) { $('#s2Phone').value = phone; }
+    if (phone) { $('#s2Phone').value = phone; $('#s2Phone').dispatchEvent(new Event('input')); }
     var addr = addrCascade.get();
     if (addr) {
       cvLiveAddr.set(addr);
       // 选择现住址后自动带出乡镇/村居
       var mapped = addrMap[addr];
       if (mapped) {
-        $('#s2Town').value = mapped[0];
-        $('#s2Village').value = mapped[1];
+        $('#s2Town').value = mapped[0]; $('#s2Town').dispatchEvent(new Event('input'));
+        $('#s2Village').value = mapped[1]; $('#s2Village').dispatchEvent(new Event('input'));
       } else {
         var segs = addr.split(' / ');
-        if (segs.length >= 5) { $('#s2Town').value = segs[3]; $('#s2Village').value = segs[4]; }
+        if (segs.length >= 5) {
+          $('#s2Town').value = segs[3]; $('#s2Town').dispatchEvent(new Event('input'));
+          $('#s2Village').value = segs[4]; $('#s2Village').dispatchEvent(new Event('input'));
+        }
       }
     }
     var detail = $('#s1AddrDetail').value;
@@ -1587,44 +1722,94 @@
   /* ---------- 第二步 ---------- */
   $('#btnStep2Prev').addEventListener('click', function () { goStep(1); });
   $('#btnStep2Next').addEventListener('click', function () {
-    /* 同步到第三步「个人基本信息表」（表单模式，与档案维护页一致） */
-    var $id = function (id) { return document.getElementById(id); };
-    var setVal = function (id, v) { var el = $id(id); if (el && v != null) el.value = v; };
-
-    /* 基本信息 */
-    setVal('biName', $('#s1Name').value || $('#s2Name').value);
-    var gMap = { '男': '男性', '女': '女性', '未知的性别': '未知的性别', '未说明的性别': '未说明的性别' };
-    var gVal = gMap[$('#s1Gender').value];
-    if (gVal) {
-      var gr = document.querySelector('input[name="biGender"][value="' + gVal + '"]');
-      if (gr) gr.checked = true;
-    }
-    syncSelect($('#biIdType'), $('#s1CertType').value);
-    setVal('biIdcard', $('#s1CertNo').value);
-    setVal('biBirth', $('#s1Birth').value);
-    syncSelect($('#biNation'), $('#s1Nation').value);
-    setVal('biPhone', $('#s2Phone').value || $('#s1Phone').value);
-
-    /* 建档信息 */
-    var org = $('#s2Org').value;
-    setVal('biOrgShow', org);
-    syncSelect($('#biOrg'), org);
-    syncSelect($('#biDoctor'), $('#s2Doctor').value);
-    syncSelect($('#biCreator'), $('#s2Creator').value);
-    syncSelect($('#biVillage'), $('#s2Village').value);
-    setVal('biCreateDate', $('#s2Date').value);
-    $id('bhArchNo').textContent = $('#coverNo').textContent;
-    $id('bhOrg').textContent = org || '--';
-
-    /* 住址（只读文本，与设计稿一致） */
-    var liveAddr = (cvLiveAddr.get() || '').replace(/ \/ /g, '') + ($('#s2LiveDetail').value || '');
-    var regAddr = (cvRegAddr.get() || '').replace(/ \/ /g, '') + ($('#s2RegDetail').value || '');
-    $id('biLiveAddr').textContent = liveAddr;
-    $id('biRegAddr').textContent = '户籍地址：' + regAddr;
-    if (window.__basicRenderComplete) window.__basicRenderComplete();
-
+    /* 必填验证（未填项逐项标红） */
+    var missing = [];
+    fv('s2Name', '姓名', missing);
+    fc(cvLiveAddr, 'cvLiveAddr', '现住址', missing);
+    fv('s2Grid', '管辖网格', missing);
+    fv('s2LiveDetail', '住址详细地址', missing);
+    fc(cvRegAddr, 'cvRegAddr', '户籍地址', missing);
+    fv('s2RegDetail', '户籍详细地址', missing);
+    fv('s2Phone', '联系电话', missing);
+    fv('s2Town', '乡镇（街道）名称', missing);
+    fv('s2Village', '村（居）委会名称', missing);
+    fv('s2Org', '建档单位', missing);
+    fv('s2Creator', '建档人', missing);
+    fv('s2Doctor', '责任医生', missing);
+    fv('s2Date', '建档日期', missing);
+    if (!requireCheck(missing)) return;
+    syncCoverToBasic();
     goStep(3);
   });
+
+  /* ================= 第二步表单 → 第三步「个人基本信息表」信息带入 =================
+     · 第一步身份信息（姓名/性别/证件/出生日期/民族/电话）
+     · 第二步封面信息（现住址/户籍地址/村居/建档单位/建档人/责任医生/建档日期）
+     全部改为 null 安全赋值，任一字段缺失不影响其余字段带入。 */
+  function syncCoverToBasic() {
+    var $id = function (id) { return document.getElementById(id); };
+    function setVal(id, v) { var el = $id(id); if (el && v != null) el.value = v; }
+    function setText(id, v) { var el = $id(id); if (el && v != null) el.textContent = v; }
+    function pickRadio(name, val) {
+      if (!val) return;
+      var r = document.querySelector('input[name="' + name + '"][value="' + val + '"]');
+      if (r) r.checked = true;
+    }
+    function txt(el) { return el && el.value ? el.value.trim() : ''; }
+
+    /* ---- 1. 基本信息（姓名 / 性别 / 证件 / 出生日期 / 民族 / 本人电话） ---- */
+    setVal('biName', txt($('#s2Name')) || txt($('#s1Name')));
+    pickRadio('biGender', { '男': '男性', '女': '女性' }[txt($('#s1Gender'))] || txt($('#s1Gender')));
+    syncSelect($id('biIdType'), txt($('#s1CertType')));
+    setVal('biIdcard', txt($('#s1CertNo')));
+    setVal('biBirth', txt($('#s1Birth')));
+    syncSelect($id('biNation'), txt($('#s1Nation')));
+    setVal('biPhone', txt($('#s2Phone')) || txt($('#s1Phone')));
+    /* 工作单位/学校：无对应来源，保留第三步手工录入 */
+
+    /* ---- 2. 籍贯 / 出生地：由户籍地址（无则取现住址）带入 ---- */
+    var regPath = cvRegAddr.get() || cvLiveAddr.get();
+    var regSegs = regPath ? regPath.split(' / ') : [];
+    if (window.__setJiguan) window.__setJiguan(regSegs.slice(0, 2));   /* 籍贯 = 省 / 市 */
+    setVal('biBirthplace', regSegs.slice(0, 3).join(''));               /* 出生地 = 省市区 */
+
+    /* ---- 3. 住址（只读文本，与设计稿一致） ---- */
+    setText('biLiveAddr', (cvLiveAddr.get() || '').replace(/ \/ /g, '') + txt($('#s2LiveDetail')));
+    setText('biRegAddr', '户籍地址：' + (cvRegAddr.get() || '').replace(/ \/ /g, '') + txt($('#s2RegDetail')));
+
+    /* ---- 4. 管理机构 / 建档信息 ---- */
+    var org = txt($('#s2Org'));
+    setVal('biOrgShow', org);
+    syncSelect($id('biOrg'), org);
+    syncSelect($id('biDoctor'), txt($('#s2Doctor')));
+    syncSelect($id('biCreator'), txt($('#s2Creator')));
+    setVal('biVillage', txt($('#s2Village')));          /* 村委会 = 第二步「村（居）委会名称」 */
+    setVal('biCreateDate', txt($('#s2Date')));
+    setText('bhArchNo', $('#coverNo') ? $('#coverNo').textContent : '');
+    setText('bhOrg', org || '--');
+
+    /* ---- 5. 人群标识：出生日期变更后自动判定（该控件禁用，不可手工修改） ---- */
+    syncCrowdTag();
+
+    if (window.__basicRenderComplete) window.__basicRenderComplete();
+  }
+
+  /* 人群标识：由出生日期自动判定 —— 0~6 岁 → 0-6岁儿童；≥65 岁 → 65岁及以上老年人 */
+  function syncCrowdTag() {
+    var birthEl = document.getElementById('biBirth');
+    if (!birthEl || !birthEl.value) return;
+    var d = new Date(birthEl.value);
+    if (isNaN(d.getTime())) return;
+    var now = new Date();
+    var age = now.getFullYear() - d.getFullYear();
+    if (now.getMonth() < d.getMonth() || (now.getMonth() === d.getMonth() && now.getDate() < d.getDate())) age--;
+    var val = '';
+    if (age >= 65) val = '65岁及以上老年人';
+    else if (age >= 0 && age <= 6) val = '0-6岁儿童';
+    var radios = document.querySelectorAll('input[name="crowd"]');
+    for (var i = 0; i < radios.length; i++) radios[i].checked = !!val && radios[i].value === val;
+  }
+  window.syncCrowdTag = syncCrowdTag;
 
   function syncSelect(sel, text) {
     if (!sel || !text) return;
@@ -1639,10 +1824,91 @@
 
   /* ---------- 第三步：右上角按钮 ---------- */
   $('#btnStep3Prev').addEventListener('click', function () { goStep(2); });
-  /* 保存：跳转「档案维护」页，并默认定位到「个人基本信息」 */
+
+  /* 个人档案编号：新建过程中不预生成（统一显示 "-"），第三步完成后才生成并回写 */
+  function genArchNo() {
+    var d = new Date();
+    var p2 = function (n) { return String(n).padStart(2, '0'); };
+    /* 规则与「档案维护」页演示规则一致：3210121 + 年月日 + 4 位序号 */
+    return '3210121' + String(d.getFullYear()).slice(2) + p2(d.getMonth() + 1) + p2(d.getDate()) + '0001';
+  }
+
+  /* 采集新建档案的完整数据快照：用于「档案维护」页封面 + 个人基本信息的一致性展示 */
+  function buildArchiveSnapshot(archNo) {
+    var $id = function (id) { return document.getElementById(id); };
+    var v = function (id) { var el = $id(id); return el ? String(el.value || '').trim() : ''; };
+    var g = document.querySelector('input[name="biGender"]:checked');
+    var gender = g ? g.value : v('s1Gender');
+    if (gender === '男性') gender = '男';
+    if (gender === '女性') gender = '女';
+    var crowd = document.querySelector('input[name="crowd"]:checked');
+    var jiguan = [v('biJG1'), v('biJG2')].filter(Boolean).join(' / ');
+    return {
+      archNo: archNo,
+      name: v('biName') || v('s2Name'),
+      gender: gender,
+      idType: v('biIdType') || v('s1CertType'),
+      idcard: v('biIdcard') || v('s1CertNo'),
+      birth: v('biBirth') || v('s1Birth'),
+      nation: v('biNation') || v('s1Nation'),
+      phone: v('biPhone') || v('s2Phone'),
+      work: v('biWork'),
+      jiguan: jiguan,
+      birthplace: v('biBirthplace'),
+      crowd: crowd ? crowd.value : '',
+      region: (cvLiveAddr.get() || '').replace(/ \/ /g, ''),
+      addr: v('s2LiveDetail'),
+      regRegion: (cvRegAddr.get() || '').replace(/ \/ /g, ''),
+      regAddr: v('s2RegDetail'),
+      grid: v('s2Grid'),
+      town: v('s2Town'),
+      village: v('s2Village') || v('biVillage'),
+      org: v('biOrgShow') || v('s2Org'),
+      creator: v('biCreator') || v('s2Creator'),
+      doctor: v('biDoctor') || v('s2Doctor'),
+      created: v('biCreateDate') || v('s2Date')
+    };
+  }
+  window.__buildArchiveSnapshot = buildArchiveSnapshot;   /* 供联调/校验使用 */
+
+  /* 保存（第三步完成）：生成档案编号 → 回写界面 → 跳转「档案维护」页（带上编号与数据快照） */
   $('#btnStep3Save').addEventListener('click', function () {
-    toast('居民健康档案保存成功');
-    setTimeout(function () { location.href = MAINTAIN_URL; }, 700);
+    /* 必填验证（第三步带 * 字段，未填项逐项标红） */
+    var missing = [];
+    fv('biName', '姓名', missing);
+    fr('biGender', '性别', missing);
+    fv('biIdType', '证件类型', missing);
+    fv('biIdcard', '证件号', missing);
+    fv('biBirth', '出生日期', missing);
+    fv('biJG1', '籍贯', missing);
+    fv('biBirthplace', '出生地', missing);
+    fv('biOrg', '管理机构', missing);
+    fv('biPhone', '本人电话', missing);
+    fv('ec1Name', '联系人1姓名', missing);
+    fv('ec1Rel', '联系人1与本人关系', missing);
+    fv('ec1Phone', '联系人1联系电话', missing);
+    fr('biEdu', '文化程度', missing);
+    fr('biJob', '职业', missing);
+    fr('marriage', '婚姻状况', missing);
+    fr('pay', '医疗费用支付方式', missing);
+    fr('exposure', '暴露史', missing);
+    fr('pastDis', '疾病', missing);
+    fr('disability', '残疾情况', missing);
+    fv('biVillage', '村委会', missing);
+    fv('biDoctor', '责任医生', missing);
+    fv('biCreator', '建档人', missing);
+    fv('biCreateDate', '建档日期', missing);
+    if (!requireCheck(missing)) return;
+    var archNo = genArchNo();
+    if ($('#coverNo')) $('#coverNo').textContent = archNo;
+    if ($('#bhArchNo')) $('#bhArchNo').textContent = archNo;
+    var snap = buildArchiveSnapshot(archNo);
+    toast('居民健康档案保存成功，个人档案编号 ' + archNo);
+    setTimeout(function () {
+      location.href = MAINTAIN_URL +
+        '&archNo=' + encodeURIComponent(archNo) +
+        '&d=' + encodeURIComponent(JSON.stringify(snap));
+    }, 900);
   });
   /* ================= 第三步：个人基本信息表（表单模式，结构与交互与「档案维护」页完全一致） ================= */
   (function () {
@@ -1808,6 +2074,16 @@
         if (e.key === 'Escape' && wrap.classList.contains('open')) abandon();
       });
       renderBox();
+      /* 对外提供取值 / 赋值能力，供步骤间信息带入使用 */
+      return {
+        get: curVals,
+        set: function (vals) {
+          setCascade(prefix, vals || []);
+          snapshot = curVals();
+          renderBox();
+          if (wrap.classList.contains('open')) renderPanel();
+        }
+      };
     }
 
     /* ---------- 家族史（父亲/母亲/兄弟姐妹/子女：每成员一行，仅复选框；勾「无」清其他，「其他」联动说明输入框） ---------- */
@@ -1991,9 +2267,13 @@
     document.querySelectorAll('input[name="rsType"]').forEach(function (r) { r.addEventListener('change', syncRegAddr); });
     syncRegAddr();
 
-    /* 籍贯：省市两级级联（单框点击展开选择） */
+    /* 籍贯：省市两级级联（单框点击展开选择）—— 第二步「户籍地址」带入 */
     initCascade('biJG', [Object.keys(ADDR)[0]]);
-    initCascaderWidget('cascJG', 'biJG', 2);
+    var jgWidget = initCascaderWidget('cascJG', 'biJG', 2);
+    window.__setJiguan = function (vals) { if (jgWidget && vals && vals.length) jgWidget.set(vals); };
+
+    /* 出生日期在第三步被修改时，人群标识同步重算 */
+    if ($id('biBirth')) $id('biBirth').addEventListener('change', function () { window.syncCrowdTag && window.syncCrowdTag(); });
 
     /* 表单变化 → 完整度实时联动 */
     $id('viewBasic').addEventListener('change', renderComplete);
@@ -2008,6 +2288,250 @@
 
     renderComplete();
   })();
+})();
+</script>
+<!-- ===== 全局日期选择浮层（Element 风格：日/月/年三视图） ===== -->
+<div class="dp-panel" id="dpPanel"></div>
+<svg class="dp-clear" id="dpClear" width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#E5E6EB"/><path d="M9 9l6 6M15 9l-6 6" stroke="#8c8c8c" stroke-width="1.8" stroke-linecap="round"/></svg>
+
+<script>
+/* ================= 全局日期选择插件（悬浮清空 + 手动输入 + 年/月/日三视图） ================= */
+(function () {
+  var DP_MONTHS = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
+  var dpCur = { input: null, view: 'day', y: 0, m: 0 };
+  function dpPanelEl() { return document.getElementById('dpPanel'); }
+
+  function dpPad(n) { return (n < 10 ? '0' : '') + n; }
+  function dpFmtY(y, m, d) { return y + '-' + dpPad(m + 1) + '-' + dpPad(d); }
+  function dpConvert(inp) {
+    if (!inp || inp.dataset.dp) return;
+    inp.dataset.dp = '1';
+    inp.type = 'text';
+    inp.autocomplete = 'off';
+    if (!inp.placeholder) inp.placeholder = '请选择';
+    inp.classList.add('dp-input');
+  }
+  function dpIsDp(el) { return el && el.tagName === 'INPUT' && (el.dataset.dp || el.type === 'date'); }
+  function dpParse(v) {
+    var m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(String(v || '').trim());
+    if (!m) return null;
+    var d = new Date(+m[1], +m[2] - 1, +m[3]);
+    if (d.getFullYear() !== +m[1] || d.getMonth() !== +m[2] - 1 || d.getDate() !== +m[3]) return null;
+    return d;
+  }
+  function dpFire(inp) {
+    inp.dispatchEvent(new Event('input', { bubbles: true }));
+    inp.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+  function dpValidate(inp) {
+    if (!dpIsDp(inp)) return;
+    var d = dpParse(inp.value);
+    if (d) {
+      var s = dpFmtY(d.getFullYear(), d.getMonth(), d.getDate());
+      if (inp.value !== s) inp.value = s;
+      inp.dataset.dpLast = s;
+    } else {
+      inp.value = inp.dataset.dpLast || '';
+    }
+  }
+  function dpOpen(inp) {
+    if (!inp || inp.disabled || inp.readOnly) return;
+    if (dpCur.input === inp && dpPanelEl().classList.contains('show')) return;
+    dpCur.input = inp;
+    var d = dpParse(inp.value) || new Date();
+    dpCur.y = d.getFullYear(); dpCur.m = d.getMonth();
+    dpCur.view = 'day';
+    if (inp.dataset.dpLast === undefined) inp.dataset.dpLast = inp.value;
+    dpRender(); dpPlace();
+    dpPanelEl().classList.add('show');
+  }
+  function dpClose() {
+    dpPanelEl().classList.remove('show');
+    if (dpCur.input) dpValidate(dpCur.input);
+    dpCur.input = null;
+    dpHideClear();
+  }
+  function dpSetSel(d) {
+    var inp = dpCur.input;
+    if (!inp) return;
+    var s = dpFmtY(d.getFullYear(), d.getMonth(), d.getDate());
+    inp.value = s; inp.dataset.dpLast = s;
+    dpFire(inp);
+    dpHideClear();
+    dpPanelEl().classList.remove('show');
+    dpCur.input = null;
+  }
+  /* 面板选中基准：输入框有合法值用该值，否则默认选中当前日期 */
+  function dpBase() {
+    var base = dpCur.input ? dpParse(dpCur.input.value) : null;
+    return base || new Date();
+  }
+  function dpRender() {
+    var h = '';
+    if (dpCur.view === 'day') {
+      h += '<div class="dp-head">' +
+        '<span class="dp-arr" onclick="dpNav(-1,-1)">«</span><span class="dp-arr" onclick="dpNav(-1,0)">‹</span>' +
+        '<span class="dp-title" onclick="dpToMonth()">' + dpCur.y + ' 年 ' + (dpCur.m + 1) + ' 月</span>' +
+        '<span class="dp-arr" onclick="dpNav(1,0)">›</span><span class="dp-arr" onclick="dpNav(1,1)">»</span></div>';
+      h += '<div class="dp-week"><span>周一</span><span>周二</span><span>周三</span><span>周四</span><span>周五</span><span>周六</span><span>周日</span></div>';
+      h += dpDayGrid();
+    } else if (dpCur.view === 'month') {
+      h += '<div class="dp-head"><span class="dp-arr ghost"></span><span class="dp-arr" onclick="dpNav(-1,0)">‹</span>' +
+        '<span class="dp-title" onclick="dpToYear()">' + dpCur.y + ' 年</span>' +
+        '<span class="dp-arr" onclick="dpNav(1,0)">›</span><span class="dp-arr ghost"></span></div>';
+      h += dpMonthGrid();
+    } else {
+      var s = Math.floor(dpCur.y / 10) * 10;
+      h += '<div class="dp-head"><span class="dp-arr" onclick="dpNavY(-10)">«</span><span class="dp-arr ghost"></span>' +
+        '<span class="dp-title static">' + s + ' 年 - ' + (s + 9) + ' 年</span>' +
+        '<span class="dp-arr ghost"></span><span class="dp-arr" onclick="dpNavY(10)">»</span></div>';
+      h += dpYearGrid();
+    }
+    dpPanelEl().innerHTML = h;
+  }
+  function dpDayGrid() {
+    var y = dpCur.y, m = dpCur.m;
+    var off = (new Date(y, m, 1).getDay() + 6) % 7;
+    var start = new Date(y, m, 1 - off);
+    var base = dpBase();
+    var selTs = new Date(base.getFullYear(), base.getMonth(), base.getDate()).getTime();
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var h = '';
+    for (var r = 0; r < 6; r++) {
+      h += '<div class="dp-row">';
+      for (var c = 0; c < 7; c++) {
+        var d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + r * 7 + c);
+        var cls = 'dp-cell' + (d.getMonth() !== m ? ' om' : '') +
+          (d.getTime() === today.getTime() ? ' today' : '') +
+          (d.getTime() === selTs ? ' sel' : '');
+        h += '<span class="' + cls + '" onclick="dpPick(' + d.getFullYear() + ',' + d.getMonth() + ',' + d.getDate() + ')">' + d.getDate() + '</span>';
+      }
+      h += '</div>';
+    }
+    return h;
+  }
+  function dpMonthGrid() {
+    var base = dpBase();
+    var h = '<div class="dp-grid4">';
+    for (var i = 0; i < 12; i++) {
+      var isSel = base.getFullYear() === dpCur.y && base.getMonth() === i;
+      h += '<span class="dp-c4' + (isSel ? ' sel' : '') + '" onclick="dpPickMonth(' + i + ')">' + DP_MONTHS[i] + '</span>';
+    }
+    return h + '</div>';
+  }
+  function dpYearGrid() {
+    var start = Math.floor(dpCur.y / 10) * 10;
+    var base = dpBase();
+    var h = '<div class="dp-grid4 dp-ygrid">';
+    for (var i = 0; i < 10; i++) {
+      var yr = start + i;
+      var isSel = base.getFullYear() === yr;
+      h += '<span class="dp-c4' + (isSel ? ' sel' : '') + '" onclick="dpPickYear(' + yr + ')">' + yr + '</span>';
+    }
+    return h + '</div>';
+  }
+  window.dpNav = function (dy, dm) {
+    var y = dpCur.y + dy, m = dpCur.m + dm;
+    if (m < 0) { m = 11; y--; } else if (m > 11) { m = 0; y++; }
+    dpCur.y = y; dpCur.m = m;
+    dpRender();
+  };
+  window.dpNavY = function (dy) { dpCur.y += dy; dpRender(); };
+  window.dpToMonth = function () { dpCur.view = 'month'; dpRender(); };
+  window.dpToYear = function () { dpCur.view = 'year'; dpRender(); };
+  window.dpPick = function (y, m, d) { dpSetSel(new Date(y, m, d)); };
+  window.dpPickMonth = function (i) { dpCur.m = i; dpCur.view = 'day'; dpRender(); };
+  window.dpPickYear = function (yr) { dpCur.y = yr; dpCur.view = 'month'; dpRender(); };
+  function dpPlace() {
+    var inp = dpCur.input, p = dpPanelEl();
+    if (!inp) return;
+    var r = inp.getBoundingClientRect();
+    var sx = window.scrollX || window.pageXOffset, sy = window.scrollY || window.pageYOffset;
+    p.style.left = (r.left + sx) + 'px';
+    p.style.top = (r.bottom + sy + 4) + 'px';
+    p.classList.add('show');
+    var ph = p.offsetHeight, pw = p.offsetWidth;
+    var top = r.bottom + sy + 4;
+    if (r.bottom + ph + 8 > window.innerHeight && r.top - ph - 8 > 0) top = r.top + sy - ph - 4;
+    var left = r.left + sx;
+    if (left + pw > sx + window.innerWidth - 8) left = sx + window.innerWidth - 8 - pw;
+    if (left < sx + 4) left = sx + 4;
+    p.style.left = left + 'px';
+    p.style.top = top + 'px';
+  }
+  function dpShowClear(inp) {
+    var c = document.getElementById('dpClear');
+    c._inp = inp;
+    var r = inp.getBoundingClientRect();
+    var sx = window.scrollX || window.pageXOffset, sy = window.scrollY || window.pageYOffset;
+    c.style.display = 'block';
+    c.style.left = (r.right + sx - 24) + 'px';
+    c.style.top = (r.top + sy + r.height / 2 - 8) + 'px';
+  }
+  function dpHideClear() {
+    var c = document.getElementById('dpClear');
+    if (!c) return;
+    c.style.display = 'none';
+    c._inp = null;
+  }
+  document.addEventListener('mouseover', function (e) {
+    if (document.getElementById('dpClear').contains(e.target)) return;
+    var inp = e.target.closest ? e.target.closest('input.dp-input') : null;
+    if (inp && !inp.disabled && !inp.readOnly && inp.value) dpShowClear(inp);
+    else dpHideClear();
+  });
+  document.getElementById('dpClear').addEventListener('click', function (e) {
+    e.preventDefault(); e.stopPropagation();
+    var inp = this._inp;
+    if (!inp) return;
+    inp.value = ''; inp.dataset.dpLast = '';
+    dpFire(inp);
+    dpHideClear();
+    if (dpCur.input === inp && dpPanelEl().classList.contains('show')) dpClose();
+    try { inp.focus(); } catch (err) { }
+  });
+  document.addEventListener('focusin', function (e) {
+    var t = e.target;
+    if (!t || t.tagName !== 'INPUT') return;
+    if (t.type === 'date') { dpConvert(t); dpOpen(t); }
+    else if (t.dataset && t.dataset.dp) dpOpen(t);
+  });
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (t && t.dataset && t.dataset.dp && dpCur.input !== t && !t.disabled && !t.readOnly) dpOpen(t);
+  });
+  document.addEventListener('mousedown', function (e) {
+    var p = dpPanelEl();
+    if (!p.classList.contains('show')) return;
+    if (p.contains(e.target)) return;
+    if (dpCur.input && (dpCur.input === e.target || dpCur.input.contains(e.target))) return;
+    dpClose();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && dpIsDp(e.target)) { dpValidate(e.target); dpClose(); }
+    else if (e.key === 'Escape' && dpPanelEl().classList.contains('show')) dpClose();
+  });
+  document.addEventListener('change', function (e) { if (dpIsDp(e.target)) dpValidate(e.target); });
+  window.addEventListener('scroll', function () {
+    var p = dpPanelEl();
+    if (p.classList.contains('show') && dpCur.input) {
+      var r = dpCur.input.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > window.innerHeight) { dpClose(); return; }
+      dpPlace();
+    }
+    dpHideClear();
+  }, true);
+  window.addEventListener('resize', function () {
+    if (dpPanelEl().classList.contains('show')) dpPlace();
+    dpHideClear();
+  });
+  /* 初始化：转换全部原生 date 输入框（含动态渲染行的 load 兜底） */
+  function dpInitAll() {
+    var list = document.querySelectorAll('input[type="date"]');
+    for (var i = 0; i < list.length; i++) dpConvert(list[i]);
+  }
+  dpInitAll();
+  window.addEventListener('load', dpInitAll);
 })();
 </script>
 </body>

@@ -330,14 +330,11 @@
 
           <div class="filter-item">
             <label>居民状态：</label>
-            <select id="fStatus" class="fi-select">
-              <option value="">全部</option>
-              <option>正常</option>
-              <option>失访</option>
-              <option>死亡</option>
-              <option>迁出</option>
-              <option>注销</option>
-            </select>
+            <div class="rs-sel" data-options="正常|死亡|失访" data-placeholder="全部" style="width:auto;flex:1 1 0;min-width:0;max-width:190px">
+              <div class="rs-box"><span class="rs-text is-ph">全部</span><span class="rs-clear" title="清空">×</span></div>
+              <div class="rs-panel"></div>
+              <input type="hidden" class="rs-val" id="fStatus" value="">
+            </div>
           </div>
           <div class="filter-item">
             <label>管辖网格：</label>

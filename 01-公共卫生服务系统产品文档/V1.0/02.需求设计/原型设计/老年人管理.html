@@ -221,7 +221,11 @@
             <select class="fi-select"><option value="未上锁">未上锁</option><option value="已锁定">已锁定</option></select>
           </div>
           <div class="filter-item"><label>居民状态：</label>
-            <select class="fi-select"><option value="正常">正常</option><option value="迁出">迁出</option><option value="死亡">死亡</option></select>
+            <div class="rs-sel" data-options="正常|死亡|失访" data-placeholder="全部" style="width:180px">
+              <div class="rs-box"><span class="rs-text">正常</span><span class="rs-clear" title="清空">×</span></div>
+              <div class="rs-panel"></div>
+              <input type="hidden" class="rs-val" id="fRStatus" value="正常">
+            </div>
           </div>
           <div class="filter-item"><label>当前分色：</label>
             <select class="fi-select"><option value="">请选择</option><option value="white">白色</option><option value="yellow">黄色</option><option value="red">红色</option><option value="green">绿色</option></select>

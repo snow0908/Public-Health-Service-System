@@ -320,20 +320,17 @@
             </select>
           </div>
           <div class="filter-item"><label>居民状态：</label>
-            <select id="fRStatus" class="fi-select">
-              <option value="正常" selected>正常</option>
-              <option value="">全部</option>
-              <option value="死亡">死亡</option>
-              <option value="迁出">迁出</option>
-              <option value="注销">注销</option>
-            </select>
+            <div class="rs-sel" data-options="正常|死亡|失访" data-placeholder="全部" style="width:160px">
+              <div class="rs-box"><span class="rs-text">正常</span><span class="rs-clear" title="清空">×</span></div>
+              <div class="rs-panel"></div>
+              <input type="hidden" class="rs-val" id="fRStatus" value="正常">
+            </div>
           </div>
           <div class="filter-item"><label>管理状态：</label>
             <select id="fMStatus" class="fi-select">
               <option value="有效管理" selected>有效管理</option>
+              <option value="暂不管理">暂不管理</option>
               <option value="">全部</option>
-              <option value="中断管理">中断管理</option>
-              <option value="终止管理">终止管理</option>
             </select>
           </div>
           <div class="filter-item"><label>当前分级：</label>
@@ -787,12 +784,12 @@
     { org:'山东大学齐鲁医院', name:'周振华', idcard:'370102194910056317', idType:'居民身份证', grade:'二级', sbp:172, dbp:105, hpType:'原发性高血压', gender:'男', age:76, phone:'13583176094', birth:'1949-10-05', address:'济南市历下区燕山小区东路18号',    archNo:'370102JM26009', region:'燕山社区',     grid:'第三网格', specDate:'2024-04-27', specDoc:'李蕾',   full:85,  rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
     { org:'山东大学齐鲁医院', name:'冯立军', idcard:'370102197706285516', idType:'居民身份证', grade:'二级', sbp:164, dbp:101, hpType:'继发性高血压', gender:'男', age:49, phone:'13791046538', birth:'1977-06-28', address:'济南市历城区华信路3号',          archNo:'370102JM26016', region:'姚家社区',     grid:'第二网格', specDate:'2024-05-09', specDoc:'朱劲松', full:60,  rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
     { org:'济南市市中区舜玉路社区卫生服务中心', name:'高凤仙', idcard:'370102194503124826', idType:'居民身份证', grade:'三级', sbp:192, dbp:118, hpType:'原发性高血压', gender:'女', age:81, phone:'13626415789', birth:'1945-03-12', address:'济南市市中区二环南路2766号',    archNo:'370102JM26017', region:'舜玉社区',     grid:'第一网格', specDate:'2024-05-21', specDoc:'敖鹏天', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
-    { org:'山东大学齐鲁医院', name:'韩淑芬', idcard:'370102195912034420', idType:'居民身份证', grade:'二级', sbp:174, dbp:106, hpType:'原发性高血压', gender:'女', age:66, phone:'13370583146', birth:'1959-12-03', address:'济南市历下区燕山小区南路8号',    archNo:'370102JM26021', region:'燕山社区',     grid:'第三网格', specDate:'2024-06-03', specDoc:'陆柳琳', full:100, rStatus:'正常', mStatus:'中断管理', lock:'未上锁' },
-    { org:'济南市市中区舜玉路社区卫生服务中心', name:'谭德顺', idcard:'370102195008195517', idType:'居民身份证', grade:'三级', sbp:188, dbp:114, hpType:'原发性高血压', gender:'男', age:76, phone:'15588860279', birth:'1950-08-19', address:'济南市市中区舜玉路112号',          archNo:'370102JM26022', region:'舜玉社区',     grid:'第一网格', specDate:'2024-06-16', specDoc:'敖鹏天', full:100, rStatus:'死亡', mStatus:'终止管理', lock:'已上锁' },
+    { org:'山东大学齐鲁医院', name:'韩淑芬', idcard:'370102195912034420', idType:'居民身份证', grade:'二级', sbp:174, dbp:106, hpType:'原发性高血压', gender:'女', age:66, phone:'13370583146', birth:'1959-12-03', address:'济南市历下区燕山小区南路8号',    archNo:'370102JM26021', region:'燕山社区',     grid:'第三网格', specDate:'2024-06-03', specDoc:'陆柳琳', full:100, rStatus:'正常', mStatus:'暂不管理', lock:'未上锁' },
+    { org:'济南市市中区舜玉路社区卫生服务中心', name:'谭德顺', idcard:'370102195008195517', idType:'居民身份证', grade:'三级', sbp:188, dbp:114, hpType:'原发性高血压', gender:'男', age:76, phone:'15588860279', birth:'1950-08-19', address:'济南市市中区舜玉路112号',          archNo:'370102JM26022', region:'舜玉社区',     grid:'第一网格', specDate:'2024-06-16', specDoc:'敖鹏天', full:100, rStatus:'死亡', mStatus:'暂不管理', lock:'已上锁' },
     { org:'济南市历下区甸柳新村社区卫生服务中心', name:'董梅香', idcard:'370102196705244824', idType:'居民身份证', grade:'一级', sbp:154, dbp:96,  hpType:'原发性高血压', gender:'女', age:59, phone:'15863770125', birth:'1967-05-24', address:'济南市历下区甸柳新村七区3号楼',    archNo:'370102JM26023', region:'甸柳社区',     grid:'第二网格', specDate:'2024-06-30', specDoc:'王盛',   full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
     { org:'山东大学齐鲁医院', name:'贾世昌', idcard:'370102195310076311', idType:'居民身份证', grade:'二级', sbp:176, dbp:108, hpType:'原发性高血压', gender:'男', age:72, phone:'13006597582', birth:'1953-10-07', address:'济南市历下区姚家路29号',            archNo:'370102JM26024', region:'姚家社区',     grid:'第二网格', specDate:'2024-07-11', specDoc:'徐东升', full:0,   rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
     { org:'济南市天桥区工人新村社区卫生服务中心', name:'潘金凤', idcard:'370102196202144226', idType:'居民身份证', grade:'一级', sbp:148, dbp:92,  hpType:'原发性高血压', gender:'女', age:64, phone:'15098763214', birth:'1962-02-14', address:'济南市天桥区堤口路92号',            archNo:'370105JM26025', region:'工人新村社区', grid:'第一网格', specDate:'2024-07-25', specDoc:'朱劲松', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
-    { org:'济南市历下区千佛山社区卫生服务中心', name:'何广田', idcard:'370102196511023513', idType:'居民身份证', grade:'二级', sbp:160, dbp:102, hpType:'不详',         gender:'男', age:60, phone:'15508660215', birth:'1965-11-02', address:'济南市历下区经十路9777号',         archNo:'370102JM26026', region:'千佛山社区',   grid:'第二网格', specDate:'2024-08-06', specDoc:'王盛',   full:40,  rStatus:'迁出', mStatus:'终止管理', lock:'已上锁' },
+    { org:'济南市历下区千佛山社区卫生服务中心', name:'何广田', idcard:'370102196511023513', idType:'居民身份证', grade:'二级', sbp:160, dbp:102, hpType:'不详',         gender:'男', age:60, phone:'15508660215', birth:'1965-11-02', address:'济南市历下区经十路9777号',         archNo:'370102JM26026', region:'千佛山社区',   grid:'第二网格', specDate:'2024-08-06', specDoc:'王盛',   full:40,  rStatus:'失访', mStatus:'暂不管理', lock:'已上锁' },
     { org:'济南市历下区文化东路社区卫生服务中心', name:'邵玉洁', idcard:'370102197006084824', idType:'居民身份证', grade:'一级', sbp:146, dbp:90,  hpType:'原发性高血压', gender:'女', age:56, phone:'15562593049', birth:'1970-06-08', address:'济南市历下区文化东路51号',        archNo:'370102JM26027', region:'文化东路社区', grid:'第四网格', specDate:'2024-08-19', specDoc:'李蕾',   full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
     { org:'山东大学齐鲁医院', name:'崔洪斌', idcard:'370102195609253719', idType:'居民身份证', grade:'三级', sbp:190, dbp:116, hpType:'继发性高血压', gender:'男', age:69, phone:'15589963027', birth:'1956-09-25', address:'济南市历下区窑头路7号',             archNo:'370102JM26028', region:'窑头社区',     grid:'第三网格', specDate:'2024-08-28', specDoc:'徐东升', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
     { org:'济南市市中区舜玉路社区卫生服务中心', name:'白淑珍', idcard:'370102194804304428', idType:'居民身份证', grade:'二级', sbp:168, dbp:104, hpType:'原发性高血压', gender:'女', age:78, phone:'13064019573', birth:'1948-04-30', address:'济南市市中区六里山南路20号',      archNo:'370103JM26029', region:'舜玉社区',     grid:'第一网格', specDate:'2024-09-10', specDoc:'敖鹏天', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
@@ -805,7 +802,17 @@
     { org:'山东大学齐鲁医院', name:'严守成', idcard:'370102196004083311', idType:'居民身份证', grade:'二级', sbp:176, dbp:104, hpType:'原发性高血压', gender:'男', age:66, phone:'15806609742', birth:'1960-04-08', address:'济南市历下区姚家路118号',           archNo:'370102JM26036', region:'姚家社区',     grid:'第二网格', specDate:'2024-12-10', specDoc:'王盛',   full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
     { org:'济南市市中区舜玉路社区卫生服务中心', name:'华凤英', idcard:'370102195808304420', idType:'居民身份证', grade:'一级', sbp:152, dbp:94,  hpType:'原发性高血压', gender:'女', age:68, phone:'15562588107', birth:'1958-08-30', address:'济南市市中区玉函路39号',           archNo:'370103JM26037', region:'舜玉社区',     grid:'第一网格', specDate:'2024-12-23', specDoc:'敖鹏天', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
     { org:'济南市历下区甸柳新村社区卫生服务中心', name:'尤德胜', idcard:'370102197202195513', idType:'居民身份证', grade:'二级', sbp:162, dbp:100, hpType:'原发性高血压', gender:'男', age:54, phone:'13176645908', birth:'1972-02-19', address:'济南市历下区甸柳新村八区2号楼',    archNo:'370102JM26038', region:'甸柳社区',     grid:'第二网格', specDate:'2025-01-06', specDoc:'陆柳琳', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
-    { org:'济南市天桥区工人新村社区卫生服务中心', name:'汤玉珍', idcard:'370103195111234426', idType:'居民身份证', grade:'二级', sbp:172, dbp:106, hpType:'原发性高血压', gender:'女', age:74, phone:'15589917860', birth:'1951-11-23', address:'济南市天桥区济泺路130号',           archNo:'370105JM26039', region:'工人新村社区', grid:'第一网格', specDate:'2025-01-19', specDoc:'朱劲松', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' }
+    { org:'济南市天桥区工人新村社区卫生服务中心', name:'汤玉珍', idcard:'370103195111234426', idType:'居民身份证', grade:'二级', sbp:172, dbp:106, hpType:'原发性高血压', gender:'女', age:74, phone:'15589917860', birth:'1951-11-23', address:'济南市天桥区济泺路130号',           archNo:'370105JM26039', region:'工人新村社区', grid:'第一网格', specDate:'2025-01-19', specDoc:'朱劲松', full:100, rStatus:'正常', mStatus:'有效管理', lock:'未上锁' },
+    { org:'山东大学齐鲁医院', name:'张桂兰', idcard:'370102194807153322', idType:'居民身份证', grade:'二级', sbp:166, dbp:100, hpType:'原发性高血压', gender:'女', age:77, phone:'13964123456', birth:'1948-07-15', address:'济南市历下区文化东路128号',         archNo:'370102JM26040', region:'文化东路社区', grid:'第二网格', specDate:'2024-05-12', specDoc:'李蕾',   full:100, rStatus:'正常', mStatus:'暂不管理', lock:'未上锁' },
+    { org:'济南市市中区舜玉路社区卫生服务中心', name:'王建国', idcard:'370103195502081133', idType:'居民身份证', grade:'三级', sbp:188, dbp:110, hpType:'继发性高血压', gender:'男', age:71, phone:'15854102369', birth:'1955-02-08', address:'济南市市中区舜玉小区北区15号楼', archNo:'370103JM26041', region:'舜玉社区',     grid:'第二网格', specDate:'2024-06-20', specDoc:'敖鹏天', full:80,  rStatus:'正常', mStatus:'暂不管理', lock:'未上锁' },
+    { org:'济南市历下区千佛山社区卫生服务中心', name:'李秀英', idcard:'370102196211254428', idType:'居民身份证', grade:'一级', sbp:146, dbp:92,  hpType:'原发性高血压', gender:'女', age:63, phone:'13153198745', birth:'1962-11-25', address:'济南市历下科院路8号',          archNo:'370102JM26042', region:'千佛山社区',   grid:'第一网格', specDate:'2024-07-08', specDoc:'朱劲松', full:100, rStatus:'正常', mStatus:'暂不管理', lock:'未上锁' },
+    { org:'济南市历下区甸柳新村社区卫生服务中心', name:'刘德旺', idcard:'370102194903175516', idType:'居民身份证', grade:'二级', sbp:170, dbp:102, hpType:'原发性高血压', gender:'男', age:76, phone:'13589023647', birth:'1949-03-17', address:'济南市历下区甸柳新村五区9号楼',  archNo:'370102JM26043', region:'甸柳社区',     grid:'第三网格', specDate:'2024-08-15', specDoc:'陆柳琳', full:90,  rStatus:'正常', mStatus:'暂不管理', lock:'未上锁' },
+    { org:'济南市天桥区工人新村社区卫生服务中心', name:'赵秀珍', idcard:'370105195809233320', idType:'居民身份证', grade:'一级', sbp:144, dbp:90,  hpType:'不详',         gender:'女', age:67, phone:'15665789012', birth:'1958-09-23', address:'济南市天桥区工人新村南村21号楼',  archNo:'370105JM26044', region:'工人新村社区', grid:'第二网格', specDate:'2024-09-28', specDoc:'王盛',   full:60,  rStatus:'正常', mStatus:'暂不管理', lock:'未上锁' },
+    { org:'济南市市中区七里山社区卫生服务中心', name:'孙长海', idcard:'370103196112055518', idType:'居民身份证', grade:'二级', sbp:162, dbp:98,  hpType:'原发性高血压', gender:'男', age:64, phone:'13031256789', birth:'1961-12-05', address:'济南市市中区七里山南村3号楼',    archNo:'370103JM26045', region:'七里山社区',   grid:'第二网格', specDate:'2024-10-16', specDoc:'敖鹏天', full:100, rStatus:'正常', mStatus:'暂不管理', lock:'未上锁' },
+    { org:'山东大学齐鲁医院', name:'周桂英', idcard:'370102194203154428', idType:'居民身份证', grade:'三级', sbp:182, dbp:108, hpType:'原发性高血压', gender:'女', age:83, phone:'13905318888', birth:'1942-03-15', address:'济南市历下区解放路88号',         archNo:'370102JM26046', region:'解放路社区',   grid:'第一网格', specDate:'2024-04-20', specDoc:'徐东升', full:100, rStatus:'死亡', mStatus:'暂不管理', lock:'已上锁' },
+    { org:'济南市历下区千佛山社区卫生服务中心', name:'吴有德', idcard:'370102193807221133', idType:'居民身份证', grade:'二级', sbp:166, dbp:100, hpType:'原发性高血压', gender:'男', age:87, phone:'13605319999', birth:'1938-07-22', address:'济南市历下区千佛山路12号',       archNo:'370102JM26047', region:'千佛山社区',   grid:'第三网格', specDate:'2024-05-10', specDoc:'朱劲松', full:80,  rStatus:'死亡', mStatus:'暂不管理', lock:'已上锁' },
+    { org:'济南市市中区舜玉路社区卫生服务中心', name:'郑秀兰', idcard:'370103195511083320', idType:'居民身份证', grade:'一级', sbp:148, dbp:92,  hpType:'原发性高血压', gender:'女', age:70, phone:'15588881234', birth:'1955-11-08', address:'济南市市中区舜玉小区西区6号楼', archNo:'370103JM26048', region:'舜玉社区',     grid:'第三网格', specDate:'2024-06-15', specDoc:'敖鹏天', full:100, rStatus:'失访', mStatus:'暂不管理', lock:'未上锁' },
+    { org:'济南市天桥区工人新村社区卫生服务中心', name:'冯德柱', idcard:'370105196201195516', idType:'居民身份证', grade:'二级', sbp:172, dbp:104, hpType:'继发性高血压', gender:'男', age:63, phone:'15066665678', birth:'1962-01-19', address:'济南市天桥区工人新村北村10号楼', archNo:'370105JM26049', region:'工人新村社区', grid:'第三网格', specDate:'2024-07-22', specDoc:'王盛',   full:60,  rStatus:'失访', mStatus:'暂不管理', lock:'未上锁' }
   ];
 
   /* ================= 工具函数 ================= */
@@ -839,9 +846,11 @@
       if (name && r.name.indexOf(name) === -1) return false;
       if (idcard && r.idcard.indexOf(idcard) === -1) return false;
       if (region && r.region !== region) return false;
-      if (lock && r.lock !== lock) return false;
       if (rStatus && r.rStatus !== rStatus) return false;
-      if (mStatus && r.mStatus !== mStatus) return false;
+      if (rStatus === '正常') {
+        if (lock && r.lock !== lock) return false;
+        if (mStatus && r.mStatus !== mStatus) return false;
+      }
       if (grade && r.grade !== grade) return false;
       if (hpType && r.hpType !== hpType) return false;
       if (grid && r.grid !== grid) return false;
@@ -913,18 +922,13 @@
           + '<td><span class="st-dot ' + lkDot + '"></span>' + esc(r.lock) + '</td>'
           + '<td class="center">'
           +   '<a class="op-link" onclick="goArchive(\'' + esc(r.archNo) + '\')">查看</a>'
-          +   '<span class="op-gap"></span>'
-          +   '<a class="op-link" onclick="goArchive(\'' + esc(r.archNo) + '\')">编辑</a>'
-          +   '<span class="op-gap"></span>'
-          +   '<span class="op-more">'
-          +     '<a class="more-btn" onclick="toggleOpMenu(this,event)">更多<svg viewBox="0 0 24 24" style="width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="6 9 12 15 18 9"/></svg></a>'
-          +     '<span class="op-menu">'
-          +       '<button class="mi" onclick="openManageStatus(\'' + esc(r.archNo) + '\')">暂不管理</button>'
-          +       '<button class="mi" onclick="goArchive(\'' + esc(r.archNo) + '\',\'followup\')">新建随访</button>'
-          +       '<button class="mi" onclick="goArchive(\'' + esc(r.archNo) + '\',\'assessment\')">分层评估</button>'
-          +       '<button class="mi mi-danger" onclick="openCancelArchive(\'' + esc(r.archNo) + '\')">注销</button>'
-          +     '</span>'
-          +   '</span>'
+          +   (r.rStatus !== '正常'
+              ? '<span class="op-gap"></span><a class="op-link" style="color:var(--danger)" onclick="openCancelArchive(\'' + esc(r.archNo) + '\')">注销</a>'
+              : (r.mStatus === '有效管理'
+                  ? '<span class="op-gap"></span><a class="op-link" onclick="goArchive(\'' + esc(r.archNo) + '\')">编辑</a><span class="op-gap"></span><span class="op-more"><a class="more-btn" onclick="toggleOpMenu(this,event)">更多<svg viewBox="0 0 24 24" style="width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="6 9 12 15 18 9"/></svg></a><span class="op-menu"><button class="mi" onclick="openManageStatus(\'' + esc(r.archNo) + '\')">暂不管理</button><button class="mi" onclick="goArchive(\'' + esc(r.archNo) + '\',\'followup\')">新建随访</button><button class="mi" onclick="goArchive(\'' + esc(r.archNo) + '\',\'assessment\')">分层评估</button><button class="mi mi-danger" onclick="openCancelArchive(\'' + esc(r.archNo) + '\')">注销</button></span></span>'
+                  : '<span class="op-gap"></span><a class="op-link" onclick="openRestoreStatus(\'' + esc(r.archNo) + '\')">恢复</a><span class="op-gap"></span><a class="op-link" style="color:var(--danger)" onclick="openCancelArchive(\'' + esc(r.archNo) + '\')">注销</a>'
+                )
+            )
           + '</td>'
           + '</tr>';
       });
@@ -1486,9 +1490,31 @@
     for (var i = 0; i < hypertensionData.length; i++) {
       if (hypertensionData[i].archNo === pendingArchNo) { idx = i; name = hypertensionData[i].name; break; }
     }
-    if (idx > -1) hypertensionData.splice(idx, 1);
+    if (idx > -1) hypertensionData[idx].mStatus = '暂不管理';
     closeManageStatus();
-    toast('已设置为暂不管理，居民「' + name + '」已从列表移除', 'success');
+    toast('已设置为暂不管理，居民「' + name + '」操作权限已调整为仅查看', 'success');
+    curPage = 1;
+    renderTable();
+  }
+
+  /* ================= 恢复管理状态弹框 ================= */
+  function openRestoreStatus(archNo) {
+    closeAllOpMenus();
+    pendingArchNo = archNo;
+    $('restoreModal').classList.add('show');
+  }
+  function closeRestoreStatus() {
+    $('restoreModal').classList.remove('show');
+    pendingArchNo = '';
+  }
+  function submitRestoreStatus() {
+    var idx = -1, name = '';
+    for (var i = 0; i < hypertensionData.length; i++) {
+      if (hypertensionData[i].archNo === pendingArchNo) { idx = i; name = hypertensionData[i].name; break; }
+    }
+    if (idx > -1) hypertensionData[idx].mStatus = '有效管理';
+    closeRestoreStatus();
+    toast('已恢复为有效管理，居民「' + name + '」操作权限已恢复', 'success');
     curPage = 1;
     renderTable();
   }
@@ -1501,7 +1527,6 @@
     for (var i = 0; i < hypertensionData.length; i++) {
       if (hypertensionData[i].archNo === archNo) { r = hypertensionData[i]; break; }
     }
-    $('caName').textContent = r ? r.name : '';
     $('caReason').value = '';
     $('cntCaReason').textContent = '0/50';
     $('cancelArchiveModal').classList.add('show');
@@ -1572,6 +1597,23 @@
   </div>
 </div>
 
+<!-- ===== 恢复管理状态确认弹框 ===== -->
+<div class="modal-overlay" id="restoreModal">
+  <div class="modal" style="width:420px">
+    <div class="modal-head">
+      <h3 style="color:var(--primary)">提示</h3>
+      <span class="modal-close" onclick="closeRestoreStatus()">×</span>
+    </div>
+    <div class="modal-body" style="padding:24px 20px">
+      <div style="font-size:14px;color:var(--text-secondary);text-align:center;padding:12px 0">确认恢复管理状态吗</div>
+    </div>
+    <div class="modal-foot" style="justify-content:center;padding:0 20px 20px">
+      <button class="btn btn-primary" onclick="submitRestoreStatus()">确定</button>
+      <button class="btn btn-default" onclick="closeRestoreStatus()">取消</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== 注销档案弹框 ===== -->
 <div class="modal-overlay" id="cancelArchiveModal">
   <div class="modal" style="width:560px">
@@ -1592,8 +1634,8 @@
       </div>
     </div>
     <div class="modal-foot">
-      <button class="btn btn-default" onclick="closeCancelArchive()">取消</button>
       <button class="btn btn-primary" onclick="submitCancelArchive()">确定</button>
+      <button class="btn btn-default" onclick="closeCancelArchive()">取消</button>
     </div>
   </div>
 </div>

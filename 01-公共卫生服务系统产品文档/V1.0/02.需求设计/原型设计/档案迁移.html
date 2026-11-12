@@ -255,12 +255,11 @@
               </select>
             </div>
             <div class="filter-item"><label>居民状态：</label>
-              <select id="fResident" class="fi-select">
-                <option value="" selected>请选择</option>
-                <option value="在档">在档</option>
-                <option value="迁出">迁出</option>
-                <option value="迁入">迁入</option>
-              </select>
+              <div class="rs-sel" data-options="正常|死亡|失访" data-placeholder="全部" style="width:150px">
+                <div class="rs-box"><span class="rs-text is-ph">全部</span><span class="rs-clear" title="清空">×</span></div>
+                <div class="rs-panel"></div>
+                <input type="hidden" class="rs-val" id="fResident" value="">
+              </div>
             </div>
             <div class="filter-item"><label>电话号码：</label><input id="fPhone" class="fi-ctl" placeholder="请输入"></div>
           </div>

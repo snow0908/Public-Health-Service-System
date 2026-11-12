@@ -26,17 +26,31 @@
   .status-tab.active .cnt{color:var(--primary)}
 
   /* 筛选区 */
-  .filter-panel{padding:12px 16px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
-  .filter-row{display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:12px;align-items:center}
-  .filter-item{display:flex;align-items:center;gap:8px}
+  .filter-panel{padding:12px 16px 12px;border-bottom:1px solid #E8E8E8;flex-shrink:0;background:var(--bg-white)}
+  .filter-row{display:flex;flex-wrap:wrap;gap:10px 0;align-items:center}
+  .filter-row + .filter-row{margin-top:10px}
+  .filter-row[hidden]{display:none}
+  /* 每个筛选项占一列（约 298px），使各行标签左缘对齐同一栅格 */
+  .filter-item{display:flex;align-items:center;gap:8px;min-width:298px;padding-right:10px;box-sizing:border-box}
   .filter-item label{font-size:14px;color:var(--text-secondary);white-space:nowrap}
   .fi-ctl{width:180px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
   .fi-select{width:160px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
   .fi-ctl:focus,.fi-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
   .fi-ctl::placeholder{color:var(--text-placeholder)}
-  .fi-date{width:130px}
+  .fi-date{width:120px;padding-right:26px}
   .fi-sep{color:var(--text-placeholder);font-size:13px}
   .filter-btns{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+  /* 日期控件：占位态日历图标（聚焦后由原生图标接管） */
+  .date-wrap{position:relative;display:inline-flex;align-items:center}
+  .date-ic{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:14px;height:14px;pointer-events:none;color:#BFBFBF;display:flex;align-items:center;justify-content:center}
+  .date-wrap:focus-within .date-ic{display:none}
+
+  /* 展开 / 收起 */
+  .f-toggle{display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 4px;background:none;border:none;font-size:14px;color:var(--text-primary);cursor:pointer;white-space:nowrap;transition:color var(--transition-fast)}
+  .f-toggle:hover{color:var(--primary)}
+  .f-toggle .car{width:10px;height:6px;flex-shrink:0;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23595959' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center;transition:transform var(--transition-fast)}
+  .f-toggle.open .car{transform:rotate(180deg)}
 
   /* ===== 数据表格（与 随访不佳提醒.html 一致） ===== */
   .table-wrap{flex:1;overflow:auto;min-height:0}
@@ -78,15 +92,11 @@
   .op-btn.primary:hover{opacity:.9}
   .op-btn.link{background:none;color:var(--primary);border:none;padding:2px 4px;font-size:13px}
   .op-btn.link:hover{text-decoration:underline}
+  .op-btn.link.muted{color:var(--text-secondary)}
+  .op-btn.link.muted:hover{color:var(--primary)}
+  .op-btn.link.is-dis{color:#C0C4CC;cursor:not-allowed;text-decoration:none}
   .op-gap{display:inline-block;width:6px}
   .op-wrap{display:inline-flex;align-items:center;gap:6px}
-
-  /* 更多下拉 */
-  .more-wrap{position:relative;display:inline-block}
-  .more-menu{position:absolute;right:0;top:100%;min-width:120px;background:#fff;border:1px solid #E4E7ED;border-radius:var(--r-sm);box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:20;display:none;padding:4px 0}
-  .more-menu.show{display:block}
-  .more-menu a{display:block;padding:6px 14px;font-size:13px;color:var(--text-secondary);cursor:pointer;white-space:nowrap}
-  .more-menu a:hover{background:var(--primary-bg);color:var(--primary)}
 
   .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:52px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
   .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
@@ -122,6 +132,7 @@
   .fg label{width:64px;text-align:right;font-size:13px;color:var(--text-secondary);flex-shrink:0}
   .fg label i{color:var(--danger);font-style:normal;margin-right:2px}
   .fg .fi-ctl,.fg .fi-select{flex:1;width:auto;min-width:0}
+  .fi-ctl[readonly]{background:#FAFAFA;color:var(--text-secondary);cursor:default}
   .ta-ctl{width:100%;height:64px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:8px 10px;font-size:14px;color:var(--text-primary);font-family:inherit;outline:none;resize:vertical;transition:all var(--transition-fast)}
   .ta-ctl:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
   .ta-ctl::placeholder{color:var(--text-placeholder)}
@@ -147,12 +158,15 @@
       <!-- 提醒类型 TAB（下划线样式，与随访不佳提醒一致） -->
       <div class="status-tabs" id="remindTabs"></div>
 
-      <!-- 筛选区 -->
+      <!-- 筛选区（默认两行，展开后增加第三行） -->
       <div class="filter-panel">
+
+        <!-- 第一行 -->
         <div class="filter-row">
           <div class="filter-item">
             <label>管理机构：</label>
-            <div class="fcp-ms" data-fcp="ms">
+            <div class="fcp-ms" data-fcp="ms" style="width:170px"
+                 data-options="扬州市江都区滨江人民医院|扬州市江都区仙女社区卫生服务中心|扬州市广陵区东关社区卫生服务中心|扬州市邗江区蒋王社区卫生服务中心">
               <div class="fcp-box"><span class="fcp-text is-ph">请选择</span><span class="fcp-clear" title="清空">×</span></div>
               <div class="fcp-panel"></div>
               <input type="hidden" class="fcp-val" id="fOrg">
@@ -160,80 +174,98 @@
           </div>
           <div class="filter-item">
             <label>姓名：</label>
-            <input id="fName" class="fi-ctl" placeholder="请输入">
+            <input id="fName" class="fi-ctl" style="width:155px" placeholder="请输入">
           </div>
           <div class="filter-item">
             <label>证件号：</label>
-            <input id="fIdcard" class="fi-ctl" placeholder="请输入">
+            <input id="fIdcard" class="fi-ctl" style="width:165px" placeholder="请输入">
           </div>
           <div class="filter-item">
-            <label>性别：</label>
-            <select id="fGender" class="fi-select" style="width:110px">
+            <label>出生日期：</label>
+            <span class="date-wrap">
+              <input id="fBirthStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="toDate(this)" onblur="toText(this)">
+              <span class="date-ic"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="3" width="13" height="11.5" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M1.5 6.5h13" stroke="currentColor" stroke-width="1.2"/><path d="M5 1.5v3M11 1.5v3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span>
+            </span>
+            <span class="fi-sep">~</span>
+            <span class="date-wrap">
+              <input id="fBirthEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="toDate(this)" onblur="toText(this)">
+              <span class="date-ic"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="3" width="13" height="11.5" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M1.5 6.5h13" stroke="currentColor" stroke-width="1.2"/><path d="M5 1.5v3M11 1.5v3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span>
+            </span>
+          </div>
+        </div>
+
+        <!-- 第二行（按钮默认位于此行右侧） -->
+        <div class="filter-row" id="fRow2">
+          <div class="filter-item">
+            <label>诊疗来源：</label>
+            <select id="fSource" class="fi-select" style="width:130px">
               <option value="">请选择</option>
-              <option>男</option>
-              <option>女</option>
+              <option>门诊</option>
+              <option>住院</option>
+              <option>体检</option>
+              <option>筛查</option>
+              <option>公卫随访</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>诊疗日期：</label>
+            <span class="date-wrap">
+              <input id="fVisitStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="toDate(this)" onblur="toText(this)">
+              <span class="date-ic"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="3" width="13" height="11.5" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M1.5 6.5h13" stroke="currentColor" stroke-width="1.2"/><path d="M5 1.5v3M11 1.5v3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span>
+            </span>
+            <span class="fi-sep">~</span>
+            <span class="date-wrap">
+              <input id="fVisitEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="toDate(this)" onblur="toText(this)">
+              <span class="date-ic"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="3" width="13" height="11.5" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M1.5 6.5h13" stroke="currentColor" stroke-width="1.2"/><path d="M5 1.5v3M11 1.5v3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span>
+            </span>
+          </div>
+          <div class="filter-item">
+            <label>诊疗医生：</label>
+            <input id="fDoctor" class="fi-ctl" style="width:140px" placeholder="请输入">
+          </div>
+
+          <!-- 重置 / 查询 / 展开（展开后整体移动到第三行右侧） -->
+          <div class="filter-btns" id="fBtns">
+            <button class="btn btn-default btn-sm" onclick="resetFilter()">重置</button>
+            <button class="btn btn-primary btn-sm" onclick="applyFilter()">查询</button>
+            <button class="f-toggle" id="fToggle" onclick="toggleFilter()"><span id="fToggleTxt">展开</span><span class="car"></span></button>
+          </div>
+        </div>
+
+        <!-- 第三行（点击「展开」后显示） -->
+        <div class="filter-row" id="fRow3" hidden>
+          <div class="filter-item">
+            <label>诊疗医院：</label>
+            <input id="fHospital" class="fi-ctl" style="width:170px" placeholder="请输入">
+          </div>
+          <div class="filter-item">
+            <label>锁定状态：</label>
+            <select id="fLock" class="fi-select" style="width:120px">
+              <option value="">请选择</option>
+              <option value="1">已锁定</option>
+              <option value="0">未锁定</option>
             </select>
           </div>
           <!-- 慢病类型：仅「慢病档案提醒」TAB 展示 -->
           <div class="filter-item" id="fDiseaseWrap" style="display:none">
             <label>慢病类型：</label>
-            <select id="fDisease" class="fi-select" style="width:130px">
+            <select id="fDisease" class="fi-select" style="width:120px">
               <option value="">请选择</option>
               <option>高血压</option>
               <option>糖尿病</option>
               <option>慢阻肺</option>
             </select>
           </div>
-          <div class="filter-btns">
-            <button class="btn btn-default btn-sm" onclick="resetFilter()">重置</button>
-            <button class="btn btn-primary btn-sm" onclick="applyFilter()">查询</button>
-          </div>
         </div>
-        <div class="filter-row">
-          <div class="filter-item">
-            <label>出生日期：</label>
-            <input id="fBirthStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">~</span>
-            <input id="fBirthEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-          </div>
-          <div class="filter-item">
-            <label>诊疗日期：</label>
-            <input id="fVisitStart" class="fi-ctl fi-date" type="text" placeholder="开始日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-            <span class="fi-sep">~</span>
-            <input id="fVisitEnd" class="fi-ctl fi-date" type="text" placeholder="结束日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}">
-          </div>
-          <div class="filter-item">
-            <label>诊疗医生：</label>
-            <input id="fDoctor" class="fi-ctl" placeholder="请输入">
-          </div>
-          <div class="filter-item">
-            <label>诊疗医院：</label>
-            <input id="fHospital" class="fi-ctl" placeholder="请输入">
-          </div>
-        </div>
+
       </div>
 
       <!-- 数据表格 -->
       <div class="table-wrap">
-        <table class="list-tbl">
+        <table class="list-tbl" id="listTbl">
           <colgroup id="tblCols"></colgroup>
           <thead>
-            <tr>
-              <th class="center">序号</th>
-              <th>管理机构</th>
-              <th>姓名</th>
-              <th>证件号</th>
-              <th>证件类型</th>
-              <th class="center">性别</th>
-              <th class="center">年龄</th>
-              <th>出生日期</th>
-              <th>联系电话</th>
-              <th>详细地址</th>
-              <th>诊疗日期</th>
-              <th>诊疗医生</th>
-              <th class="center" id="thDisease" style="display:none">慢病类型</th>
-              <th class="center">操作</th>
-            </tr>
+            <tr id="thRow"></tr>
           </thead>
           <tbody id="tbBody"></tbody>
         </table>
@@ -257,47 +289,6 @@
   </div>
 </div>
 
-<!-- 新建档案弹窗 -->
-<div class="modal-overlay" id="create-modal"><div class="modal-wrap">
-  <div class="modal-head">新建居民档案<span class="x" onclick="closeCreate()">×</span></div>
-  <div class="modal-body">
-    <p class="modal-tip">根据所选提醒补建居民档案，确认后档案信息将同步至居民档案库。</p>
-    <fieldset><legend>居民信息</legend>
-      <div class="form-grid">
-        <div class="fg"><label><i>*</i>姓名</label><input id="cr-name" class="fi-ctl" placeholder="请输入姓名"></div>
-        <div class="fg"><label><i>*</i>证件类型</label>
-          <select id="cr-idtype" class="fi-select">
-            <option>居民身份证</option>
-            <option>户口簿</option>
-            <option>护照</option>
-          </select>
-        </div>
-        <div class="fg full"><label><i>*</i>证件号</label><input id="cr-idcard" class="fi-ctl" placeholder="请输入证件号"></div>
-        <div class="fg"><label>性别</label>
-          <select id="cr-gender" class="fi-select"><option>男</option><option>女</option></select>
-        </div>
-        <div class="fg"><label>出生日期</label><input id="cr-birth" class="fi-ctl" type="text" placeholder="请选择出生日期" onfocus="this.type='date';try{this.showPicker()}catch(e){}" onblur="if(!this.value){this.type='text'}"></div>
-        <div class="fg full"><label>联系电话</label><input id="cr-phone" class="fi-ctl" placeholder="请输入联系电话"></div>
-      </div>
-    </fieldset>
-    <fieldset><legend>建档信息</legend>
-      <div class="form-grid">
-        <div class="fg full"><label>管理机构</label>
-          <select id="cr-org" class="fi-select">
-            <option>扬州市江都区滨江人民医院</option>
-            <option>扬州市江都区仙女社区卫生服务中心</option>
-            <option>扬州市广陵区东关社区卫生服务中心</option>
-            <option>扬州市邗江区蒋王社区卫生服务中心</option>
-          </select>
-        </div>
-        <div class="fg"><label>责任医生</label><input id="cr-doctor" class="fi-ctl" placeholder="请输入责任医生"></div>
-        <div class="fg"><label>诊疗医院</label><input id="cr-hospital" class="fi-ctl" placeholder="请输入诊疗医院"></div>
-      </div>
-    </fieldset>
-  </div>
-  <div class="modal-foot"><button class="btn btn-default" onclick="closeCreate()">取消</button><button class="btn btn-primary" onclick="submitCreate()">确认建档</button></div>
-</div></div>
-
 <!-- 提醒详情弹窗 -->
 <div class="modal-overlay" id="view-modal"><div class="modal-wrap">
   <div class="modal-head">提醒详情<span class="x" onclick="closeView()">×</span></div>
@@ -313,13 +304,13 @@
       </table>
     </fieldset>
     <fieldset><legend>提醒详情</legend>
-      <table class="info-tbl">
-        <tr><th>提醒类型</th><td id="vw-type">—</td><th>诊疗日期</th><td id="vw-visitdate">—</td></tr>
-        <tr><th>诊疗医生</th><td id="vw-doctor">—</td><th>诊疗医院</th><td id="vw-hospital">—</td></tr>
-      </table>
+      <table class="info-tbl" id="vw-detail"></table>
     </fieldset>
   </div>
-  <div class="modal-foot"><button class="btn btn-primary" onclick="closeView()">关闭</button></div>
+  <div class="modal-foot">
+    <button class="btn btn-default" id="vw-archive" onclick="goArchiveCurrent()">去维护档案</button>
+    <button class="btn btn-primary" onclick="closeView()">关闭</button>
+  </div>
 </div></div>
 
 <!-- 忽略提醒弹窗 -->
@@ -342,36 +333,53 @@
 
 <script src="框架.js" data-page="reminder-management" data-embed="auto"></script>
 <script>
-  /* ================= 提醒类型（仅保留两个业务TAB） ================= */
-  var REMIND_TYPES = ['档案更新提醒', '慢病档案提醒'];
+  /* ================= 提醒类型 TAB ================= */
+  var REMIND_TYPES = ['档案完整度提醒', '慢病档案提醒', '孕妇提醒'];
 
   /* ================= 模拟数据 ================= */
   var remindData = [
-    /* —— 档案更新提醒 —— */
-    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'李久久', idcard:'510132199909099995', idType:'居民身份证', gender:'男', age:27, birth:'1999-09-09', phone:'', address:'', visitDate:'2023-08-14', doctor:'李鹏', hospital:'扬州市江都区滨江人民医院' },
-    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'关允晨', idcard:'110106198602143523', idType:'居民身份证', gender:'女', age:40, birth:'1986-02-14', phone:'', address:'生堂街', visitDate:'2023-08-14', doctor:'李鹏', hospital:'扬州市江都区滨江人民医院' },
-    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'患者四', idcard:'510115199404144440', idType:'居民身份证', gender:'女', age:32, birth:'1994-04-14', phone:'13444444444', address:'珠江国际中心', visitDate:'2023-08-28', doctor:'徐东开', hospital:'扬州市江都区滨江人民医院' },
-    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'凌云', idcard:'110101199003072834', idType:'居民身份证', gender:'男', age:36, birth:'1990-03-07', phone:'15108111236', address:'大桥镇', visitDate:'2023-11-07', doctor:'李磊', hospital:'扬州市江都区滨江人民医院' },
-    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'冯仁齐', idcard:'511623199103185714', idType:'居民身份证', gender:'男', age:35, birth:'1991-03-18', phone:'13541245998', address:'尚华路108号', visitDate:'2023-11-30', doctor:'高雪峰', hospital:'扬州市江都区滨江人民医院' },
-    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'李晶晶', idcard:'510132198705141114', idType:'居民身份证', gender:'男', age:39, birth:'1987-05-13', phone:'', address:'', visitDate:'2023-12-01', doctor:'尹瑜', hospital:'扬州市江都区滨江人民医院' },
-    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'李双双', idcard:'510132194805142220', idType:'居民身份证', gender:'女', age:78, birth:'1948-05-13', phone:'', address:'', visitDate:'2023-12-04', doctor:'尹瑜', hospital:'扬州市江都区滨江人民医院' },
-    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'李阿道', idcard:'519199200010251113', idType:'居民身份证', gender:'男', age:25, birth:'2000-10-25', phone:'', address:'', visitDate:'2023-12-06', doctor:'蒋远军', hospital:'扬州市江都区滨江人民医院' },
-    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'李就个', idcard:'110101200406030220', idType:'居民身份证', gender:'女', age:22, birth:'2004-06-03', phone:'', address:'', visitDate:'2023-12-07', doctor:'尹瑜', hospital:'扬州市江都区滨江人民医院' },
-    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'高宏宝', idcard:'321026194107052036', idType:'居民身份证', gender:'男', age:85, birth:'1941-07-04', phone:'18651058087', address:'樊川镇樊南村', visitDate:'2024-01-03', doctor:'蒋远军', hospital:'扬州市江都区滨江人民医院' },
-    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'演示患者5', idcard:'510115199505055551', idType:'居民身份证', gender:'男', age:31, birth:'1995-05-05', phone:'13555555555', address:'珠江国际中心', visitDate:'2024-01-25', doctor:'尹瑜', hospital:'扬州市江都区滨江人民医院' },
-    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'邹铭', idcard:'110101199003071858', idType:'居民身份证', gender:'男', age:36, birth:'1990-03-07', phone:'15108111250', address:'大桥镇', visitDate:'2024-01-27', doctor:'梅娟', hospital:'扬州市江都区滨江人民医院' },
-    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'唐纯真', idcard:'421022195004050014', idType:'居民身份证', gender:'男', age:76, birth:'1950-04-05', phone:'', address:'', visitDate:'2024-02-02', doctor:'徐东开', hospital:'扬州市江都区滨江人民医院' },
-    { type:'档案更新提醒', org:'扬州市江都区滨江人民医院', name:'李斯克', idcard:'510136200004051111', idType:'居民身份证', gender:'男', age:26, birth:'2000-04-05', phone:'', address:'', visitDate:'2024-02-02', doctor:'尹瑜', hospital:'扬州市江都区滨江人民医院' },
-    { type:'档案更新提醒', org:'扬州市江都区仙女社区卫生服务中心', name:'王秀兰', idcard:'321088196203152847', idType:'居民身份证', gender:'女', age:64, birth:'1962-03-15', phone:'13905212361', address:'仙女镇人民路22号', visitDate:'2024-01-15', doctor:'陈静', hospital:'江都区人民医院' },
-    { type:'档案更新提醒', org:'扬州市江都区仙女社区卫生服务中心', name:'刘德海', idcard:'32108819551130863X', idType:'居民身份证', gender:'男', age:70, birth:'1955-11-30', phone:'13605251937', address:'仙女镇解放路105号', visitDate:'2024-01-10', doctor:'李蕾', hospital:'江都区人民医院' },
+    /* —— 档案完整度提醒 —— */
+    { type:'档案完整度提醒', org:'扬州市江都区滨江人民医院', name:'李久久', idcard:'510132199909099995', idType:'居民身份证', gender:'男', age:27, birth:'1999-09-09', phone:'', address:'', visitDate:'2023-08-14', doctor:'李鹏', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案完整度提醒', org:'扬州市江都区滨江人民医院', name:'关允晨', idcard:'110106198602143523', idType:'居民身份证', gender:'女', age:40, birth:'1986-02-14', phone:'', address:'生堂街', visitDate:'2023-08-14', doctor:'李鹏', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案完整度提醒', org:'扬州市江都区滨江人民医院', name:'患者四', idcard:'510115199404144440', idType:'居民身份证', gender:'女', age:32, birth:'1994-04-14', phone:'13444444444', address:'珠江国际中心', visitDate:'2023-08-28', doctor:'徐东开', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案完整度提醒', org:'扬州市江都区滨江人民医院', name:'凌云', idcard:'110101199003072834', idType:'居民身份证', gender:'男', age:36, birth:'1990-03-07', phone:'15108111236', address:'大桥镇', visitDate:'2023-11-07', doctor:'李磊', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案完整度提醒', org:'扬州市江都区滨江人民医院', name:'冯仁齐', idcard:'511623199103185714', idType:'居民身份证', gender:'男', age:35, birth:'1991-03-18', phone:'13541245998', address:'尚华路108号', visitDate:'2023-11-30', doctor:'高雪峰', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案完整度提醒', org:'扬州市江都区滨江人民医院', name:'李晶晶', idcard:'510132198705141114', idType:'居民身份证', gender:'男', age:39, birth:'1987-05-13', phone:'', address:'', visitDate:'2023-12-01', doctor:'尹瑜', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案完整度提醒', org:'扬州市江都区滨江人民医院', name:'李双双', idcard:'510132194805142220', idType:'居民身份证', gender:'女', age:78, birth:'1948-05-13', phone:'', address:'', visitDate:'2023-12-04', doctor:'尹瑜', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案完整度提醒', org:'扬州市江都区滨江人民医院', name:'李阿道', idcard:'519199200010251113', idType:'居民身份证', gender:'男', age:25, birth:'2000-10-25', phone:'', address:'', visitDate:'2023-12-06', doctor:'蒋远军', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案完整度提醒', org:'扬州市江都区滨江人民医院', name:'李就个', idcard:'110101200406030220', idType:'居民身份证', gender:'女', age:22, birth:'2004-06-03', phone:'', address:'', visitDate:'2023-12-07', doctor:'尹瑜', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案完整度提醒', org:'扬州市江都区滨江人民医院', name:'高宏宝', idcard:'321026194107052036', idType:'居民身份证', gender:'男', age:85, birth:'1941-07-04', phone:'18651058087', address:'樊川镇樊南村', visitDate:'2024-01-03', doctor:'蒋远军', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案完整度提醒', org:'扬州市江都区滨江人民医院', name:'演示患者5', idcard:'510115199505055551', idType:'居民身份证', gender:'男', age:31, birth:'1995-05-05', phone:'13555555555', address:'珠江国际中心', visitDate:'2024-01-25', doctor:'尹瑜', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案完整度提醒', org:'扬州市江都区滨江人民医院', name:'邹铭', idcard:'110101199003071858', idType:'居民身份证', gender:'男', age:36, birth:'1990-03-07', phone:'15108111250', address:'大桥镇', visitDate:'2024-01-27', doctor:'梅娟', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案完整度提醒', org:'扬州市江都区滨江人民医院', name:'唐纯真', idcard:'421022195004050014', idType:'居民身份证', gender:'男', age:76, birth:'1950-04-05', phone:'', address:'', visitDate:'2024-02-02', doctor:'徐东开', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案完整度提醒', org:'扬州市江都区滨江人民医院', name:'李斯克', idcard:'510136200004051111', idType:'居民身份证', gender:'男', age:26, birth:'2000-04-05', phone:'', address:'', visitDate:'2024-02-02', doctor:'尹瑜', hospital:'扬州市江都区滨江人民医院' },
+    { type:'档案完整度提醒', org:'扬州市江都区仙女社区卫生服务中心', name:'王秀兰', idcard:'321088196203152847', idType:'居民身份证', gender:'女', age:64, birth:'1962-03-15', phone:'13905212361', address:'仙女镇人民路22号', visitDate:'2024-01-15', doctor:'陈静', hospital:'江都区人民医院' },
+    { type:'档案完整度提醒', org:'扬州市江都区仙女社区卫生服务中心', name:'刘德海', idcard:'32108819551130863X', idType:'居民身份证', gender:'男', age:70, birth:'1955-11-30', phone:'13605251937', address:'仙女镇解放路105号', visitDate:'2024-01-10', doctor:'李蕾', hospital:'江都区人民医院' },
 
     /* —— 慢病档案提醒（disease：慢病类型，决定跳转的专项表视图） —— */
-    { type:'慢病档案提醒', disease:'高血压', org:'扬州市广陵区东关社区卫生服务中心', name:'张桂英', idcard:'321002195812074426', idType:'居民身份证', gender:'女', age:66, birth:'1958-12-07', phone:'13795126485', address:'东关街道琼花路56号', visitDate:'2024-01-08', doctor:'王建华', hospital:'扬州市第一人民医院' },
-    { type:'慢病档案提醒', disease:'糖尿病', org:'扬州市广陵区东关社区卫生服务中心', name:'陈志明', idcard:'321002195204165519', idType:'居民身份证', gender:'男', age:74, birth:'1952-04-16', phone:'15905277826', address:'东关街道文昌路88号', visitDate:'2024-01-05', doctor:'赵敏', hospital:'扬州市中医院' },
-    { type:'慢病档案提醒', disease:'高血压', org:'扬州市邗江区蒋王社区卫生服务中心', name:'潘凤英', idcard:'321003196202144226', idType:'居民身份证', gender:'女', age:64, birth:'1962-02-14', phone:'15098763214', address:'蒋王镇文汇西路12号', visitDate:'2024-01-06', doctor:'王盛', hospital:'扬州市邗江区人民医院' },
-    { type:'慢病档案提醒', disease:'慢阻肺', org:'扬州市邗江区蒋王社区卫生服务中心', name:'石国强', idcard:'321003196104162619', idType:'居民身份证', gender:'男', age:65, birth:'1961-04-16', phone:'13791046538', address:'蒋王镇站前路7号', visitDate:'2024-01-03', doctor:'朱劲松', hospital:'扬州市邗江区人民医院' },
-    { type:'慢病档案提醒', disease:'糖尿病', org:'扬州市江都区仙女社区卫生服务中心', name:'周建平', idcard:'321088196801093337', idType:'居民身份证', gender:'男', age:58, birth:'1968-01-09', phone:'13793167482', address:'仙女镇工农路19号', visitDate:'2024-01-08', doctor:'陈静', hospital:'江都区人民医院' }
+    { type:'慢病档案提醒', disease:'高血压', org:'扬州市广陵区东关社区卫生服务中心', name:'张桂英', idcard:'321002195812074426', idType:'居民身份证', gender:'女', age:66, birth:'1958-12-07', phone:'13795126485', address:'东关街道琼花路56号', source:'门诊', visitDate:'2024-01-08', doctor:'王建华', hospital:'扬州市第一人民医院', locked:false },
+    { type:'慢病档案提醒', disease:'糖尿病', org:'扬州市广陵区东关社区卫生服务中心', name:'陈志明', idcard:'321002195204165519', idType:'居民身份证', gender:'男', age:74, birth:'1952-04-16', phone:'15905277826', address:'东关街道文昌路88号', source:'住院', visitDate:'2024-01-05', doctor:'赵敏', hospital:'扬州市中医院', locked:true },
+    { type:'慢病档案提醒', disease:'高血压', org:'扬州市邗江区蒋王社区卫生服务中心', name:'潘凤英', idcard:'321003196202144226', idType:'居民身份证', gender:'女', age:64, birth:'1962-02-14', phone:'15098763214', address:'蒋王镇文汇西路12号', source:'门诊', visitDate:'2024-01-06', doctor:'王盛', hospital:'扬州市邗江区人民医院', locked:false },
+    { type:'慢病档案提醒', disease:'慢阻肺', org:'扬州市邗江区蒋王社区卫生服务中心', name:'石国强', idcard:'321003196104162619', idType:'居民身份证', gender:'男', age:65, birth:'1961-04-16', phone:'13791046538', address:'蒋王镇站前路7号', source:'住院', visitDate:'2024-01-03', doctor:'朱劲松', hospital:'扬州市邗江区人民医院', locked:false },
+    { type:'慢病档案提醒', disease:'糖尿病', org:'扬州市江都区仙女社区卫生服务中心', name:'周建平', idcard:'321088196801093337', idType:'居民身份证', gender:'男', age:58, birth:'1968-01-09', phone:'13793167482', address:'仙女镇工农路19号', source:'体检', visitDate:'2024-01-08', doctor:'陈静', hospital:'江都区人民医院', locked:false },
+
+    /* —— 孕妇提醒（lmp：末次月经，预产期/孕周由 lmp 自动推算） —— */
+    { type:'孕妇提醒', org:'扬州市江都区滨江人民医院', name:'王雨萌', idcard:'321088199503124426', idType:'居民身份证', gender:'女', age:31, birth:'1995-03-12', phone:'13905271234', address:'樊川镇兴华路18号', lmp:'2026-02-16', source:'门诊', visitDate:'2026-10-12', doctor:'陈静', hospital:'江都区人民医院', locked:false },
+    { type:'孕妇提醒', org:'扬州市江都区仙女社区卫生服务中心', name:'李梦琪', idcard:'321088199807205527', idType:'居民身份证', gender:'女', age:28, birth:'1998-07-20', phone:'13815198306', address:'仙女镇龙川南路66号', lmp:'2026-03-11', source:'筛查', visitDate:'2026-10-09', doctor:'王建华', hospital:'扬州市第一人民医院', locked:true },
+    { type:'孕妇提醒', org:'扬州市广陵区东关社区卫生服务中心', name:'张婉如', idcard:'321002199210083328', idType:'居民身份证', gender:'女', age:34, birth:'1992-10-08', phone:'13705256788', address:'东关街道琼花路12号', lmp:'2026-01-26', source:'住院', visitDate:'2026-10-05', doctor:'赵敏', hospital:'扬州市中医院', locked:false },
+    { type:'孕妇提醒', org:'扬州市邗江区蒋王社区卫生服务中心', name:'陈思彤', idcard:'321003199911154428', idType:'居民身份证', gender:'女', age:26, birth:'1999-11-15', phone:'15905279124', address:'蒋王镇文汇西路5号', lmp:'2026-04-17', source:'门诊', visitDate:'2026-10-15', doctor:'王盛', hospital:'扬州市邗江区人民医院', locked:false },
+    { type:'孕妇提醒', org:'扬州市邗江区蒋王社区卫生服务中心', name:'刘佳怡', idcard:'321088200003076628', idType:'居民身份证', gender:'女', age:26, birth:'2000-03-07', phone:'15062348719', address:'仙女镇工农路33号', lmp:'2026-05-18', source:'体检', visitDate:'2026-09-28', doctor:'朱劲松', hospital:'扬州市邗江区人民医院', locked:false },
+    { type:'孕妇提醒', org:'扬州市江都区滨江人民医院', name:'周慧敏', idcard:'321002198904223927', idType:'居民身份证', gender:'女', age:37, birth:'1989-04-22', phone:'13605142638', address:'大桥镇沿江路90号', lmp:'2026-06-12', source:'门诊', visitDate:'2026-10-08', doctor:'李蕾', hospital:'江都区人民医院', locked:true },
+    { type:'孕妇提醒', org:'扬州市江都区仙女社区卫生服务中心', name:'吴思睿', idcard:'321088199612018845', idType:'居民身份证', gender:'女', age:29, birth:'1996-12-01', phone:'18905273615', address:'仙女镇解放路21号', lmp:'2026-07-13', source:'公卫随访', visitDate:'2026-09-22', doctor:'梅娟', hospital:'扬州市江都区滨江人民医院', locked:false },
+    { type:'孕妇提醒', org:'扬州市广陵区东关社区卫生服务中心', name:'孙雅静', idcard:'321003199405269044', idType:'居民身份证', gender:'女', age:32, birth:'1994-05-26', phone:'13511780294', address:'东关街道文昌路128号', lmp:'2026-09-04', source:'门诊', visitDate:'2026-10-16', doctor:'徐东开', hospital:'扬州市江都区滨江人民医院', locked:false }
   ];
+
+  /* 行唯一标识（同一居民可能同时存在多类提醒） */
+  remindData.forEach(function (r, i) { r.rid = 'r' + i; });
+
+  /* 「档案完整度提醒」补充诊疗来源（原型演示：以门诊为主，个别住院/体检） */
+  var ARCH_SOURCE = { '510115199404144440': '住院', '510132198705141114': '住院', '421022195004050014': '住院', '32108819551130863X': '体检' };
+  remindData.forEach(function (r) { if (!r.source) r.source = ARCH_SOURCE[r.idcard] || '门诊'; });
 
   /* ================= 工具函数 ================= */
   function esc(str) {
@@ -381,11 +389,123 @@
   }
   function $(id) { return document.getElementById(id); }
 
+  function parseD(s) { var p = String(s || '').split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function fmtD(d) {
+    var m = ('0' + (d.getMonth() + 1)).slice(-2), dd = ('0' + d.getDate()).slice(-2);
+    return d.getFullYear() + '-' + m + '-' + dd;
+  }
+  /* 预产期 = 末次月经 + 280 天 */
+  function eddOf(r) {
+    if (!r.lmp) return '—';
+    var d = parseD(r.lmp); d.setDate(d.getDate() + 280); return fmtD(d);
+  }
+  /* 孕周 = 末次月经至今 */
+  function gestOf(r) {
+    if (!r.lmp) return '—';
+    var t = new Date(); t.setHours(0, 0, 0, 0);
+    var days = Math.floor((t - parseD(r.lmp)) / 86400000);
+    if (days < 0) return '—';
+    return Math.floor(days / 7) + '周+' + (days % 7);
+  }
+
+  /* 日期占位 / 原生选择器切换 */
+  function toDate(el) { el.type = 'date'; try { el.showPicker(); } catch (e) {} }
+  function toText(el) { if (!el.value) el.type = 'text'; }
+
+  /* ================= 列定义（按 TAB 切换） ================= */
+  function cellText(v, title) {
+    if (!v) return '—';
+    return '<span class="cell" title="' + esc(title || v) + '">' + esc(v) + '</span>';
+  }
+  function lockTag(r) {
+    return r.locked
+      ? '<span class="tag blue">已锁定</span>'
+      : '<span class="tag gray">未锁定</span>';
+  }
+  /* 档案完整度提醒：编辑 / 查看 / 忽略（编辑、查看均跳转「个人基本信息」） */
+  function opRecord(r) {
+    return '<div class="op-wrap">'
+      + '<a class="op-btn link" onclick="goArchive(\'' + r.rid + '\')">编辑</a>'
+      + '<span class="op-gap"></span>'
+      + '<a class="op-btn link" onclick="goArchive(\'' + r.rid + '\')">查看</a>'
+      + '<span class="op-gap"></span>'
+      + '<a class="op-btn link muted" onclick="tryIgnore(\'' + r.rid + '\')">忽略</a>'
+      + '</div>';
+  }
+  /* 慢病 / 孕妇档案提醒：新建 / 查看 / 忽略 */
+  function opArchive(r) {
+    var dis = r.locked ? ' is-dis' : '';
+    return '<div class="op-wrap">'
+      + '<a class="op-btn link' + dis + '"' + (r.locked ? ' title="提醒已锁定，不可新建档案"' : '') + ' onclick="tryCreate(\'' + r.rid + '\')">新建</a>'
+      + '<span class="op-gap"></span>'
+      + '<a class="op-btn link" onclick="openView(\'' + r.rid + '\')">查看</a>'
+      + '<span class="op-gap"></span>'
+      + '<a class="op-btn link muted' + dis + '"' + (r.locked ? ' title="提醒已锁定，不可忽略"' : '') + ' onclick="tryIgnore(\'' + r.rid + '\')">忽略</a>'
+      + '</div>';
+  }
+
+  var COLUMNS = {
+    '档案完整度提醒': [
+      { h: '序号', w: 44, a: 'center', f: function (r, i) { return i; } },
+      { h: '管理机构', w: 150, f: function (r) { return cellText(r.org); } },
+      { h: '姓名', w: 76, f: function (r) { return '<a class="op-btn link" onclick="openView(\'' + r.rid + '\')">' + esc(r.name) + '</a>'; } },
+      { h: '证件号', w: 148, f: function (r) { return cellText(r.idcard); } },
+      { h: '证件类型', w: 82, f: function (r) { return esc(r.idType); } },
+      { h: '性别', w: 44, a: 'center', f: function (r) { return esc(r.gender); } },
+      { h: '年龄', w: 44, a: 'center', f: function (r) { return r.age; } },
+      { h: '出生日期', w: 96, f: function (r) { return esc(r.birth); } },
+      { h: '联系电话', w: 110, f: function (r) { return cellText(r.phone, r.phone); } },
+      { h: '详细地址', w: 160, f: function (r) { return cellText(r.address); } },
+      { h: '诊疗日期', w: 96, f: function (r) { return esc(r.visitDate); } },
+      { h: '诊疗医生', w: 76, f: function (r) { return esc(r.doctor); } },
+      { h: '操作', w: 150, a: 'center', f: opRecord }
+    ],
+    '慢病档案提醒': [
+      { h: '序号', w: 44, a: 'center', f: function (r, i) { return i; } },
+      { h: '管理机构', w: 150, f: function (r) { return cellText(r.org); } },
+      { h: '姓名', w: 76, f: function (r) { return '<a class="op-btn link" onclick="openView(\'' + r.rid + '\')">' + esc(r.name) + '</a>'; } },
+      { h: '证件号', w: 148, f: function (r) { return cellText(r.idcard); } },
+      { h: '证件类型', w: 82, f: function (r) { return esc(r.idType); } },
+      { h: '性别', w: 44, a: 'center', f: function (r) { return esc(r.gender); } },
+      { h: '年龄', w: 44, a: 'center', f: function (r) { return r.age; } },
+      { h: '出生日期', w: 96, f: function (r) { return esc(r.birth); } },
+      { h: '联系电话', w: 110, f: function (r) { return cellText(r.phone, r.phone); } },
+      { h: '详细地址', w: 160, f: function (r) { return cellText(r.address); } },
+      { h: '慢病类型', w: 82, a: 'center', f: function (r) { return esc(r.disease || '—'); } },
+      { h: '诊疗来源', w: 82, f: function (r) { return esc(r.source); } },
+      { h: '诊疗日期', w: 96, f: function (r) { return esc(r.visitDate); } },
+      { h: '诊疗医生', w: 76, f: function (r) { return esc(r.doctor); } },
+      { h: '诊疗医院', w: 150, f: function (r) { return cellText(r.hospital); } },
+      { h: '锁定状态', w: 76, a: 'center', f: lockTag },
+      { h: '操作', w: 150, a: 'center', f: opArchive }
+    ],
+    '孕妇提醒': [
+      { h: '序号', w: 44, a: 'center', f: function (r, i) { return i; } },
+      { h: '管理机构', w: 150, f: function (r) { return cellText(r.org); } },
+      { h: '姓名', w: 76, f: function (r) { return '<a class="op-btn link" onclick="openView(\'' + r.rid + '\')">' + esc(r.name) + '</a>'; } },
+      { h: '证件号', w: 148, f: function (r) { return cellText(r.idcard); } },
+      { h: '证件类型', w: 82, f: function (r) { return esc(r.idType); } },
+      { h: '年龄', w: 44, a: 'center', f: function (r) { return r.age; } },
+      { h: '出生日期', w: 96, f: function (r) { return esc(r.birth); } },
+      { h: '联系电话', w: 110, f: function (r) { return cellText(r.phone, r.phone); } },
+      { h: '末次月经', w: 96, f: function (r) { return esc(r.lmp || '—'); } },
+      { h: '预产期', w: 96, f: function (r) { return esc(eddOf(r)); } },
+      { h: '孕周', w: 72, f: function (r) { return esc(gestOf(r)); } },
+      { h: '诊疗来源', w: 82, f: function (r) { return esc(r.source); } },
+      { h: '诊疗日期', w: 96, f: function (r) { return esc(r.visitDate); } },
+      { h: '诊疗医生', w: 76, f: function (r) { return esc(r.doctor); } },
+      { h: '诊疗医院', w: 150, f: function (r) { return cellText(r.hospital); } },
+      { h: '锁定状态', w: 76, a: 'center', f: lockTag },
+      { h: '操作', w: 150, a: 'center', f: opArchive }
+    ]
+  };
+
   /* ================= 分页 / 状态 ================= */
   var PAGE_SIZE = 20;
   var curPage = 1;
-  var curType = '档案更新提醒';   /* 当前提醒类型 */
+  var curType = '档案完整度提醒';
   var lastList = [];
+  var filterExpanded = false;
 
   /* ================= 提醒类型 TAB ================= */
   function renderTabs() {
@@ -404,23 +524,42 @@
     renderTable();
   }
 
-  /* ================= 筛选 / 表格渲染 ================= */
-  /* 列宽（慢病类型列仅「慢病档案提醒」出现，操作列固定末位） */
-  function buildCols(isChronic) {
-    var widths = [44, 150, 76, 148, 82, 44, 44, 96, 110, 160, 96, 76];
-    if (isChronic) widths.push(96);
-    widths.push(130);
-    return widths.map(function (w) { return '<col style="width:' + w + 'px">'; }).join('');
+  /* ================= 筛选：展开 / 收起 ================= */
+  function toggleFilter() {
+    filterExpanded = !filterExpanded;
+    if (filterExpanded) {
+      $('fRow3').hidden = false;
+      $('fRow3').appendChild($('fBtns'));     /* 按钮随末行下移，保持右侧对齐 */
+    } else {
+      $('fRow2').appendChild($('fBtns'));
+      $('fRow3').hidden = true;
+    }
+    $('fToggleTxt').textContent = filterExpanded ? '收起' : '展开';
+    $('fToggle').classList.toggle('open', filterExpanded);
   }
 
+  /* ================= 表格渲染 ================= */
   function renderTable() {
+    var cols = COLUMNS[curType];
     var isChronic = curType === '慢病档案提醒';
-    $('fDiseaseWrap').style.display = isChronic ? '' : 'none';
-    $('thDisease').style.display = isChronic ? '' : 'none';
-    $('tblCols').innerHTML = buildCols(isChronic);
 
-    var org = $('fOrg').value, name = $('fName').value.trim();
-    var idcard = $('fIdcard').value.trim(), gender = $('fGender').value;
+    $('fDiseaseWrap').style.display = isChronic ? '' : 'none';
+
+    /* 表头 / 列宽 */
+    $('thRow').innerHTML = cols.map(function (c) {
+      return '<th' + (c.a === 'center' ? ' class="center"' : '') + '>' + c.h + '</th>';
+    }).join('');
+    var totalW = 0;
+    $('tblCols').innerHTML = cols.map(function (c) {
+      totalW += c.w;
+      return '<col style="width:' + c.w + 'px">';
+    }).join('');
+    $('listTbl').style.minWidth = totalW + 'px';
+
+    /* 条件 */
+    var org = $('fOrg').value, orgs = org ? org.split(',') : [];
+    var name = $('fName').value.trim(), idcard = $('fIdcard').value.trim();
+    var source = $('fSource').value, lock = $('fLock').value;
     var disease = $('fDisease').value;
     var birthStart = $('fBirthStart').value, birthEnd = $('fBirthEnd').value;
     var visitStart = $('fVisitStart').value, visitEnd = $('fVisitEnd').value;
@@ -428,11 +567,12 @@
 
     lastList = remindData.filter(function (r) {
       if (r.ignored) return false;
-      if (curType && r.type !== curType) return false;
-      if (org && r.org !== org) return false;
+      if (r.type !== curType) return false;
+      if (orgs.length && orgs.indexOf(r.org) === -1) return false;
       if (name && r.name.indexOf(name) === -1) return false;
       if (idcard && r.idcard.indexOf(idcard) === -1) return false;
-      if (gender && r.gender !== gender) return false;
+      if (source && r.source !== source) return false;
+      if (lock !== '' && String(r.locked ? 1 : 0) !== lock) return false;
       if (isChronic && disease && r.disease !== disease) return false;
       if (birthStart && r.birth < birthStart) return false;
       if (birthEnd && r.birth > birthEnd) return false;
@@ -450,33 +590,12 @@
 
     var html = '';
     if (slice.length === 0) {
-      html = '<tr class="empty-row"><td colspan="' + (isChronic ? 14 : 13) + '"><div class="ico">📭</div>暂无符合条件的提醒记录</td></tr>';
+      html = '<tr class="empty-row"><td colspan="' + cols.length + '"><div class="ico">📭</div>暂无符合条件的提醒记录</td></tr>';
     } else {
       slice.forEach(function (r, i) {
-        var opHtml = '<a class="op-btn link" onclick="goEdit(\'' + esc(r.idcard) + '\')">编辑</a>'
-          + '<span class="op-gap"></span><a class="op-btn link" onclick="goView(\'' + esc(r.idcard) + '\')">查看</a>'
-          + '<span class="op-gap"></span>'
-          + '<span class="more-wrap"><a class="op-btn link" onclick="toggleMore(event,\'' + esc(r.idcard) + '\')">更多 ▼</a>'
-          + '<div class="more-menu" id="more-' + esc(r.idcard) + '">'
-          + '<a onclick="openIgnore(\'' + esc(r.idcard) + '\')">忽略</a>'
-          + '<a onclick="toast(\'原型演示：转诊\',\'info\')">转诊</a>'
-          + '</div></span>';
-        html += '<tr>'
-          + '<td class="center">' + (start + i + 1) + '</td>'
-          + '<td title="' + esc(r.org) + '"><span class="cell">' + esc(r.org) + '</span></td>'
-          + '<td><a class="op-btn link" onclick="goView(\'' + esc(r.idcard) + '\')">' + esc(r.name) + '</a></td>'
-          + '<td title="' + esc(r.idcard) + '"><span class="cell">' + esc(r.idcard) + '</span></td>'
-          + '<td>' + esc(r.idType) + '</td>'
-          + '<td class="center">' + esc(r.gender) + '</td>'
-          + '<td class="center">' + r.age + '</td>'
-          + '<td>' + esc(r.birth) + '</td>'
-          + '<td title="' + esc(r.phone) + '"><span class="cell">' + (r.phone || '—') + '</span></td>'
-          + '<td title="' + esc(r.address) + '"><span class="cell">' + (r.address || '—') + '</span></td>'
-          + '<td>' + esc(r.visitDate) + '</td>'
-          + '<td>' + esc(r.doctor) + '</td>'
-          + (isChronic ? '<td class="center">' + esc(r.disease || '—') + '</td>' : '')
-          + '<td class="center"><div class="op-wrap">' + opHtml + '</div></td>'
-          + '</tr>';
+        html += '<tr>' + cols.map(function (c) {
+          return '<td' + (c.a === 'center' ? ' class="center"' : '') + '>' + c.f(r, start + i + 1) + '</td>';
+        }).join('') + '</tr>';
       });
     }
     $('tbBody').innerHTML = html;
@@ -484,18 +603,6 @@
     renderPager(totalPage);
     $('pgJump').value = curPage;
   }
-
-  /* ================= 更多下拉 ================= */
-  function toggleMore(e, idcard) {
-    e.stopPropagation();
-    /* 关闭其他菜单 */
-    document.querySelectorAll('.more-menu.show').forEach(function (m) { if (m.id !== 'more-' + idcard) m.classList.remove('show'); });
-    var m = $('more-' + idcard);
-    if (m) m.classList.toggle('show');
-  }
-  document.addEventListener('click', function () {
-    document.querySelectorAll('.more-menu.show').forEach(function (m) { m.classList.remove('show'); });
-  });
 
   /* ================= 分页器 ================= */
   function renderPager(total) {
@@ -536,7 +643,7 @@
 
   /* ================= 筛选交互 ================= */
   function resetFilter() {
-    ['fOrg', 'fGender', 'fDisease'].forEach(function (id) { $(id).value = ''; });
+    ['fOrg', 'fSource', 'fLock', 'fDisease'].forEach(function (id) { $(id).value = ''; });
     ['fName', 'fIdcard', 'fDoctor', 'fHospital', 'fBirthStart', 'fBirthEnd', 'fVisitStart', 'fVisitEnd'].forEach(function (id) {
       var el = $(id); el.value = ''; if (el.type === 'date') el.type = 'text';
     });
@@ -552,25 +659,38 @@
   }
 
   /* 筛选控件变化即实时过滤（并回到第一页） */
-  ['fOrg', 'fGender', 'fDisease', 'fBirthStart', 'fBirthEnd', 'fVisitStart', 'fVisitEnd']
+  ['fOrg', 'fSource', 'fLock', 'fDisease', 'fBirthStart', 'fBirthEnd', 'fVisitStart', 'fVisitEnd']
     .forEach(function (id) { $(id).addEventListener('change', function () { curPage = 1; renderTable(); }); });
   ['fName', 'fIdcard', 'fDoctor', 'fHospital']
     .forEach(function (id) { $(id).addEventListener('input', function () { curPage = 1; renderTable(); }); });
 
-  /* ================= 编辑 / 查看：跳转「档案维护.html」 =================
-     · 档案更新提醒  → 默认选中「个人基本信息」（view=basic）
-     · 慢病档案提醒  → 按慢病类型默认选中对应业务专项表填报界面
+  /* 管理机构（多选组件不派发 change / 清空事件，需单独监听。
+     用捕获阶段读取节点归属：组件在事件冒泡到 document 前会重建面板 DOM，导致 e.target 脱离文档） */
+  function lazyFilter() { setTimeout(function () { curPage = 1; renderTable(); }, 0); }
+  document.addEventListener('change', function (e) {
+    if (e.target && e.target.closest && e.target.closest('.fcp-ms')) lazyFilter();
+  }, true);
+  document.addEventListener('click', function (e) {
+    if (e.target && e.target.closest && e.target.closest('.fcp-clear')) lazyFilter();
+  }, true);
+
+  /* ================= 新建 / 编辑 / 查看：跳转「档案维护.html」 =================
+     操作列「新建」「查看→去维护档案」「编辑」均走同一映射，落地到对应菜单：
+     · 孕妇提醒      → 孕产妇管理 › 孕产妇档案（view=msArchive）
+     · 慢病档案提醒  → 慢病管理 › 对应专项填报
          高血压 → 高血压专项（view=hypertension）
          糖尿病 → 糖尿病专项（view=diabetes）
-         慢阻肺 → 慢阻肺专项（view=copd） */
+         慢阻肺 → 慢阻肺专项（view=copd）
+     · 档案完整度提醒  → 档案管理 › 个人基本信息（view=basic） */
   var DISEASE_VIEW = { '高血压': 'hypertension', '糖尿病': 'diabetes', '慢阻肺': 'copd' };
 
-  function goArchive(idcard) {
-    var r = findRow(idcard);
+  function goArchive(rid) {
+    var r = findRow(rid);
     if (!r) return;
-    var view = r.type === '慢病档案提醒'
-      ? (DISEASE_VIEW[r.disease] || 'hypertension')
-      : 'basic';
+    var view;
+    if (r.type === '孕妇提醒') view = 'msArchive';
+    else if (r.type === '慢病档案提醒') view = DISEASE_VIEW[r.disease] || 'hypertension';
+    else view = 'basic';
     var p = new URLSearchParams();
     p.set('view', view);
     p.set('edit', '1');
@@ -582,52 +702,39 @@
     if (r.phone) p.set('phone', r.phone);
     if (r.address) p.set('addr', r.address);
     if (r.org) p.set('org', r.org);
+    /* 孕妇提醒：顺带把孕产三项带入孕产妇档案 */
+    if (r.type === '孕妇提醒') {
+      if (r.lmp) p.set('lmp', r.lmp);
+      p.set('due', eddOf(r));
+      p.set('gest', gestOf(r).replace('周+', '+'));
+    }
     location.href = '档案维护.html?' + p.toString();
   }
 
-  function goEdit(idcard) { goArchive(idcard); }
-  function goView(idcard) { goArchive(idcard); }
-
   /* ================= 弹窗 ================= */
-  function findRow(idcard) {
+  function findRow(rid) {
     for (var i = 0; i < remindData.length; i++) {
-      if (remindData[i].idcard === idcard && !remindData[i].ignored) return remindData[i];
+      if (remindData[i].rid === rid) return remindData[i];
     }
     return null;
   }
 
-  /* 新建档案 */
-  var createIdcard = '';
-  function openCreate(idcard) {
-    var r = findRow(idcard);
+  /* 新建档案：锁定态拦截后直接跳转「档案维护.html」对应填报视图
+     · 孕妇提醒      → 孕产妇管理 › 孕产妇档案（view=msArchive）
+     · 慢病档案提醒  → 对应专项填报（高血压 / 糖尿病 / 慢阻肺专项） */
+  function tryCreate(rid) {
+    var r = findRow(rid);
     if (!r) return;
-    createIdcard = idcard;
-    $('cr-name').value = r.name;
-    $('cr-idtype').value = r.idType;
-    $('cr-idcard').value = r.idcard;
-    $('cr-gender').value = r.gender;
-    var b = $('cr-birth'); b.type = 'date'; b.value = r.birth;
-    $('cr-phone').value = r.phone;
-    $('cr-org').value = r.org;
-    $('cr-doctor').value = r.doctor;
-    $('cr-hospital').value = r.hospital;
-    $('create-modal').classList.add('show');
-  }
-  function closeCreate() { $('create-modal').classList.remove('show'); }
-  function submitCreate() {
-    if (!$('cr-name').value.trim() || !$('cr-idcard').value.trim()) { toast('请填写姓名与证件号', 'warning'); return; }
-    var r = findRow(createIdcard);
-    if (r) r.ignored = true;
-    closeCreate();
-    renderTabs();
-    renderTable();
-    toast('已建档：' + $('cr-name').value.trim(), 'success');
+    if (r.locked) { toast('该提醒已锁定，无法新建档案', 'warning'); return; }
+    goArchive(rid);
   }
 
   /* 查看详情 */
-  function openView(idcard) {
-    var r = findRow(idcard);
+  var viewRid = '';
+  function openView(rid) {
+    var r = findRow(rid);
     if (!r) return;
+    viewRid = rid;
     $('vw-org').textContent = r.org;
     $('vw-name').textContent = r.name;
     $('vw-genderAge').textContent = r.gender + ' / ' + r.age + ' 岁';
@@ -636,20 +743,52 @@
     $('vw-idcard').textContent = r.idcard;
     $('vw-phone').textContent = r.phone || '—';
     $('vw-address').textContent = r.address || '—';
-    $('vw-type').textContent = r.type;
-    $('vw-visitdate').textContent = r.visitDate;
-    $('vw-doctor').textContent = r.doctor;
-    $('vw-hospital').textContent = r.hospital;
+
+    /* 提醒详情：按 TAB 追加业务字段 */
+    var pairs = [
+      ['提醒类型', r.type],
+      ['诊疗来源', r.source || '—'],
+      ['诊疗日期', r.visitDate],
+      ['诊疗医生', r.doctor],
+      ['诊疗医院', r.hospital],
+      ['锁定状态', r.locked ? '已锁定' : '未锁定']
+    ];
+    if (r.type === '慢病档案提醒') pairs.push(['慢病类型', r.disease || '—']);
+    if (r.type === '孕妇提醒') {
+      pairs.push(['末次月经', r.lmp || '—']);
+      pairs.push(['预产期', eddOf(r)]);
+      pairs.push(['孕周', gestOf(r)]);
+    }
+    var h = '';
+    for (var i = 0; i < pairs.length; i += 2) {
+      var a = pairs[i], bb = pairs[i + 1];
+      if (bb) {
+        h += '<tr><th>' + esc(a[0]) + '</th><td>' + esc(a[1]) + '</td><th>' + esc(bb[0]) + '</th><td>' + esc(bb[1]) + '</td></tr>';
+      } else {
+        h += '<tr><th>' + esc(a[0]) + '</th><td colspan="3">' + esc(a[1]) + '</td></tr>';
+      }
+    }
+    $('vw-detail').innerHTML = h;
     $('view-modal').classList.add('show');
   }
   function closeView() { $('view-modal').classList.remove('show'); }
+  function goArchiveCurrent() {
+    closeView();
+    goArchive(viewRid);
+  }
 
-  /* 忽略提醒 */
-  var ignoreIdcard = '';
-  function openIgnore(idcard) {
-    var r = findRow(idcard);
+  /* 忽略提醒（锁定态拦截） */
+  var ignoreRid = '';
+  function tryIgnore(rid) {
+    var r = findRow(rid);
     if (!r) return;
-    ignoreIdcard = idcard;
+    if (r.locked) { toast('该提醒已锁定，无法忽略', 'warning'); return; }
+    openIgnore(rid);
+  }
+  function openIgnore(rid) {
+    var r = findRow(rid);
+    if (!r) return;
+    ignoreRid = rid;
     $('ig-name').textContent = r.name;
     $('ig-type').textContent = r.type;
     $('ig-idcard').textContent = r.idcard;
@@ -659,7 +798,7 @@
   function closeIgnore() { $('ignore-modal').classList.remove('show'); }
   function submitIgnore() {
     if (!$('ig-reason').value.trim()) { toast('请填写忽略原因', 'warning'); return; }
-    var r = findRow(ignoreIdcard);
+    var r = findRow(ignoreRid);
     if (r) r.ignored = true;
     closeIgnore();
     renderTabs();

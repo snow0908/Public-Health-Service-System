@@ -1,0 +1,1998 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>区域网格化管理 - 系统设置</title>
+<link rel="stylesheet" href="框架.css">
+<style>
+  html.embed-mode .main-area{height:100%}
+  html.embed-mode .tabbar{display:none}
+  html.embed-mode .toast{top:24px}
+
+  .content{display:flex;overflow:hidden}
+  .content .content-card{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}
+
+  /* ===== 页头右侧 ===== */
+  .page-head .right{display:flex;align-items:center;gap:10px}
+  .page-head .right .btn{height:30px;padding:0 14px;font-size:13px}
+  .sync-chip{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:13px;background:#F5F6FA;font-size:12px;color:var(--text-tertiary);white-space:nowrap}
+  .sync-chip i{width:6px;height:6px;border-radius:50%;background:#52B61A}
+  .sync-chip.is-err{background:#FEF0EE;color:var(--danger)}
+  .sync-chip.is-err i{background:var(--danger)}
+  .sync-chip.is-busy{background:var(--primary-bg);color:var(--primary)}
+  .sync-chip.is-busy i{background:var(--primary);animation:blink 1s infinite}
+  @keyframes blink{50%{opacity:.25}}
+  .demo-role{display:flex;align-items:center;gap:6px;height:30px;padding:0 4px 0 8px;border:1px dashed #CFD6E4;border-radius:var(--r-sm);background:#FAFBFC}
+  .demo-role .dr-lbl{font-size:12px;color:var(--text-tertiary);white-space:nowrap}
+  .demo-role select{border:none;background:transparent;font-size:13px;color:var(--text-primary);outline:none;cursor:pointer;height:26px;padding-right:2px}
+
+  /* ===== 布局：左树 + 右表 ===== */
+  .split{flex:1;min-height:0;display:flex}
+  .tree-panel{flex:none;width:320px;border-right:1px solid #E8E8E8;display:flex;flex-direction:column;background:var(--bg-white);min-height:0}
+  .grid-panel{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg-white);min-height:0}
+
+  /* ---- 同步区 ---- */
+  .pull-bar{padding:10px 12px 0;border-bottom:1px solid #E8E8E8;flex-shrink:0}
+  .pull-line{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .pull-line .pl-lbl{flex:none;font-size:12px;color:var(--text-tertiary);white-space:nowrap}
+  .p-select{flex:1;min-width:0;height:30px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 9px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;transition:all var(--transition-fast)}
+  .p-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .p-select.is-placeholder{color:var(--text-placeholder)}
+  .p-select:disabled{background-color:#F5F5F5;color:var(--text-disabled);cursor:not-allowed}
+
+  /* 主按钮 + 下拉箭头 双段结构 */
+  .pull-split{display:flex;align-items:stretch;position:relative;margin-bottom:8px}
+  .btn-pull{flex:1;height:32px;border-radius:var(--r-sm) 0 0 var(--r-sm);border:1px solid var(--primary);border-right:none;background:var(--primary);color:#fff;font-size:13px;font-weight:var(--font-weight-medium);display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:background var(--transition-fast)}
+  .btn-pull:hover{background:var(--primary-hover)}
+  .btn-pull:disabled{background:var(--color-neutral-300);border-color:var(--color-neutral-300);cursor:not-allowed}
+  .btn-pull svg{width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+  .btn-pull.loading svg{animation:spin 0.9s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .btn-pull-more{flex:none;width:28px;height:32px;border-radius:0 var(--r-sm) var(--r-sm) 0;border:1px solid var(--primary);background:var(--primary);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background var(--transition-fast);border-left:1px solid rgba(255,255,255,0.35)}
+  .btn-pull-more:hover{background:var(--primary-hover)}
+  .btn-pull-more:disabled{background:var(--color-neutral-300);border-color:var(--color-neutral-300);cursor:not-allowed}
+  .btn-pull-more svg{width:10px;height:6px;stroke:#fff;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:transform var(--transition-fast)}
+  .btn-pull-more.open svg{transform:rotate(180deg)}
+  .pull-menu{position:absolute;top:36px;left:0;right:0;background:var(--bg-white);border:1px solid #E4E7ED;border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,0.14);z-index:30;padding:4px 0;display:none}
+  .pull-menu.open{display:block}
+  .pm-item{padding:7px 12px;font-size:13px;color:var(--text-primary);cursor:pointer;line-height:1.4}
+  .pm-item:hover{background:var(--primary-bg);color:var(--primary)}
+  .pm-item .pm-sub{display:block;font-size:12px;color:var(--text-tertiary);margin-top:1px}
+  .pm-item:hover .pm-sub{color:var(--primary)}
+  .pm-sep{height:1px;background:#F0F2F5;margin:4px 0}
+  .pm-item.demo{color:var(--text-tertiary)}
+  .pm-item.demo:hover{color:var(--warning);background:var(--warning-bg)}
+
+  /* 口径说明条 */
+  .level-tip{display:flex;align-items:flex-start;gap:5px;padding:0 12px 4px;font-size:11px;color:var(--text-placeholder);line-height:1.5}
+  .level-tip svg{flex:none;width:11px;height:11px;margin-top:2px;stroke:var(--text-placeholder);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .level-tip b{color:var(--text-tertiary);font-weight:var(--font-weight-medium)}
+
+  /* 同步状态条 */
+  .sync-bar{display:flex;align-items:center;gap:6px;padding:7px 12px;border-top:1px solid #F0F2F5;font-size:12px;color:var(--text-tertiary);flex-shrink:0;line-height:1.4}
+  .sync-bar .sb-txt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sync-bar .sb-act{flex:none;font-size:12px;color:var(--primary);cursor:pointer}
+  .sync-bar .sb-act:hover{text-decoration:underline}
+  .sync-bar.is-err{background:#FEF4F3;color:#D93025}
+  .sync-bar.is-err .sb-act{color:#D93025;font-weight:var(--font-weight-medium)}
+  .sync-bar.is-busy{background:var(--primary-bg);color:var(--primary)}
+
+  /* ---- 树搜索 ---- */
+  .tree-search{padding:9px 12px;border-bottom:1px solid #F0F2F5;flex-shrink:0}
+  .ts-box{position:relative}
+  .ts-box svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;stroke:var(--text-placeholder);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .ts-box input{width:100%;height:30px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px 0 28px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .ts-box input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .ts-box input::placeholder{color:var(--text-placeholder)}
+
+  /* ---- 树 ---- */
+  .tree-body{flex:1;min-height:0;overflow:auto;padding:6px 6px 12px}
+  .tnode{display:flex;align-items:center;gap:6px;height:32px;padding:0 8px;border-radius:var(--r-sm);cursor:pointer;font-size:13px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;transition:background var(--transition-fast);user-select:none}
+  .tnode:hover{background:#F5F7FA}
+  .tnode.selected{background:#E8F0FE;color:var(--primary);font-weight:var(--font-weight-medium)}
+  .tnode .tw{flex:none;width:14px;height:14px;display:flex;align-items:center;justify-content:center;color:var(--text-tertiary);transition:transform var(--transition-fast)}
+  .tnode .tw svg{width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .tnode .tw.expanded svg{transform:rotate(90deg)}
+  .tnode .tw.leaf{visibility:hidden}
+  .tnode .t-ico{flex:none;width:16px;height:16px;display:flex;align-items:center;justify-content:center}
+  .tnode .t-ico svg{width:14px;height:14px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .ico-region{stroke:#4A7DFF}
+  .ico-town{stroke:#D9822B}
+  .ico-village{stroke:#52B61A}
+  .ico-orphan{stroke:#D93025}
+  .tnode .t-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .tnode .t-name b{color:var(--danger);font-weight:var(--font-weight-medium)}
+  .tnode .t-root-tag{font-size:11px;color:var(--text-placeholder);font-weight:400;margin-left:3px}
+  .scope-src{padding:0 12px 9px;font-size:11px;color:var(--text-placeholder);line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tnode .t-meta{flex:none;font-size:12px;color:var(--text-tertiary);background:#F0F2F5;border-radius:8px;padding:0 7px;height:17px;line-height:17px}
+  .tnode.selected .t-meta{background:#D6E3FD;color:var(--primary)}
+  .tchildren{margin-left:18px;border-left:1px dashed #E4E7ED;padding-left:4px}
+
+  /* ---- 树空态 ---- */
+  .tree-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--text-placeholder);font-size:13px;padding:30px 20px;text-align:center;line-height:1.7}
+  .tree-empty svg{width:52px;height:52px;stroke:var(--color-neutral-300);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+  /* ---- 待归并组入口 ---- */
+  .orphan-bar{display:flex;align-items:center;gap:6px;padding:9px 12px;border-top:1px solid #F0F2F5;background:#FEF6F5;font-size:12px;color:#D93025;flex-shrink:0;cursor:pointer}
+  .orphan-bar:hover{background:#FDECEA}
+  .orphan-bar svg{flex:none;width:13px;height:13px;stroke:#D93025;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .orphan-bar .ob-txt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .orphan-bar .ob-go{flex:none;font-weight:var(--font-weight-medium)}
+
+  /* ===== 右侧：面包屑 ===== */
+  .crumb-bar{display:flex;align-items:center;height:44px;padding:0 16px;border-bottom:1px solid #E8E8E8;flex-shrink:0;gap:4px}
+  .crumb-bar .c-ico{width:15px;height:15px;flex:none;stroke:var(--primary);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px}
+  .crumb-seg{font-size:13px;color:var(--text-secondary);cursor:pointer;white-space:nowrap}
+  .crumb-seg:hover{color:var(--primary)}
+  .crumb-seg.cur{color:var(--primary);font-weight:var(--font-weight-medium);cursor:default}
+  .crumb-sep{font-size:12px;color:var(--text-placeholder)}
+  .crumb-code{font-size:11px;color:var(--text-placeholder);font-family:Consolas,monospace;margin-left:6px;background:#F5F6FA;border-radius:3px;padding:0 5px;line-height:16px}
+  .crumb-bar .btn{height:30px;padding:0 14px;font-size:13px;margin-left:auto}
+  .crumb-bar .role-tag{flex:none;font-size:11px;color:var(--text-tertiary);background:#F5F6FA;border:1px solid #E8E8E8;border-radius:3px;padding:1px 6px;margin-left:8px}
+
+  /* ===== 统计条 ===== */
+  .stat-strip{display:flex;align-items:stretch;gap:12px;padding:12px 16px;border-bottom:1px solid #E8E8E8;flex-shrink:0;flex-wrap:wrap}
+  .stat-chip{flex:1;min-width:140px;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px}
+  .stat-chip .s-ico{flex:none;width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center}
+  .stat-chip .s-ico svg{width:16px;height:16px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .stat-chip .s-txt .s-num{font-size:18px;font-weight:var(--font-weight-semibold);line-height:1.2}
+  .stat-chip .s-txt .s-lbl{font-size:12px;color:var(--text-tertiary);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sc-blue{background:#F0F5FF}
+  .sc-blue .s-ico{background:#DCE7FF}
+  .sc-blue .s-num{color:#3D6FE0}
+  .sc-blue svg{stroke:#3D6FE0}
+  .sc-green{background:#F0FAE9}
+  .sc-green .s-ico{background:#E3F4D4}
+  .sc-green .s-num{color:#52B61A}
+  .sc-green svg{stroke:#52B61A}
+  .sc-orange{background:#FDF7EE}
+  .sc-orange .s-ico{background:#FBE8CD}
+  .sc-orange .s-num{color:#D9822B}
+  .sc-orange svg{stroke:#D9822B}
+  .sc-purple{background:#F7F2FE}
+  .sc-purple .s-ico{background:#EADCFF}
+  .sc-purple .s-num{color:#8551E0}
+  .sc-purple svg{stroke:#8551E0}
+
+  /* ===== 表格工具条 ===== */
+  .tbl-toolbar{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid #E8E8E8;flex-shrink:0;flex-wrap:wrap}
+  .tb-search{position:relative;width:216px}
+  .tb-search svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;stroke:var(--text-placeholder);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .tb-search input{width:100%;height:30px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px 0 28px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .tb-search input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .tb-search input::placeholder{color:var(--text-placeholder)}
+  .tb-sel{height:30px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 26px 0 9px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  .tb-sel:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .tb-hint{margin-left:auto;font-size:12px;color:var(--text-tertiary);white-space:nowrap}
+  .tb-hint b{color:var(--text-secondary);font-weight:var(--font-weight-medium)}
+
+  /* ===== 表格 ===== */
+  .table-wrap{flex:1;overflow:auto;min-height:0;position:relative}
+  .list-tbl th:last-child,.list-tbl td:last-child{position:sticky;right:0}
+  .list-tbl td:last-child{z-index:2;background-color:var(--bg-white)}
+  .list-tbl th:last-child{z-index:6}
+  .list-tbl{width:100%;table-layout:fixed;border-collapse:collapse;font-size:13px}
+  .list-tbl th{position:sticky;top:0;z-index:5;height:36px;padding:0 8px;background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7ED}
+  .list-tbl td{height:44px;padding:0 8px;border-bottom:1px solid #EEF0F4;color:var(--text-secondary);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-tbl tbody tr:nth-child(even) td{background:var(--bg-table-even)}
+  .list-tbl tbody tr:hover td{background:var(--primary-bg)}
+  .list-tbl .center{text-align:center}
+  .num{font-family:Consolas,'Microsoft YaHei',monospace}
+  .dash{color:var(--text-placeholder)}
+  .op-link{color:var(--primary);cursor:pointer;font-size:13px}
+  .op-link:hover{text-decoration:underline}
+  .op-link.danger{color:var(--danger)}
+  .op-link.disabled{color:var(--text-disabled);cursor:not-allowed}
+  .op-link.disabled:hover{text-decoration:none}
+  .op-gap{display:inline-block;width:8px}
+  /* 所属村：村名 + 12 位行政区划编码（编码为 v4 主键，常驻展示便于核对） */
+  .vill-cell{display:flex;flex-direction:column;justify-content:center;gap:1px;min-width:0;line-height:1.25}
+  .vill-cell .vc-name{font-size:13px;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .vill-cell .vc-code{font-size:11px;color:var(--text-tertiary);font-family:Consolas,'Microsoft YaHei',monospace;letter-spacing:0.1px;overflow:hidden;text-overflow:ellipsis}
+  .vill-cell .vc-code.is-invalid{color:var(--danger)}
+  .vill-cell .vc-row{display:flex;align-items:center;gap:5px;min-width:0}
+  .vill-cell .vc-row .vc-name{flex:1;min-width:0;font-size:12px}
+  .vill-cell .vc-row .vc-code{flex:1;min-width:0}
+  .vill-link{color:var(--text-primary);cursor:pointer}
+  .vill-link:hover{color:var(--primary)}
+  .tbl-empty{padding:50px 20px;text-align:center;color:var(--text-placeholder);font-size:13px}
+  .tbl-empty svg{width:44px;height:44px;stroke:var(--color-neutral-300);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:10px}
+  .tbl-empty .sub{margin-top:6px;color:var(--text-placeholder)}
+  .st-tag{display:inline-flex;align-items:center;gap:5px;font-size:12px}
+  .st-tag i{width:6px;height:6px;border-radius:50%}
+  .st-on{color:#52B61A}
+  .st-on i{background:#52B61A}
+  .st-off{color:var(--text-tertiary)}
+  .st-off i{background:#C0C6CF}
+  .src-tag{display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:3px;font-size:11px;line-height:1;white-space:nowrap}
+  .src-auto{background:var(--primary-bg);color:var(--primary)}
+  .src-manual{background:#FDF7EE;color:#D9822B}
+  .orph-tag{display:inline-flex;align-items:center;gap:4px;height:18px;padding:0 6px;border-radius:3px;font-size:11px;background:#FEF0EE;color:#D93025;line-height:1}
+  .tbl-loading{position:absolute;inset:0;background:rgba(255,255,255,0.7);display:flex;align-items:center;justify-content:center;z-index:8;font-size:13px;color:var(--text-tertiary);gap:8px}
+  .tbl-loading .sp{width:14px;height:14px;border:2px solid #D6DEE9;border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
+
+  /* ===== 分页 ===== */
+  .page-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;height:44px;padding:0 16px;flex-shrink:0;border-top:1px solid #E8E8E8;font-size:13px;color:var(--text-secondary)}
+  .pg-total b{color:var(--primary);font-weight:var(--font-weight-medium)}
+  .pg-pager{display:flex;align-items:center;gap:4px}
+  .pg-btn{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);font-size:13px;color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:all var(--transition-fast)}
+  .pg-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .pg-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;cursor:default}
+  .pg-btn.disabled{color:var(--text-disabled);cursor:not-allowed;border-color:#EBEBEB}
+  .pg-btn.disabled:hover{border-color:#EBEBEB;color:var(--text-disabled)}
+  .pg-size{height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 22px 0 7px;font-size:12px;color:var(--text-secondary);background:#fff;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center}
+  .pg-jump{display:flex;align-items:center;gap:4px}
+  .pg-jump input{width:38px;height:26px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);text-align:center;font-size:12px;color:var(--text-secondary);outline:none;font-family:inherit}
+  .pg-jump input:focus{border-color:var(--primary)}
+
+  /* ===== 右侧抽屉（新增 / 编辑 / 变更归属） ===== */
+  .drawer-mask{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:var(--z-modal);opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .drawer-mask.show{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:620px;max-width:96vw;background:var(--bg-white);box-shadow:-8px 0 30px rgba(0,0,0,0.15);display:flex;flex-direction:column;z-index:calc(var(--z-modal) + 1);transform:translateX(100%);transition:transform var(--transition-normal)}
+  .drawer.show{transform:translateX(0)}
+  .drawer-head{height:44px;flex-shrink:0;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid #E8E8E8;gap:8px}
+  .drawer-head h3{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--primary)}
+  .drawer-head .dh-code{font-size:11px;color:var(--text-tertiary);font-family:Consolas,monospace;background:#F5F6FA;border-radius:3px;padding:2px 6px}
+  .drawer-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:18px;line-height:1}
+  .drawer-close:hover{background:var(--primary-bg);color:var(--primary)}
+  .drawer-body{flex:1;min-height:0;overflow:auto;padding:18px 20px}
+  .drawer-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:12px 20px;border-top:1px solid #E8E8E8;flex-shrink:0}
+
+  .assign-tip{display:flex;gap:8px;align-items:flex-start;background:#F0F5FF;border:1px solid #D6E3FD;border-radius:6px;padding:10px 12px;font-size:12px;color:var(--text-secondary);line-height:1.7;margin-bottom:16px}
+  .assign-tip svg{flex:none;width:14px;height:14px;margin-top:2px;stroke:#3D6FE0;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+  .g-item{display:flex;align-items:flex-start;gap:6px;margin-bottom:16px;min-width:0}
+  .g-item>label{flex:none;width:88px;font-size:13px;color:var(--text-secondary);text-align:right;padding-top:6px;white-space:nowrap}
+  .g-item>label.required::before{content:"*";color:var(--danger);margin-right:2px}
+  .g-item>label.plain{padding-top:0;height:32px;display:flex;align-items:center}
+  .g-ctl{flex:1;min-width:0;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 10px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:all var(--transition-fast)}
+  .g-ctl:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .g-ctl::placeholder{color:var(--text-placeholder)}
+  .g-ctl[readonly]{background:#F7F8FA;color:var(--text-secondary);cursor:default}
+  .g-ctl:disabled{background:#F7F8FA;color:var(--text-disabled);cursor:not-allowed}
+  .g-field{flex:1;min-width:0}
+  .g-field .hint{font-size:11px;color:var(--text-tertiary);margin-top:4px;line-height:1.5}
+  .g-field .hint.warn{color:var(--warning)}
+  .g-textarea{flex:1;min-width:0;height:88px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:8px 10px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;resize:vertical;font-family:inherit;transition:all var(--transition-fast)}
+  .g-textarea:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(0,122,255,0.15)}
+  .radio-line{display:flex;align-items:center;gap:18px;height:32px}
+  .radio-line label{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-primary);cursor:pointer}
+  .radio-line label.disabled{color:var(--text-disabled);cursor:not-allowed}
+  .radio-line input{width:14px;height:14px;accent-color:var(--primary);cursor:pointer}
+  .radio-line .rl-sub{font-size:11px;color:var(--text-tertiary)}
+
+  /* ---- 所属村级联选择（单输入框 + 级联面板） ---- */
+  .cas-wrap{position:relative;flex:1;min-width:0}
+  .cas-box{display:flex;align-items:center;gap:6px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 8px;background:var(--bg-white);cursor:pointer;transition:all var(--transition-fast)}
+  .cas-box:hover,.cas-box.open{border-color:var(--primary)}
+  .cas-seg{flex:1;min-width:0;display:flex;align-items:center;gap:6px;overflow:hidden;font-size:13px}
+  .cas-tag{flex:none;display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:11px;background:var(--primary-bg);color:var(--primary);font-size:12px;white-space:nowrap}
+  .cas-ph{color:var(--text-placeholder);white-space:nowrap;font-size:13px}
+  .cas-arrow{flex:none;width:14px;height:14px;display:flex;align-items:center;justify-content:center;color:var(--text-tertiary)}
+  .cas-arrow svg{width:10px;height:6px;transition:transform var(--transition-fast)}
+  .cas-box.open .cas-arrow svg{transform:rotate(180deg)}
+  .cas-panel{position:absolute;top:36px;left:0;width:100%;min-width:420px;background:var(--bg-white);border:1px solid #E4E7ED;border-radius:6px;box-shadow:0 8px 28px rgba(0,0,0,0.16);display:none;z-index:calc(var(--z-modal) + 2)}
+  .cas-panel.open{display:flex}
+  .cas-col{flex:1;min-width:0;max-height:240px;overflow:auto;padding:4px 0}
+  .cas-col + .cas-col{border-left:1px solid #F0F2F5}
+  .cas-col-title{padding:6px 12px;font-size:12px;color:var(--text-tertiary);border-bottom:1px solid #F0F2F5}
+  .cas-opt{display:flex;align-items:center;height:30px;padding:0 12px;font-size:13px;color:var(--text-secondary);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cas-opt:hover{background:#F5F7FA}
+  .cas-opt.sel{background:var(--primary-bg);color:var(--primary);font-weight:var(--font-weight-medium)}
+  .cas-empty{padding:14px 12px;font-size:13px;color:var(--text-placeholder)}
+
+  /* ===== 居中弹窗（确认 / 设计说明 / 同步记录） ===== */
+  .cfm-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:calc(var(--z-modal) + 3);opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .cfm-overlay.show{opacity:1;pointer-events:auto}
+  .cfm{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.96);width:400px;max-width:92vw;background:var(--bg-white);border-radius:8px;box-shadow:0 12px 40px rgba(0,0,0,0.2);z-index:calc(var(--z-modal) + 4);opacity:0;pointer-events:none;transition:all var(--transition-normal);display:flex;flex-direction:column}
+  .cfm-overlay.show .cfm{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+  .cfm-body{padding:24px 20px 6px;display:flex;gap:12px;align-items:flex-start}
+  .cfm-ico{flex:none;width:36px;height:36px;border-radius:50%;background:var(--warning-bg);display:flex;align-items:center;justify-content:center}
+  .cfm-ico svg{width:18px;height:18px;stroke:var(--warning);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .cfm-txt{font-size:14px;color:var(--text-primary);line-height:1.7;padding-top:5px}
+  .cfm-txt b{color:var(--danger)}
+  .cfm-foot{display:flex;justify-content:flex-end;gap:8px;padding:16px 20px}
+
+  /* ---- 设计说明 / 同步记录 弹窗 ---- */
+  .modal-mask{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:calc(var(--z-modal) + 3);opacity:0;pointer-events:none;transition:opacity var(--transition-normal)}
+  .modal-mask.show{opacity:1;pointer-events:auto}
+  .modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.97);width:900px;max-width:94vw;max-height:86vh;background:var(--bg-white);border-radius:8px;box-shadow:0 12px 40px rgba(0,0,0,0.22);z-index:calc(var(--z-modal) + 4);opacity:0;pointer-events:none;transition:all var(--transition-normal);display:flex;flex-direction:column}
+  .modal-mask.show .modal{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+  .modal.narrow{width:660px}
+  .modal-head{height:44px;flex-shrink:0;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid #E8E8E8;gap:10px}
+  .modal-head h3{font-size:15px;font-weight:var(--font-weight-semibold);color:var(--text-primary)}
+  .modal-head .mh-sub{font-size:12px;color:var(--text-tertiary)}
+  .modal-close{margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-tertiary);border-radius:var(--r-sm);font-size:18px;line-height:1}
+  .modal-close:hover{background:var(--primary-bg);color:var(--primary)}
+  .modal-tabs{display:flex;gap:2px;padding:0 16px;border-bottom:1px solid #E8E8E8;flex-shrink:0}
+  .mt-item{padding:9px 12px;font-size:13px;color:var(--text-secondary);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+  .mt-item:hover{color:var(--primary)}
+  .mt-item.on{color:var(--primary);border-bottom-color:var(--primary);font-weight:var(--font-weight-medium)}
+  .modal-body{flex:1;min-height:0;overflow:auto;padding:16px 20px 24px}
+  .modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:12px 20px;border-top:1px solid #E8E8E8;flex-shrink:0}
+
+  /* 文档型内容 */
+  .doc-sec{margin-bottom:20px}
+  .doc-sec:last-child{margin-bottom:0}
+  .doc-sec h4{font-size:13px;font-weight:var(--font-weight-semibold);color:var(--text-primary);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .doc-sec h4::before{content:"";width:3px;height:12px;background:var(--primary);border-radius:2px}
+  .doc-tbl{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+  .doc-tbl th{background:#F5F6FA;color:var(--text-primary);font-weight:var(--font-weight-medium);text-align:left;padding:7px 10px;border:1px solid #E8E8E8;font-size:12px}
+  .doc-tbl td{padding:7px 10px;border:1px solid #EDEFF3;color:var(--text-secondary);vertical-align:top;line-height:1.6;word-break:break-word}
+  .doc-tbl td b{color:var(--text-primary);font-weight:var(--font-weight-medium)}
+  .doc-tbl code,.doc-code{font-family:Consolas,monospace;font-size:11px;background:#F5F6FA;border-radius:3px;padding:1px 4px;color:#3D6FE0}
+  .doc-note{font-size:12px;color:var(--text-tertiary);line-height:1.7;background:#FAFBFC;border-left:2px solid #D6DEE9;padding:8px 10px;border-radius:0 4px 4px 0;margin-top:8px}
+  .ok-tag{display:inline-block;font-size:11px;color:#52B61A;background:#F0FAE9;border-radius:3px;padding:0 5px;line-height:17px;white-space:nowrap}
+  .no-tag{display:inline-block;font-size:11px;color:var(--text-placeholder);background:#F5F6FA;border-radius:3px;padding:0 5px;line-height:17px;white-space:nowrap}
+  .cond-tag{display:inline-block;font-size:11px;color:#D9822B;background:#FDF7EE;border-radius:3px;padding:0 5px;line-height:17px;white-space:nowrap}
+
+  /* 同步记录列表 */
+  .log-row{display:flex;gap:10px;padding:10px 0;border-bottom:1px dashed #EDEFF3;font-size:12px}
+  .log-row:last-child{border-bottom:none}
+  .log-dot{flex:none;width:7px;height:7px;border-radius:50%;margin-top:5px;background:#52B61A}
+  .log-dot.err{background:var(--danger)}
+  .log-main{flex:1;min-width:0}
+  .log-main .lg-t{color:var(--text-primary);font-size:13px;margin-bottom:3px}
+  .log-main .lg-s{color:var(--text-tertiary);line-height:1.6}
+  .log-time{flex:none;color:var(--text-placeholder);font-family:Consolas,monospace;font-size:11px}
+</style>
+</head>
+<body>
+
+<div class="main-area">
+
+  <div class="tabbar">
+    <div class="tab-item active">区域网格化管理</div>
+  </div>
+
+  <div class="content">
+    <div class="content-card">
+
+      <div class="page-head">
+        <h1>区域网格化管理</h1>
+        <div class="right">
+          <span class="sync-chip" id="syncChip"><i></i><span id="syncChipTxt">上次同步 —</span></span>
+          <div class="demo-role" title="演示用：切换登录角色以查看权限差异">
+            <span class="dr-lbl">演示角色</span>
+            <select id="roleSel" onchange="onRoleChange(this)">
+              <option value="district_admin">区县管理员</option>
+              <option value="org_admin">机构管理员</option>
+              <option value="grid_admin">网格管理员</option>
+              <option value="viewer">只读查看</option>
+            </select>
+          </div>
+          <button class="btn btn-default" onclick="openDoc(0)">设计说明</button>
+        </div>
+      </div>
+
+      <div class="split">
+
+        <!-- ===== 左侧：区划树 ===== -->
+        <div class="tree-panel">
+          <div class="pull-bar">
+            <div class="pull-line">
+              <span class="pl-lbl">区县</span>
+              <select class="p-select is-placeholder" id="regionSel" onchange="onRegionChange(this)">
+                <option value="">请选择区县</option>
+              </select>
+            </div>
+            <div class="pull-split">
+              <button class="btn-pull" id="btnPull" onclick="doSync('incremental')">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span id="btnPullTxt">同步下辖镇村</span>
+              </button>
+              <button class="btn-pull-more" id="btnPullMore" onclick="togglePullMenu(event)" title="更多同步操作">
+                <svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4"/></svg>
+              </button>
+              <div class="pull-menu" id="pullMenu">
+                <div class="pm-item" onclick="doSync('incremental')">增量同步<span class="pm-sub">仅拉取新增 / 变更 / 撤并的镇村</span></div>
+                <div class="pm-item" onclick="doSync('full')">全量同步<span class="pm-sub">重建本区县镇村结构，不影响组数据</span></div>
+                <div class="pm-sep"></div>
+                <div class="pm-item" onclick="openSyncLog()">同步记录<span class="pm-sub">查看最近同步结果与失败原因</span></div>
+                <div class="pm-sep"></div>
+                <div class="pm-item demo" onclick="doSync('incremental','fail')">模拟同步失败（演示）</div>
+                <div class="pm-item demo" onclick="doSync('incremental','timeout')">模拟同步超时（演示）</div>
+              </div>
+            </div>
+            <div class="level-tip">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <span>层级：区县 › 镇/街道 › 村/社区 › <b>组（最小网格单元）</b></span>
+            </div>
+            <div class="scope-src" id="scopeSrc">默认区县来源：—</div>
+          </div>
+          <div class="sync-bar" id="syncBar">
+            <span class="sb-txt" id="syncBarTxt">尚未同步</span>
+            <span class="sb-act" id="syncBarAct" style="display:none" onclick="retrySync()">重试</span>
+          </div>
+          <div class="tree-search" id="treeSearchBox" style="display:none">
+            <div class="ts-box">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input id="treeKw" placeholder="搜索镇 / 村名称" oninput="renderTree()">
+            </div>
+          </div>
+          <div class="tree-body" id="treeBody">
+            <div class="tree-empty">
+              <svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9h.01M9 12h.01M9 15h.01M9 18h.01"/></svg>
+              <div>正在获取默认区县…</div>
+            </div>
+          </div>
+          <div class="orphan-bar" id="orphanBar" style="display:none" onclick="viewOrphans()">
+            <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span class="ob-txt" id="orphanTxt">待归并组 0</span>
+            <span class="ob-go">处理 ›</span>
+          </div>
+        </div>
+
+        <!-- ===== 右侧：组信息 ===== -->
+        <div class="grid-panel">
+          <div class="crumb-bar" id="crumbBar"></div>
+          <div class="stat-strip" id="statStrip" style="display:none"></div>
+          <div class="tbl-toolbar" id="tblToolbar">
+            <div class="tb-search">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input id="qKw" placeholder="搜索组名 / 组长 / 手机号" oninput="onFilterChange()">
+            </div>
+            <select class="tb-sel" id="qStatus" onchange="onFilterChange()">
+              <option value="">全部状态</option>
+              <option value="1">启用</option>
+              <option value="0">停用</option>
+            </select>
+            <select class="tb-sel" id="qSrc" onchange="onFilterChange()">
+              <option value="">全部来源</option>
+              <option value="auto">自动聚合</option>
+              <option value="manual">手工维护</option>
+            </select>
+            <span class="tb-hint" id="tbHint"></span>
+          </div>
+          <div class="table-wrap" id="tableWrap"></div>
+          <div class="page-foot" id="pageFoot" style="display:none"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 抽屉：新增 / 编辑组 / 变更归属 ===== -->
+<div class="drawer-mask" id="drawerMask" onclick="closeDrawer()"></div>
+<div class="drawer" id="groupDrawer">
+  <div class="drawer-head">
+    <h3 id="drawerTitle">新增组</h3>
+    <span class="dh-code" id="drawerCode" style="display:none"></span>
+    <div class="drawer-close" onclick="closeDrawer()">✕</div>
+  </div>
+  <div class="drawer-body">
+
+    <div class="assign-tip" data-when="assign" style="display:none">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span>仅变更所属行政村，组内其他信息（组长、组员数、备注等）保持不变。<br>变更后该组将以新的行政村编码 <code class="doc-code">villageCode</code> 关联，并从「待归并」列表移出。</span>
+    </div>
+
+    <div class="g-item" id="rowVillage">
+      <label class="required">所属村</label>
+      <input class="g-ctl" id="gVillage" readonly style="display:none">
+      <div class="cas-wrap" id="casWrap" style="display:none">
+        <div class="cas-box" id="casBox" onclick="toggleCasPanel(event)">
+          <span class="cas-seg" id="casSegs"></span>
+          <span class="cas-arrow"><svg viewBox="0 0 10 6" fill="none" stroke="#8c8c8c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l4 4 4-4"/></svg></span>
+        </div>
+        <div class="cas-panel" id="casPanel">
+          <div class="cas-col">
+            <div class="cas-col-title">镇 / 街道</div>
+            <div id="casTownCol"></div>
+          </div>
+          <div class="cas-col">
+            <div class="cas-col-title">村 / 社区</div>
+            <div id="casVilCol"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="g-item" data-when="create,edit">
+      <label class="required">组名</label>
+      <input class="g-ctl" id="gName" maxlength="20" placeholder="请输入组名，如：第一组">
+    </div>
+    <div class="g-item" data-when="create,edit">
+      <label>组长</label>
+      <input class="g-ctl" id="gLeader" maxlength="10" placeholder="请输入组长姓名">
+    </div>
+    <div class="g-item" data-when="create,edit">
+      <label>联系电话</label>
+      <input class="g-ctl" id="gPhone" maxlength="11" placeholder="请输入 11 位手机号">
+    </div>
+
+    <div class="g-item" data-when="create,edit">
+      <label class="plain">统计口径</label>
+      <div class="radio-line">
+        <label><input type="radio" name="gSrc" value="auto" checked onchange="onStatSrcChange()">自动聚合<span class="rl-sub">取自居民档案</span></label>
+        <label><input type="radio" name="gSrc" value="manual" onchange="onStatSrcChange()">手工维护</label>
+      </div>
+    </div>
+    <div class="g-item" data-when="create,edit">
+      <label>组员数</label>
+      <div class="g-field">
+        <input class="g-ctl" id="gMembers" type="number" min="0" placeholder="请输入组员数" style="width:100%">
+        <div class="hint" id="gMembersHint"></div>
+      </div>
+    </div>
+    <div class="g-item" data-when="create,edit">
+      <label>覆盖户数</label>
+      <div class="g-field">
+        <input class="g-ctl" id="gHouseholds" type="number" min="0" placeholder="请输入覆盖户数" style="width:100%">
+        <div class="hint" id="gHouseholdsHint"></div>
+      </div>
+    </div>
+    <div class="g-item" id="gAdjustRow" style="display:none">
+      <label class="required">调整说明</label>
+      <div class="g-field">
+        <input class="g-ctl" id="gAdjust" maxlength="50" placeholder="请说明手工调整原因，如：建档未完成，暂按台账录入" style="width:100%">
+        <div class="hint">手工口径下的数值与档案聚合结果不一致时，需留存调整依据以便审计追溯。</div>
+      </div>
+    </div>
+
+    <div class="g-item" data-when="create,edit">
+      <label class="plain">状态</label>
+      <div class="radio-line">
+        <label><input type="radio" name="gStatus" value="1" checked>启用</label>
+        <label><input type="radio" name="gStatus" value="0">停用</label>
+      </div>
+    </div>
+    <div class="g-item" data-when="create,edit">
+      <label class="plain" style="align-items:flex-start;padding-top:6px">备注</label>
+      <textarea class="g-textarea" id="gNote" maxlength="100" placeholder="请输入备注信息"></textarea>
+    </div>
+  </div>
+  <div class="drawer-foot">
+    <button class="btn btn-default" onclick="closeDrawer()">取消</button>
+    <button class="btn btn-primary" onclick="saveGroup()">保存</button>
+  </div>
+</div>
+
+<!-- ===== 居中确认弹窗 ===== -->
+<div class="cfm-overlay" id="cfmOverlay">
+  <div class="cfm">
+    <div class="cfm-body">
+      <div class="cfm-ico">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="cfm-txt" id="cfmTxt"></div>
+    </div>
+    <div class="cfm-foot">
+      <button class="btn btn-default" onclick="closeCfm()">取消</button>
+      <button class="btn btn-primary" id="cfmOk">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 设计说明弹窗（术语 / 接口 / 模型 / 权限） ===== -->
+<div class="modal-mask" id="docMask" onclick="closeDoc()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <h3>设计说明</h3>
+      <span class="mh-sub">区域网格化管理 · 需求待明确项落地口径</span>
+      <div class="modal-close" onclick="closeDoc()">✕</div>
+    </div>
+    <div class="modal-tabs" id="docTabs">
+      <div class="mt-item on" onclick="switchDocTab(0)">术语与层级</div>
+      <div class="mt-item" onclick="switchDocTab(1)">接口契约</div>
+      <div class="mt-item" onclick="switchDocTab(2)">数据模型</div>
+      <div class="mt-item" onclick="switchDocTab(3)">权限矩阵</div>
+    </div>
+    <div class="modal-body" id="docBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeDoc()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 同步记录弹窗 ===== -->
+<div class="modal-mask" id="logMask" onclick="closeSyncLog()">
+  <div class="modal narrow" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <h3>同步记录</h3>
+      <span class="mh-sub" id="logHeadSub"></span>
+      <div class="modal-close" onclick="closeSyncLog()">✕</div>
+    </div>
+    <div class="modal-body" id="logBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeSyncLog()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<script src="框架.js" data-page="area-grid-management" data-embed="auto"></script>
+<script>
+'use strict';
+
+/* =====================================================================
+ * 本页模型约定（对应评审问题 P1 / P3 / P4 / P5 / P6 / P8 / P10）
+ * ---------------------------------------------------------------------
+ * 1. 层级：区县 region › 镇/街道 town › 村/社区 village › 组 group
+ *    「组」= 最小网格单元，不再出现"片区"这一未定义概念（片区仅可作组内备注文本）
+ * 2. 主键：行政区划编码 regionCode / townCode / villageCode（12 位国标），
+ *    组主键 groupId（系统生成，与区划解耦）。任何关联均不依赖名称字符串。
+ * 3. 组数据独立持久化：groups 为独立数据集，区内切换区县只更换树的展示范围，
+ *    不清空、不重新加载任何区县的组数据。
+ * 4. 统计字段 members / households 按组配置口径 statSrc：auto=居民档案聚合，
+ *    manual=手工维护（需填写调整说明）。
+ * 5. 列表检索与分页均由服务端完成，前端只持有当前页数据。
+ * ===================================================================== */
+
+/* ================= 行政区划（模拟同步接口返回，扁平结构，编码为主键） =================
+ * 说明：真实系统由「行政区划同步接口」返回，此处为演示数据。
+ * 编码规则：区县 6 位 + 镇 3 位 + 村 3 位，示例值仅用于原型演示。 */
+var RAW_DIVS = {
+  '321012': { name: '江都区', towns: [
+    ['仙女镇', ['双沟村', '三荡村', '民和村', '樊庄村', '正谊村']],
+    ['樊川镇', ['永安村', '聚丰村', '圣禾村', '东汇村']],
+    ['大桥镇', ['昌西村', '松山村', '童兴村', '六河村']],
+    ['丁伙镇', ['新庄村', '高桥村', '锦东村', '丁伙村']],
+    ['郭村镇', ['东进村', '邠州村', '汤营村', '五和村']],
+    ['邵伯镇', ['崔桥村', '许庄村', '昭关坝村', '南渡村']],
+    ['小纪镇', ['纪西村', '吉东村', '宗村', '蒲塘村']]
+  ]},
+  '321003': { name: '邗江区', towns: [
+    ['瓜洲镇', ['军桥村', '冻青村']],
+    ['槐泗镇', ['槐二村', '林桥村', '酒甸村']]
+  ]},
+  '321002': { name: '广陵区', towns: [
+    ['湾头镇', ['万福村', '田庄村']],
+    ['头桥镇', ['头桥村', '九圣村', '红平村']]
+  ]}
+};
+
+/* 生成扁平区划列表 [{code,name,level,parentCode}] */
+function buildDivisions(regionCode) {
+  var raw = RAW_DIVS[regionCode];
+  if (!raw) return [];
+  var list = [{ code: regionCode, name: raw.name, level: 1, parentCode: '' }];
+  raw.towns.forEach(function (t, ti) {
+    var tc = regionCode + String(100 + ti);
+    list.push({ code: tc, name: t[0], level: 2, parentCode: regionCode });
+    t[1].forEach(function (v, vi) {
+      list.push({ code: tc + String(201 + vi * 2), name: v, level: 3, parentCode: tc });
+    });
+  });
+  return list;
+}
+
+/* ================= 组数据（独立持久化数据集，villageCode 关联，不依赖名称） =================
+ * statSrc: auto=自动聚合(居民档案) / manual=手工维护
+ * villageName 为快照，仅用于展示；村撤并后按 villageCode 判定为「待归并」而不丢数据 */
+var DB_GROUPS = [
+  { id: 'GR0001', villageCode: '321012100201', villageName: '双沟村', name: '第一组', leader: '张建国', phone: '13805271234', members: 46, households: 38, statSrc: 'auto', status: 1, note: '含原东片区', adjust: '', updatedAt: '2026-10-12 09:24', updatedBy: '张建国' },
+  { id: 'GR0002', villageCode: '321012100201', villageName: '双沟村', name: '第二组', leader: '李秀芳', phone: '13905275678', members: 52, households: 45, statSrc: 'auto', status: 1, note: '', adjust: '', updatedAt: '2026-10-12 09:24', updatedBy: '张建国' },
+  { id: 'GR0003', villageCode: '321012100201', villageName: '双沟村', name: '第三组', leader: '王德海', phone: '13705279012', members: 35, households: 30, statSrc: 'manual', status: 0, note: '并入第二组待调整', adjust: '台账在册 35 人，4 人建档未完成', updatedAt: '2026-09-30 15:02', updatedBy: '王德海' },
+  { id: 'GR0004', villageCode: '321012100201', villageName: '双沟村', name: '第四组', leader: '孙立群', phone: '13805271188', members: 41, households: 36, statSrc: 'auto', status: 1, note: '', adjust: '', updatedAt: '2026-10-08 10:11', updatedBy: '孙立群' },
+  { id: 'GR0005', villageCode: '321012100203', villageName: '三荡村', name: '荡东组', leader: '徐凤英', phone: '13605279901', members: 44, households: 39, statSrc: 'auto', status: 1, note: '', adjust: '', updatedAt: '2026-10-11 08:40', updatedBy: '徐凤英' },
+  { id: 'GR0006', villageCode: '321012100203', villageName: '三荡村', name: '荡西组', leader: '陈国强', phone: '13505278023', members: 38, households: 31, statSrc: 'auto', status: 1, note: '', adjust: '', updatedAt: '2026-10-11 08:40', updatedBy: '陈国强' },
+  { id: 'GR0007', villageCode: '321012100205', villageName: '民和村', name: '第一组', leader: '周桂兰', phone: '13905276677', members: 49, households: 42, statSrc: 'auto', status: 1, note: '', adjust: '', updatedAt: '2026-10-09 14:26', updatedBy: '周桂兰' },
+  { id: 'GR0008', villageCode: '321012100207', villageName: '樊庄村', name: '樊庄一组', leader: '吴德明', phone: '13705274455', members: 33, households: 28, statSrc: 'manual', status: 1, note: '新建小区在建', adjust: '外来租户未纳入档案，按物业台账暂计', updatedAt: '2026-10-15 16:38', updatedBy: '吴德明' },
+  { id: 'GR0009', villageCode: '321012100209', villageName: '正谊村', name: '第一组', leader: '郑小燕', phone: '13805273322', members: 47, households: 40, statSrc: 'auto', status: 1, note: '', adjust: '', updatedAt: '2026-10-10 09:05', updatedBy: '郑小燕' },
+  { id: 'GR0010', villageCode: '321012101201', villageName: '永安村', name: '永安一组', leader: '赵永康', phone: '13605273345', members: 40, households: 33, statSrc: 'auto', status: 1, note: '', adjust: '', updatedAt: '2026-10-13 11:12', updatedBy: '赵永康' },
+  { id: 'GR0011', villageCode: '321012101201', villageName: '永安村', name: '永安二组', leader: '陈玉梅', phone: '13505276789', members: 37, households: 29, statSrc: 'auto', status: 1, note: '沿河片区', adjust: '', updatedAt: '2026-10-13 11:12', updatedBy: '陈玉梅' },
+  { id: 'GR0012', villageCode: '321012101203', villageName: '聚丰村', name: '聚丰一组', leader: '刘建国', phone: '13905278899', members: 42, households: 37, statSrc: 'auto', status: 1, note: '', adjust: '', updatedAt: '2026-10-14 09:30', updatedBy: '刘建国' },
+  { id: 'GR0013', villageCode: '321012101203', villageName: '聚丰村', name: '聚丰二组', leader: '王丽华', phone: '13805277654', members: 39, households: 34, statSrc: 'auto', status: 1, note: '', adjust: '', updatedAt: '2026-10-14 09:30', updatedBy: '王丽华' },
+  { id: 'GR0014', villageCode: '321012101205', villageName: '圣禾村', name: '禾东组', leader: '马春生', phone: '13705271234', members: 36, households: 30, statSrc: 'auto', status: 0, note: '', adjust: '', updatedAt: '2026-09-28 10:20', updatedBy: '马春生' },
+  { id: 'GR0015', villageCode: '321012102201', villageName: '昌西村', name: '昌一组', leader: '顾德平', phone: '13605276543', members: 45, households: 38, statSrc: 'auto', status: 1, note: '', adjust: '', updatedAt: '2026-10-12 15:45', updatedBy: '顾德平' },
+  { id: 'GR0016', villageCode: '321012102201', villageName: '昌西村', name: '昌二组', leader: '钱秀珍', phone: '13505273210', members: 41, households: 35, statSrc: 'auto', status: 1, note: '', adjust: '', updatedAt: '2026-10-12 15:45', updatedBy: '钱秀珍' },
+  { id: 'GR0017', villageCode: '321012102203', villageName: '松山村', name: '松山一组', leader: '黄海涛', phone: '13905270987', members: 34, households: 27, statSrc: 'auto', status: 1, note: '', adjust: '', updatedAt: '2026-10-07 13:22', updatedBy: '黄海涛' },
+  { id: 'GR0018', villageCode: '321012103201', villageName: '新庄村', name: '新庄一组', leader: '杨志刚', phone: '13805272345', members: 43, households: 36, statSrc: 'auto', status: 1, note: '', adjust: '', updatedAt: '2026-10-16 08:55', updatedBy: '杨志刚' },
+  { id: 'GR0019', villageCode: '321012103201', villageName: '新庄村', name: '新庄二组', leader: '朱美芳', phone: '13705274567', members: 40, households: 33, statSrc: 'manual', status: 1, note: '', adjust: '拆迁过渡户 6 户未落档，按村委台账录入', updatedAt: '2026-10-16 08:55', updatedBy: '朱美芳' },
+  { id: 'GR0020', villageCode: '321012105201', villageName: '东进村', name: '东进一组', leader: '沈建平', phone: '13605275098', members: 38, households: 32, statSrc: 'auto', status: 1, note: '', adjust: '', updatedAt: '2026-10-11 16:10', updatedBy: '沈建平' },
+  /* —— 待归并：所属行政村已撤并，villageCode 在区划中不存在 —— */
+  { id: 'GR0021', villageCode: '321012100299', villageName: '原双沟村东片（已撤并）', name: '东片一组', leader: '陶文斌', phone: '13905278811', members: 29, households: 24, statSrc: 'manual', status: 1, note: '撤并后待重新指定所属村', adjust: '原村撤并，台账数据保留', updatedAt: '2026-08-20 10:00', updatedBy: '陶文斌' },
+  /* —— 其他区县数据（验证切区不丢数据） —— */
+  { id: 'GR0022', villageCode: '321003100201', villageName: '军桥村', name: '军桥一组', leader: '范志远', phone: '13805270011', members: 31, households: 26, statSrc: 'auto', status: 1, note: '', adjust: '', updatedAt: '2026-10-05 09:40', updatedBy: '范志远' },
+  { id: 'GR0023', villageCode: '321002100201', villageName: '万福村', name: '万福一组', leader: '陆红梅', phone: '13705270022', members: 28, households: 23, statSrc: 'auto', status: 1, note: '', adjust: '', updatedAt: '2026-10-06 10:15', updatedBy: '陆红梅' }
+];
+
+/* ================= 角色与权限（P9：角色权限矩阵） ================= */
+var ROLES = {
+  district_admin: { name: '区县管理员', scopeDesc: '本区县全部镇村组', sync: 1, create: 1, edit: 1, del: 1, statManual: 1, crossRegion: 1 },
+  org_admin:      { name: '机构管理员', scopeDesc: '所属机构管辖区县', sync: 0, create: 1, edit: 1, del: 0, statManual: 1, crossRegion: 0 },
+  grid_admin:     { name: '网格管理员', scopeDesc: '本人管辖的组', sync: 0, create: 0, edit: 1, del: 0, statManual: 0, crossRegion: 0 },
+  viewer:         { name: '只读查看',   scopeDesc: '授权区县全部只读', sync: 0, create: 0, edit: 0, del: 0, statManual: 0, crossRegion: 0 }
+};
+/* 网格管理员演示管辖范围（真实由「网格化权限管理」页配置） */
+var GRID_ADMIN_SCOPE = ['GR0001', 'GR0002', 'GR0005'];
+
+/* 用户可见区县范围（P9：数据隔离；P5：默认区县来源） */
+var SCOPE_REGIONS = [
+  { code: '321012', name: '江都区', isDefault: true, source: '用户所属机构：扬州市江都区滨江人民医院' },
+  { code: '321003', name: '邗江区', isDefault: false, source: '授权区域' },
+  { code: '321002', name: '广陵区', isDefault: false, source: '授权区域' }
+];
+
+/* ================= 页面状态 ================= */
+var STATE = {
+  role: 'district_admin',
+  regionCode: '',
+  regionName: '',
+  divisions: [],       // 当前区县扁平区划
+  divMap: {},
+  childrenMap: {},
+  expanded: {},
+  selectedCode: '',
+  view: 'node',        // node | orphan
+  kw: '', status: '', statSrc: '',
+  page: 1, pageSize: 10, total: 0, summary: null,
+  sync: { state: 'idle', lastAt: '2026-10-19 22:10', lastMode: '增量', err: '', mode: 'incremental', sim: '' },
+  seq: 24,
+  drawerMode: 'create',
+  editingId: ''
+};
+var GROUP_COUNT = {};   // villageCode -> 组数缓存
+
+/* ================= 通用工具 ================= */
+function $(id) { return document.getElementById(id); }
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function nowStr() {
+  var d = new Date(), p = function (n) { return n < 10 ? '0' + n : '' + n; };
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+function shortTime(s) { return s ? s.slice(5) : '—'; }
+function can(act) { return !!ROLES[STATE.role][act]; }
+function roleName() { return ROLES[STATE.role].name; }
+function markSelect(el) { el.classList.toggle('is-placeholder', !el.value); }
+
+/* =====================================================================
+ * 模拟接口层（P3：接口契约）
+ * 每个方法对应一条后端接口，页面只通过本层取数，不直接读 DB_*
+ * 真实联调时把 mock 实现替换为 fetch 即可，调用方无需改动
+ * ===================================================================== */
+var SIM = { delay: 380, failNext: false };
+
+var Api = {
+  /* GET /api/region/scope — 当前用户可见区县范围（含默认区县） */
+  getScope: function () {
+    return new Promise(function (res) {
+      setTimeout(function () { res(SCOPE_REGIONS.slice()); }, 220);
+    });
+  },
+
+  /* GET /api/region/divisions?regionCode=&parentCode=&keyword=
+   * 一次性返回该区县全部镇村（单区县节点量可控，整体缓存；
+   * 若单区县节点 > 2000，则按 parentCode 懒加载，并支持 keyword 服务端检索） */
+  getDivisions: function (regionCode) {
+    return new Promise(function (res) {
+      setTimeout(function () { res(buildDivisions(regionCode)); }, SIM.delay);
+    });
+  },
+
+  /* POST /api/region/divisions/sync
+   * body: { regionCode, mode: 'incremental'|'full' }
+   * 返回: { taskId, added, updated, revoked, orphanCount, syncedAt, operator, duration } */
+  syncDivisions: function (regionCode, mode, sim) {
+    return new Promise(function (res, rej) {
+      if (sim === 'fail') {
+        setTimeout(function () { rej({ code: 502, msg: '区划服务返回 502 Bad Gateway' }); }, 700);
+        return;
+      }
+      if (sim === 'timeout') {
+        setTimeout(function () { rej({ code: 0, msg: '请求超时（8000ms），已中断' }); }, 3000);
+        return;
+      }
+      setTimeout(function () {
+        res({
+          taskId: 'SYNC' + Date.now(),
+          mode: mode,
+          added: mode === 'full' ? 58 : 2,
+          updated: mode === 'full' ? 58 : 5,
+          revoked: mode === 'full' ? 0 : 1,
+          orphanCount: countOrphans(regionCode),
+          syncedAt: nowStr(),
+          operator: '张建国',
+          duration: '1.2s'
+        });
+      }, 900);
+    });
+  },
+
+  /* GET /api/region/groups?regionCode=&scopeType=&scopeCode=&keyword=&status=&statSrc=&page=&size=
+   * 服务端分页 + 检索 + 聚合统计，前端只接收当前页 */
+  listGroups: function (q) {
+    return new Promise(function (res) {
+      setTimeout(function () {
+        var pool = DB_GROUPS.filter(function (g) {
+          if (g.villageCode.slice(0, 6) !== q.regionCode) return false;
+          return true;
+        });
+        if (q.scopeType === 'village') {
+          pool = pool.filter(function (g) { return g.villageCode === q.scopeCode; });
+        } else if (q.scopeType === 'town') {
+          pool = pool.filter(function (g) { return g.villageCode.indexOf(q.scopeCode) === 0; });
+        } else if (q.scopeType === 'orphan') {
+          pool = pool.filter(function (g) { return !STATE.divMap[g.villageCode]; });
+        }
+        if (q.keyword) {
+          var k = q.keyword.toLowerCase();
+          pool = pool.filter(function (g) {
+            return (g.name || '').toLowerCase().indexOf(k) >= 0
+              || (g.leader || '').toLowerCase().indexOf(k) >= 0
+              || (g.phone || '').indexOf(k) >= 0;
+          });
+        }
+        if (q.status !== '' && q.status != null) {
+          pool = pool.filter(function (g) { return String(g.status) === String(q.status); });
+        }
+        if (q.statSrc) {
+          pool = pool.filter(function (g) { return g.statSrc === q.statSrc; });
+        }
+        /* 服务端聚合，不受分页影响 */
+        var sum = { groups: pool.length, households: 0, members: 0, leaderDone: 0, enabled: 0 };
+        pool.forEach(function (g) {
+          sum.households += (+g.households || 0);
+          sum.members += (+g.members || 0);
+          if (g.leader) sum.leaderDone++;
+          if (g.status === 1) sum.enabled++;
+        });
+        var start = (q.page - 1) * q.size;
+        res({ list: pool.slice(start, start + q.size), total: pool.length, summary: sum, page: q.page, size: q.size });
+      }, 260);
+    });
+  },
+
+  /* POST /api/region/groups */
+  createGroup: function (body) {
+    return new Promise(function (res) {
+      setTimeout(function () {
+        STATE.seq++;
+        var row = {
+          id: 'GR' + String(STATE.seq).padStart(4, '0'),
+          villageCode: body.villageCode,
+          villageName: body.villageName,
+          name: body.name, leader: body.leader, phone: body.phone,
+          /* 自动聚合口径下由服务端按居民档案计算，原型以示例值返回 */
+          members: body.members == null ? 42 : body.members,
+          households: body.households == null ? 36 : body.households,
+          statSrc: body.statSrc, status: body.status, note: body.note,
+          adjust: body.adjust, updatedAt: nowStr(), updatedBy: roleName()
+        };
+        DB_GROUPS.push(row);
+        res(row);
+      }, SIM.delay);
+    });
+  },
+
+  /* PUT /api/region/groups/{id} */
+  updateGroup: function (id, body) {
+    return new Promise(function (res, rej) {
+      setTimeout(function () {
+        var g = findGroup(id);
+        if (!g) { rej({ msg: '组不存在' }); return; }
+        Object.keys(body).forEach(function (k) { g[k] = body[k]; });
+        g.updatedAt = nowStr();
+        g.updatedBy = roleName();
+        res(g);
+      }, SIM.delay);
+    });
+  },
+
+  /* PATCH /api/region/groups/{id}/status */
+  setStatus: function (id, status) {
+    return new Promise(function (res) {
+      setTimeout(function () {
+        var g = findGroup(id);
+        g.status = status; g.updatedAt = nowStr(); g.updatedBy = roleName();
+        res(g);
+      }, 260);
+    });
+  },
+
+  /* DELETE /api/region/groups/{id} */
+  removeGroup: function (id) {
+    return new Promise(function (res) {
+      setTimeout(function () {
+        for (var i = 0; i < DB_GROUPS.length; i++) {
+          if (DB_GROUPS[i].id === id) { DB_GROUPS.splice(i, 1); break; }
+        }
+        res(true);
+      }, 260);
+    });
+  },
+
+  /* PATCH /api/region/groups/{id}/village — 变更归属（P4：撤并后重新挂接） */
+  reassignVillage: function (id, villageCode, villageName) {
+    return new Promise(function (res) {
+      setTimeout(function () {
+        var g = findGroup(id);
+        g.villageCode = villageCode;
+        g.villageName = villageName;
+        g.updatedAt = nowStr();
+        g.updatedBy = roleName();
+        res(g);
+      }, 260);
+    });
+  },
+
+  /* GET /api/region/sync-logs?regionCode= */
+  syncLogs: function () {
+    return new Promise(function (res) {
+      setTimeout(function () {
+        res([
+          { ok: true, title: '增量同步完成', desc: '新增 2 个村 · 更新 5 处属性 · 撤并 1 个村（原双沟村东片）· 1 个组待归并', at: STATE.sync.lastAt, by: '张建国' },
+          { ok: true, title: '全量同步完成', desc: '重建 7 个镇、29 个村结构，组数据未受影响', at: '2026-10-12 08:30', by: '张建国' },
+          { ok: false, title: '同步失败', desc: '区划服务返回 502 Bad Gateway，已保留原有结构，可重试', at: '2026-10-11 21:04', by: '系统' },
+          { ok: true, title: '增量同步完成', desc: '无变更（数据源较上次同步无差异）', at: '2026-10-08 09:15', by: '张建国' }
+        ]);
+      }, 240);
+    });
+  }
+};
+
+/* ================= 数据辅助 ================= */
+function findGroup(id) {
+  for (var i = 0; i < DB_GROUPS.length; i++) if (DB_GROUPS[i].id === id) return DB_GROUPS[i];
+  return null;
+}
+function isOrphan(g) { return !STATE.divMap[g.villageCode]; }
+function countOrphans(regionCode) {
+  var map = {};
+  buildDivisions(regionCode).forEach(function (d) { map[d.code] = 1; });
+  return DB_GROUPS.filter(function (g) {
+    return g.villageCode.slice(0, 6) === regionCode && !map[g.villageCode];
+  }).length;
+}
+function refreshGroupCount() {
+  GROUP_COUNT = {};
+  DB_GROUPS.forEach(function (g) {
+    GROUP_COUNT[g.villageCode] = (GROUP_COUNT[g.villageCode] || 0) + 1;
+  });
+}
+function groupsOfVillage(code) { return GROUP_COUNT[code] || 0; }
+function groupsOfTown(townCode) {
+  var n = 0;
+  (STATE.childrenMap[townCode] || []).forEach(function (v) { n += groupsOfVillage(v.code); });
+  return n;
+}
+function buildIndex() {
+  STATE.divMap = {}; STATE.childrenMap = {};
+  STATE.divisions.forEach(function (d) {
+    STATE.divMap[d.code] = d;
+    var p = d.parentCode || '__root__';
+    (STATE.childrenMap[p] = STATE.childrenMap[p] || []).push(d);
+  });
+}
+
+/* =====================================================================
+ * 启动：P5 默认区县规则
+ * 登录后先取「用户可见区县范围」，取 isDefault=true 者为默认区县；
+ * 若无默认标记则取第一个；随后统一走 syncDivisions 流程（不再直接置 pulled=true）
+ * ===================================================================== */
+function bootstrap() {
+  $('treeBody').innerHTML = '<div class="tree-empty">'
+    + '<svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>'
+    + '<div>正在获取默认区县…</div></div>';
+  Api.getScope().then(function (scope) {
+    var sel = $('regionSel');
+    sel.innerHTML = '<option value="">请选择区县</option>' + scope.map(function (r) {
+      return '<option value="' + r.code + '">' + esc(r.name) + '</option>';
+    }).join('');
+    var def = scope.filter(function (r) { return r.isDefault; })[0] || scope[0];
+    if (!def) {
+      $('treeBody').innerHTML = '<div class="tree-empty">'
+        + '<svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/></svg>'
+        + '<div>当前账号未被授权任何区县<br>请联系区县管理员在「网格化权限管理」中配置</div></div>';
+      renderSyncBar();
+      return;
+    }
+    sel.value = def.code;
+    markSelect(sel);
+    STATE.regionCode = def.code;
+    STATE.regionName = def.name;
+    STATE.defaultSource = def.source;
+    loadRegion(def.code, true);
+  });
+}
+
+/* 载入某区县区划（首次进入 / 切换区县都走这里） */
+function loadRegion(regionCode, isFirst) {
+  STATE.regionCode = regionCode;
+  var opt = $('regionSel').querySelector('option[value="' + regionCode + '"]');
+  STATE.regionName = opt ? opt.textContent : '';
+  Api.getDivisions(regionCode).then(function (list) {
+    STATE.divisions = list;
+    buildIndex();
+    refreshGroupCount();
+    STATE.expanded = {};
+    STATE.expanded[regionCode] = true;
+    STATE.selectedCode = regionCode;
+    STATE.view = 'node';
+    STATE.page = 1;
+    STATE.kw = ''; STATE.status = ''; STATE.statSrc = '';
+    $('qKw').value = ''; $('qStatus').value = ''; $('qSrc').value = '';
+    $('treeSearchBox').style.display = '';
+    $('treeKw').value = '';
+    STATE.sync.state = 'idle';
+    renderTree();
+    renderOrphanBar();
+    renderSyncBar();
+    renderPullBtn();
+    renderScopeSrc(isFirst);
+    refreshTable();
+  });
+}
+
+/* 默认区县来源提示（P5：让用户明确当前区县是系统默认带出的还是自己选的） */
+function renderScopeSrc(isDefault) {
+  var el = $('scopeSrc');
+  if (!el) return;
+  el.textContent = '默认区县来源：' + (isDefault ? (STATE.defaultSource || '所属机构') : '手动选择');
+  el.title = el.textContent;
+}
+
+/* ================= 区县切换（P2 语义：下拉只决定同步/展示范围；P6 不清组数据） ================= */
+function onRegionChange(sel) {
+  markSelect(sel);
+  var code = sel.value;
+  if (!code) return;
+  if (code === STATE.regionCode) return;
+  var name = sel.options[sel.selectedIndex].textContent;
+  openCfm('切换区县至 <b>「' + esc(name) + '」</b>？'
+    + '<br><span style="font-size:12px;color:var(--text-tertiary)">仅切换左侧区划树的展示范围。各区县的组数据独立持久化，切换不会清空或重新加载任何组信息。</span>',
+    function () { loadRegion(code, false); },
+    function () { sel.value = STATE.regionCode; markSelect(sel); });
+}
+
+/* ================= 同步（P7：超时 / 失败 / 重试 / 增量） ================= */
+function togglePullMenu(e) {
+  e.stopPropagation();
+  if ($('btnPullMore').disabled) return;
+  var m = $('pullMenu'), b = $('btnPullMore');
+  var open = !m.classList.contains('open');
+  m.classList.toggle('open', open);
+  b.classList.toggle('open', open);
+}
+document.addEventListener('click', function () {
+  $('pullMenu').classList.remove('open');
+  $('btnPullMore').classList.remove('open');
+  closeCasPanel();
+});
+
+function doSync(mode, sim) {
+  $('pullMenu').classList.remove('open');
+  $('btnPullMore').classList.remove('open');
+  if (!STATE.regionCode) { toast('请先选择区县', 'warning'); return; }
+  if (!can('sync')) { toast('当前角色（' + roleName() + '）无同步行政区划权限', 'warning'); return; }
+  if (STATE.sync.state === 'syncing') return;
+
+  if (mode === 'full') {
+    openCfm('全量同步将<b>重建</b>「' + esc(STATE.regionName) + '」的镇村结构。'
+      + '<br><span style="font-size:12px;color:var(--text-tertiary)">已维护的组数据独立存储，不受影响；已撤销村下的组将进入「待归并」。</span>',
+      function () { runSync(mode, sim); });
+    return;
+  }
+  runSync(mode, sim);
+}
+
+function runSync(mode, sim) {
+  STATE.sync.state = 'syncing';
+  STATE.sync.mode = mode;
+  STATE.sync.sim = sim || '';
+  STATE.sync.err = '';
+  renderSyncBar();
+  renderPullBtn();
+
+  Api.syncDivisions(STATE.regionCode, mode, sim).then(function (r) {
+    STATE.sync.state = 'idle';
+    STATE.sync.lastAt = r.syncedAt;
+    STATE.sync.lastMode = mode === 'full' ? '全量' : '增量';
+    /* 同步后重新取区划，保持编码与结构的权威性 */
+    return Api.getDivisions(STATE.regionCode).then(function (list) {
+      STATE.divisions = list;
+      buildIndex();
+      refreshGroupCount();
+      renderTree();
+      renderOrphanBar();
+      renderSyncBar();
+      renderPullBtn();
+      refreshTable();
+      var extra = r.orphanCount ? '，' + r.orphanCount + ' 个组待归并' : '';
+      toast('同步完成：新增 ' + r.added + ' 个村、更新 ' + r.updated + ' 处、撤并 ' + r.revoked + ' 个村' + extra, 'success');
+      STATE.lastResult = r;
+    });
+  }).catch(function (e) {
+    STATE.sync.state = 'failed';
+    STATE.sync.err = e && e.msg ? e.msg : '同步失败，请稍后重试';
+    renderSyncBar();
+    renderPullBtn();
+    toast('同步失败：' + STATE.sync.err, 'error');
+  });
+}
+
+function retrySync() { runSync(STATE.sync.mode || 'incremental', ''); }
+
+function renderSyncBar() {
+  var bar = $('syncBar'), txt = $('syncBarTxt'), act = $('syncBarAct');
+  bar.className = 'sync-bar';
+  act.style.display = 'none';
+  if (STATE.sync.state === 'syncing') {
+    bar.classList.add('is-busy');
+    txt.textContent = (STATE.sync.mode === 'full' ? '全量同步' : '增量同步') + '中，正在拉取「' + STATE.regionName + '」下辖镇村…';
+  } else if (STATE.sync.state === 'failed') {
+    bar.classList.add('is-err');
+    txt.textContent = '同步失败：' + STATE.sync.err;
+    act.style.display = '';
+    act.textContent = '重试';
+    act.onclick = retrySync;
+  } else {
+    txt.textContent = '上次同步 ' + STATE.sync.lastAt + ' · ' + STATE.sync.lastMode;
+    act.style.display = '';
+    act.textContent = '记录';
+    act.onclick = openSyncLog;
+  }
+  bar.title = txt.textContent;
+  var chip = $('syncChip');
+  chip.className = 'sync-chip';
+  if (STATE.sync.state === 'syncing') {
+    chip.classList.add('is-busy');
+    $('syncChipTxt').textContent = '同步中…';
+  } else if (STATE.sync.state === 'failed') {
+    chip.classList.add('is-err');
+    $('syncChipTxt').textContent = '同步失败';
+  } else {
+    $('syncChipTxt').textContent = '上次同步 ' + shortTime(STATE.sync.lastAt);
+  }
+}
+
+function renderPullBtn() {
+  var btn = $('btnPull'), more = $('btnPullMore'), txt = $('btnPullTxt');
+  var busy = STATE.sync.state === 'syncing';
+  var allow = can('sync') && !!STATE.regionCode;
+  btn.disabled = !allow || busy;
+  more.disabled = !allow || busy;
+  btn.classList.toggle('loading', busy);
+  txt.textContent = busy ? '同步中…' : '同步下辖镇村';
+  btn.title = allow ? '增量同步所选区县下辖镇村' : '当前角色无同步权限';
+  if (STATE.regionCode) {
+    $('regionSel').disabled = false;
+  }
+}
+
+/* ================= 树渲染 ================= */
+var ICONS = {
+  region: '<svg class="ico-region" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>',
+  town: '<svg class="ico-town" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M6 21V8h8v13"/><path d="M14 12h4v9"/><path d="M9 11h.01M9 14h.01M9 17h.01"/></svg>',
+  village: '<svg class="ico-village" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V10l7-5 7 5v11"/><path d="M9 21v-4h6v4"/><path d="M12 9h.01"/></svg>',
+  orphan: '<svg class="ico-orphan" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>'
+};
+
+function hlText(name, kw) {
+  if (!kw) return esc(name);
+  var i = name.indexOf(kw);
+  if (i < 0) return esc(name);
+  return esc(name.slice(0, i)) + '<b>' + esc(kw) + '</b>' + esc(name.slice(i + kw.length));
+}
+
+function nodeHtml(opts) {
+  var cls = 'tnode' + (opts.selected ? ' selected' : '');
+  var html = '<div class="' + cls + '"' + (opts.showCode ? ' title="行政区划编码：' + esc(opts.showCode) + '"' : '')
+    + ' onclick="' + opts.click + '">';
+  html += '<span class="tw' + (opts.expanded ? ' expanded' : '') + (opts.leaf ? ' leaf' : '') + '"'
+    + (opts.toggle ? ' onclick="event.stopPropagation();' + opts.toggle + '"' : '') + '>'
+    + '<svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>';
+  html += '<span class="t-ico">' + opts.icon + '</span>';
+  html += '<span class="t-name">' + opts.name + '</span>';
+  if (opts.meta) html += '<span class="t-meta">' + opts.meta + '</span>';
+  html += '</div>';
+  return html;
+}
+
+function renderTree() {
+  if (!STATE.divisions.length) return;
+  var kw = ($('treeKw').value || '').trim();
+  var root = STATE.regionCode;
+  var html = nodeHtml({
+    icon: ICONS.region,
+    name: hlText(STATE.regionName, kw) + '<span class="t-root-tag">根节点</span>',
+    meta: (STATE.childrenMap[root] || []).length + ' 镇',
+    selected: STATE.view === 'node' && STATE.selectedCode === root,
+    expanded: !!STATE.expanded[root],
+    showCode: root,
+    click: 'selectNode(\'' + root + '\')',
+    toggle: 'toggleExpand(\'' + root + '\')'
+  });
+
+  (STATE.childrenMap[root] || []).forEach(function (t) {
+    var vils = STATE.childrenMap[t.code] || [];
+    var townHit = !kw || t.name.indexOf(kw) >= 0 || vils.some(function (v) { return v.name.indexOf(kw) >= 0; });
+    if (kw && !townHit) return;
+    var expand = !!STATE.expanded[t.code] || (!!kw && vils.some(function (v) { return v.name.indexOf(kw) >= 0; }));
+    html += '<div class="tchildren">';
+    html += nodeHtml({
+      icon: ICONS.town,
+      name: hlText(t.name, kw),
+      meta: vils.length + ' 村 · ' + groupsOfTown(t.code) + ' 组',
+      selected: STATE.view === 'node' && STATE.selectedCode === t.code,
+      expanded: expand,
+      showCode: t.code,
+      click: 'selectNode(\'' + t.code + '\')',
+      toggle: 'toggleExpand(\'' + t.code + '\')'
+    });
+    if (expand) {
+      var vlist = kw ? vils.filter(function (v) { return v.name.indexOf(kw) >= 0; }) : vils;
+      html += '<div class="tchildren">';
+      vlist.forEach(function (v) {
+        html += nodeHtml({
+          icon: ICONS.village,
+          name: hlText(v.name, kw),
+          meta: groupsOfVillage(v.code) + ' 组',
+          selected: STATE.view === 'node' && STATE.selectedCode === v.code,
+          leaf: true,
+          showCode: v.code,
+          click: 'selectNode(\'' + v.code + '\')'
+        });
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+  });
+  $('treeBody').innerHTML = html;
+}
+
+function toggleExpand(code) {
+  STATE.expanded[code] = !STATE.expanded[code];
+  renderTree();
+}
+
+function selectNode(code) {
+  STATE.view = 'node';
+  STATE.selectedCode = code;
+  STATE.page = 1;
+  if (STATE.divMap[code] && STATE.divMap[code].level > 1) STATE.expanded[STATE.divMap[code].parentCode] = true;
+  renderTree();
+  refreshTable();
+}
+
+function renderOrphanBar() {
+  var n = countOrphans(STATE.regionCode);
+  var bar = $('orphanBar');
+  if (!n) { bar.style.display = 'none'; return; }
+  bar.style.display = '';
+  $('orphanTxt').textContent = '待归并组 ' + n + ' · 所属村已撤并';
+}
+
+function viewOrphans() {
+  STATE.view = 'orphan';
+  STATE.page = 1;
+  renderTree();
+  refreshTable();
+}
+
+/* ================= 右侧：面包屑 ================= */
+function breadcrumbSegs() {
+  if (STATE.view === 'orphan') return [];
+  var d = STATE.divMap[STATE.selectedCode];
+  if (!d) return [];
+  var segs = [];
+  var cur = d;
+  while (cur) {
+    segs.unshift(cur);
+    cur = cur.parentCode ? STATE.divMap[cur.parentCode] : null;
+  }
+  return segs;
+}
+
+function renderCrumb() {
+  var html = '';
+  if (STATE.view === 'orphan') {
+    html += '<svg class="c-ico" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>';
+    html += '<span class="crumb-seg" onclick="selectNode(\'' + STATE.regionCode + '\')">' + esc(STATE.regionName) + '</span>';
+    html += '<span class="crumb-sep">/</span>';
+    html += '<span class="crumb-seg cur">待归并组</span>';
+  } else {
+    var segs = breadcrumbSegs();
+    if (!segs.length) {
+      html += '<span style="font-size:13px;color:var(--text-tertiary)">暂未选择节点</span>';
+    } else {
+      html += '<svg class="c-ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
+      segs.forEach(function (s, i) {
+        var isLast = i === segs.length - 1;
+        html += '<span class="crumb-seg' + (isLast ? ' cur' : '') + '" ' + (isLast ? '' : 'onclick="selectNode(\'' + s.code + '\')"') + '>' + esc(s.name) + '</span>';
+        if (isLast) html += '<span class="crumb-code">' + esc(s.code) + '</span>';
+        else html += '<span class="crumb-sep">/</span>';
+      });
+    }
+  }
+  html += '<span class="role-tag">' + roleName() + ' · ' + ROLES[STATE.role].scopeDesc + '</span>';
+  if (STATE.view === 'orphan') {
+    html += '<button class="btn btn-default" onclick="selectNode(\'' + STATE.regionCode + '\')">返回区划视图</button>';
+  } else {
+    var dis = can('create') ? '' : ' disabled';
+    html += '<button class="btn btn-primary" ' + (can('create') ? 'onclick="openDrawer(\'create\')"' : 'disabled title="当前角色无新增权限"') + '>新增组</button>';
+  }
+  $('crumbBar').innerHTML = html;
+}
+
+/* ================= 右侧：统计条 ================= */
+function renderStats() {
+  var s = STATE.summary;
+  if (!s) { $('statStrip').style.display = 'none'; return; }
+  var lbl = STATE.view === 'orphan' ? '待归并' : (STATE.selectedCode === STATE.regionCode ? '全区' : (STATE.divMap[STATE.selectedCode] && STATE.divMap[STATE.selectedCode].level === 2 ? '该镇' : '该村'));
+  var cfg = [
+    { cls: 'sc-blue', tips: '组为网格化管理的最小单元', ico: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>', num: s.groups, name: '组总数' },
+    { cls: 'sc-green', tips: '含自动聚合与手工维护两种口径', ico: '<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>', num: s.households, name: '覆盖户数' },
+    { cls: 'sc-orange', tips: '已填写组长的组数', ico: '<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>', num: s.leaderDone, name: '组长已配置' },
+    { cls: 'sc-purple', tips: '状态为启用的组数', ico: '<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>', num: s.enabled, name: '启用组数' }
+  ];
+  $('statStrip').innerHTML = cfg.map(function (c) {
+    return '<div class="stat-chip ' + c.cls + '" title="' + esc(lbl + ' · ' + c.name + '：' + c.tips) + '"><span class="s-ico">' + c.ico + '</span>'
+      + '<span class="s-txt"><div class="s-num">' + c.num + '</div><div class="s-lbl">' + lbl + ' · ' + c.name + '</div></span></div>';
+  }).join('');
+  $('statStrip').style.display = 'flex';
+}
+
+/* ================= 右侧：列表（P10 服务端分页 + 检索） ================= */
+function scopeQuery() {
+  var type = 'region', code = STATE.regionCode;
+  if (STATE.view === 'orphan') { type = 'orphan'; }
+  else if (STATE.selectedCode && STATE.selectedCode !== STATE.regionCode) {
+    var d = STATE.divMap[STATE.selectedCode];
+    if (d) { type = d.level === 2 ? 'town' : 'village'; code = d.code; }
+  }
+  return { regionCode: STATE.regionCode, scopeType: type, scopeCode: code };
+}
+
+var _reqSeq = 0;
+function refreshTable() {
+  renderCrumb();
+  var q = scopeQuery();
+  var seq = ++_reqSeq;
+  var wrap = $('tableWrap');
+  var old = wrap.querySelector('.tbl-loading');
+  if (!old) wrap.insertAdjacentHTML('beforeend', '<div class="tbl-loading"><span class="sp"></span>加载中…</div>');
+  Api.listGroups({
+    regionCode: q.regionCode, scopeType: q.scopeType, scopeCode: q.scopeCode,
+    keyword: ($('qKw').value || '').trim(),
+    status: $('qStatus').value,
+    statSrc: $('qSrc').value,
+    page: STATE.page, size: STATE.pageSize
+  }).then(function (r) {
+    if (seq !== _reqSeq) return;      // 丢弃过期响应
+    STATE.total = r.total;
+    STATE.summary = r.summary;
+    renderStats();
+    renderTable(r.list);
+    renderFoot(r.total, r.size);
+    renderHint();
+  });
+}
+
+function renderHint() {
+  var srcLabel = { use: '', auto: '自动聚合', manual: '手工维护' };
+  $('tbHint').innerHTML = '共 <b>' + STATE.total + '</b> 条 · 服务端分页（每页 ' + STATE.pageSize + ' 条）';
+}
+
+function opsHtml(g) {
+  var canEdit = can('edit') && (STATE.role !== 'grid_admin' || GRID_ADMIN_SCOPE.indexOf(g.id) >= 0);
+  var html = '';
+  if (STATE.view === 'orphan') {
+    html += canEdit
+      ? '<span class="op-link" onclick="openDrawer(\'assign\',\'' + g.id + '\')">指定所属村</span>'
+      : '<span class="op-link disabled" title="当前角色无编辑权限">指定所属村</span>';
+    html += '<span class="op-gap"></span>';
+    html += can('del')
+      ? '<span class="op-link danger" onclick="delGroup(\'' + g.id + '\')">删除</span>'
+      : '<span class="op-link disabled">删除</span>';
+    return html;
+  }
+  var nextStatus = g.status === 1 ? 0 : 1;
+  html += canEdit
+    ? '<span class="op-link" onclick="toggleStatus(\'' + g.id + '\')">' + (g.status === 1 ? '停用' : '启用') + '</span>'
+    : '<span class="op-link disabled">' + (g.status === 1 ? '停用' : '启用') + '</span>';
+  html += '<span class="op-gap"></span>';
+  html += canEdit
+    ? '<span class="op-link" onclick="openDrawer(\'edit\',\'' + g.id + '\')">编辑</span>'
+    : '<span class="op-link disabled">编辑</span>';
+  html += '<span class="op-gap"></span>';
+  html += can('del')
+    ? '<span class="op-link danger" onclick="delGroup(\'' + g.id + '\')">删除</span>'
+    : '<span class="op-link disabled">删除</span>';
+  return html;
+}
+
+function renderTable(rows) {
+  var isVillage = STATE.view === 'node' && STATE.selectedCode !== STATE.regionCode
+    && STATE.divMap[STATE.selectedCode] && STATE.divMap[STATE.selectedCode].level === 3;
+  var isOrphan = STATE.view === 'orphan';
+
+  var cols = [{ w: 44, h: '序号' }];
+  if (!isVillage) cols.push({ w: isOrphan ? 164 : 152, h: '所属村 / 编码', tips: '下行为 12 位行政区划编码 villageCode（组与村关联的唯一依据）' });
+  cols = cols.concat([
+    { w: 100, h: '组名' },
+    { w: 66, h: '组长' },
+    { w: 106, h: '联系电话' },
+    { w: 60, h: '组员数', tips: '统计口径见「数据来源」列' },
+    { w: 68, h: '覆盖户数', tips: '统计口径见「数据来源」列' },
+    { w: 68, h: '数据来源' },
+    { w: 54, h: '状态' },
+    { flex: 120, h: '备注' },
+    { w: isOrphan ? 146 : 116, h: '操作' }
+  ]);
+  var minWidth = 0;
+  cols.forEach(function (c) { minWidth += c.flex || c.w || 0; });
+  var html = '<table class="list-tbl" style="min-width:' + minWidth + 'px"><colgroup>';
+  cols.forEach(function (c) { html += '<col' + (c.flex ? '' : ' style="width:' + c.w + 'px"') + '>'; });
+  html += '</colgroup><thead><tr>';
+  cols.forEach(function (c) { html += '<th' + (c.tips ? ' title="' + esc(c.tips) + '"' : '') + '>' + esc(c.h) + '</th>'; });
+  html += '</tr></thead><tbody>';
+
+  if (!rows.length) {
+    var tip = isOrphan
+      ? '当前区县没有待归并组，区划与组数据关联正常'
+      : (isVillage ? '当前村尚未维护组信息，点击右上角「新增组」开始维护'
+        : (STATE.selectedCode === STATE.regionCode ? '全区各村尚未维护组信息' : '该镇各村尚未维护组信息'));
+    html += '<tr><td colspan="' + cols.length + '"><div class="tbl-empty">'
+      + '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>'
+      + '<div>' + tip + '</div></div></td></tr>';
+  } else {
+    rows.forEach(function (g, i) {
+      var base = (STATE.page - 1) * STATE.pageSize + i + 1;
+      html += '<tr>';
+      html += '<td class="center">' + base + '</td>';
+      if (!isVillage) {
+        if (isOrphan) {
+          html += '<td><div class="vill-cell">'
+            + '<div class="vc-name" title="' + esc(g.villageName) + '">' + esc(g.villageName) + '</div>'
+            + '<div class="vc-row"><span class="orph-tag">待归并</span>'
+            + '<span class="vc-code is-invalid" title="该编码在当前区划中已失效，需重新指定所属村">' + esc(g.villageCode) + '</span></div>'
+            + '</div></td>';
+        } else {
+          html += '<td><div class="vill-cell">'
+            + '<div class="vc-name vill-link" onclick="jumpVillage(\'' + esc(g.villageCode) + '\')" title="点击定位到该村">' + esc(g.villageName) + '</div>'
+            + '<div class="vc-code" title="行政村编码 villageCode">' + esc(g.villageCode) + '</div>'
+            + '</div></td>';
+        }
+      }
+      html += '<td>' + esc(g.name) + '</td>';
+      html += '<td>' + (g.leader ? esc(g.leader) : '<span class="dash">—</span>') + '</td>';
+      html += '<td class="num">' + (g.phone ? esc(g.phone) : '<span class="dash">—</span>') + '</td>';
+      html += '<td class="center num">' + (g.members != null ? g.members : '<span class="dash">—</span>') + '</td>';
+      html += '<td class="center num">' + (g.households != null ? g.households : '<span class="dash">—</span>') + '</td>';
+      html += '<td><span class="src-tag ' + (g.statSrc === 'auto' ? 'src-auto' : 'src-manual') + '" title="' + (g.statSrc === 'auto' ? '由居民档案自动聚合' : '手工维护：' + esc(g.adjust || '')) + '">' + (g.statSrc === 'auto' ? '聚合' : '手工') + '</span></td>';
+      html += '<td><span class="st-tag ' + (g.status === 1 ? 'st-on' : 'st-off') + '"><i></i>' + (g.status === 1 ? '启用' : '停用') + '</span></td>';
+      html += '<td title="' + esc(g.note || '') + '">' + (g.note ? esc(g.note) : '<span class="dash">—</span>') + '</td>';
+      html += '<td>' + opsHtml(g) + '</td>';
+      html += '</tr>';
+    });
+  }
+  html += '</tbody></table>';
+  $('tableWrap').innerHTML = html;
+  $('tableWrap').scrollTop = 0;
+}
+
+function renderFoot(total, size) {
+  if (!total) { $('pageFoot').style.display = 'none'; return; }
+  var totalPages = Math.max(1, Math.ceil(total / size));
+  if (STATE.page > totalPages) STATE.page = totalPages;
+  var html = '<span class="pg-total">共 <b>' + total + '</b> 条</span>';
+  html += '<select class="pg-size" onchange="onPageSizeChange(this)">'
+    + [10, 20, 50].map(function (n) { return '<option value="' + n + '"' + (n === size ? ' selected' : '') + '>' + n + ' 条/页</option>'; }).join('')
+    + '</select>';
+  html += '<div class="pg-pager">';
+  html += '<span class="pg-btn' + (STATE.page <= 1 ? ' disabled' : '') + '" onclick="goPage(' + (STATE.page - 1) + ')">‹</span>';
+  for (var p = 1; p <= totalPages; p++) {
+    if (totalPages > 7 && p > 3 && p < totalPages - 1 && Math.abs(p - STATE.page) > 1) {
+      if (p === 4) html += '<span style="padding:0 4px;color:var(--text-tertiary)">…</span>';
+      continue;
+    }
+    html += '<span class="pg-btn' + (p === STATE.page ? ' active' : '') + '" onclick="goPage(' + p + ')">' + p + '</span>';
+  }
+  html += '<span class="pg-btn' + (STATE.page >= totalPages ? ' disabled' : '') + '" onclick="goPage(' + (STATE.page + 1) + ')" style="margin-left:4px">›</span>';
+  html += '</div>';
+  html += '<span class="pg-jump">跳至<input id="pgJump" type="text" onkeydown="if(event.key===\'Enter\')jumpPage()">页</span>';
+  $('pageFoot').innerHTML = html;
+  $('pageFoot').style.display = 'flex';
+}
+
+function goPage(p) {
+  var totalPages = Math.max(1, Math.ceil(STATE.total / STATE.pageSize));
+  if (p < 1 || p > totalPages || p === STATE.page) return;
+  STATE.page = p;
+  refreshTable();
+}
+function jumpPage() {
+  var v = parseInt(($('pgJump').value || '').trim(), 10);
+  if (isNaN(v)) return;
+  goPage(v);
+}
+function onPageSizeChange(sel) {
+  STATE.pageSize = +sel.value;
+  STATE.page = 1;
+  refreshTable();
+}
+function onFilterChange() {
+  STATE.page = 1;
+  debounceRefresh();
+}
+var _filterTimer;
+function debounceRefresh() {
+  clearTimeout(_filterTimer);
+  _filterTimer = setTimeout(refreshTable, 260);
+}
+function jumpVillage(code) {
+  if (!STATE.divMap[code]) return;
+  STATE.expanded[STATE.divMap[code].parentCode] = true;
+  selectNode(code);
+}
+
+/* ================= 所属村：级联选择 ================= */
+var drawerTown = '', drawerVillage = '';
+
+function renderCasBox() {
+  var html = '<span class="cas-tag">' + esc(STATE.regionName) + '</span>';
+  html += drawerTown ? '<span class="cas-tag">' + esc(drawerTownName()) + '</span>' : '<span class="cas-ph">请选择镇</span>';
+  html += drawerVillage ? '<span class="cas-tag">' + esc(drawerVillageName()) + '</span>' : '<span class="cas-ph">请选择村</span>';
+  $('casSegs').innerHTML = html;
+  renderCasPanel();
+}
+function drawerTownName() {
+  for (var i = 0; i < STATE.divisions.length; i++) if (STATE.divisions[i].code === drawerTown) return STATE.divisions[i].name;
+  return '';
+}
+function drawerVillageName() {
+  for (var i = 0; i < STATE.divisions.length; i++) if (STATE.divisions[i].code === drawerVillage) return STATE.divisions[i].name;
+  return '';
+}
+function renderCasPanel() {
+  var th = '';
+  (STATE.childrenMap[STATE.regionCode] || []).forEach(function (t) {
+    th += '<div class="cas-opt' + (t.code === drawerTown ? ' sel' : '') + '" onclick="event.stopPropagation();pickCasTown(\'' + t.code + '\')">' + esc(t.name) + '</div>';
+  });
+  $('casTownCol').innerHTML = th || '<div class="cas-empty">该区县暂无镇数据</div>';
+  var vh = '';
+  if (drawerTown) {
+    (STATE.childrenMap[drawerTown] || []).forEach(function (v) {
+      vh += '<div class="cas-opt' + (v.code === drawerVillage ? ' sel' : '') + '" onclick="event.stopPropagation();pickCasVillage(\'' + v.code + '\')">' + esc(v.name) + '</div>';
+    });
+    if (!vh) vh = '<div class="cas-empty">该镇暂无村数据</div>';
+  } else {
+    vh = '<div class="cas-empty">请先选择镇</div>';
+  }
+  $('casVilCol').innerHTML = vh;
+}
+function toggleCasPanel(e) {
+  e.stopPropagation();
+  var p = $('casPanel'), b = $('casBox');
+  var open = !p.classList.contains('open');
+  p.classList.toggle('open', open);
+  b.classList.toggle('open', open);
+}
+function closeCasPanel() {
+  $('casPanel').classList.remove('open');
+  $('casBox').classList.remove('open');
+}
+function pickCasTown(code) {
+  drawerTown = code; drawerVillage = '';
+  renderCasBox();
+}
+function pickCasVillage(code) {
+  drawerVillage = code;
+  renderCasBox();
+  closeCasPanel();
+}
+
+/* ================= 抽屉：新增 / 编辑 / 变更归属 ================= */
+function applyDrawerMode(mode) {
+  var nodes = $('groupDrawer').querySelectorAll('[data-when]');
+  for (var i = 0; i < nodes.length; i++) {
+    var when = nodes[i].getAttribute('data-when').split(',');
+    nodes[i].style.display = when.indexOf(mode) >= 0 ? '' : 'none';
+  }
+  if (mode === 'assign') $('rowVillage').style.display = '';
+}
+
+function openDrawer(mode, id) {
+  if (mode === 'create' && !can('create')) { toast('当前角色无新增权限', 'warning'); return; }
+  if (mode === 'edit' && !can('edit')) { toast('当前角色无编辑权限', 'warning'); return; }
+  if (!STATE.divisions.length) { toast('请先选择区县并同步下辖镇村', 'warning'); return; }
+
+  STATE.drawerMode = mode;
+  STATE.editingId = id || '';
+  applyDrawerMode(mode);
+
+  if (mode === 'create') {
+    $('drawerTitle').textContent = '新增组';
+    $('drawerCode').style.display = 'none';
+    var d = STATE.divMap[STATE.selectedCode];
+    drawerTown = d && d.level === 2 ? d.code : (d && d.level === 3 ? d.parentCode : '');
+    drawerVillage = d && d.level === 3 ? d.code : '';
+    $('gVillage').style.display = 'none';
+    $('casWrap').style.display = '';
+    renderCasBox();
+    closeCasPanel();
+    $('gName').value = ''; $('gLeader').value = ''; $('gPhone').value = '';
+    $('gMembers').value = ''; $('gHouseholds').value = ''; $('gNote').value = ''; $('gAdjust').value = '';
+    document.querySelector('input[name="gSrc"][value="auto"]').checked = true;
+    document.querySelector('input[name="gStatus"][value="1"]').checked = true;
+    onStatSrcChange();
+  } else {
+    var g = findGroup(id);
+    if (!g) return;
+    if (STATE.role === 'grid_admin' && GRID_ADMIN_SCOPE.indexOf(g.id) < 0) {
+      toast('该组不在您的管辖范围内，无法编辑', 'warning');
+      return;
+    }
+    if (mode === 'edit') {
+      $('drawerTitle').textContent = '编辑组';
+      $('drawerCode').style.display = '';
+      $('drawerCode').textContent = g.id;
+      $('gVillage').style.display = '';
+      $('gVillage').value = g.villageName + '（' + g.villageCode + '）';
+      $('casWrap').style.display = 'none';
+      closeCasPanel();
+      $('gName').value = g.name;
+      $('gLeader').value = g.leader || '';
+      $('gPhone').value = g.phone || '';
+      $('gMembers').value = g.members != null ? g.members : '';
+      $('gHouseholds').value = g.households != null ? g.households : '';
+      $('gNote').value = g.note || '';
+      $('gAdjust').value = g.adjust || '';
+      document.querySelector('input[name="gSrc"][value="' + (g.statSrc || 'auto') + '"]').checked = true;
+      document.querySelector('input[name="gStatus"][value="' + g.status + '"]').checked = true;
+      var srcDis = can('statManual') ? '' : ' disabled';
+      document.querySelectorAll('input[name="gSrc"]').forEach(function (el) { el.disabled = !!srcDis; });
+      onStatSrcChange();
+    } else {
+      $('drawerTitle').textContent = '重新指定所属村';
+      $('drawerCode').style.display = '';
+      $('drawerCode').textContent = g.id;
+      $('gVillage').style.display = 'none';
+      $('casWrap').style.display = '';
+      drawerTown = ''; drawerVillage = '';
+      renderCasBox();
+      closeCasPanel();
+    }
+  }
+  $('drawerMask').classList.add('show');
+  $('groupDrawer').classList.add('show');
+  setTimeout(function () { if (mode !== 'assign') $('gName').focus(); }, 220);
+}
+
+function closeDrawer() {
+  $('drawerMask').classList.remove('show');
+  $('groupDrawer').classList.remove('show');
+}
+
+/* 统计口径联动（P8） */
+function onStatSrcChange() {
+  var manual = document.querySelector('input[name="gSrc"]:checked').value === 'manual';
+  var editable = manual && can('statManual');
+  var dis = !editable;
+  $('gMembers').disabled = dis;
+  $('gHouseholds').disabled = dis;
+  $('gAdjustRow').style.display = manual ? '' : 'none';
+  $('gMembers').placeholder = manual ? '请输入组员数' : '由居民档案自动聚合';
+  $('gHouseholds').placeholder = manual ? '请输入覆盖户数' : '由居民档案自动聚合';
+  var autoHint = '来源：居民档案聚合 · 最近更新 2026-10-20 08:00';
+  var manualHintMembers = can('statManual')
+    ? '手工维护，需在下方向填写调整说明'
+    : '当前角色无手工口径权限，仅可查看';
+  $('gMembersHint').textContent = manual ? manualHintMembers : autoHint;
+  $('gHouseholdsHint').textContent = '';
+  $('gMembersHint').className = 'hint' + (manual && !can('statManual') ? ' warn' : '');
+  $('gHouseholdsHint').className = 'hint';
+}
+
+function statusVal() {
+  var rs = document.getElementsByName('gStatus');
+  for (var i = 0; i < rs.length; i++) if (rs[i].checked) return +rs[i].value;
+  return 1;
+}
+function srcVal() {
+  var rs = document.getElementsByName('gSrc');
+  for (var i = 0; i < rs.length; i++) if (rs[i].checked) return rs[i].value;
+  return 'auto';
+}
+
+function saveGroup() {
+  var mode = STATE.drawerMode;
+
+  /* 变更归属：只提交 villageCode */
+  if (mode === 'assign') {
+    if (!drawerVillage) { toast('请选择目标所属村', 'warning'); return; }
+    if (!can('edit')) { toast('当前角色无编辑权限', 'warning'); return; }
+    Api.reassignVillage(STATE.editingId, drawerVillage, drawerVillageName()).then(function () {
+      toast('已将组归属变更为「' + drawerVillageName() + '」', 'success');
+      closeDrawer();
+      refreshGroupCount();
+      renderTree();
+      renderOrphanBar();
+      refreshTable();
+    });
+    return;
+  }
+
+  var name = $('gName').value.trim();
+  if (!name) { toast('请输入组名', 'warning'); $('gName').focus(); return; }
+  var phone = $('gPhone').value.trim();
+  if (phone && !/^1[3-9]\d{9}$/.test(phone)) { toast('联系电话格式不正确，请输入 11 位手机号', 'warning'); $('gPhone').focus(); return; }
+
+  var src = srcVal();
+  var members = null, households = null, adjust = '';
+  if (src === 'auto') {
+    /* 自动聚合：前端不参与计算，交服务端按档案聚合；编辑态回显现有聚合值 */
+    members = $('gMembers').value === '' ? null : +$('gMembers').value;
+    households = $('gHouseholds').value === '' ? null : +$('gHouseholds').value;
+  } else {
+    if (!can('statManual')) { toast('当前角色无手工口径权限', 'warning'); return; }
+    if ($('gMembers').value === '' || $('gHouseholds').value === '') { toast('手工维护时请填写组员数与覆盖户数', 'warning'); return; }
+    adjust = $('gAdjust').value.trim();
+    if (!adjust) { toast('手工维护需填写调整说明', 'warning'); $('gAdjust').focus(); return; }
+    members = Math.max(0, +$('gMembers').value || 0);
+    households = Math.max(0, +$('gHouseholds').value || 0);
+  }
+
+  var body = {
+    name: name, leader: $('gLeader').value.trim(), phone: phone,
+    members: members, households: households, statSrc: src,
+    status: statusVal(), note: $('gNote').value.trim(), adjust: adjust
+  };
+
+  if (mode === 'create') {
+    if (!drawerTown) { toast('请选择所属镇', 'warning'); return; }
+    if (!drawerVillage) { toast('请选择所属村', 'warning'); return; }
+    var vk = drawerVillage;
+    var dup = DB_GROUPS.some(function (x) { return x.villageCode === vk && x.name === name; });
+    if (dup) { toast('该村已存在同名组：「' + name + '」', 'warning'); return; }
+    body.villageCode = vk;
+    body.villageName = drawerVillageName();
+    Api.createGroup(body).then(function () {
+      toast('新增组「' + name + '」成功', 'success');
+      closeDrawer();
+      STATE.view = 'node';
+      STATE.selectedCode = vk;
+      STATE.expanded[STATE.regionCode] = true;
+      STATE.expanded[drawerTown] = true;
+      STATE.page = 1;
+      refreshGroupCount();
+      renderTree();
+      renderOrphanBar();
+      refreshTable();
+    });
+  } else {
+    var hit = findGroup(STATE.editingId);
+    if (!hit) return;
+    var dup2 = DB_GROUPS.some(function (x) { return x.villageCode === hit.villageCode && x.name === name && x.id !== hit.id; });
+    if (dup2) { toast('该村已存在同名组：「' + name + '」', 'warning'); return; }
+    Api.updateGroup(STATE.editingId, body).then(function () {
+      toast('组「' + name + '」保存成功', 'success');
+      closeDrawer();
+      refreshGroupCount();
+      renderTree();
+      refreshTable();
+    });
+  }
+}
+
+function toggleStatus(id) {
+  var g = findGroup(id);
+  if (!g) return;
+  if (!can('edit')) { toast('当前角色无操作权限', 'warning'); return; }
+  if (STATE.role === 'grid_admin' && GRID_ADMIN_SCOPE.indexOf(g.id) < 0) { toast('该组不在您的管辖范围内', 'warning'); return; }
+  Api.setStatus(id, g.status === 1 ? 0 : 1).then(function (r) {
+    toast('组「' + r.name + '」已' + (r.status === 1 ? '启用' : '停用'), 'success');
+    refreshTable();
+  });
+}
+
+function delGroup(id) {
+  var g = findGroup(id);
+  if (!g) return;
+  if (!can('del')) { toast('当前角色无删除权限', 'warning'); return; }
+  openCfm('确定删除组 <b>「' + esc(g.name) + '」</b> 吗？<br><span style="font-size:12px;color:var(--text-tertiary)">删除后不可恢复，该组关联的管辖权限配置将同时失效。</span>', function () {
+    Api.removeGroup(id).then(function () {
+      toast('组「' + g.name + '」已删除', 'success');
+      refreshGroupCount();
+      renderTree();
+      renderOrphanBar();
+      refreshTable();
+    });
+  });
+}
+
+/* ================= 角色切换（P9 演示） ================= */
+function onRoleChange(sel) {
+  STATE.role = sel.value;
+  renderCrumb();
+  renderPullBtn();
+  renderHint();
+  toast('已切换为「' + roleName() + '」，权限范围：' + ROLES[STATE.role].scopeDesc, 'success');
+  refreshTable();
+}
+
+/* ================= 居中确认弹窗 ================= */
+var cfmCb = null;
+function openCfm(html, onOk, onCancel) {
+  $('cfmTxt').innerHTML = html;
+  cfmCb = onOk || null;
+  $('cfmOverlay').classList.add('show');
+  $('cfmOverlay').__cancel = onCancel || null;
+}
+function closeCfm() {
+  var ov = $('cfmOverlay');
+  ov.classList.remove('show');
+  if (ov.__cancel) { ov.__cancel(); ov.__cancel = null; }
+  cfmCb = null;
+}
+$('cfmOk').onclick = function () {
+  var cb = cfmCb;
+  $('cfmOverlay').classList.remove('show');
+  $('cfmOverlay').__cancel = null;
+  cfmCb = null;
+  if (cb) cb();
+};
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Escape') return;
+  if ($('cfmOverlay').classList.contains('show')) { $('cfmOverlay').__cancel = null; $('cfmOverlay').classList.remove('show'); cfmCb = null; return; }
+  if ($('docMask').classList.contains('show')) { closeDoc(); return; }
+  if ($('logMask').classList.contains('show')) { closeSyncLog(); return; }
+  if ($('groupDrawer').classList.contains('show')) closeDrawer();
+});
+
+/* ================= 同步记录弹窗 ================= */
+function openSyncLog() {
+  $('docMask').classList.remove('show');
+  $('logHeadSub').textContent = STATE.regionName + ' · ' + STATE.regionCode;
+  $('logBody').innerHTML = '<div style="font-size:12px;color:var(--text-tertiary);text-align:center;padding:20px 0">加载中…</div>';
+  $('logMask').classList.add('show');
+  Api.syncLogs().then(function (logs) {
+    $('logBody').innerHTML = logs.map(function (l) {
+      return '<div class="log-row"><span class="log-dot' + (l.ok ? '' : ' err') + '"></span>'
+        + '<div class="log-main"><div class="lg-t">' + esc(l.title) + ' · ' + esc(l.by) + '</div>'
+        + '<div class="lg-s">' + esc(l.desc) + '</div></div>'
+        + '<span class="log-time">' + esc(l.at) + '</span></div>';
+    }).join('') + '<div class="doc-note">同步为幂等操作：重复同步不会产生重复镇村；撤并村下的组不会被删除，而是进入「待归并」等待重新指定归属。</div>';
+  });
+}
+function closeSyncLog() { $('logMask').classList.remove('show'); }
+
+/* ================= 设计说明弹窗 ================= */
+var DOC_TAB = 0;
+function openDoc(tab) {
+  $('logMask').classList.remove('show');
+  DOC_TAB = tab || 0;
+  $('docMask').classList.add('show');
+  renderDoc();
+}
+function closeDoc() { $('docMask').classList.remove('show'); }
+function switchDocTab(i) {
+  DOC_TAB = i;
+  renderDoc();
+}
+function renderDoc() {
+  var tabs = $('docTabs').children;
+  for (var i = 0; i < tabs.length; i++) tabs[i].className = 'mt-item' + (i === DOC_TAB ? ' on' : '');
+  $('docBody').innerHTML = [docTerms(), docApi(), docModel(), docPerm()][DOC_TAB];
+}
+
+function docTerms() {
+  return ''
+    + '<div class="doc-sec"><h4>层级与概念定义（对应 P1 / P2）</h4>'
+    + '<table class="doc-tbl"><colgroup><col style="width:120px"><col style="width:150px"><col></colgroup>'
+    + '<thead><tr><th>概念</th><th>编码字段</th><th>定义与口径</th></tr></thead><tbody>'
+    + '<tr><td><b>区县</b></td><td><code>regionCode</code>（6 位）</td><td>本页的<b>同步范围</b>与<b>树根节点</b>所指为同一对象。下拉框仅决定「拉取哪个区县的下辖镇村」，树根即该区县本身，二者不是两级关系。</td></tr>'
+    + '<tr><td><b>镇 / 街道</b></td><td><code>townCode</code>（9 位）</td><td>区县下级行政区划，由区划同步接口返回。</td></tr>'
+    + '<tr><td><b>村 / 社区</b></td><td><code>villageCode</code>（12 位）</td><td>组的归属载体，组与村的关联<b>只用 villageCode</b>，不使用名称拼接。</td></tr>'
+    + '<tr><td><b>组</b></td><td><code>groupId</code></td><td><b>最小网格单元</b>，网格化管理与权限分配的最小粒度（对应「网格化权限管理」中的「组」列）。</td></tr>'
+    + '<tr><td><b>片区</b></td><td>—</td><td><b>不是系统实体</b>，不参与建模与统计。仅作为组内地理范围的描述性文字写入「备注」，如「沿河片区」。</td></tr>'
+    + '</tbody></table>'
+    + '<div class="doc-note">结论：「组」即最小网格，不存在「组 / 网格 / 片区」三套并行概念。原页面中的「区域」表述统一改为「区县」，按钮文案由「拉取行政区划」改为「同步下辖镇村」。</div>'
+    + '</div>'
+    + '<div class="doc-sec"><h4>默认区县加载规则（对应 P5）</h4>'
+    + '<table class="doc-tbl"><colgroup><col style="width:70px"><col style="width:190px"><col></colgroup>'
+    + '<thead><tr><th>优先级</th><th>规则</th><th>说明</th></tr></thead><tbody>'
+    + '<tr><td>1</td><td>用户默认区县标记</td><td>由「网格化权限管理」中为该用户配置的管辖范围决定，取 <code>isDefault=true</code> 的区县。</td></tr>'
+    + '<tr><td>2</td><td>所属机构所在区县</td><td>无默认标记时，取用户所属机构所在地的区县。</td></tr>'
+    + '<tr><td>3</td><td>授权范围内第一个</td><td>以上均无匹配时，按授权范围排序取第一个。</td></tr>'
+    + '<tr><td>4</td><td>无授权区县</td><td>不加载任何区划，树区展示空态并引导联系管理员授权。</td></tr>'
+    + '</tbody></table>'
+    + '<div class="doc-note">默认区县确定后，仍<b>统一走区划同步流程</b>（不再由前端直接置为「已拉取」）。页面显式展示默认区县来源，便于用户判断当前看到的是哪个区县。</div>'
+    + '</div>'
+    + '<div class="doc-sec"><h4>组数据与区县的关系（对应 P6）</h4>'
+    + '<div class="doc-note" style="border-left-color:#BFDEFF;background:#F7FAFF">组数据按 <code>villageCode</code> 独立持久化，与「当前树展示哪个区县」无关。切换区县只更换树的范围与列表的查询条件，<b>不清理、不重新加载任何区县的组数据</b>。因此跨区县数据不会串扰，也不会因切换而丢失。</div>'
+    + '</div>';
+}
+
+function docApi() {
+  var rows = [
+    ['GET', '/api/region/scope', '当前用户可见区县范围', '—', 'regionCode, regionName, isDefault, scopeSource'],
+    ['GET', '/api/region/divisions', '查询区划树（扁平列表）', 'regionCode, parentCode?, keyword?', 'regionCode, regionName, level, parentCode, groupCount'],
+    ['POST', '/api/region/divisions/sync', '同步下辖镇村（幂等）', 'regionCode, mode: incremental | full', 'taskId, added, updated, revoked, orphanCount, syncedAt, operator'],
+    ['GET', '/api/region/sync-logs', '同步记录（分页）', 'regionCode, page, size', 'list[], total'],
+    ['GET', '/api/region/groups', '组列表（服务端分页 + 检索 + 聚合）', 'regionCode, scopeType, scopeCode, keyword, status, statSrc, page, size', 'list[], total, summary{groups, households, members, leaderDone, enabled}'],
+    ['POST', '/api/region/groups', '新增组', 'villageCode, name, leader, phone, members, households, statSrc, status, note, adjust', 'groupId'],
+    ['PUT', '/api/region/groups/{id}', '编辑组', 'name, leader, phone, members, households, statSrc, status, note, adjust', '更新时间、操作人'],
+    ['PATCH', '/api/region/groups/{id}/status', '启用 / 停用', 'status: 0 | 1', '—'],
+    ['PATCH', '/api/region/groups/{id}/village', '变更所属村（撤并归并）', 'villageCode', '—'],
+    ['DELETE', '/api/region/groups/{id}', '删除组', '—', '—']
+  ];
+  return '<div class="doc-sec"><h4>接口清单（对应 P3）</h4>'
+    + '<table class="doc-tbl"><colgroup><col style="width:66px"><col style="width:232px"><col style="width:148px"><col><col style="width:178px"></colgroup>'
+    + '<thead><tr><th>方法</th><th>路径</th><th>说明</th><th>关键请求参数</th><th>关键返回字段</th></tr></thead><tbody>'
+    + rows.map(function (r) {
+      return '<tr><td><code>' + r[0] + '</code></td><td><code>' + r[1] + '</code></td><td>' + r[2] + '</td><td>' + r[3] + '</td><td>' + r[4] + '</td></tr>';
+    }).join('')
+    + '</tbody></table>'
+    + '<div class="doc-note">本页面所有数据均经 <code>Api</code> 层获取（<code>Api.listGroups</code> 等），页面不直接读取本地数据集。联调时仅替换 Api 内部实现为 <code>fetch</code>，渲染逻辑无需改动。</div>'
+    + '</div>'
+    + '<div class="doc-sec"><h4>同步策略与异常态（对应 P7）</h4>'
+    + '<table class="doc-tbl"><colgroup><col style="width:110px"><col><col style="width:150px"></colgroup>'
+    + '<thead><tr><th>项</th><th>规则</th><th>异常态处理</th></tr></thead><tbody>'
+    + '<tr><td>触发方式</td><td>手动触发，默认<b>增量同步</b>；可切换全量同步（重建结构）</td><td>同步中按钮置灰，禁止重复提交</td></tr>'
+    + '<tr><td>幂等性</td><td>以 <code>regionCode</code> 为键比对，重复同步不产生重复镇村</td><td>—</td></tr>'
+    + '<tr><td>超时</td><td>8 秒超时中断</td><td>状态条红色提示 + 「重试」，保留原有树结构</td></tr>'
+    + '<tr><td>失败</td><td>区划服务异常 / 返回非 0 码</td><td>不覆盖本地结构，展示失败原因与同步记录</td></tr>'
+    + '<tr><td>增量结果</td><td>返回新增 / 更新 / 撤并数量与待归并组数</td><td>同步完成 toast 汇总；撤并村下的组进入「待归并」</td></tr>'
+    + '<tr><td>自动同步</td><td>可选：每日 02:00 定时增量同步</td><td>失败仅记日志，不阻塞业务</td></tr>'
+    + '</tbody></table>'
+    + '<div class="doc-note">原型可在同步按钮右侧「▾」中直接选择「模拟同步失败 / 模拟同步超时」，用于评审异常态视觉与文案。</div>'
+    + '</div>';
+}
+
+function docModel() {
+  return '<div class="doc-sec"><h4>核心数据模型（对应 P4 / P8）</h4>'
+    + '<div class="doc-note" style="margin-bottom:10px"><b>table: region_group（组）</b></div>'
+    + '<table class="doc-tbl"><colgroup><col style="width:140px"><col style="width:110px"><col><col style="width:150px"></colgroup>'
+    + '<thead><tr><th>字段</th><th>类型</th><th>说明</th><th>约束</th></tr></thead><tbody>'
+    + '<tr><td><code>group_id</code></td><td>varchar(20)</td><td>组主键，系统生成（如 GR0001），与区划解耦</td><td><b>PK</b></td></tr>'
+    + '<tr><td><code>region_code</code></td><td>varchar(6)</td><td>所属区县编码，冗余存储便于按区县检索与权限校验</td><td>NOT NULL</td></tr>'
+    + '<tr><td><code>village_code</code></td><td>varchar(12)</td><td>所属村编码，与区划表关联的<b>唯一依据</b></td><td>NOT NULL，INDEX</td></tr>'
+    + '<tr><td><code>village_name</code></td><td>varchar(50)</td><td>村名快照，仅用于展示，不参与关联</td><td>—</td></tr>'
+    + '<tr><td><code>group_name</code></td><td>varchar(20)</td><td>组名，同村内唯一</td><td>UNIQUE(village_code, group_name)</td></tr>'
+    + '<tr><td><code>leader_name</code></td><td>varchar(10)</td><td>组长姓名</td><td>可空</td></tr>'
+    + '<tr><td><code>leader_phone</code></td><td>varchar(11)</td><td>联系电话，11 位手机号</td><td>格式校验</td></tr>'
+    + '<tr><td><code>member_count</code></td><td>int</td><td>组员数</td><td>≥ 0</td></tr>'
+    + '<tr><td><code>household_count</code></td><td>int</td><td>覆盖户数</td><td>≥ 0</td></tr>'
+    + '<tr><td><code>stat_src</code></td><td>varchar(10)</td><td>统计口径：<code>auto</code> 居民档案聚合 / <code>manual</code> 手工维护</td><td>DEFAULT auto</td></tr>'
+    + '<tr><td><code>stat_adjust</code></td><td>varchar(50)</td><td>手工口径的调整说明，<code>stat_src=manual</code> 时必填</td><td>条件必填</td></tr>'
+    + '<tr><td><code>status</code></td><td>tinyint</td><td>0 停用 / 1 启用</td><td>DEFAULT 1</td></tr>'
+    + '<tr><td><code>remark</code></td><td>varchar(100)</td><td>备注</td><td>可空</td></tr>'
+    + '<tr><td><code>updated_at / updated_by</code></td><td>datetime / varchar</td><td>最后修改时间与操作人，用于审计</td><td>—</td></tr>'
+    + '</tbody></table>'
+    + '<div class="doc-note">名称不作为主键或外键。村改名不影响关联；村撤并后 <code>village_code</code> 在区划中失效，该组被判定为「待归并」，通过 <code>PATCH /groups/{id}/village</code> 重新挂接，数据不丢。</div>'
+    + '</div>'
+    + '<div class="doc-sec"><h4>组员数 / 覆盖户数口径（对应 P8）</h4>'
+    + '<table class="doc-tbl"><colgroup><col style="width:110px"><col><col style="width:160px"></colgroup>'
+    + '<thead><tr><th>口径</th><th>取值规则</th><th>可编辑性</th></tr></thead><tbody>'
+    + '<tr><td><b>自动聚合</b>（默认）</td><td>按 <code>village_code + group_id</code> 从居民档案聚合：组员数 = 在管居民数；覆盖户数 = 户主关系去重计数。每日 08:00 刷新</td><td>只读，不可手填</td></tr>'
+    + '<tr><td><b>手工维护</b></td><td>适用于建档未完成、拆迁过渡、流动人口未落档等场景</td><td>可编辑，<b>必须填写调整说明</b></td></tr>'
+    + '<tr><td>切换口径</td><td>自动 → 手工：保留当前聚合值作为初始值；手工 → 自动：以最近一次聚合结果覆盖并清空调整说明</td><td>区县 / 机构管理员可切换</td></tr>'
+    + '</tbody></table>'
+    + '<div class="doc-note">列表「数据来源」列以标签区分聚合/手工；统计条按所选范围由<b>服务端聚合</b>，不受当前页影响。</div>'
+    + '</div>';
+}
+
+function docPerm() {
+  var ok = '<span class="ok-tag">可</span>', no = '<span class="no-tag">不可</span>', cond = '<span class="cond-tag">限本人管辖</span>';
+  return '<div class="doc-sec"><h4>角色权限矩阵（对应 P9）</h4>'
+    + '<table class="doc-tbl"><colgroup><col style="width:120px"><col><col style="width:76px"><col style="width:62px"><col style="width:84px"><col style="width:62px"><col style="width:84px"></colgroup>'
+    + '<thead><tr><th>角色</th><th>数据可见范围</th><th>同步区划</th><th>新增组</th><th>编辑组</th><th>删除组</th><th>手工口径</th></tr></thead><tbody>'
+    + '<tr><td><b>区县管理员</b></td><td>本区县全部镇村组</td><td>' + ok + '</td><td>' + ok + '</td><td>' + ok + '</td><td>' + ok + '</td><td>' + ok + '</td></tr>'
+    + '<tr><td><b>机构管理员</b></td><td>所属机构管辖的区县</td><td>' + no + '</td><td>' + ok + '</td><td>' + ok + '</td><td>' + no + '</td><td>' + ok + '</td></tr>'
+    + '<tr><td><b>网格管理员</b></td><td>本人被授权的组</td><td>' + no + '</td><td>' + no + '</td><td>' + cond + '</td><td>' + no + '</td><td>' + no + '</td></tr>'
+    + '<tr><td><b>只读查看</b></td><td>授权区县全部只读</td><td>' + no + '</td><td>' + no + '</td><td>' + no + '</td><td>' + no + '</td><td>' + no + '</td></tr>'
+    + '</tbody></table>'
+    + '<div class="doc-note">管辖范围由「网格化权限管理」中的<b>管辖网格</b>配置驱动（区 / 镇 / 村 / 组 多选）。无权限的操作在界面上置灰并保留入口，点击提示原因，避免用户在无提示下反复尝试。</div>'
+    + '</div>'
+    + '<div class="doc-sec"><h4>检索与分页（对应 P10）</h4>'
+    + '<div class="doc-note" style="border-left-color:#BFDEFF;background:#F7FAFF">组列表的<b>检索、筛选、分页、聚合统计全部由服务端完成</b>，前端仅持有当前页数据，不加载全量。区划树因单区县节点量可控（通常 &lt; 2000），一次性加载并缓存；若超出阈值则按 <code>parentCode</code> 懒加载，检索改用服务端 <code>keyword</code> 参数。</div>'
+    + '</div>'
+    + '<div class="doc-sec"><h4>页面内演示角色</h4>'
+    + '<div class="doc-note">页头「演示角色」下拉用于评审时切换角色，验证按钮置灰、只读提示、管辖范围限制等效果；真实系统取登录用户角色，不提供此切换。</div>'
+    + '</div>';
+}
+
+/* ================= 初始化 ================= */
+refreshGroupCount();
+bootstrap();
+</script>
+</body>
+</html>

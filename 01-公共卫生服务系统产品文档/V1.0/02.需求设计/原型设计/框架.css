@@ -212,3 +212,34 @@ a{color:var(--text-link);text-decoration:none;cursor:pointer}
 .fcp-tree .fcp-panel{min-width:0;width:232px;max-height:250px}
 .fcp-tree.open .fcp-panel{display:block}
 .fcp-n .fcp-tgl{width:12px;text-align:center;font-size:11px;color:var(--text-placeholder);flex-shrink:0}
+
+/* ==========================================================================
+   单选下拉（居民状态等单一取值筛选条件）
+   结构：
+     <div class="rs-sel" data-options="正常|死亡|失访" data-placeholder="全部" style="width:160px">
+       <div class="rs-box"><span class="rs-text">正常</span><span class="rs-clear" title="清空">×</span></div>
+       <div class="rs-panel"></div>
+       <input type="hidden" class="rs-val" id="原控件id" value="正常">
+     </div>
+   说明：隐藏域沿用原 select 的 id，页面既有 $('id').value 读写逻辑无需改动
+   ========================================================================== */
+.rs-sel{position:relative;flex:0 0 auto;width:160px;max-width:100%}
+.rs-box{display:flex;align-items:center;gap:6px;height:32px;border:1px solid var(--color-neutral-300);border-radius:var(--r-sm);padding:0 8px 0 10px;font-size:14px;color:var(--text-primary);background:var(--bg-white);cursor:pointer;transition:all var(--transition-fast)}
+.rs-box:hover{border-color:var(--primary)}
+.rs-sel.open .rs-box{border-color:var(--primary)}
+/* 右侧指示区：默认显示下拉箭头；有值时鼠标移入框内，箭头替换为圆形清空按钮（同设计稿） */
+.rs-box::after{content:'';flex:none;width:6px;height:6px;margin:-4px 4px 0 0;border-right:1.5px solid #8C8C8C;border-bottom:1.5px solid #8C8C8C;transform:rotate(45deg);transition:transform var(--transition-fast)}
+.rs-sel.open .rs-box::after{transform:rotate(-135deg);margin-top:4px}
+.rs-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rs-text.is-ph{color:var(--text-placeholder)}
+.rs-clear{display:none;align-items:center;justify-content:center;width:14px;height:14px;flex-shrink:0;border:1px solid #B9BDC6;border-radius:50%;color:#B9BDC6;font-size:11px;line-height:1;cursor:pointer;transition:all var(--transition-fast)}
+.rs-sel.has-val:hover .rs-clear{display:flex}
+.rs-sel.has-val:hover .rs-box::after{display:none}
+.rs-clear:hover{border-color:var(--text-tertiary);color:var(--text-tertiary)}
+.rs-panel{position:absolute;left:0;top:calc(100% + 4px);min-width:100%;max-height:238px;overflow:auto;padding:4px 0;background:#fff;border:1px solid #E9EBF0;border-radius:var(--r-sm);box-shadow:0 6px 16px rgba(0,0,0,0.10);display:none;z-index:80}
+.rs-sel.open .rs-panel{display:block}
+.rs-sel.open{z-index:70}
+.rs-opt{display:flex;align-items:center;height:34px;padding:0 12px;font-size:14px;color:var(--text-primary);white-space:nowrap;cursor:pointer}
+.rs-opt:hover{background:var(--primary-light)}
+.rs-opt.on{background:rgba(0,122,255,0.35)}
+.rs-opt.on:hover{background:rgba(0,122,255,0.42)}
